@@ -21,6 +21,7 @@ import { CoachMarksOverlay } from '@/src/components/CoachMarksOverlay';
 import { NamePromptOverlay } from '@/src/components/NamePromptOverlay';
 import { OnboardingOverlay } from '@/src/components/OnboardingOverlay';
 import { HabitPilotHygiene } from '@/src/components/HabitPilotHygiene';
+import { AntSpendTipHygiene } from '@/src/components/AntSpendTipHygiene';
 import { ReminderDeepLink } from '@/src/components/ReminderDeepLink';
 import { ReminderHygiene } from '@/src/components/ReminderHygiene';
 import { HowToGuideProvider } from '@/src/hooks/useHowToGuide';
@@ -86,6 +87,7 @@ export default function RootLayout() {
                 <RootNavigator />
                 <ReminderHygiene />
                 <HabitPilotHygiene />
+                <AntSpendTipHygiene />
                 <ReminderDeepLink />
                 <OnboardingOverlay />
                 <NamePromptOverlay />

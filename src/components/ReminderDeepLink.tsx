@@ -10,12 +10,16 @@ function categoryIdFromData(data: unknown): string | null {
   const rec = data as Record<string, unknown>;
   // Android delivers notification data as strings.
   const type = rec.type != null ? String(rec.type) : '';
-  if (type !== 'expense-reminder') return null;
+  if (type !== 'expense-reminder' && type !== 'ant-spend-tip') return null;
   const categoryId = rec.categoryId != null ? String(rec.categoryId).trim() : '';
   return categoryId || null;
 }
 
-function openAdd(categoryId: string) {
+function openFromNotification(type: string, categoryId: string) {
+  if (type === 'ant-spend-tip') {
+    router.push('/(tabs)');
+    return;
+  }
   router.push({
     pathname: '/agregar',
     params: { categoryId, mode: 'advanced' },
@@ -38,11 +42,16 @@ export function ReminderDeepLink() {
       if (!response || cancelled) return;
       const id = response.notification.request.identifier;
       if (!id || handled.current === id) return;
-      const categoryId = categoryIdFromData(response.notification.request.content.data);
+      const data = response.notification.request.content.data;
+      const categoryId = categoryIdFromData(data);
       if (!categoryId) return;
+      const type =
+        data && typeof data === 'object' && 'type' in data
+          ? String((data as { type?: unknown }).type ?? '')
+          : '';
       handled.current = id;
       void AsyncStorage.setItem(HANDLED_KEY, id);
-      openAdd(categoryId);
+      openFromNotification(type, categoryId);
     }
 
     void (async () => {

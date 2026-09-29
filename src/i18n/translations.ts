@@ -95,6 +95,25 @@ export const translations = {
     'home.antTotal': 'Ant total',
     'home.antEmpty':
       'Mark subcategories as ant (café, gas, football…) in Plan to track them here.',
+    'antTip.kicker': 'Soft tip',
+    'antTip.dismiss': 'Not this week',
+    'antTip.openGlance': 'See expenses',
+    'antTip.title0': 'A light nudge on {concept}',
+    'antTip.title1': '{concept} is climbing a bit',
+    'antTip.title2': 'Room to ease {concept}?',
+    'antTip.title3': 'Tiny trim on {concept}',
+    'antTip.body0':
+      'It’s about {amount} this month. Easing ~{save} would still feel normal.',
+    'antTip.body1':
+      'Up versus last month. Leaving ~{save} aside on {concept} is a gentle win.',
+    'antTip.body2':
+      'Hormiga-style spend. If {concept} softens by ~{save}, the month breathes.',
+    'antTip.body3':
+      'No lecture — just a heads-up. {concept} is at {amount}; ~{save} less is doable.',
+    'antTip.body4':
+      'Other concepts look steadier. {concept} is the one with slack — maybe ~{save}.',
+    'antTip.body5':
+      'Same story, softer words: {concept} can shed ~{save} without drama.',
     'home.predictTitle': 'Expected payments this month',
     'home.predictSummary': '{pending} to watch · {amount}',
     'home.predictSummaryClear': 'Nothing pending · {amount}',
@@ -989,6 +1008,25 @@ export const translations = {
     'home.antTotal': 'Total hormiga',
     'home.antEmpty':
       'Marca subcategorías como hormiga (café, gasolina, fútbol…) en Plan para verlas aquí.',
+    'antTip.kicker': 'Tip suave',
+    'antTip.dismiss': 'No esta semana',
+    'antTip.openGlance': 'Ver gastos',
+    'antTip.title0': 'Un toque suave con {concept}',
+    'antTip.title1': '{concept} viene un poco más alto',
+    'antTip.title2': '¿Se puede aflojar {concept}?',
+    'antTip.title3': 'Un recorte chiquito en {concept}',
+    'antTip.body0':
+      'Vas en {amount} este mes. Soltar ~{save} seguiría sintiéndose normal.',
+    'antTip.body1':
+      'Subió frente al mes pasado. Dejar ~{save} en {concept} es una victoria suave.',
+    'antTip.body2':
+      'Plan hormiga: si {concept} baja ~{save}, el mes respira un poco.',
+    'antTip.body3':
+      'Sin sermón. {concept} va en {amount}; ~{save} menos es manejable.',
+    'antTip.body4':
+      'Otros conceptos se ven más quietos. {concept} es donde hay holgura — quizá ~{save}.',
+    'antTip.body5':
+      'Misma idea, tono más amable: {concept} puede soltar ~{save} sin drama.',
     'home.predictTitle': 'Pagos a vigilar este mes',
     'home.predictSummary': '{pending} por atender · {amount}',
     'home.predictSummaryClear': 'Nada pendiente · {amount}',

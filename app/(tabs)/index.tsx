@@ -1,8 +1,9 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AntSpendTipCard } from '@/src/components/AntSpendTipCard';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
 import { ConceptGlanceSheet } from '@/src/components/ConceptGlanceSheet';
 import { EditTransactionModal } from '@/src/components/EditTransactionModal';
@@ -28,6 +29,10 @@ import { palette, radii } from '@/src/theme/colors';
 import type { Transaction } from '@/src/types/finance';
 import { categoryLabel } from '@/src/utils/categoryLabel';
 import {
+  antTipWeekKey,
+  pickAntSpendTip,
+} from '@/src/utils/antSpendTips';
+import {
   openDebts,
   totalOwed,
 } from '@/src/utils/debts';
@@ -44,11 +49,12 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useLanguage();
   const { format } = useMoney();
-  const { settings } = useSettings();
+  const { settings, dismissAntSpendTipWeek } = useSettings();
   const {
     totalForPeriod,
     insightsForPeriod,
     transactionsForPeriod,
+    transactions,
     loading,
     availableCash,
     netWorth,
@@ -105,6 +111,21 @@ export default function HomeScreen() {
   const antShare = expenses > 0 ? ant.total / expenses : 0;
   const antTone: SignalTone =
     antShare >= 0.25 ? 'danger' : antShare >= 0.15 ? 'warn' : ant.total > 0 ? 'good' : 'neutral';
+
+  const antTip = useMemo(() => {
+    if (loading || !settings.onboardingDone) return null;
+    if (settings.antTipDismissedWeekKey === antTipWeekKey()) return null;
+    return pickAntSpendTip(transactions, spendConcepts);
+  }, [
+    loading,
+    settings.onboardingDone,
+    settings.antTipDismissedWeekKey,
+    transactions,
+    spendConcepts,
+  ]);
+
+  const antTipTitleVariant = settings.antTipLastTitleVariant ?? 0;
+  const antTipBodyVariant = settings.antTipLastBodyVariant ?? 0;
 
   const todayHint =
     recent.length === 0
@@ -253,6 +274,21 @@ export default function HomeScreen() {
         <FadeInBlock index={6}>
           <HabitPilotCard />
         </FadeInBlock>
+
+        {antTip ? (
+          <FadeInBlock index={6}>
+            <AntSpendTipCard
+              tip={antTip}
+              conceptLabel={categoryLabel(antTip.categoryId, t, spendConcepts)}
+              titleVariant={antTipTitleVariant}
+              bodyVariant={antTipBodyVariant}
+              onDismiss={() => {
+                void dismissAntSpendTipWeek();
+              }}
+              onOpen={() => setGlance('expense')}
+            />
+          </FadeInBlock>
+        ) : null}
 
         <FadeInBlock index={7}>
           <CollapsibleSection

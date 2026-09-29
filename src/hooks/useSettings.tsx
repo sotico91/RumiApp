@@ -36,6 +36,7 @@ import {
   syncRemindersFromRules,
 } from '@/src/utils/notifications';
 import { appendUniqueDay, localDateKey } from '@/src/utils/habitPilot';
+import { antTipWeekKey } from '@/src/utils/antSpendTips';
 
 type ReminderLabels = Record<string, { title: string; body: string }>;
 
@@ -105,6 +106,9 @@ type SettingsContextValue = {
   startHabitPilot: () => Promise<void>;
   dismissHabitPilot: () => Promise<void>;
   recordHabitOpenDay: () => Promise<void>;
+  /** Hide the soft ant tip until next Monday week. */
+  dismissAntSpendTipWeek: () => Promise<void>;
+  rememberAntTipVariants: (titleVariant: number, bodyVariant: number) => Promise<void>;
 };
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
@@ -518,6 +522,27 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     });
   }, [settings, persist]);
 
+  const dismissAntSpendTipWeek = useCallback(async () => {
+    await persist({ ...settings, antTipDismissedWeekKey: antTipWeekKey() });
+  }, [settings, persist]);
+
+  const rememberAntTipVariants = useCallback(
+    async (titleVariant: number, bodyVariant: number) => {
+      if (
+        settings.antTipLastTitleVariant === titleVariant &&
+        settings.antTipLastBodyVariant === bodyVariant
+      ) {
+        return;
+      }
+      await persist({
+        ...settings,
+        antTipLastTitleVariant: titleVariant,
+        antTipLastBodyVariant: bodyVariant,
+      });
+    },
+    [settings, persist]
+  );
+
   const value = useMemo(
     () => ({
       settings,
@@ -546,6 +571,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       startHabitPilot,
       dismissHabitPilot,
       recordHabitOpenDay,
+      dismissAntSpendTipWeek,
+      rememberAntTipVariants,
     }),
     [
       settings,
@@ -574,6 +601,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       startHabitPilot,
       dismissHabitPilot,
       recordHabitOpenDay,
+      dismissAntSpendTipWeek,
+      rememberAntTipVariants,
     ]
   );
 

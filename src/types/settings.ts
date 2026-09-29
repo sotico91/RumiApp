@@ -74,6 +74,15 @@ export type UserSettings = {
   habitPilotDismissed?: boolean;
   /** When to cue a log: right after paying, or one minute in the evening. */
   habitCue?: HabitCue;
+  /**
+   * Monday date key (YYYY-MM-DD) for the week the user dismissed the ant-spend tip.
+   * Cleared automatically next week.
+   */
+  antTipDismissedWeekKey?: string;
+  /** Last random title variant index used for the weekly ant tip. */
+  antTipLastTitleVariant?: number;
+  /** Last random body variant index used for the weekly ant tip. */
+  antTipLastBodyVariant?: number;
 };
 
 export type HabitCue = 'afterPay' | 'evening';

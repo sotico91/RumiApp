@@ -317,6 +317,69 @@ export async function clearCategoryReminders(): Promise<void> {
   );
 }
 
+const ANT_TIP_NOTIFY_ID = 'billing-ant-tip';
+
+/** Cancel the weekly soft ant-spend tip, if any. */
+export async function clearAntSpendTipNotification(): Promise<void> {
+  if (Platform.OS === 'web') return;
+  try {
+    await Notifications.cancelScheduledNotificationAsync(ANT_TIP_NOTIFY_ID);
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * One local weekly nudge (Wed ~6:30pm). Fresh random copy each sync.
+ * Free Personal Team safe — no remote push / aps-environment.
+ */
+export async function syncAntSpendTipNotification(opts: {
+  title: string;
+  body: string;
+  categoryId: string;
+  /** 1 = Sunday … 7 = Saturday (Expo / iOS). Default Wednesday. */
+  weekday?: number;
+  hour?: number;
+  minute?: number;
+}): Promise<boolean> {
+  if (Platform.OS === 'web') return false;
+
+  const granted = await ensureNotificationPermission();
+  if (!granted) return false;
+
+  await clearAntSpendTipNotification();
+
+  const weekday = opts.weekday ?? 4;
+  const hour = opts.hour ?? 18;
+  const minute = opts.minute ?? 30;
+  const attachments = await iosLogoAttachments();
+
+  await Notifications.scheduleNotificationAsync({
+    identifier: ANT_TIP_NOTIFY_ID,
+    content: {
+      title: opts.title,
+      body: opts.body,
+      data: {
+        type: 'ant-spend-tip' as const,
+        categoryId: String(opts.categoryId),
+      },
+      ...(attachments ? { attachments } : null),
+      ...(Platform.OS === 'ios' ? { sound: true } : null),
+      ...(Platform.OS === 'android'
+        ? { channelId: ANDROID_CHANNEL_ID, color: ANDROID_ACCENT }
+        : null),
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
+      weekday,
+      hour,
+      minute,
+    },
+  });
+
+  return true;
+}
+
 /** Cancel reminders whose subcategory is no longer allowed. */
 export async function cancelRemindersExcept(allowedCategoryIds: Set<string>): Promise<void> {
   if (Platform.OS === 'web') return;
