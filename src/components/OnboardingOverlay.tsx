@@ -19,13 +19,13 @@ import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
 import { palette, radii } from '@/src/theme/colors';
 import type { Currency } from '@/src/types/settings';
-import { categoryLabel } from '@/src/utils/categoryLabel';
+import { reminderPushCopy } from '@/src/utils/reminderCopy';
 
 const TOTAL_STEPS = 6;
 
 export function OnboardingOverlay() {
   const insets = useSafeAreaInsets();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { settings, ready, completeOnboarding } = useSettings();
   const [step, setStep] = useState(0);
   const [userName, setUserName] = useState('');
@@ -83,12 +83,7 @@ export function OnboardingOverlay() {
       const reminderLabels = Object.fromEntries(
         reminderCategoryIds.map((categoryId) => [
           categoryId,
-          {
-            title: t('reminder.pushTitle'),
-            body: t('reminder.pushBody', {
-              category: categoryLabel(categoryId, t, spendConcepts),
-            }),
-          },
+          reminderPushCopy(categoryId, spendConcepts, t, language),
         ])
       );
       await completeOnboarding({

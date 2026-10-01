@@ -780,7 +780,7 @@ export const translations = {
     'reminder.savedTitle': 'Reminders updated',
     'reminder.savedBody': 'Your local reminders were scheduled with date and time.',
     'reminder.pushTitle': 'Rumi reminder',
-    'reminder.pushBody': 'Did you log {category} yet?',
+    'reminder.pushBody': 'Already paid {target}? Log it.',
     'reminder.pickCategories': 'Concepts to remind',
 
     'habit.title': '14-day diary',
@@ -1698,7 +1698,7 @@ export const translations = {
     'reminder.savedTitle': 'Recordatorios actualizados',
     'reminder.savedBody': 'Tus alertas locales quedaron con fecha y hora.',
     'reminder.pushTitle': 'Recordatorio Rumi',
-    'reminder.pushBody': '¿Ya registraste {category}?',
+    'reminder.pushBody': '¿Ya pagaste {target}? Regístralo.',
     'reminder.pickCategories': 'Conceptos a recordar',
 
     'habit.title': 'Diario de 14 días',

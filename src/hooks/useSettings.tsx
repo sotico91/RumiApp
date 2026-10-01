@@ -88,7 +88,8 @@ type SettingsContextValue = {
   }) => Promise<void>;
   pruneRemindersToRegistered: (
     allowedSubIds: Set<string>,
-    labels: ReminderLabels
+    labels: ReminderLabels,
+    opts?: { reschedule?: boolean }
   ) => Promise<void>;
   updateQuickTemplate: (
     template: Omit<QuickTemplate, 'id' | 'updatedAt'> & { id?: string }
@@ -404,14 +405,18 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   );
 
   const pruneRemindersToRegistered = useCallback(
-    async (allowedSubIds: Set<string>, labels: ReminderLabels) => {
+    async (
+      allowedSubIds: Set<string>,
+      labels: ReminderLabels,
+      opts?: { reschedule?: boolean }
+    ) => {
       const rules = settings.reminderRules ?? [];
       const nextRules = rules.filter((r) => allowedSubIds.has(r.subId));
       const changed =
         nextRules.length !== rules.length ||
         nextRules.some((r, i) => r.subId !== rules[i]?.subId);
 
-      if (changed) {
+      if (changed || (opts?.reschedule && nextRules.length > 0)) {
         await updateReminders({
           reminderRules: nextRules,
           reminderLabels: labels,
