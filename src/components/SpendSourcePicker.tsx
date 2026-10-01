@@ -51,9 +51,6 @@ export function SpendSourcePicker({ value, onChange, showNoCards }: Props) {
           </Text>
         </Pressable>
       </View>
-      <Text style={styles.hint}>
-        {value === 'card' ? t('flow.paidWithCardHint') : t('flow.paidWithMoneyHint')}
-      </Text>
       {value === 'card' && showNoCards ? (
         <View style={styles.empty}>
           <Text style={styles.emptyBody}>{t('flow.noCardsBody')}</Text>
@@ -66,7 +63,11 @@ export function SpendSourcePicker({ value, onChange, showNoCards }: Props) {
             <Text style={styles.linkText}>{t('flow.goToWealth')}</Text>
           </Pressable>
         </View>
-      ) : null}
+      ) : (
+        <Text style={styles.hint}>
+          {value === 'card' ? t('flow.paidWithCardHint') : t('flow.paidWithMoneyHint')}
+        </Text>
+      )}
     </View>
   );
 }

@@ -41,9 +41,6 @@ export function InstallmentPayScopePicker({ choices, scope, onChange }: Props) {
   return (
     <View style={styles.wrap}>
       <Text style={styles.title}>{t('flow.payScopeTitle')}</Text>
-      <Text style={styles.hint}>
-        {choices.revolving ? t('flow.payScopeHintRevolving') : t('flow.payScopeHint')}
-      </Text>
       <View style={styles.grid}>
         {options.map((opt) => {
           const on = scope === opt.id;
@@ -71,12 +68,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Fraunces_600SemiBold',
     fontSize: 20,
     color: palette.ink,
-  },
-  hint: {
-    fontFamily: 'DMSans_400Regular',
-    fontSize: 13,
-    color: palette.inkMuted,
-    lineHeight: 18,
   },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   card: {

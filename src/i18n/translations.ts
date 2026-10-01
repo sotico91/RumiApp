@@ -370,14 +370,14 @@ export const translations = {
     'plan.nearLimit': 'Near the limit',
     'plan.noLimit': 'No limit',
     'plan.editLimit': 'Set limit',
-    'plan.goDebts': 'Register a permanent installment (apartment, car, credit)',
+    'plan.goDebts': 'Register a loan with cuotas in Wealth (apartment, car)',
 
     'wealth.title': 'Wealth',
     'wealth.subtitle':
       'Net worth = what you have in accounts minus debts. Income raises the account you chose (cash, bank, savings or a virtual wallet), not a separate “bonus” pot.',
     'wealth.accounts': 'Accounts, banks & wallets',
     'wealth.accountsHint':
-      'Where your money sits: cash, one or more banks, savings, investments, plus wallets you add (Nequi, etc.). Credit cards live under Debts & credit.',
+      'Where your money sits: cash, one or more banks, savings, investments, plus wallets you add (Nequi, etc.). Cards live under Cards & cupo — not here.',
     'wealth.groupInvestments': 'Investments',
     'wealth.groupCredit': 'Credit',
     'wealth.accountsCollapsed': '{count} pockets — tap to open',
@@ -407,11 +407,27 @@ export const translations = {
     'wealth.bankManageHint':
       'Rename the main bank if that’s where payroll lands. Need another bank? Add it here. Extra banks can be removed at $0.',
     'wealth.debts': 'Debts & credit',
+    'wealth.cards': 'Cards & cupo',
+    'wealth.loans': 'Loans & cuotas',
     'wealth.debtsEmptyShort': 'No debts yet',
+    'wealth.cardsEmptyShort': 'No cards yet',
+    'wealth.loansEmptyShort': 'No loans yet',
     'wealth.debtsCollapsed': '{count} · {amount}/mo — tap to open',
+    'wealth.cardsCollapsed': '{count} · {available} available — tap to open',
+    'wealth.loansCollapsed': '{count} · {amount}/mo — tap to open',
     'wealth.debtsEmpty':
       'Fixed installments (apartment, car) or revolving credit (card, credicheque, cupo). If the amount changes every month and it is not a cupo, skip this and log it as spend when you pay.',
+    'wealth.cardsEmpty':
+      'Visa, credicheque or a bank cupo. Charge uses cupo. Pay card uses cash.',
+    'wealth.loansEmpty':
+      'Apartment, car, payroll loan — remaining balance and a fixed cuota. No cupo here.',
     'wealth.addDebt': 'Add a debt',
+    'wealth.addCard': 'Add a card',
+    'wealth.addLoan': 'Add a loan',
+    'wealth.cardsHint':
+      'Available cupo, what you owe, and the statement payment. This is not a loan with cuotas.',
+    'wealth.loansHint':
+      'Remaining balance and a fixed monthly cuota. If the amount changes every month and it is not a cupo, log it as spend when you pay.',
     'wealth.kindLabel': 'What kind of debt',
     'wealth.kindInstallment': 'Fixed installment',
     'wealth.kindRevolving': 'Revolving credit',
@@ -447,6 +463,14 @@ export const translations = {
     'wealth.debtNeed': 'Name, balance and monthly installment must be greater than 0.',
     'wealth.howToPay':
       'Saving a cuota here does not spend money. Charge on a card is a spend and lowers cupo. Pay is what leaves cash, bank or Nequi. Pay the remaining total and that account leaves Wealth; it stays in Activity.',
+    'wealth.howToPayCard':
+      'Charge is a spend: cupo goes down, Nequi does not. Pay card is what leaves the pocket you pick. Pay the remaining total and the card leaves Wealth; it stays in Activity.',
+    'wealth.howToPayLoan':
+      'Saving the cuota here does not spend money. Tap Pay cuota (or ◎ → I paid a debt) so it leaves Nequi or the bank. Pay the remaining total and that loan leaves Wealth; it stays in Activity.',
+    'wealth.cardsOwed': 'You owe',
+    'wealth.cardsAvailable': 'Available',
+    'wealth.cardsToPay': 'To pay this month',
+    'wealth.cardsMonth': 'Card payments this month',
     'wealth.chargeSpend': 'Charge',
     'wealth.payCard': 'Pay card',
     'wealth.payInstallment': 'Pay cuota',
@@ -456,7 +480,7 @@ export const translations = {
     'wealth.debtPermanentHint':
       'Only the fixed installment amount — a reminder, not a loan calculator. It becomes spend when you log the payment with Add movement.',
     'wealth.debtConceptHint':
-      'Fixed installments or revolving credit. Register the amount you pay — not an interest rate.',
+      'Cards and loans are separate. Register the amount you pay — not an interest rate.',
     'wealth.debtBudgetHint':
       'Saving also sets a monthly limit equal to the installment on that subcategory.',
     'wealth.fixedMonth': 'Fixed installments this month',
@@ -516,7 +540,7 @@ export const translations = {
     'flow.paidWithMoneyHint': 'Cash, bank, Nequi, savings. That pocket goes down now.',
     'flow.paidWithCardHint': 'Spend this month. Cupo goes down; cash waits until you Pay the card.',
     'flow.noCardsBody':
-      'No card or cupo yet. Add it in Wealth → Debts & credit (revolving credit).',
+      'No card or cupo yet. Add it in Wealth → Cards & cupo.',
     'flow.goToWealth': 'Go to Wealth',
     'flow.cardAvailable': 'Available {amount}',
     'flow.whichAccount': 'Which account?',
@@ -585,7 +609,8 @@ export const translations = {
     'flow.payScopeOtherSub': 'Keep or change what you typed',
     'flow.payScopeNeed': 'Choose this month’s payment, the full amount owed, or another value.',
     'flow.noDebtsTitle': 'No debts registered',
-    'flow.noDebtsBody': 'First add the debt in Wealth (balance of your card or loan). Then come back to log the payment.',
+    'flow.noDebtsBody':
+      'Add it in Wealth first: a card under Cards & cupo, or a loan under Loans & cuotas. Then come back to log the payment.',
     'flow.tpl.coffee': 'Coffee',
     'flow.tpl.coffeeSub': 'Quick café stop',
     'flow.tpl.delivery': 'Delivery',
@@ -753,9 +778,9 @@ export const translations = {
     'guide.step4Title': 'Income, or just moving money',
     'guide.step4Body':
       'Got paid? ◎ → Add movement → I received money, and pick which account it entered (bank, Nequi, cash).\n\nMoved Nequi to savings, or bank to cash? ◎ → Add movement → I moved money. Pick from and to. Not a spend: it was already yours, it only changed pocket.',
-    'guide.step5Title': 'Debts: note in Wealth, pay with Add movement',
+    'guide.step5Title': 'Cards and loans are two different things',
     'guide.step5Body':
-      'In Wealth → Debts & credit, tap Add a debt. Same amount every month (apartment, car, payroll loan): fixed installment, with balance and cuota. Card, credicheque or cupo: revolving credit, with the limit and what you already used. You can have several cards.\n\nCharging Netflix to a card is I spent — cupo goes down, cash does not. The day you pay the statement: tap Pay on that card (or ◎ → I paid a debt). That lowers what you owe and the pocket you paid from.',
+      'In Wealth they are separate.\n\nCards & cupo: available, what you owe, and what you will pay this month. Charging Netflix is I spent — cupo goes down, cash does not. The day you pay the statement: Pay card.\n\nLoans & cuotas: apartment, car, payroll loan. Remaining balance and a fixed cuota. There is no cupo. Pay cuota is what leaves Nequi or the bank.',
     'guide.step6Title': 'Insights — the analysis engine',
     'guide.step6Body':
       'Open the Insights tab (bottom). At the top is Ask Rumi: type the month you care about and tap Ask. Examples: “July”, “how much in March 2025”, “2 months ago”, “coffee last month”. A few chips are only examples — not a list of every month.\n\nHoy / Semana / Mes only change the charts and notes below. The box uses the period you wrote.\n\nAnts and limits are marked in Plan; Insights is where you ask how they behaved.',
@@ -1303,14 +1328,14 @@ export const translations = {
     'plan.nearLimit': 'Cerca del límite',
     'plan.noLimit': 'Sin tope',
     'plan.editLimit': 'Definir tope',
-    'plan.goDebts': 'Registrar cuota permanente (apto, carro, crédito)',
+    'plan.goDebts': 'Registrar un crédito a cuotas en Patrimonio (apto, carro)',
 
     'wealth.title': 'Patrimonio',
     'wealth.subtitle':
       'Patrimonio = lo que hay en tus cuentas menos deudas. Un ingreso sube la cuenta que elegiste (efectivo, banco, ahorro o una billetera virtual). Bonos es solo el tipo de ingreso.',
     'wealth.accounts': 'Cuentas, bancos y billeteras',
     'wealth.accountsHint':
-      'Dónde está tu plata: efectivo, uno o varios bancos, ahorros, inversiones, y las billeteras que agregas (Nequi, etc.). Las tarjetas viven en Deudas y créditos.',
+      'Dónde está tu plata: efectivo, uno o varios bancos, ahorros, inversiones, y las billeteras que agregas (Nequi, etc.). Las tarjetas viven en Tarjetas y cupos, no aquí.',
     'wealth.groupInvestments': 'Inversiones',
     'wealth.groupCredit': 'Créditos',
     'wealth.accountsCollapsed': '{count} bolsillos — toca para abrir',
@@ -1340,11 +1365,27 @@ export const translations = {
     'wealth.bankManageHint':
       'Renombra el banco principal si ahí te pagan la nómina. ¿Tienes otro banco? Agrégalo aquí. Los extra se pueden quitar en $0.',
     'wealth.debts': 'Deudas y créditos',
+    'wealth.cards': 'Tarjetas y cupos',
+    'wealth.loans': 'Créditos y cuotas',
     'wealth.debtsEmptyShort': 'Sin deudas aún',
+    'wealth.cardsEmptyShort': 'Sin tarjetas aún',
+    'wealth.loansEmptyShort': 'Sin créditos aún',
     'wealth.debtsCollapsed': '{count} · {amount}/mes — toca para abrir',
+    'wealth.cardsCollapsed': '{count} · {available} disponibles — toca para abrir',
+    'wealth.loansCollapsed': '{count} · {amount}/mes — toca para abrir',
     'wealth.debtsEmpty':
       'Cuotas fijas (apto, carro) o crédito rotativo (tarjeta, credicheque, cupo). Si el monto cambia cada mes y no es un cupo, no lo pongas aquí: regístralo como gasto cuando pagues.',
+    'wealth.cardsEmpty':
+      'Visa, credicheque o un cupo del banco. Cargar gasto usa cupo. Pagar tarjeta usa plata.',
+    'wealth.loansEmpty':
+      'Apto, carro, libranza: saldo que falta y cuota fija. El cupo no va aquí.',
     'wealth.addDebt': 'Agregar deuda',
+    'wealth.addCard': 'Agregar tarjeta',
+    'wealth.addLoan': 'Agregar crédito',
+    'wealth.cardsHint':
+      'Cupo disponible, lo que debes y el pago del extracto. No es un crédito a cuotas.',
+    'wealth.loansHint':
+      'Saldo que falta y una cuota fija. Si el monto cambia cada mes y no es un cupo, regístralo como gasto cuando pagues.',
     'wealth.kindLabel': 'Qué tipo de deuda',
     'wealth.kindInstallment': 'Cuota fija',
     'wealth.kindRevolving': 'Crédito rotativo',
@@ -1380,6 +1421,14 @@ export const translations = {
     'wealth.debtNeed': 'Nombre, saldo y cuota mensual mayores a 0.',
     'wealth.howToPay':
       'Anotar la cuota aquí no gasta plata. Cargar a la tarjeta sí es gasto y baja el cupo. Pagar es lo que sale de efectivo, banco o Nequi. Si pagas el total que queda, esa cuenta sale de Patrimonio y queda en Actividad.',
+    'wealth.howToPayCard':
+      'Cargar es un gasto: baja el cupo, no Nequi. Pagar la tarjeta sí sale del bolsillo que elijas. Si pagas el total, la tarjeta sale de Patrimonio y queda en Actividad.',
+    'wealth.howToPayLoan':
+      'Anotar la cuota aquí no gasta plata. Toca Pagar cuota (o ◎ → Pagué una deuda) para que salga de Nequi o del banco. Si pagas el total, ese crédito sale de Patrimonio y queda en Actividad.',
+    'wealth.cardsOwed': 'Debes',
+    'wealth.cardsAvailable': 'Disponible',
+    'wealth.cardsToPay': 'A pagar este mes',
+    'wealth.cardsMonth': 'Pagos de tarjeta este mes',
     'wealth.chargeSpend': 'Cargar gasto',
     'wealth.payCard': 'Pagar tarjeta',
     'wealth.payInstallment': 'Pagar cuota',
@@ -1389,7 +1438,7 @@ export const translations = {
     'wealth.debtPermanentHint':
       'Solo el valor de la cuota fija — un recordatorio, no una calculadora de crédito. Es gasto cuando registras el pago con Registrar.',
     'wealth.debtConceptHint':
-      'Cuotas fijas o crédito rotativo. Aquí registras el valor que pagas, no la tasa.',
+      'Tarjetas y créditos van aparte. Aquí registras el valor que pagas, no la tasa.',
     'wealth.debtBudgetHint':
       'Al guardar también se crea un tope mensual igual a la cuota en esa subcategoría.',
     'wealth.fixedMonth': 'Cuotas fijas del mes',
@@ -1451,7 +1500,7 @@ export const translations = {
     'flow.paidWithMoneyHint': 'Efectivo, banco, Nequi, ahorros. Ese bolsillo baja ahora.',
     'flow.paidWithCardHint': 'Gasto del mes. Baja el cupo; la plata espera hasta que pagues la tarjeta.',
     'flow.noCardsBody':
-      'Aún no hay tarjeta o cupo. Agrégala en Patrimonio → Deudas y créditos (crédito rotativo).',
+      'Aún no hay tarjeta o cupo. Agrégala en Patrimonio → Tarjetas y cupos.',
     'flow.goToWealth': 'Ir a Patrimonio',
     'flow.cardAvailable': 'Disponible {amount}',
     'flow.whichAccount': '¿Desde qué cuenta?',
@@ -1520,7 +1569,8 @@ export const translations = {
     'flow.payScopeOtherSub': 'Deja o cambia el monto que escribiste',
     'flow.payScopeNeed': 'Elige el pago del mes, el total que debes u otro valor.',
     'flow.noDebtsTitle': 'No hay deudas registradas',
-    'flow.noDebtsBody': 'Primero agrega la deuda en Patrimonio (saldo de tu tarjeta o préstamo). Después vuelve a registrar el pago.',
+    'flow.noDebtsBody':
+      'Primero agrégala en Patrimonio: una tarjeta en Tarjetas y cupos, o un crédito en Créditos y cuotas. Después vuelve a registrar el pago.',
     'flow.tpl.coffee': 'Café',
     'flow.tpl.coffeeSub': 'Parada rápida',
     'flow.tpl.delivery': 'Domicilio',
@@ -1688,9 +1738,9 @@ export const translations = {
     'guide.step4Title': 'Si te pagaron o solo moviste plata',
     'guide.step4Body':
       '¿Te llegó el salario o un giro? ◎ → Registrar → Recibí dinero, y elige en qué cuenta entra (banco, Nequi, efectivo).\n\n¿Pasaste de Nequi a ahorros, o de banco a efectivo? ◎ → Registrar → Moví dinero. Elige de dónde sale y a dónde llega. No es un gasto: la plata ya era tuya, solo cambió de bolsillo.',
-    'guide.step5Title': 'Deudas: anótalas en Patrimonio, págala con Registrar',
+    'guide.step5Title': 'Tarjetas y créditos son dos cosas distintas',
     'guide.step5Body':
-      'En Patrimonio → Deudas y créditos, toca Agregar deuda. Si el banco te cobra siempre lo mismo (apto, carro, libranza): cuota fija, con saldo y cuota. Si es tarjeta, credicheque o cupo: crédito rotativo, con el cupo y lo que ya usaste. Puedes tener varias tarjetas.\n\nCargar Netflix a una tarjeta es Gasté: baja el cupo, no el efectivo. El día que pagas el extracto: toca Pagar en esa tarjeta (o ◎ → Pagué una deuda). Ahí sí baja lo que debes y el bolsillo con el que pagaste.',
+      'En Patrimonio van aparte.\n\nTarjetas y cupos: disponible, lo que debes y lo que vas a pagar este mes. Cargar Netflix es Gasté: baja el cupo, no el efectivo. El día del extracto: Pagar tarjeta.\n\nCréditos y cuotas: apto, carro, libranza. Saldo que falta y una cuota fija. No hay cupo. Pagar cuota es lo que sale de Nequi o del banco.',
     'guide.step6Title': 'Análisis: el motor de preguntas',
     'guide.step6Body':
       'Abre la pestaña Análisis (abajo). Arriba está Pregúntale a Rumi: escribe el mes que te interesa y toca Preguntar. Ejemplos: “julio”, “cuánto gasté en marzo 2025”, “hace 2 meses”, “café el mes pasado”. Las chips son solo ejemplos, no una lista de todos los meses.\n\nHoy / Semana / Mes de esa pantalla solo cambian las gráficas y notas de abajo. La caja usa el período que escribiste.\n\nSi quieres saber de hormiga o topes, se marcan en Plan; en Análisis preguntas cómo se comportaron.',

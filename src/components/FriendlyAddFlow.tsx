@@ -637,7 +637,7 @@ export function FriendlyAddFlow({
               />
             </View>
             <Text style={styles.amountHint}>
-              {intent === 'debt' ? t('flow.howMuchDebtHint') : t('add.amountDecimalHint')}
+              {t('add.amountDecimalHint')}
             </Text>
           </Animated.View>
         ) : null}
@@ -965,11 +965,6 @@ export function FriendlyAddFlow({
                   t
                 )}
               />
-              {intent === 'spend' && method === 'credit' ? (
-                <Text style={[styles.intentSub, { marginTop: 10 }]}>
-                  {t('flow.chargeReviewHint')}
-                </Text>
-              ) : null}
               {intent === 'move' ? (
                 <>
                   <SummaryLine

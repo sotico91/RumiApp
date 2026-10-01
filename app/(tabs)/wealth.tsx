@@ -21,7 +21,6 @@ import type { Debt, DebtKind, RevolvingProduct } from '@/src/types/finance';
 import { categoryLabel } from '@/src/utils/categoryLabel';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import {
-  accountRoleKey,
   accountDisplayName,
   accountGroupKey,
   isRemovableWallet,
@@ -102,13 +101,13 @@ export default function WealthScreen() {
     setAccountBalance,
     updateBudget,
     transactionsForPeriod,
-    budgetStatus,
   } = useFinance();
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [accountsOpen, setAccountsOpen] = useState(false);
-  const [debtsOpen, setDebtsOpen] = useState(true);
+  const [cardsOpen, setCardsOpen] = useState(true);
+  const [loansOpen, setLoansOpen] = useState(true);
   const [name, setName] = useState('');
   const [balance, setBalance] = useState('');
   const [installment, setInstallment] = useState('');
@@ -129,16 +128,12 @@ export default function WealthScreen() {
 
   const cashAccounts = useMemo(() => moneyPockets(accounts), [accounts]);
   const groupedAccounts = useMemo(() => sortAccountsByKind(cashAccounts), [cashAccounts]);
-  const groupedDebts = useMemo(
-    () =>
-      [...liveDebts].sort((a, b) => {
-        const ka = debtKind(a) === 'revolving' ? 1 : 0;
-        const kb = debtKind(b) === 'revolving' ? 1 : 0;
-        if (ka !== kb) return ka - kb;
-        const na = (a.name ?? a.nameKey ?? '').toLocaleLowerCase();
-        const nb = (b.name ?? b.nameKey ?? '').toLocaleLowerCase();
-        return na.localeCompare(nb);
-      }),
+  const revolvingDebts = useMemo(
+    () => liveDebts.filter((d) => debtKind(d) === 'revolving'),
+    [liveDebts]
+  );
+  const installmentDebts = useMemo(
+    () => liveDebts.filter((d) => debtKind(d) !== 'revolving'),
     [liveDebts]
   );
 
@@ -152,8 +147,14 @@ export default function WealthScreen() {
     return map;
   }, [monthTx]);
 
-  const monthlyInstallments = liveDebts.reduce((s, d) => s + (d.installment || 0), 0);
-  const paidInstallmentsThisMonth = liveDebts.reduce((sum, debt) => {
+  const loanMonthDue = installmentDebts.reduce((s, d) => s + (d.installment || 0), 0);
+  const cardMonthDue = revolvingDebts.reduce((s, d) => s + (d.installment || 0), 0);
+  const cardAvailableTotal = revolvingDebts.reduce((s, d) => s + creditAvailable(d), 0);
+  const paidLoansThisMonth = installmentDebts.reduce((sum, debt) => {
+    if (!debt.categoryId) return sum;
+    return sum + (paidByCategory.get(debt.categoryId) ?? 0);
+  }, 0);
+  const paidCardsThisMonth = revolvingDebts.reduce((sum, debt) => {
     if (!debt.categoryId) return sum;
     return sum + (paidByCategory.get(debt.categoryId) ?? 0);
   }, 0);
@@ -170,9 +171,9 @@ export default function WealthScreen() {
     setShowForm(false);
   }
 
-  function startCreate() {
+  function startCreate(nextKind: DebtKind) {
     tapFeedback();
-    if (showForm && !editingId) {
+    if (showForm && !editingId && kind === nextKind) {
       resetForm();
       return;
     }
@@ -181,10 +182,12 @@ export default function WealthScreen() {
     setBalance('');
     setInstallment('');
     setPayDay('1');
-    setKind('installment');
+    setKind(nextKind);
     setProduct('card');
     setCreditLimit('');
     setShowForm(true);
+    if (nextKind === 'revolving') setCardsOpen(true);
+    else setLoansOpen(true);
   }
 
   function startEdit(debt: Debt) {
@@ -203,6 +206,8 @@ export default function WealthScreen() {
     setProduct(revolvingProduct(debt));
     setCreditLimit(debt.creditLimit ? String(debt.creditLimit) : '');
     setShowForm(true);
+    if (nextKind === 'revolving') setCardsOpen(true);
+    else setLoansOpen(true);
   }
 
   async function handleSaveDebt() {
@@ -215,25 +220,31 @@ export default function WealthScreen() {
       ? parseNonNegativeAmount(installment, parse)
       : parse(installment);
     if (!name.trim()) {
-      Alert.alert(t('wealth.addDebt'), revolving ? t('wealth.debtNeedRevolving') : t('wealth.debtNeed'));
+      Alert.alert(
+        revolving ? t('wealth.addCard') : t('wealth.addLoan'),
+        revolving ? t('wealth.debtNeedRevolving') : t('wealth.debtNeed')
+      );
       return;
     }
     if (revolving) {
       if (!parsedLimit) {
-        Alert.alert(t('wealth.addDebt'), t('wealth.debtNeedLimit'));
+        Alert.alert(t('wealth.addCard'), t('wealth.debtNeedLimit'));
         return;
       }
       if (parsedBalance == null || parsedInstallment == null) {
-        Alert.alert(t('wealth.addDebt'), t('wealth.debtNeedRevolving'));
+        Alert.alert(t('wealth.addCard'), t('wealth.debtNeedRevolving'));
         return;
       }
     } else if (!parsedBalance || !parsedInstallment) {
-      Alert.alert(t('wealth.addDebt'), t('wealth.debtNeed'));
+      Alert.alert(t('wealth.addLoan'), t('wealth.debtNeed'));
       return;
     }
     const day = clampPayDay(Number(payDay.replace(',', '.')));
     if (!day) {
-      Alert.alert(t('wealth.addDebt'), t('wealth.debtPayDayNeed'));
+      Alert.alert(
+        revolving ? t('wealth.addCard') : t('wealth.addLoan'),
+        t('wealth.debtPayDayNeed')
+      );
       return;
     }
     const nextPaymentDate = nextPaymentIsoFromDay(day);
@@ -279,6 +290,266 @@ export default function WealthScreen() {
         },
       },
     ]);
+  }
+
+  function renderDebtForm() {
+    const revolving = kind === 'revolving';
+    return (
+      <View style={styles.form}>
+        {editingId ? (
+          <Text style={styles.formTitle}>{t('wealth.debtEditing')}</Text>
+        ) : null}
+        {revolving ? (
+          <>
+            <Text style={styles.label}>{t('wealth.productLabel')}</Text>
+            <OptionChips
+              value={product}
+              onChange={setProduct}
+              options={[
+                { id: 'card', label: t('wealth.productCard') },
+                { id: 'credicheque', label: t('wealth.productCredicheque') },
+                { id: 'line', label: t('wealth.productLine') },
+              ]}
+            />
+          </>
+        ) : null}
+        <Text style={styles.label}>{t('wealth.debtName')}</Text>
+        <TextInput
+          value={name}
+          onChangeText={setName}
+          placeholder={
+            revolving
+              ? t('wealth.debtNamePlaceholderRevolving')
+              : t('wealth.debtNamePlaceholder')
+          }
+          placeholderTextColor={palette.inkSoft}
+          style={styles.input}
+        />
+        {revolving ? (
+          <>
+            <Text style={styles.label}>{t('wealth.debtLimit')}</Text>
+            <TextInput
+              value={creditLimit}
+              onChangeText={setCreditLimit}
+              keyboardType="decimal-pad"
+              placeholder="0"
+              placeholderTextColor={palette.inkSoft}
+              style={styles.input}
+            />
+          </>
+        ) : null}
+        <Text style={styles.label}>
+          {revolving ? t('wealth.debtUsed') : t('wealth.debtBalance')}
+        </Text>
+        <TextInput
+          value={balance}
+          onChangeText={setBalance}
+          keyboardType="decimal-pad"
+          placeholder="0"
+          placeholderTextColor={palette.inkSoft}
+          style={styles.input}
+        />
+        <Text style={styles.label}>
+          {revolving ? t('wealth.debtMonthPay') : t('wealth.debtInstallment')}
+        </Text>
+        <TextInput
+          value={installment}
+          onChangeText={setInstallment}
+          keyboardType="decimal-pad"
+          placeholder="0"
+          placeholderTextColor={palette.inkSoft}
+          style={styles.input}
+        />
+        <Text style={styles.label}>{t('wealth.debtPayDay')}</Text>
+        <TextInput
+          value={payDay}
+          onChangeText={setPayDay}
+          keyboardType="number-pad"
+          placeholder="1"
+          placeholderTextColor={palette.inkSoft}
+          style={styles.input}
+        />
+        <Text style={styles.copyHint}>{t('wealth.debtPayDayHint')}</Text>
+        <View style={styles.formActions}>
+          <Pressable
+            onPress={() => {
+              tapFeedback();
+              resetForm();
+            }}
+            style={styles.secondaryBtn}>
+            <Text style={styles.secondaryBtnText}>{t('wealth.debtCancel')}</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => void handleSaveDebt()}
+            disabled={saving}
+            style={[styles.saveBtn, styles.saveBtnFlex]}>
+            <Text style={styles.saveBtnText}>
+              {saving
+                ? t('add.saving')
+                : editingId
+                  ? t('wealth.debtUpdate')
+                  : t('wealth.debtSave')}
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
+  function renderDebtItem(debt: Debt) {
+    const label = debt.nameKey
+      ? t(debt.nameKey as TranslationKey)
+      : debt.name ?? t('debt.mainCard');
+    const conceptLabel = debt.categoryId
+      ? categoryLabel(debt.categoryId, t, spendConcepts)
+      : label;
+    const hit = debt.categoryId
+      ? findSpendSub(spendConcepts, debt.categoryId)
+      : null;
+    const paid = debt.categoryId ? paidByCategory.get(debt.categoryId) ?? 0 : 0;
+    const due = debt.installment || 0;
+    const ratio = due > 0 ? paid / due : 0;
+    const over = due > 0 && paid > due;
+    const isEditing = editingId === debt.id;
+    const revolving = debtKind(debt) === 'revolving';
+    const available = creditAvailable(debt);
+    const tag =
+      revolving && revolvingProduct(debt) !== 'card'
+        ? t(productLabelKey(revolvingProduct(debt)))
+        : null;
+    const showConcept =
+      Boolean(hit) &&
+      conceptLabel.trim().toLocaleLowerCase() !== label.trim().toLocaleLowerCase();
+    const usedRatio =
+      revolving && debt.creditLimit
+        ? Math.min((debt.balance || 0) / debt.creditLimit, 1)
+        : 0;
+
+    return (
+      <View key={debt.id} style={[styles.card, isEditing && styles.cardEditing]}>
+        <View style={styles.sectionRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.cardTitle}>{label}</Text>
+            {tag ? <Text style={styles.conceptChip}>{tag}</Text> : null}
+            {showConcept ? (
+              <Text style={styles.conceptChip}>
+                {t('wealth.linkedConcept', { concept: conceptLabel })}
+              </Text>
+            ) : null}
+          </View>
+          <View style={styles.cardActions}>
+            <Pressable onPress={() => startEdit(debt)}>
+              <Text style={styles.editText}>{t('wealth.debtEdit')}</Text>
+            </Pressable>
+            <Pressable onPress={() => confirmRemove(debt.id, label)}>
+              <Text style={styles.deleteText}>{t('wealth.debtDelete')}</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        {revolving ? (
+          <>
+            <View style={styles.metricRow}>
+              <Text style={styles.metricLabel}>{t('wealth.cardsOwed')}</Text>
+              <MoneyText style={styles.metricValue}>{format(debt.balance)}</MoneyText>
+            </View>
+            <View style={styles.metricRow}>
+              <Text style={styles.metricLabel}>{t('wealth.cardsAvailable')}</Text>
+              <MoneyText style={styles.metricValue}>{format(available)}</MoneyText>
+            </View>
+            {debt.creditLimit ? (
+              <View style={styles.track}>
+                <View
+                  style={[
+                    styles.fill,
+                    {
+                      width: `${usedRatio * 100}%`,
+                      backgroundColor:
+                        usedRatio >= 1
+                          ? palette.danger
+                          : usedRatio >= 0.8
+                            ? palette.accent
+                            : palette.teal,
+                    },
+                  ]}
+                />
+              </View>
+            ) : null}
+            <View style={[styles.metricRow, { marginTop: 10 }]}>
+              <Text style={styles.metricLabel}>{t('wealth.cardsToPay')}</Text>
+              <MoneyText style={styles.metricValue}>{format(due)}</MoneyText>
+            </View>
+          </>
+        ) : (
+          <>
+            <MoneyText style={styles.amount}>{format(debt.balance)}</MoneyText>
+            <Text style={styles.meta}>{t('wealth.balanceLeft')}</Text>
+            {due > 0 ? (
+              <Text style={styles.meta}>
+                {t('wealth.installment', { amount: format(due) })}
+              </Text>
+            ) : null}
+          </>
+        )}
+
+        {paid > 0 ? (
+          <>
+            <View style={styles.track}>
+              <View
+                style={[
+                  styles.fill,
+                  {
+                    width: `${Math.min(ratio * 100, 100)}%`,
+                    backgroundColor: over ? palette.danger : palette.teal,
+                  },
+                ]}
+              />
+            </View>
+            <Text style={[styles.meta, over && { color: palette.danger }]}>
+              {t('wealth.monthProgress', {
+                paid: format(paid),
+                due: format(due),
+              })}
+            </Text>
+          </>
+        ) : null}
+        <Text style={styles.meta}>
+          {t('wealth.next', {
+            date: new Date(debt.nextPaymentDate).toLocaleDateString(
+              language === 'es' ? 'es-CO' : 'en-US'
+            ),
+          })}
+        </Text>
+        <View style={styles.debtActions}>
+          {revolving ? (
+            <Pressable
+              onPress={() => {
+                tapFeedback();
+                router.push({
+                  pathname: '/agregar',
+                  params: { intent: 'spend', debtId: debt.id },
+                });
+              }}
+              style={[styles.payBtn, styles.chargeBtn]}>
+              <Text style={styles.payBtnText}>{t('wealth.chargeSpend')}</Text>
+            </Pressable>
+          ) : null}
+          <Pressable
+            onPress={() => {
+              tapFeedback();
+              router.push({
+                pathname: '/agregar',
+                params: { intent: 'debt', debtId: debt.id },
+              });
+            }}
+            style={styles.payBtn}>
+            <Text style={styles.payBtnText}>
+              {revolving ? t('wealth.payCard') : t('wealth.payInstallment')}
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+    );
   }
 
   function startRenameWallet(acc: { id: string; name?: string; nameKey: string }) {
@@ -453,7 +724,6 @@ export default function WealthScreen() {
                   <View style={styles.sectionRow}>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.cardTitle}>{label}</Text>
-                      <Text style={styles.meta}>{t(accountRoleKey(acc.type))}</Text>
                     </View>
                     <View style={styles.cardActions}>
                       {canEditBalance ? (
@@ -602,352 +872,99 @@ export default function WealthScreen() {
 
         <FadeInBlock index={2}>
           <CollapsibleSection
-            title={t('wealth.debts')}
-            open={debtsOpen}
-            onToggle={() => setDebtsOpen((v) => !v)}
+            title={t('wealth.cards')}
+            open={cardsOpen}
+            onToggle={() => setCardsOpen((v) => !v)}
             summary={
-              liveDebts.length === 0
-                ? t('wealth.debtsEmptyShort')
-                : t('wealth.debtsCollapsed', {
-                    count: liveDebts.length,
-                    amount: format(monthlyInstallments),
+              revolvingDebts.length === 0
+                ? t('wealth.cardsEmptyShort')
+                : t('wealth.cardsCollapsed', {
+                    count: revolvingDebts.length,
+                    available: format(cardAvailableTotal),
                   })
             }>
-            {!showForm ? (
+            {!(showForm && kind === 'revolving') ? (
               <View style={styles.sectionRow}>
-                <Text style={styles.copyHintFlex}>{t('wealth.debtConceptHint')}</Text>
-                <Pressable onPress={startCreate} style={styles.addBtn}>
-                  <Text style={styles.addBtnText}>{t('wealth.addDebt')}</Text>
+                <View style={{ flex: 1 }} />
+                <Pressable onPress={() => startCreate('revolving')} style={styles.addBtn}>
+                  <Text style={styles.addBtnText}>{t('wealth.addCard')}</Text>
                 </Pressable>
               </View>
             ) : null}
 
-            {liveDebts.length > 0 ? (
+            {revolvingDebts.length > 1 ? (
               <View style={styles.summaryCard}>
-                <Text style={styles.summaryTitle}>{t('wealth.fixedMonth')}</Text>
-                <MoneyText style={styles.amount}>{format(monthlyInstallments)}</MoneyText>
-                <Text style={styles.meta}>
-                  {t('wealth.fixedPaid', {
-                    paid: format(paidInstallmentsThisMonth),
-                    due: format(monthlyInstallments),
-                  })}
-                </Text>
-                <Pressable
-                  onPress={() => {
-                    tapFeedback();
-                    router.push('/(tabs)/plan');
-                  }}>
-                  <Text style={styles.link}>{t('wealth.openPlan')}</Text>
-                </Pressable>
-              </View>
-            ) : null}
-
-            {showForm ? (
-              <View style={styles.form}>
-                {editingId ? (
-                  <Text style={styles.formTitle}>{t('wealth.debtEditing')}</Text>
-                ) : (
-                  <Text style={styles.copyHint}>
-                    {kind === 'revolving'
-                      ? t('wealth.revolvingHint')
-                      : t('wealth.debtPermanentHint')}
-                  </Text>
-                )}
-                <Text style={styles.label}>{t('wealth.kindLabel')}</Text>
-                <OptionChips
-                  value={kind}
-                  onChange={setKind}
-                  options={[
-                    { id: 'installment', label: t('wealth.kindInstallment') },
-                    { id: 'revolving', label: t('wealth.kindRevolving') },
-                  ]}
-                />
-                {kind === 'revolving' ? (
-                  <>
-                    <Text style={styles.label}>{t('wealth.productLabel')}</Text>
-                    <OptionChips
-                      value={product}
-                      onChange={setProduct}
-                      options={[
-                        { id: 'card', label: t('wealth.productCard') },
-                        { id: 'credicheque', label: t('wealth.productCredicheque') },
-                        { id: 'line', label: t('wealth.productLine') },
-                      ]}
-                    />
-                  </>
-                ) : null}
-                <Text style={styles.label}>{t('wealth.debtName')}</Text>
-                <TextInput
-                  value={name}
-                  onChangeText={setName}
-                  placeholder={
-                    kind === 'revolving'
-                      ? t('wealth.debtNamePlaceholderRevolving')
-                      : t('wealth.debtNamePlaceholder')
-                  }
-                  placeholderTextColor={palette.inkSoft}
-                  style={styles.input}
-                />
-                {kind === 'revolving' ? (
-                  <>
-                    <Text style={styles.label}>{t('wealth.debtLimit')}</Text>
-                    <TextInput
-                      value={creditLimit}
-                      onChangeText={setCreditLimit}
-                      keyboardType="decimal-pad"
-                      placeholder="0"
-                      placeholderTextColor={palette.inkSoft}
-                      style={styles.input}
-                    />
-                  </>
-                ) : null}
-                <Text style={styles.label}>
-                  {kind === 'revolving' ? t('wealth.debtUsed') : t('wealth.debtBalance')}
-                </Text>
-                <TextInput
-                  value={balance}
-                  onChangeText={setBalance}
-                  keyboardType="decimal-pad"
-                  placeholder="0"
-                  placeholderTextColor={palette.inkSoft}
-                  style={styles.input}
-                />
-                <Text style={styles.label}>
-                  {kind === 'revolving'
-                    ? t('wealth.debtMonthPay')
-                    : t('wealth.debtInstallment')}
-                </Text>
-                <TextInput
-                  value={installment}
-                  onChangeText={setInstallment}
-                  keyboardType="decimal-pad"
-                  placeholder="0"
-                  placeholderTextColor={palette.inkSoft}
-                  style={styles.input}
-                />
-                <Text style={styles.label}>{t('wealth.debtPayDay')}</Text>
-                <TextInput
-                  value={payDay}
-                  onChangeText={setPayDay}
-                  keyboardType="number-pad"
-                  placeholder="1"
-                  placeholderTextColor={palette.inkSoft}
-                  style={styles.input}
-                />
-                <Text style={styles.copyHint}>{t('wealth.debtPayDayHint')}</Text>
-                <Text style={styles.copyHint}>{t('wealth.debtBudgetHint')}</Text>
-                <View style={styles.formActions}>
-                  <Pressable
-                    onPress={() => {
-                      tapFeedback();
-                      resetForm();
-                    }}
-                    style={styles.secondaryBtn}>
-                    <Text style={styles.secondaryBtnText}>{t('wealth.debtCancel')}</Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => void handleSaveDebt()}
-                    disabled={saving}
-                    style={[styles.saveBtn, styles.saveBtnFlex]}>
-                    <Text style={styles.saveBtnText}>
-                      {saving
-                        ? t('add.saving')
-                        : editingId
-                          ? t('wealth.debtUpdate')
-                          : t('wealth.debtSave')}
-                    </Text>
-                  </Pressable>
-                </View>
-              </View>
-            ) : null}
-
-            {liveDebts.length === 0 && !showForm ? (
-              <View style={styles.card}>
-                <Text style={styles.empty}>{t('wealth.debtsEmpty')}</Text>
-                <Text style={[styles.meta, { marginTop: 8 }]}>{t('wealth.howToPay')}</Text>
-              </View>
-            ) : null}
-
-            {groupedDebts.map((debt, index) => {
-              const label = debt.nameKey
-                ? t(debt.nameKey as TranslationKey)
-                : debt.name ?? t('debt.mainCard');
-              const conceptLabel = debt.categoryId
-                ? categoryLabel(debt.categoryId, t, spendConcepts)
-                : label;
-              const hit = debt.categoryId
-                ? findSpendSub(spendConcepts, debt.categoryId)
-                : null;
-              const paid = debt.categoryId
-                ? paidByCategory.get(debt.categoryId) ?? 0
-                : 0;
-              const budget = debt.categoryId
-                ? budgetStatus.find((b) => b.categoryId === debt.categoryId)
-                : undefined;
-              const due = debt.installment || 0;
-              const ratio = due > 0 ? paid / due : 0;
-              const over = due > 0 && paid > due;
-              const isEditing = editingId === debt.id;
-              const revolving = debtKind(debt) === 'revolving';
-              const available = creditAvailable(debt);
-              const tag = revolving
-                ? t(productLabelKey(revolvingProduct(debt)))
-                : t('wealth.kindTagInstallment');
-              const prevKind = groupedDebts[index - 1]
-                ? debtKind(groupedDebts[index - 1])
-                : null;
-              const thisKind = revolving ? 'revolving' : 'installment';
-              const showGroup = thisKind !== prevKind;
-
-              return (
-                <View key={debt.id}>
-                  {showGroup ? (
-                    <Text style={styles.groupLabel}>
-                      {revolving
-                        ? t('wealth.kindRevolving')
-                        : t('wealth.kindInstallment')}
-                    </Text>
-                  ) : null}
-                <View
-                  style={[styles.card, isEditing && styles.cardEditing]}>
-                  <View style={styles.sectionRow}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.cardTitle}>{label}</Text>
-                      <Text style={styles.conceptChip}>{tag}</Text>
-                      <Text style={styles.conceptChip}>
-                        {hit
-                          ? t('wealth.linkedConcept', { concept: conceptLabel })
-                          : t('wealth.unlinkedConcept')}
-                      </Text>
-                    </View>
-                    <View style={styles.cardActions}>
-                      <Pressable onPress={() => startEdit(debt)}>
-                        <Text style={styles.editText}>{t('wealth.debtEdit')}</Text>
-                      </Pressable>
-                      <Pressable onPress={() => confirmRemove(debt.id, label)}>
-                        <Text style={styles.deleteText}>{t('wealth.debtDelete')}</Text>
-                      </Pressable>
-                    </View>
-                  </View>
-                  <MoneyText style={styles.amount}>{format(debt.balance)}</MoneyText>
+                <Text style={styles.summaryTitle}>{t('wealth.cardsMonth')}</Text>
+                <MoneyText style={styles.amount}>{format(cardMonthDue)}</MoneyText>
+                {paidCardsThisMonth > 0 ? (
                   <Text style={styles.meta}>
-                    {revolving ? t('wealth.debtUsed') : t('wealth.balanceLeft')}
-                  </Text>
-                  {revolving ? (
-                    <>
-                      {debt.creditLimit ? (
-                        <Text style={styles.meta}>
-                          {t('wealth.cupoTotal', { amount: format(debt.creditLimit) })}
-                          {' · '}
-                          {t('flow.cardAvailable', { amount: format(available) })}
-                        </Text>
-                      ) : (
-                        <Text style={styles.meta}>
-                          {t('wealth.creditAvailable', { amount: format(available) })}
-                        </Text>
-                      )}
-                      {debt.creditLimit ? (
-                        <View style={styles.track}>
-                          <View
-                            style={[
-                              styles.fill,
-                              {
-                                width: `${Math.min(
-                                  ((debt.balance || 0) / debt.creditLimit) * 100,
-                                  100
-                                )}%`,
-                                backgroundColor:
-                                  (debt.balance || 0) >= debt.creditLimit
-                                    ? palette.danger
-                                    : (debt.balance || 0) / debt.creditLimit >= 0.8
-                                      ? palette.accent
-                                      : palette.teal,
-                              },
-                            ]}
-                          />
-                        </View>
-                      ) : null}
-                      <Text style={styles.chargeHint}>{t('wealth.chargeVsPayHint')}</Text>
-                    </>
-                  ) : null}
-                  {due > 0 ? (
-                    <>
-                      <Text style={styles.meta}>
-                        {t('wealth.installment', { amount: format(due) })}
-                      </Text>
-                      <View style={styles.track}>
-                        <View
-                          style={[
-                            styles.fill,
-                            {
-                              width: `${Math.min(ratio * 100, 100)}%`,
-                              backgroundColor: over ? palette.danger : palette.teal,
-                            },
-                          ]}
-                        />
-                      </View>
-                      <Text
-                        style={[
-                          styles.meta,
-                          over && { color: palette.danger },
-                        ]}>
-                        {t('wealth.monthProgress', {
-                          paid: format(paid),
-                          due: format(due),
-                        })}
-                      </Text>
-                    </>
-                  ) : null}
-                  {budget ? (
-                    <Text style={styles.meta}>
-                      {t('wealth.topeLinked', {
-                        amount: format(budget.limit),
-                      })}
-                    </Text>
-                  ) : null}
-                  <Text style={styles.meta}>
-                    {t('wealth.next', {
-                      date: new Date(debt.nextPaymentDate).toLocaleDateString(
-                        language === 'es' ? 'es-CO' : 'en-US'
-                      ),
+                    {t('wealth.fixedPaid', {
+                      paid: format(paidCardsThisMonth),
+                      due: format(cardMonthDue),
                     })}
                   </Text>
-                  <View style={styles.debtActions}>
-                    {revolving ? (
-                      <Pressable
-                        onPress={() => {
-                          tapFeedback();
-                          router.push({
-                            pathname: '/agregar',
-                            params: { intent: 'spend', debtId: debt.id },
-                          });
-                        }}
-                        style={[styles.payBtn, styles.chargeBtn]}>
-                        <Text style={styles.payBtnText}>{t('wealth.chargeSpend')}</Text>
-                      </Pressable>
-                    ) : null}
-                    <Pressable
-                      onPress={() => {
-                        tapFeedback();
-                        router.push({
-                          pathname: '/agregar',
-                          params: { intent: 'debt', debtId: debt.id },
-                        });
-                      }}
-                      style={styles.payBtn}>
-                      <Text style={styles.payBtnText}>
-                        {revolving ? t('wealth.payCard') : t('wealth.payInstallment')}
-                      </Text>
-                    </Pressable>
-                  </View>
-                </View>
-                </View>
-              );
-            })}
-
-            {liveDebts.length > 0 ? (
-              <Text style={styles.hint}>{t('wealth.howToPay')}</Text>
+                ) : null}
+              </View>
             ) : null}
+
+            {showForm && kind === 'revolving' ? renderDebtForm() : null}
+
+            {revolvingDebts.length === 0 && !(showForm && kind === 'revolving') ? (
+              <View style={styles.card}>
+                <Text style={styles.empty}>{t('wealth.cardsEmpty')}</Text>
+              </View>
+            ) : null}
+
+            {revolvingDebts.map((debt) => renderDebtItem(debt))}
+          </CollapsibleSection>
+        </FadeInBlock>
+
+        <FadeInBlock index={3}>
+          <CollapsibleSection
+            title={t('wealth.loans')}
+            open={loansOpen}
+            onToggle={() => setLoansOpen((v) => !v)}
+            summary={
+              installmentDebts.length === 0
+                ? t('wealth.loansEmptyShort')
+                : t('wealth.loansCollapsed', {
+                    count: installmentDebts.length,
+                    amount: format(loanMonthDue),
+                  })
+            }>
+            {!(showForm && kind === 'installment') ? (
+              <View style={styles.sectionRow}>
+                <View style={{ flex: 1 }} />
+                <Pressable onPress={() => startCreate('installment')} style={styles.addBtn}>
+                  <Text style={styles.addBtnText}>{t('wealth.addLoan')}</Text>
+                </Pressable>
+              </View>
+            ) : null}
+
+            {installmentDebts.length > 1 ? (
+              <View style={styles.summaryCard}>
+                <Text style={styles.summaryTitle}>{t('wealth.fixedMonth')}</Text>
+                <MoneyText style={styles.amount}>{format(loanMonthDue)}</MoneyText>
+                {paidLoansThisMonth > 0 ? (
+                  <Text style={styles.meta}>
+                    {t('wealth.fixedPaid', {
+                      paid: format(paidLoansThisMonth),
+                      due: format(loanMonthDue),
+                    })}
+                  </Text>
+                ) : null}
+              </View>
+            ) : null}
+
+            {showForm && kind === 'installment' ? renderDebtForm() : null}
+
+            {installmentDebts.length === 0 && !(showForm && kind === 'installment') ? (
+              <View style={styles.card}>
+                <Text style={styles.empty}>{t('wealth.loansEmpty')}</Text>
+              </View>
+            ) : null}
+
+            {installmentDebts.map((debt) => renderDebtItem(debt))}
           </CollapsibleSection>
         </FadeInBlock>
       </KeyboardSafeScroll>
@@ -1228,6 +1245,24 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontFamily: 'Fraunces_600SemiBold',
     fontSize: 24,
+    color: palette.ink,
+  },
+  metricRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginTop: 8,
+  },
+  metricLabel: {
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 14,
+    color: palette.inkMuted,
+    flexShrink: 1,
+  },
+  metricValue: {
+    fontFamily: 'Fraunces_600SemiBold',
+    fontSize: 20,
     color: palette.ink,
   },
   amountDebt: {
