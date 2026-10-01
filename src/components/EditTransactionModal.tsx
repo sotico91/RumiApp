@@ -26,9 +26,11 @@ import { categoryLabel } from '@/src/utils/categoryLabel';
 import { incomeDestinationAccounts } from '@/src/utils/netWorth';
 import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
 import { KeyboardSafeOverlay, KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
+import { SpendSourcePicker, spendSourceFromMethod } from '@/src/components/SpendSourcePicker';
 import {
   accountsForExpenseSource,
   firstAccountId,
+  liquidPocketsForPay,
   paymentMethodForAccount,
   pocketMoveAccounts,
 } from '@/src/utils/accounts';
@@ -84,6 +86,7 @@ export function EditTransactionModal({ transaction, visible, onClose }: Props) {
         type === 'investment' ? 'investment' : 'transfer'
       );
     }
+    if (type === 'debt_payment') return liquidPocketsForPay(accounts);
     return accountsForExpenseSource(accounts, method, {
       debts,
       debtLabel: (debt) =>
@@ -226,11 +229,40 @@ export function EditTransactionModal({ transaction, visible, onClose }: Props) {
               </>
             )}
 
-            {type !== 'income' && !isPocketMove(type) ? (
+            {type === 'expense' ? (
+              <>
+                <Text style={styles.label}>{t('flow.howPaid')}</Text>
+                <SpendSourcePicker
+                  value={spendSourceFromMethod(method)}
+                  onChange={(source) => {
+                    if (source === 'card') {
+                      setMethod('credit');
+                      const nextList = accountsForExpenseSource(accounts, 'credit', {
+                        debts,
+                        debtLabel: (debt) =>
+                          debt.nameKey
+                            ? t(debt.nameKey as TranslationKey)
+                            : debt.name ?? t('debt.mainCard'),
+                      });
+                      const nextId = firstAccountId(nextList, accountId);
+                      if (nextId) setAccountId(nextId);
+                      return;
+                    }
+                    setMethod('debit');
+                    const nextId = firstAccountId(
+                      liquidPocketsForPay(accounts),
+                      accountId
+                    );
+                    if (nextId) setAccountId(nextId);
+                  }}
+                  showNoCards={method === 'credit' && accountChoices.length === 0}
+                />
+              </>
+            ) : type !== 'income' && !isPocketMove(type) && type !== 'debt_payment' ? (
               <>
                 <Text style={styles.label}>{t('flow.howPaid')}</Text>
                 <View style={styles.wrap}>
-                  {METHODS.map((m) => (
+                  {METHODS.filter((m) => m !== 'credit').map((m) => (
                     <Pressable
                       key={m}
                       onPress={() => setMethod(m)}
@@ -244,14 +276,18 @@ export function EditTransactionModal({ transaction, visible, onClose }: Props) {
               </>
             ) : null}
 
+            {type === 'expense' && method === 'credit' && accountChoices.length === 0 ? null : (
+              <>
             <Text style={styles.label}>
               {type === 'income'
                 ? t('flow.whichAccountIncome')
-                : method === 'credit' && !isPocketMove(type)
-                  ? t('flow.whichCard')
-                  : type === 'expense'
-                    ? t('flow.whichAccountSpend')
-                    : t('flow.whichAccount')}
+                : type === 'debt_payment'
+                  ? t('flow.whichAccountPayDebt')
+                  : method === 'credit' && !isPocketMove(type)
+                    ? t('flow.whichCard')
+                    : type === 'expense'
+                      ? t('flow.whichAccountSpend')
+                      : t('flow.whichAccount')}
             </Text>
             {accountChoices.length === 0 ? (
               <Text style={styles.hint}>{t('flow.payAccountsEmpty')}</Text>
@@ -261,10 +297,7 @@ export function EditTransactionModal({ transaction, visible, onClose }: Props) {
                 selectedId={accountId}
                 onSelect={(id) => {
                   setAccountId(id);
-                  if (
-                    (type === 'expense' || type === 'debt_payment') &&
-                    method !== 'credit'
-                  ) {
+                  if (type === 'expense' && method !== 'credit') {
                     const acc = accounts.find((a) => a.id === id);
                     setMethod(paymentMethodForAccount(acc, method));
                   }
@@ -272,11 +305,12 @@ export function EditTransactionModal({ transaction, visible, onClose }: Props) {
                 allowAddWallet={
                   type === 'income' ||
                   isPocketMove(type) ||
-                  type === 'expense' ||
                   type === 'debt_payment' ||
-                  method === 'transfer'
+                  (type === 'expense' && method !== 'credit')
                 }
               />
+            )}
+              </>
             )}
 
             {needsDestination ? (

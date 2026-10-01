@@ -19,6 +19,8 @@ export default function AgregarScreen() {
     amount?: string;
     note?: string;
     mode?: string;
+    intent?: string;
+    debtId?: string;
   }>();
   const [mode, setMode] = useState<'friendly' | 'advanced'>('friendly');
   const prefilledCategoryId =
@@ -29,6 +31,17 @@ export default function AgregarScreen() {
       : undefined;
   const prefilledNote =
     typeof params.note === 'string' ? params.note : undefined;
+
+  const payDebtId =
+    typeof params.debtId === 'string' && params.debtId.trim()
+      ? params.debtId.trim()
+      : undefined;
+  const payIntent =
+    params.intent === 'debt'
+      ? ('debt' as const)
+      : params.intent === 'spend'
+        ? ('spend' as const)
+        : undefined;
 
   useEffect(() => {
     if (params.mode === 'advanced' || prefilledCategoryId) {
@@ -90,6 +103,8 @@ export default function AgregarScreen() {
           <FriendlyAddFlow
             onSaved={handleSaved}
             onSwitchAdvanced={() => setMode('advanced')}
+            initialIntent={payIntent}
+            initialDebtId={payDebtId}
           />
         ) : (
           <KeyboardSafeScroll

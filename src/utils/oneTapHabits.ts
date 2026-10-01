@@ -1,6 +1,7 @@
 import type { Transaction, PaymentMethod } from '@/src/types/finance';
 import type { SpendConcept } from '@/src/types/settings';
 import { findSpendSub } from '@/src/data/spendConcepts';
+import { payAccountIdForDebt } from '@/src/utils/debts';
 
 /** Glanceable one-tap set — never a full history mirror. */
 export const ONE_TAP_MAX_CHIPS = 5;
@@ -64,8 +65,10 @@ export function buildOneTapHabits(
         note: tx.note,
         count: 1,
         lastAt: tx.createdAt,
-        paymentMethod: tx.paymentMethod,
-        accountId: tx.accountId,
+        paymentMethod: tx.creditDebtId ? 'credit' : tx.paymentMethod,
+        accountId: tx.creditDebtId
+          ? payAccountIdForDebt(tx.creditDebtId)
+          : tx.accountId,
       });
       continue;
     }
@@ -74,8 +77,10 @@ export function buildOneTapHabits(
       prev.lastAt = tx.createdAt;
       prev.amount = tx.amount;
       prev.note = tx.note;
-      prev.paymentMethod = tx.paymentMethod;
-      prev.accountId = tx.accountId;
+      prev.paymentMethod = tx.creditDebtId ? 'credit' : tx.paymentMethod;
+      prev.accountId = tx.creditDebtId
+        ? payAccountIdForDebt(tx.creditDebtId)
+        : tx.accountId;
     }
   }
 

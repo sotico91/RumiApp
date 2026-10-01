@@ -26,6 +26,7 @@ import {
   accountGroupKey,
   isRemovableWallet,
   isRemovableBank,
+  moneyPockets,
   sortAccountsByKind,
 } from '@/src/utils/accounts';
 import { isEditablePocketBalance } from '@/src/utils/ledger';
@@ -126,7 +127,8 @@ export default function WealthScreen() {
   const monthTx = transactionsForPeriod('mes', 'mine');
   const liveDebts = useMemo(() => openDebts(debts), [debts]);
 
-  const groupedAccounts = useMemo(() => sortAccountsByKind(accounts), [accounts]);
+  const cashAccounts = useMemo(() => moneyPockets(accounts), [accounts]);
+  const groupedAccounts = useMemo(() => sortAccountsByKind(cashAccounts), [cashAccounts]);
   const groupedDebts = useMemo(
     () =>
       [...liveDebts].sort((a, b) => {
@@ -420,7 +422,7 @@ export default function WealthScreen() {
             title={t('wealth.accounts')}
             open={accountsOpen}
             onToggle={() => setAccountsOpen((v) => !v)}
-            summary={t('wealth.accountsCollapsed', { count: accounts.length })}>
+            summary={t('wealth.accountsCollapsed', { count: cashAccounts.length })}>
             <Text style={styles.accountsHint}>{t('wealth.accountsHint')}</Text>
             {groupedAccounts.map((acc, index) => {
               const canRename = acc.type === 'wallet' || acc.type === 'bank';
@@ -828,11 +830,45 @@ export default function WealthScreen() {
                     </View>
                   </View>
                   <MoneyText style={styles.amount}>{format(debt.balance)}</MoneyText>
-                  <Text style={styles.meta}>{t('wealth.balanceLeft')}</Text>
+                  <Text style={styles.meta}>
+                    {revolving ? t('wealth.debtUsed') : t('wealth.balanceLeft')}
+                  </Text>
                   {revolving ? (
-                    <Text style={styles.meta}>
-                      {t('wealth.creditAvailable', { amount: format(available) })}
-                    </Text>
+                    <>
+                      {debt.creditLimit ? (
+                        <Text style={styles.meta}>
+                          {t('wealth.cupoTotal', { amount: format(debt.creditLimit) })}
+                          {' · '}
+                          {t('flow.cardAvailable', { amount: format(available) })}
+                        </Text>
+                      ) : (
+                        <Text style={styles.meta}>
+                          {t('wealth.creditAvailable', { amount: format(available) })}
+                        </Text>
+                      )}
+                      {debt.creditLimit ? (
+                        <View style={styles.track}>
+                          <View
+                            style={[
+                              styles.fill,
+                              {
+                                width: `${Math.min(
+                                  ((debt.balance || 0) / debt.creditLimit) * 100,
+                                  100
+                                )}%`,
+                                backgroundColor:
+                                  (debt.balance || 0) >= debt.creditLimit
+                                    ? palette.danger
+                                    : (debt.balance || 0) / debt.creditLimit >= 0.8
+                                      ? palette.accent
+                                      : palette.teal,
+                              },
+                            ]}
+                          />
+                        </View>
+                      ) : null}
+                      <Text style={styles.chargeHint}>{t('wealth.chargeVsPayHint')}</Text>
+                    </>
                   ) : null}
                   {due > 0 ? (
                     <>
@@ -876,6 +912,34 @@ export default function WealthScreen() {
                       ),
                     })}
                   </Text>
+                  <View style={styles.debtActions}>
+                    {revolving ? (
+                      <Pressable
+                        onPress={() => {
+                          tapFeedback();
+                          router.push({
+                            pathname: '/agregar',
+                            params: { intent: 'spend', debtId: debt.id },
+                          });
+                        }}
+                        style={[styles.payBtn, styles.chargeBtn]}>
+                        <Text style={styles.payBtnText}>{t('wealth.chargeSpend')}</Text>
+                      </Pressable>
+                    ) : null}
+                    <Pressable
+                      onPress={() => {
+                        tapFeedback();
+                        router.push({
+                          pathname: '/agregar',
+                          params: { intent: 'debt', debtId: debt.id },
+                        });
+                      }}
+                      style={styles.payBtn}>
+                      <Text style={styles.payBtnText}>
+                        {revolving ? t('wealth.payCard') : t('wealth.payInstallment')}
+                      </Text>
+                    </Pressable>
+                  </View>
                 </View>
                 </View>
               );
@@ -1027,6 +1091,33 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 13,
     color: palette.white,
+  },
+  debtActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  payBtn: {
+    flex: 1,
+    backgroundColor: palette.accent,
+    borderRadius: radii.md,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  chargeBtn: {
+    backgroundColor: palette.teal,
+  },
+  payBtnText: {
+    fontFamily: 'DMSans_700Bold',
+    fontSize: 15,
+    color: palette.white,
+  },
+  chargeHint: {
+    marginTop: 8,
+    fontFamily: 'DMSans_400Regular',
+    fontSize: 13,
+    color: palette.inkMuted,
+    lineHeight: 18,
   },
   summaryCard: {
     backgroundColor: palette.surfaceSolid,

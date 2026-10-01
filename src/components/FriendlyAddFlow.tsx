@@ -35,6 +35,7 @@ import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
 import { InlineSubAdd } from '@/src/components/InlineSubAdd';
 import { InstallmentPayScopePicker } from '@/src/components/InstallmentPayScopePicker';
 import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
+import { SpendSourcePicker, spendSourceFromMethod } from '@/src/components/SpendSourcePicker';
 import { useKeyboardVisible } from '@/src/hooks/useKeyboardVisible';
 import type { SavedMovement } from '@/src/components/ExpenseForm';
 import {
@@ -44,6 +45,7 @@ import {
   defaultSpendAccountId,
   defaultTransferDestinationId,
   firstAccountId,
+  liquidPocketsForPay,
   paymentMethodForAccount,
   pocketMoveAccounts,
 } from '@/src/utils/accounts';
@@ -52,6 +54,7 @@ import {
   inferInstallmentPayScope,
   installmentPayChoices,
   openDebts,
+  payAccountIdForDebt,
   paymentSettlesInstallment,
   suggestedDebtPayAmount,
   type InstallmentPayScope,
@@ -60,11 +63,16 @@ import {
 type Props = {
   onSaved?: (result: SavedMovement) => void;
   onSwitchAdvanced?: () => void;
+  initialIntent?: FriendlyIntent;
+  initialDebtId?: string;
 };
 
-const METHODS: PaymentMethod[] = ['cash', 'debit', 'credit', 'transfer'];
-
-export function FriendlyAddFlow({ onSaved, onSwitchAdvanced }: Props) {
+export function FriendlyAddFlow({
+  onSaved,
+  onSwitchAdvanced,
+  initialIntent,
+  initialDebtId,
+}: Props) {
   const { t } = useLanguage();
   const { format, formatPlain, parse, currency } = useMoney();
   const { settings, updateQuickTemplate, ensureSpendConceptSub } = useSettings();
@@ -75,17 +83,30 @@ export function FriendlyAddFlow({ onSaved, onSwitchAdvanced }: Props) {
   const liveDebts = useMemo(() => openDebts(debts), [debts]);
   const incomeAccounts = useMemo(() => incomeDestinationAccounts(accounts), [accounts]);
 
-  const [step, setStep] = useState(0);
-  const [intent, setIntent] = useState<FriendlyIntent>('spend');
+  const [step, setStep] = useState(() =>
+    initialIntent && initialDebtId ? 1 : 0
+  );
+  const [intent, setIntent] = useState<FriendlyIntent>(initialIntent ?? 'spend');
   const [amount, setAmount] = useState('');
   const [conceptId, setConceptId] = useState<string | null>(null);
   const [categoryId, setCategoryId] = useState('cafe');
-  const [debtId, setDebtId] = useState<string | null>(null);
-  const [payScope, setPayScope] = useState<InstallmentPayScope | null>(null);
-  const [method, setMethod] = useState<PaymentMethod>('debit');
-  const [accountId, setAccountId] = useState(() =>
-    defaultSpendAccountId(accounts)
+  const [debtId, setDebtId] = useState<string | null>(
+    initialIntent === 'debt' ? initialDebtId ?? null : null
   );
+  const [payScope, setPayScope] = useState<InstallmentPayScope | null>(null);
+  const [method, setMethod] = useState<PaymentMethod>(() => {
+    if (initialIntent === 'spend' && initialDebtId) return 'credit';
+    const last = transactions.find((tx) => tx.type === 'expense');
+    return last?.creditDebtId ? 'credit' : 'debit';
+  });
+  const [accountId, setAccountId] = useState(() => {
+    if (initialIntent === 'spend' && initialDebtId) {
+      return payAccountIdForDebt(initialDebtId);
+    }
+    const last = transactions.find((tx) => tx.type === 'expense');
+    if (last?.creditDebtId) return payAccountIdForDebt(last.creditDebtId);
+    return defaultSpendAccountId(accounts);
+  });
   const [toAccountId, setToAccountId] = useState(() =>
     defaultTransferDestinationId(accounts, 'bank-main')
   );
@@ -97,15 +118,17 @@ export function FriendlyAddFlow({ onSaved, onSwitchAdvanced }: Props) {
   const scrollRef = useRef<ScrollView>(null);
 
   const lastSpendAccountId = useMemo(() => {
-    if (categoryId) {
-      const forCat = transactions.find(
-        (tx) =>
-          tx.type === 'expense' && tx.categoryId === categoryId && tx.accountId
-      );
-      if (forCat?.accountId) return forCat.accountId;
-    }
-    return transactions.find((tx) => tx.type === 'expense' && tx.accountId)
-      ?.accountId;
+    const match = categoryId
+      ? transactions.find(
+          (tx) =>
+            tx.type === 'expense' && tx.categoryId === categoryId && (tx.accountId || tx.creditDebtId)
+        )
+      : undefined;
+    const tx =
+      match ??
+      transactions.find((row) => row.type === 'expense' && (row.accountId || row.creditDebtId));
+    if (tx?.creditDebtId) return payAccountIdForDebt(tx.creditDebtId);
+    return tx?.accountId;
   }, [transactions, categoryId]);
 
   const methodAccounts = useMemo(
@@ -130,7 +153,9 @@ export function FriendlyAddFlow({ onSaved, onSwitchAdvanced }: Props) {
       ? incomeAccounts
       : intent === 'move'
         ? moveAccounts
-        : methodAccounts;
+        : intent === 'debt'
+          ? liquidPocketsForPay(accounts)
+          : methodAccounts;
 
   useEffect(() => {
     if (intent === 'earn') {
@@ -148,6 +173,12 @@ export function FriendlyAddFlow({ onSaved, onSwitchAdvanced }: Props) {
           defaultTransferDestinationId(accounts, fromId);
         if (dest && dest !== toAccountId) setToAccountId(dest);
       }
+      return;
+    }
+    if (intent === 'debt') {
+      const pockets = liquidPocketsForPay(accounts);
+      const next = firstAccountId(pockets, accountId);
+      if (next && next !== accountId) setAccountId(next);
       return;
     }
     const next = firstAccountId(methodAccounts, accountId);
@@ -205,6 +236,24 @@ export function FriendlyAddFlow({ onSaved, onSwitchAdvanced }: Props) {
     }
   }
 
+  const bootstrappedPay = useRef(false);
+  useEffect(() => {
+    if (bootstrappedPay.current || !initialDebtId) return;
+    const debt = liveDebts.find((d) => d.id === initialDebtId);
+    if (!debt) return;
+    bootstrappedPay.current = true;
+    if (initialIntent === 'spend') {
+      setIntent('spend');
+      setMethod('credit');
+      setAccountId(payAccountIdForDebt(debt.id));
+      setStep(1);
+      return;
+    }
+    setIntent('debt');
+    pickDebt(debt);
+    setStep(1);
+  }, [initialDebtId, initialIntent, liveDebts]);
+
   async function applyTemplate(id: string) {
     const tpl = FRIENDLY_TEMPLATES.find((x) => x.id === id);
     if (!tpl || applyingTemplate) return;
@@ -229,12 +278,18 @@ export function FriendlyAddFlow({ onSaved, onSwitchAdvanced }: Props) {
         setAccountId(defaultIncomeAccountId(accounts));
       }
       if (tpl.intent === 'spend') {
-        setAccountId(
-          defaultSpendAccountId(accounts, {
-            lastAccountId: lastSpendAccountId,
-            amount: tpl.amountHint,
-          })
-        );
+        if (lastSpendAccountId?.startsWith('debt:')) {
+          setMethod('credit');
+          setAccountId(lastSpendAccountId);
+        } else {
+          setMethod('debit');
+          setAccountId(
+            defaultSpendAccountId(accounts, {
+              lastAccountId: lastSpendAccountId,
+              amount: tpl.amountHint,
+            })
+          );
+        }
       }
 
       if (tpl.intent === 'spend' && tpl.spend) {
@@ -331,6 +386,12 @@ export function FriendlyAddFlow({ onSaved, onSwitchAdvanced }: Props) {
         return;
       }
     }
+    if (step === paymentStep && intent === 'spend' && method === 'credit') {
+      if (!accountChoices.some((a) => a.id === accountId)) {
+        Alert.alert(t('flow.whichCard'), t('flow.noCardsBody'));
+        return;
+      }
+    }
     setStep((s) => Math.min(s + 1, totalSteps - 1));
   }
 
@@ -354,6 +415,14 @@ export function FriendlyAddFlow({ onSaved, onSwitchAdvanced }: Props) {
     if (intent === 'move') {
       if (!accountId || !toAccountId || accountId === toAccountId) {
         Alert.alert(t('add.invalidTitle'), t('flow.moveNeedDistinct'));
+        return;
+      }
+    }
+
+    if (intent === 'spend' && method === 'credit') {
+      if (!accountChoices.some((a) => a.id === accountId)) {
+        Alert.alert(t('flow.whichCard'), t('flow.noCardsBody'));
+        setStep(paymentStep);
         return;
       }
     }
@@ -751,48 +820,55 @@ export function FriendlyAddFlow({ onSaved, onSwitchAdvanced }: Props) {
                 {t('flow.moveNotSpend')}
               </Text>
             ) : null}
-            {asksPaymentMethod ? (
+            {intent === 'spend' ? (
               <>
                 <Text style={styles.title}>{t('flow.howPaid')}</Text>
-                <View style={styles.catGrid}>
-                  {METHODS.map((m) => (
-                    <Pressable
-                      key={m}
-                      onPress={() => {
-                        tapFeedback();
-                        setMethod(m);
-                        const nextList = accountsForExpenseSource(accounts, m, {
-                          debts,
-                          debtLabel: (debt) =>
-                            debt.nameKey
-                              ? t(debt.nameKey as TranslationKey)
-                              : debt.name ?? t('debt.mainCard'),
-                        });
-                        const nextId = firstAccountId(nextList, accountId);
-                        if (nextId) setAccountId(nextId);
-                      }}
-                      style={[styles.catCard, method === m && styles.catCardOn]}>
-                      <Text style={[styles.catText, method === m && styles.catTextOn]}>
-                        {t(`method.${m}` as TranslationKey)}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
+                <SpendSourcePicker
+                  value={spendSourceFromMethod(method)}
+                  onChange={(source) => {
+                    if (source === 'card') {
+                      setMethod('credit');
+                      const nextList = accountsForExpenseSource(accounts, 'credit', {
+                        debts,
+                        debtLabel: (debt) =>
+                          debt.nameKey
+                            ? t(debt.nameKey as TranslationKey)
+                            : debt.name ?? t('debt.mainCard'),
+                      });
+                      const nextId = firstAccountId(nextList, accountId);
+                      if (nextId) setAccountId(nextId);
+                      return;
+                    }
+                    setMethod('debit');
+                    const nextId = firstAccountId(
+                      liquidPocketsForPay(accounts),
+                      accountId
+                    );
+                    if (nextId) setAccountId(nextId);
+                  }}
+                  showNoCards={method === 'credit' && accountChoices.length === 0}
+                />
               </>
             ) : null}
 
+            {intent === 'spend' &&
+            method === 'credit' &&
+            accountChoices.length === 0 ? null : (
+              <>
             <Text
               style={[
                 styles.title,
-                asksPaymentMethod ? { marginTop: 18, fontSize: 22 } : null,
+                intent === 'spend' ? { marginTop: 18, fontSize: 22 } : null,
               ]}>
               {intent === 'earn'
                 ? t('flow.whichAccountIncome')
-                : method === 'credit' && intent !== 'move'
-                  ? t('flow.whichCard')
-                  : intent === 'spend'
-                    ? t('flow.whichAccountSpend')
-                    : t('flow.whichAccount')}
+                : intent === 'debt'
+                  ? t('flow.whichAccountPayDebt')
+                  : method === 'credit' && intent !== 'move'
+                    ? t('flow.whichCard')
+                    : intent === 'spend'
+                      ? t('flow.whichAccountSpend')
+                      : t('flow.whichAccount')}
             </Text>
             {accountChoices.length === 0 ? (
               <Text style={styles.intentSub}>{t('flow.payAccountsEmpty')}</Text>
@@ -803,7 +879,7 @@ export function FriendlyAddFlow({ onSaved, onSwitchAdvanced }: Props) {
                 selectedId={accountId}
                 onSelect={(id) => {
                   setAccountId(id);
-                  if (asksPaymentMethod && method !== 'credit') {
+                  if (intent === 'spend' && method !== 'credit') {
                     const acc = accounts.find((a) => a.id === id);
                     setMethod(paymentMethodForAccount(acc, method));
                   }
@@ -811,11 +887,12 @@ export function FriendlyAddFlow({ onSaved, onSwitchAdvanced }: Props) {
                 allowAddWallet={
                   intent === 'earn' ||
                   intent === 'move' ||
-                  intent === 'spend' ||
                   intent === 'debt' ||
-                  method === 'transfer'
+                  (intent === 'spend' && method !== 'credit')
                 }
               />
+            )}
+              </>
             )}
             {intent === 'move' ? (
               <>
@@ -864,7 +941,7 @@ export function FriendlyAddFlow({ onSaved, onSwitchAdvanced }: Props) {
                   }
                 />
               ) : null}
-              {asksPaymentMethod ? (
+              {asksPaymentMethod && intent !== 'spend' ? (
                 <SummaryLine
                   label={t('flow.summaryMethod')}
                   value={t(`method.${method}` as TranslationKey)}
@@ -874,7 +951,11 @@ export function FriendlyAddFlow({ onSaved, onSwitchAdvanced }: Props) {
                 label={
                   intent === 'earn'
                     ? t('flow.summaryAccountIncome')
-                    : t('flow.summaryAccount')
+                    : intent === 'spend' && method === 'credit'
+                      ? t('flow.summaryChargedTo')
+                      : intent === 'spend'
+                        ? t('flow.summaryAccountSpend')
+                        : t('flow.summaryAccount')
                 }
                 value={accountDisplayName(
                   accountChoices.find((a) => a.id === accountId) ??
@@ -884,6 +965,11 @@ export function FriendlyAddFlow({ onSaved, onSwitchAdvanced }: Props) {
                   t
                 )}
               />
+              {intent === 'spend' && method === 'credit' ? (
+                <Text style={[styles.intentSub, { marginTop: 10 }]}>
+                  {t('flow.chargeReviewHint')}
+                </Text>
+              ) : null}
               {intent === 'move' ? (
                 <>
                   <SummaryLine

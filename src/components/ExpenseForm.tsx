@@ -17,6 +17,7 @@ import { CategoryChip } from '@/src/components/CategoryChip';
 import { InlineSubAdd } from '@/src/components/InlineSubAdd';
 import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
 import { InstallmentPayScopePicker } from '@/src/components/InstallmentPayScopePicker';
+import { SpendSourcePicker, spendSourceFromMethod } from '@/src/components/SpendSourcePicker';
 import { categoriesForKind } from '@/src/data/categories';
 import { findSpendSub, spendSubsAsCategories } from '@/src/data/spendConcepts';
 import { useFinance } from '@/src/hooks/useFinance';
@@ -35,6 +36,7 @@ import {
   defaultTransferDestinationId,
   accountsForExpenseSource,
   firstAccountId,
+  liquidPocketsForPay,
   paymentMethodForAccount,
   pocketMoveAccounts,
 } from '@/src/utils/accounts';
@@ -134,6 +136,7 @@ export function ExpenseForm({
         type === 'investment' ? 'investment' : 'transfer'
       );
     }
+    if (type === 'debt_payment') return liquidPocketsForPay(accounts);
     return accountsForExpenseSource(accounts, method, {
       debts,
       debtLabel: (debt) =>
@@ -231,6 +234,12 @@ export function ExpenseForm({
       if (!payScope || (payScope === 'cuota' && inferred !== 'cuota')) {
         Alert.alert(t('flow.payScopeTitle'), t('flow.payScopeNeed'));
         setPayScope(inferred);
+        return;
+      }
+    }
+    if (type === 'expense' && method === 'credit') {
+      if (!accountChoices.some((a) => a.id === accountId)) {
+        Alert.alert(t('flow.whichCard'), t('flow.noCardsBody'));
         return;
       }
     }
@@ -367,11 +376,37 @@ export function ExpenseForm({
         ))}
       </View>
 
-      {type !== 'income' && !isPocketMove(type) ? (
+      {type === 'expense' ? (
+        <>
+          <Text style={styles.label}>{t('flow.howPaid')}</Text>
+          <SpendSourcePicker
+            value={spendSourceFromMethod(method)}
+            onChange={(source) => {
+              if (source === 'card') {
+                setMethod('credit');
+                const nextList = accountsForExpenseSource(accounts, 'credit', {
+                  debts,
+                  debtLabel: (debt) =>
+                    debt.nameKey
+                      ? t(debt.nameKey as TranslationKey)
+                      : debt.name ?? t('debt.mainCard'),
+                });
+                const nextId = firstAccountId(nextList, accountId);
+                if (nextId) setAccountId(nextId);
+                return;
+              }
+              setMethod('debit');
+              const nextId = firstAccountId(liquidPocketsForPay(accounts), accountId);
+              if (nextId) setAccountId(nextId);
+            }}
+            showNoCards={method === 'credit' && accountChoices.length === 0}
+          />
+        </>
+      ) : type !== 'income' && !isPocketMove(type) && type !== 'debt_payment' ? (
         <>
           <Text style={styles.label}>{t('add.method')}</Text>
           <View style={styles.chips}>
-            {METHODS.map((item) => (
+            {METHODS.filter((item) => item !== 'credit').map((item) => (
               <Pressable
                 key={item}
                 onPress={() => setMethod(item)}
@@ -385,14 +420,18 @@ export function ExpenseForm({
         </>
       ) : null}
 
+      {type === 'expense' && method === 'credit' && accountChoices.length === 0 ? null : (
+        <>
       <Text style={styles.label}>
         {type === 'income'
           ? t('flow.whichAccountIncome')
-          : method === 'credit' && !isPocketMove(type)
-            ? t('flow.whichCard')
-            : type === 'expense'
-              ? t('flow.whichAccountSpend')
-              : t('add.account')}
+          : type === 'debt_payment'
+            ? t('flow.whichAccountPayDebt')
+            : method === 'credit' && !isPocketMove(type)
+              ? t('flow.whichCard')
+              : type === 'expense'
+                ? t('flow.whichAccountSpend')
+                : t('add.account')}
       </Text>
       {accountChoices.length === 0 ? (
         <Text style={styles.preview}>{t('flow.payAccountsEmpty')}</Text>
@@ -402,8 +441,7 @@ export function ExpenseForm({
           selectedId={accountId}
           onSelect={(id) => {
             setAccountId(id);
-            if (type === 'expense' || type === 'debt_payment') {
-              if (method === 'credit') return;
+            if (type === 'expense' && method !== 'credit') {
               const acc = accounts.find((a) => a.id === id);
               setMethod(paymentMethodForAccount(acc, method));
             }
@@ -411,11 +449,12 @@ export function ExpenseForm({
           allowAddWallet={
             type === 'income' ||
             isPocketMove(type) ||
-            type === 'expense' ||
             type === 'debt_payment' ||
-            method === 'transfer'
+            (type === 'expense' && method !== 'credit')
           }
         />
+      )}
+        </>
       )}
 
       {(type === 'transfer' || type === 'investment') && (

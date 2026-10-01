@@ -69,7 +69,9 @@ export function AccountChoiceChips({
                 {accountDisplayName(acc, t)}
               </Text>
               <Text style={[styles.meta, on && styles.onText]}>
-                {t(accountRoleKey(acc.type))} · {format(acc.balance)}
+                {acc.type === 'credit'
+                  ? t('flow.cardAvailable', { amount: format(acc.balance) })
+                  : `${t(accountRoleKey(acc.type))} · ${format(acc.balance)}`}
               </Text>
             </Pressable>
           );

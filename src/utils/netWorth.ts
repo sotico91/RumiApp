@@ -15,9 +15,10 @@ export function incomeDestinationAccounts(accounts: Account[]): Account[] {
 }
 
 /**
- * Net worth from account balances + installment debts.
- * - Assets: positive balances (incl. prepaid credit)
- * - Liabilities: credit card debt, overdraft on cash/bank/savings/wallet, plus debts list
+ * Net worth from money pockets + debts.
+ * Credit-line accounts are ignored (cupo is not cash; used balance lives on the debt).
+ * - Assets: positive pocket balances
+ * - Liabilities: overdraft on cash/bank/savings/wallet, plus debts list
  */
 export function computeNetWorth(
   accounts: Account[],
@@ -27,6 +28,7 @@ export function computeNetWorth(
   let liabilities = 0;
 
   for (const a of accounts) {
+    if (a.type === 'credit') continue;
     if (a.balance >= 0) {
       assets += a.balance;
     } else {

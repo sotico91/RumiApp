@@ -351,18 +351,10 @@ export function accountsForPaymentMethod(
         )
       );
     case 'credit': {
-      const revolving = revolvingAsPayAccounts(
+      return revolvingAsPayAccounts(
         opts?.debts ?? [],
         opts?.debtLabel ?? ((d) => d.name?.trim() || '')
       );
-      const creditAcc = accounts.filter((a) => a.type === 'credit');
-      if (revolving.length > 0) {
-        const extras = creditAcc.filter(
-          (a) => a.id !== 'credit-card' || Boolean(a.name?.trim())
-        );
-        return [...revolving, ...extras];
-      }
-      return creditAcc;
     }
     case 'transfer':
       return sortAccountsByKind(
@@ -409,6 +401,15 @@ export function firstAccountId(list: Account[], preferredId?: string): string | 
   return list[0]?.id;
 }
 
+export function liquidPocketsForPay(accounts: Account[]): Account[] {
+  return sortAccountsByKind(accounts.filter((a) => isSpendableLiquid(a.type)));
+}
+
+/** Cash, banks, wallets, savings, investments — not credit lines. */
+export function moneyPockets(accounts: Account[]): Account[] {
+  return sortAccountsByKind(accounts.filter((a) => a.type !== 'credit'));
+}
+
 /** Cash, savings, virtual wallets, or the main bank — wherever this spend actually left. */
 export function isSpendableLiquid(type: AccountType): boolean {
   return (
@@ -438,10 +439,7 @@ function liquidWithFunds(accounts: Account[], minBalance: number): Account[] {
     .sort((a, b) => b.balance - a.balance);
 }
 
-function accountCovers(
-  acc: Account | undefined,
-  amount?: number
-): acc is Account {
+function accountCovers(acc: Account | undefined, amount?: number): boolean {
   if (!acc || !isSpendableLiquid(acc.type)) return false;
   if (amount != null && amount > 0) return acc.balance >= amount;
   return acc.balance > 0;
@@ -459,7 +457,7 @@ export function resolveSpendAccountId(
   const preferred = preferredId
     ? accounts.find((a) => a.id === preferredId)
     : undefined;
-  if (accountCovers(preferred, amount)) return preferred.id;
+  if (preferred && accountCovers(preferred, amount)) return preferred.id;
 
   const need = amount != null && amount > 0 ? amount : 0.01;
   const enough = liquidWithFunds(accounts, need);

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Dimensions,
   Keyboard,
@@ -15,12 +15,22 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useKeyboardHeight } from '@/src/hooks/useKeyboardVisible';
 import { useLanguage } from '@/src/i18n/LanguageContext';
+import type { TranslationKey } from '@/src/i18n/translations';
 import { palette, radii } from '@/src/theme/colors';
-import type { Account } from '@/src/types/finance';
+import type { Account, Debt } from '@/src/types/finance';
 import type { OneTapHabit } from '@/src/utils/oneTapHabits';
-import { defaultSpendAccountId, isSpendableLiquid } from '@/src/utils/accounts';
+import {
+  defaultSpendAccountId,
+  firstAccountId,
+  liquidPocketsForPay,
+} from '@/src/utils/accounts';
+import { isDebtPayAccountId, revolvingAsPayAccounts } from '@/src/utils/debts';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
+import {
+  SpendSourcePicker,
+  type SpendSource,
+} from '@/src/components/SpendSourcePicker';
 
 type Props = {
   visible: boolean;
@@ -31,6 +41,7 @@ type Props = {
   parse: (raw: string) => number | null;
   busy?: boolean;
   accounts: Account[];
+  debts: Debt[];
   onClose: () => void;
   onConfirm: (amount: number, note: string, accountId: string) => void;
   onEditFull: (amount: number, note: string) => void;
@@ -44,6 +55,7 @@ export function QuickRepeatSheet({
   parse,
   busy,
   accounts,
+  debts,
   onClose,
   onConfirm,
   onEditFull,
@@ -58,17 +70,48 @@ export function QuickRepeatSheet({
   const [amountText, setAmountText] = useState('');
   const [noteText, setNoteText] = useState('');
   const [accountId, setAccountId] = useState('cash');
+  const [spendSource, setSpendSource] = useState<SpendSource>('pocket');
+
+  const pocketAccounts = useMemo(() => liquidPocketsForPay(accounts), [accounts]);
+  const cardAccounts = useMemo(
+    () =>
+      revolvingAsPayAccounts(debts, (debt) =>
+        debt.nameKey
+          ? t(debt.nameKey as TranslationKey)
+          : debt.name ?? t('debt.mainCard')
+      ),
+    [debts, t]
+  );
 
   useEffect(() => {
     if (!visible || !habit) return;
     setEditing(false);
     setAmountText(String(habit.amount));
     setNoteText(habit.note ?? '');
-    setAccountId(
-      defaultSpendAccountId(accounts, { lastAccountId: habit.accountId, amount: habit.amount })
-    );
+    const fromCard =
+      isDebtPayAccountId(habit.accountId) || habit.paymentMethod === 'credit';
+    setSpendSource(fromCard ? 'card' : 'pocket');
+    if (fromCard) {
+      setAccountId(firstAccountId(cardAccounts, habit.accountId) ?? habit.accountId ?? '');
+    } else {
+      setAccountId(
+        defaultSpendAccountId(accounts, {
+          lastAccountId: habit.accountId,
+          amount: habit.amount,
+        })
+      );
+    }
     focusedField.current = null;
-  }, [visible, habit?.categoryId, habit?.amount, habit?.note, habit?.accountId, accounts]);
+  }, [
+    visible,
+    habit?.categoryId,
+    habit?.amount,
+    habit?.note,
+    habit?.accountId,
+    habit?.paymentMethod,
+    accounts,
+    cardAccounts,
+  ]);
 
   useEffect(() => {
     if (keyboardHeight <= 0) return;
@@ -89,7 +132,13 @@ export function QuickRepeatSheet({
 
   const lastAmount = habit.amount;
   const parsed = parse(amountText);
-  const canConfirm = parsed != null && parsed > 0 && !busy;
+  const sourceAccounts = spendSource === 'card' ? cardAccounts : pocketAccounts;
+  const canConfirm =
+    parsed != null &&
+    parsed > 0 &&
+    !busy &&
+    Boolean(accountId) &&
+    sourceAccounts.some((a) => a.id === accountId);
   const resolvedNote = noteText.trim();
 
   function handleClose() {
@@ -163,13 +212,37 @@ export function QuickRepeatSheet({
                 </View>
               ) : null}
 
-              <Text style={styles.fieldLabel}>{t('home.quickConfirmAccount')}</Text>
-              <AccountChoiceChips
-                accounts={accounts.filter((a) => isSpendableLiquid(a.type))}
-                selectedId={accountId}
-                onSelect={setAccountId}
-                allowAddWallet
+              <Text style={styles.fieldLabel}>{t('flow.howPaid')}</Text>
+              <SpendSourcePicker
+                value={spendSource}
+                onChange={(source) => {
+                  setSpendSource(source);
+                  if (source === 'card') {
+                    const next = firstAccountId(cardAccounts, accountId);
+                    if (next) setAccountId(next);
+                    return;
+                  }
+                  const next = firstAccountId(pocketAccounts, accountId);
+                  if (next) setAccountId(next);
+                }}
+                showNoCards={spendSource === 'card' && cardAccounts.length === 0}
               />
+
+              {spendSource === 'card' && cardAccounts.length === 0 ? null : (
+                <>
+                  <Text style={styles.fieldLabel}>
+                    {spendSource === 'card'
+                      ? t('flow.whichCard')
+                      : t('home.quickConfirmAccount')}
+                  </Text>
+                  <AccountChoiceChips
+                    accounts={spendSource === 'card' ? cardAccounts : pocketAccounts}
+                    selectedId={accountId}
+                    onSelect={setAccountId}
+                    allowAddWallet={spendSource === 'pocket'}
+                  />
+                </>
+              )}
 
               {editing ? (
                 <>

@@ -22,6 +22,7 @@ import { notifyExpenseRegistered } from '@/src/utils/notifications';
 import { movementNotifyCopy } from '@/src/utils/movementNotify';
 import { buildOneTapHabits, type OneTapHabit } from '@/src/utils/oneTapHabits';
 import { paymentMethodForAccount } from '@/src/utils/accounts';
+import { isDebtPayAccountId } from '@/src/utils/debts';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 
 /**
@@ -32,7 +33,7 @@ export function QuickAddBar() {
   const { t } = useLanguage();
   const { format, formatPlain, parse, currency } = useMoney();
   const { settings, updateQuickTemplate } = useSettings();
-  const { addTransaction, transactions, accounts } = useFinance();
+  const { addTransaction, transactions, accounts, debts } = useFinance();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [sheetHabit, setSheetHabit] = useState<OneTapHabit | null>(null);
   const busyLock = useRef(false);
@@ -72,10 +73,12 @@ export function QuickAddBar() {
         amount,
         categoryId: habit.categoryId,
         note: resolvedNote,
-        paymentMethod: paymentMethodForAccount(
-          accounts.find((a) => a.id === accountId),
-          habit.paymentMethod ?? 'debit'
-        ),
+        paymentMethod: isDebtPayAccountId(accountId)
+          ? 'credit'
+          : paymentMethodForAccount(
+              accounts.find((a) => a.id === accountId),
+              habit.paymentMethod ?? 'debit'
+            ),
         accountId,
       });
       await updateQuickTemplate({
@@ -175,6 +178,7 @@ export function QuickAddBar() {
         parse={parse}
         busy={busyId != null}
         accounts={accounts}
+        debts={debts}
         onClose={() => setSheetHabit(null)}
         onConfirm={(amount, note, accountId) => {
           if (!sheetHabit) return;
