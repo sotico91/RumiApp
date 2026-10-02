@@ -1,5 +1,6 @@
 import { Share, Platform } from 'react-native';
 import { File, Paths } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 
 import { categoryLabel } from '@/src/utils/categoryLabel';
 import { csvEscape } from '@/src/utils/csv';
@@ -171,22 +172,36 @@ async function writeCacheFile(filename: string, contents: string): Promise<File>
   return file;
 }
 
-/** Share via RN Share — works without expo-sharing native module. */
-async function shareFile(file: File, contents: string, title: string) {
+/**
+ * Share the real file (not its text) so it can be saved as .json / .csv.
+ * Sharing long text on Android gets truncated by the receiving app.
+ */
+async function shareFile(
+  file: File,
+  contents: string,
+  title: string,
+  type: { mimeType: string; UTI: string }
+) {
+  if (await Sharing.isAvailableAsync()) {
+    await Sharing.shareAsync(file.uri, { ...type, dialogTitle: title });
+    return;
+  }
   if (Platform.OS === 'ios') {
     await Share.share({ url: file.uri, title });
     return;
   }
-  // Android: share text body (file URI sharing needs extra grants without expo-sharing).
   await Share.share({ message: contents, title });
 }
+
+const JSON_TYPE = { mimeType: 'application/json', UTI: 'public.json' };
+const CSV_TYPE = { mimeType: 'text/csv', UTI: 'public.comma-separated-values-text' };
 
 export async function shareBackupJson(snapshot: BackupSnapshot): Promise<void> {
   const backup = buildBackup(snapshot);
   const contents = JSON.stringify(backup, null, 2);
   const filename = `Rumi-backup-${stamp()}.json`;
   const file = await writeCacheFile(filename, contents);
-  await shareFile(file, contents, filename);
+  await shareFile(file, contents, filename, JSON_TYPE);
 }
 
 export async function shareTransactionsCsv(
@@ -199,7 +214,7 @@ export async function shareTransactionsCsv(
       ? `Rumi-movimientos-${stamp()}.csv`
       : `Rumi-movements-${stamp()}.csv`;
   const file = await writeCacheFile(filename, contents);
-  await shareFile(file, contents, filename);
+  await shareFile(file, contents, filename, CSV_TYPE);
 }
 
 /** Uses Expo FileSystem picker (already linked) — no DocumentPicker native module. */
