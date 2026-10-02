@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { Alert, Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
+import { CategorySearch, CATEGORY_SEARCH_MIN_SUBS } from '@/src/components/CategorySearch';
 import type { SavedMovement } from '@/src/components/ExpenseForm';
 import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
 import { findSpendSub, flattenSpendSubs, isGeneralSubName } from '@/src/data/spendConcepts';
@@ -100,6 +101,21 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
     return defaultSpendAccountId(accounts);
   }, [pickedAccountId, categoryId, transactions, payAccounts, accounts]);
 
+  // A subcategory picked through search shows up first, selected.
+  const visibleChips = useMemo(() => {
+    if (!categoryId || categoryChips.some((c) => c.id === categoryId)) return categoryChips;
+    const hit = findSpendSub(spendConcepts, categoryId);
+    if (!hit) return categoryChips;
+    return [
+      {
+        id: hit.sub.id,
+        label: isGeneralSubName(hit.sub.name) ? hit.concept.name : hit.sub.name,
+        color: hit.concept.color,
+      },
+      ...categoryChips,
+    ];
+  }, [categoryId, categoryChips, spendConcepts]);
+
   const parsed = parse(amount);
   const canSave = !!parsed && !!categoryId && !!accountId && !saving;
 
@@ -176,11 +192,20 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
         </View>
 
         <Text style={styles.section}>{t('quick.what')}</Text>
+        {flattenSpendSubs(spendConcepts).length > CATEGORY_SEARCH_MIN_SUBS ? (
+          <CategorySearch
+            concepts={spendConcepts}
+            onPick={(_conceptId, subId) => {
+              setCategoryId(subId);
+              Keyboard.dismiss();
+            }}
+          />
+        ) : null}
         {categoryChips.length === 0 ? (
           <Text style={styles.hint}>{t('quick.noCategories')}</Text>
         ) : null}
         <View style={styles.chipWrap}>
-          {categoryChips.map((chip) => {
+          {visibleChips.map((chip) => {
             const on = chip.id === categoryId;
             return (
               <Pressable

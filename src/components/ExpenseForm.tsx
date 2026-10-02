@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -19,7 +20,13 @@ import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
 import { InstallmentPayScopePicker } from '@/src/components/InstallmentPayScopePicker';
 import { SpendSourcePicker, spendSourceFromMethod } from '@/src/components/SpendSourcePicker';
 import { categoriesForKind } from '@/src/data/categories';
-import { findSpendSub, spendSubsAsCategories } from '@/src/data/spendConcepts';
+import { CategorySearch, CATEGORY_SEARCH_MIN_SUBS } from '@/src/components/CategorySearch';
+import {
+  findSpendSub,
+  flattenSpendSubs,
+  isGeneralSubName,
+  spendSubsAsCategories,
+} from '@/src/data/spendConcepts';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useSettings } from '@/src/hooks/useSettings';
@@ -88,6 +95,12 @@ export function ExpenseForm({
   const { settings, updateQuickTemplate } = useSettings();
   const { addTransaction, totalForPeriod, accounts, debts, transactions } = useFinance();
   const spendConcepts = settings.spendConcepts ?? [];
+  // The concept is already picked above, so a sub chip only needs its own name.
+  const subChipLabel = (id: string) => {
+    const hit = findSpendSub(spendConcepts, id);
+    if (!hit) return categoryLabel(id, t, spendConcepts);
+    return isGeneralSubName(hit.sub.name) ? hit.concept.name : hit.sub.name;
+  };
   const liveDebts = useMemo(() => openDebts(debts), [debts]);
 
   const prefilledHit = initialCategoryId
@@ -471,7 +484,20 @@ export function ExpenseForm({
       {type === 'expense' && spendConcepts.length > 0 ? (
         <>
           <Text style={styles.label}>{t('flow.chooseConcept')}</Text>
-          <View style={styles.chips}>
+          {flattenSpendSubs(spendConcepts).length > CATEGORY_SEARCH_MIN_SUBS ? (
+            <CategorySearch
+              concepts={spendConcepts}
+              onPick={(pickedConceptId, subId) => {
+                setConceptId(pickedConceptId);
+                setCategoryId(subId);
+              }}
+            />
+          ) : null}
+          {/* One swipeable row, so many concepts do not push the form down. */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.conceptRow}>
             {spendConcepts.map((concept) => (
               <Pressable
                 key={concept.id}
@@ -486,7 +512,7 @@ export function ExpenseForm({
                 </Text>
               </Pressable>
             ))}
-          </View>
+          </ScrollView>
         </>
       ) : null}
 
@@ -524,7 +550,7 @@ export function ExpenseForm({
               <CategoryChip
                 key={category.id}
                 category={category}
-                label={categoryLabel(category.id, t, spendConcepts)}
+                label={subChipLabel(category.id)}
                 selected={category.id === categoryId}
                 onPress={() => setCategoryId(category.id)}
               />
@@ -626,6 +652,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+  },
+  conceptRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingRight: 8,
   },
   pill: {
     borderWidth: 1,

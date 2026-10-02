@@ -534,6 +534,8 @@ export const translations = {
     'quick.otherCategory': 'Other category…',
     'quick.noCategories': 'No categories yet — tap “Other category…” to create one.',
     'quick.from': 'Paid from',
+    'categorySearch.placeholder': 'Search a category…',
+    'categorySearch.empty': 'No category matches. Create it below.',
     'quick.save': 'Save expense',
     'quick.saveAmount': 'Save {amount}',
 
@@ -1550,6 +1552,8 @@ export const translations = {
     'quick.otherCategory': 'Otra categoría…',
     'quick.noCategories': 'Aún no tienes categorías: toca “Otra categoría…” para crear una.',
     'quick.from': '¿De dónde salió?',
+    'categorySearch.placeholder': 'Buscar categoría…',
+    'categorySearch.empty': 'Ninguna categoría coincide. Créala abajo.',
     'quick.save': 'Guardar gasto',
     'quick.saveAmount': 'Guardar {amount}',
 

@@ -18,7 +18,7 @@ import {
   type FriendlyIntent,
 } from '@/src/data/friendlyTemplates';
 import { categoriesForKind, defaultCategoryIdForKind } from '@/src/data/categories';
-import { findConceptById } from '@/src/data/spendConcepts';
+import { findConceptById, flattenSpendSubs } from '@/src/data/spendConcepts';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useSettings } from '@/src/hooks/useSettings';
@@ -32,6 +32,7 @@ import { notifyExpenseRegistered } from '@/src/utils/notifications';
 import { movementNotifyCopy } from '@/src/utils/movementNotify';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
+import { CategorySearch, CATEGORY_SEARCH_MIN_SUBS } from '@/src/components/CategorySearch';
 import { InlineSubAdd } from '@/src/components/InlineSubAdd';
 import { InstallmentPayScopePicker } from '@/src/components/InstallmentPayScopePicker';
 import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
@@ -729,6 +730,17 @@ export function FriendlyAddFlow({
                     </Pressable>
                   </View>
                 ) : (
+                  <>
+                  {flattenSpendSubs(spendConcepts).length > CATEGORY_SEARCH_MIN_SUBS ? (
+                    <CategorySearch
+                      concepts={spendConcepts}
+                      onPick={(pickedConceptId, subId) => {
+                        setConceptId(pickedConceptId);
+                        setCategoryId(subId);
+                        setStep(paymentStep);
+                      }}
+                    />
+                  ) : null}
                   <View style={styles.catGrid}>
                     {spendConcepts.map((concept) => {
                       const selected = concept.id === conceptId;
@@ -749,6 +761,7 @@ export function FriendlyAddFlow({
                       );
                     })}
                   </View>
+                  </>
                 )}
               </>
             ) : intent === 'earn' ? (
