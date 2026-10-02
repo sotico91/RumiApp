@@ -997,10 +997,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   groupLabel: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 11,
-    color: palette.inkSoft,
-    letterSpacing: 0.7,
+    // Sits on the dark gradient, not on a card: grey was nearly invisible.
+    fontFamily: 'DMSans_700Bold',
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.9)',
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
     marginTop: 8,
     marginBottom: 6,
