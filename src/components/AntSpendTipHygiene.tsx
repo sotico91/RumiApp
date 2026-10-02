@@ -33,13 +33,19 @@ export function AntSpendTipHygiene() {
     if (!ready || loading || !settings.onboardingDone) return null;
     const week = antTipWeekKey();
     if (settings.antTipDismissedWeekKey === week) return null;
-    return pickAntSpendTip(transactions, settings.spendConcepts ?? []);
+    return pickAntSpendTip(
+      transactions,
+      settings.spendConcepts ?? [],
+      new Date(),
+      settings.currency
+    );
   }, [
     ready,
     loading,
     settings.onboardingDone,
     settings.antTipDismissedWeekKey,
     settings.spendConcepts,
+    settings.currency,
     transactions,
   ]);
 

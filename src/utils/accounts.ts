@@ -1,4 +1,5 @@
 import { DEFAULT_ACCOUNTS } from '@/src/data/financeDefaults';
+import { roundMoney } from '@/src/utils/money';
 import type { Account, AccountType, Debt, PaymentMethod } from '@/src/types/finance';
 import type { TranslationKey } from '@/src/i18n/translations';
 import { revolvingAsPayAccounts } from '@/src/utils/debts';
@@ -478,6 +479,9 @@ export function defaultSpendAccountId(
  * Don't leave cash/bank in the red while wallets or savings still have leftover.
  * Covers overdrafts from secondary pockets first, then other liquid accounts.
  */
+/** Float residues below half a cent are not real overdrafts. */
+const HALF_CENT = 0.005;
+
 export function settleLiquidOverdrafts(accounts: Account[]): {
   accounts: Account[];
   changed: boolean;
@@ -487,7 +491,7 @@ export function settleLiquidOverdrafts(accounts: Account[]): {
   let changed = false;
 
   const overs = liquid
-    .filter((a) => a.balance < 0)
+    .filter((a) => a.balance < -HALF_CENT)
     .sort((a, b) => {
       const pa = isPrincipalLiquid(a.type) ? 0 : 1;
       const pb = isPrincipalLiquid(b.type) ? 0 : 1;
@@ -497,7 +501,7 @@ export function settleLiquidOverdrafts(accounts: Account[]): {
   for (const over of overs) {
     let need = -over.balance;
     const donors = liquid
-      .filter((a) => a.id !== over.id && a.balance > 0)
+      .filter((a) => a.id !== over.id && a.balance > HALF_CENT)
       .sort((a, b) => {
         const sa = isSecondaryLiquid(a.type) ? 1 : 0;
         const sb = isSecondaryLiquid(b.type) ? 1 : 0;
@@ -505,11 +509,11 @@ export function settleLiquidOverdrafts(accounts: Account[]): {
         return b.balance - a.balance;
       });
     for (const donor of donors) {
-      if (need <= 0) break;
+      if (need <= HALF_CENT) break;
       const give = Math.min(donor.balance, need);
       if (give <= 0) continue;
-      donor.balance -= give;
-      over.balance += give;
+      donor.balance = roundMoney(donor.balance - give);
+      over.balance = roundMoney(over.balance + give);
       need -= give;
       changed = true;
     }

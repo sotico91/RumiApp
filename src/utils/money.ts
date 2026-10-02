@@ -11,8 +11,19 @@ function keepMoneyOnOneLine(formatted: string): string {
     .replace(/[\s\u00A0]+/g, '\u00A0');
 }
 
+/**
+ * Round to cents. Float math leaves residues (0.30 - 0.10 - 0.20 is not 0),
+ * which show as "-$0.00" and look like overdrafts. COP amounts are whole
+ * pesos, so this is a no-op for them.
+ */
+export function roundMoney(amount: number): number {
+  const rounded = Math.round(amount * 100) / 100;
+  return rounded === 0 ? 0 : rounded;
+}
+
 export function formatMoney(amount: number, currency: Currency): string {
   if (currency === 'USD') {
+    amount = roundMoney(amount);
     return keepMoneyOnOneLine(
       new Intl.NumberFormat('en-US', {
         style: 'currency',

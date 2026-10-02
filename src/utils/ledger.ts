@@ -1,4 +1,5 @@
 import type { Account, Debt, Transaction } from '@/src/types/finance';
+import { roundMoney } from '@/src/utils/money';
 import { applyRevolvingCharge, closedAtAfterBalance } from '@/src/utils/debts';
 
 /**
@@ -19,23 +20,23 @@ export function applyAccountDelta(
 
   if (tx.type === 'expense' || tx.type === 'withdrawal' || tx.type === 'debt_payment') {
     const acc = find(tx.accountId);
-    if (acc) acc.balance -= amount;
+    if (acc) acc.balance = roundMoney(acc.balance - amount);
   }
   if (tx.type === 'income') {
     const acc = find(tx.accountId);
-    if (acc) acc.balance += amount;
+    if (acc) acc.balance = roundMoney(acc.balance + amount);
   }
   if (tx.type === 'transfer') {
     const from = find(tx.accountId);
     const to = find(tx.toAccountId);
-    if (from) from.balance -= amount;
-    if (to) to.balance += amount;
+    if (from) from.balance = roundMoney(from.balance - amount);
+    if (to) to.balance = roundMoney(to.balance + amount);
   }
   if (tx.type === 'investment') {
     const from = find(tx.accountId);
     const to = find(tx.toAccountId) ?? find('investments');
-    if (from) from.balance -= amount;
-    if (to) to.balance += amount;
+    if (from) from.balance = roundMoney(from.balance - amount);
+    if (to) to.balance = roundMoney(to.balance + amount);
   }
   return next;
 }
@@ -83,22 +84,22 @@ export function applyDebtPayment(
     if (d.id !== tx.debtId) return d;
     if (direction === 1) {
       const paid = Math.min(tx.amount, d.balance);
-      const nextBalance = Math.max(0, d.balance - paid);
+      const nextBalance = roundMoney(Math.max(0, d.balance - paid));
       const nextDate = new Date();
       nextDate.setMonth(nextDate.getMonth() + 1);
       return {
         ...d,
         balance: nextBalance,
-        paidCapital: (d.paidCapital || 0) + paid,
+        paidCapital: roundMoney((d.paidCapital || 0) + paid),
         nextPaymentDate: nextDate.toISOString(),
         closedAt: closedAtAfterBalance(d, nextBalance, tx.createdAt),
       };
     }
-    const nextBalance = d.balance + tx.amount;
+    const nextBalance = roundMoney(d.balance + tx.amount);
     return {
       ...d,
       balance: nextBalance,
-      paidCapital: Math.max(0, (d.paidCapital || 0) - tx.amount),
+      paidCapital: roundMoney(Math.max(0, (d.paidCapital || 0) - tx.amount)),
       closedAt: closedAtAfterBalance(d, nextBalance, d.closedAt ?? tx.createdAt),
     };
   });

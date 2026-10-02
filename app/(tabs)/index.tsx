@@ -115,11 +115,12 @@ export default function HomeScreen() {
   const antTip = useMemo(() => {
     if (loading || !settings.onboardingDone) return null;
     if (settings.antTipDismissedWeekKey === antTipWeekKey()) return null;
-    return pickAntSpendTip(transactions, spendConcepts);
+    return pickAntSpendTip(transactions, spendConcepts, new Date(), settings.currency);
   }, [
     loading,
     settings.onboardingDone,
     settings.antTipDismissedWeekKey,
+    settings.currency,
     transactions,
     spendConcepts,
   ]);

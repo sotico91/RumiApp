@@ -1,4 +1,5 @@
 import type { Account, Debt, DebtKind, RevolvingProduct, Transaction } from '@/src/types/finance';
+import { roundMoney } from '@/src/utils/money';
 
 /** Treat remaining balances at or below this as paid off. */
 export const SETTLED_EPS = 0.01;
@@ -171,7 +172,7 @@ export function applyRevolvingCharge(
   if (!debtId || !amount) return debts;
   return debts.map((debt) => {
     if (debt.id !== debtId) return debt;
-    const nextBalance = Math.max(0, (debt.balance || 0) + amount * direction);
+    const nextBalance = roundMoney(Math.max(0, (debt.balance || 0) + amount * direction));
     return {
       ...debt,
       balance: nextBalance,

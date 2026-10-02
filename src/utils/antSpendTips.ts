@@ -1,6 +1,6 @@
 import { CREDITS_CONCEPT_ID, findSpendSub } from '@/src/data/spendConcepts';
 import type { Transaction } from '@/src/types/finance';
-import type { SpendConcept } from '@/src/types/settings';
+import type { Currency, SpendConcept } from '@/src/types/settings';
 import { isAntCategoryId } from '@/src/utils/financeMath';
 import { localDateKey } from '@/src/utils/habitPilot';
 
@@ -17,8 +17,11 @@ export type AntSpendTip = {
   isAnt: boolean;
 };
 
-const MIN_CURRENT = 15_000;
-const MIN_DELTA = 8_000;
+/** Minimum monthly spend and climb worth a tip (~15.000 / 8.000 COP ≈ 4 / 2 USD). */
+const THRESHOLDS: Record<Currency, { minCurrent: number; minDelta: number }> = {
+  COP: { minCurrent: 15_000, minDelta: 8_000 },
+  USD: { minCurrent: 4, minDelta: 2 },
+};
 const MIN_RATIO = 1.2;
 const MIN_COUNT = 2;
 
@@ -57,10 +60,19 @@ function monthBuckets(
   return map;
 }
 
-function saveHintFor(current: number, previous: number, delta: number): number {
+function saveHintFor(
+  current: number,
+  delta: number,
+  currency: Currency
+): number {
   const soft = Math.max(delta * 0.4, current * 0.12);
   const capped = Math.min(soft, delta > 0 ? delta : current * 0.25);
-  // Round to friendly thousands when amounts look like COP-scale.
+  if (currency === 'USD') {
+    // Whole dollars once it is worth it; otherwise keep cents.
+    if (capped >= 5) return Math.round(capped);
+    return Math.max(0.5, Math.round(capped * 100) / 100);
+  }
+  // Round to friendly thousands of pesos.
   if (capped >= 5000) return Math.max(1000, Math.round(capped / 1000) * 1000);
   return Math.max(1, Math.round(capped));
 }
@@ -72,8 +84,10 @@ function saveHintFor(current: number, previous: number, delta: number): number {
 export function buildAntSpendTips(
   transactions: Transaction[],
   spendConcepts: SpendConcept[],
-  now = new Date()
+  now = new Date(),
+  currency: Currency = 'COP'
 ): AntSpendTip[] {
+  const { minCurrent: MIN_CURRENT, minDelta: MIN_DELTA } = THRESHOLDS[currency];
   const y = now.getFullYear();
   const m = now.getMonth();
   const prev = m === 0 ? { year: y - 1, monthIndex: 11 } : { year: y, monthIndex: m - 1 };
@@ -103,7 +117,7 @@ export function buildAntSpendTips(
       current: cur.total,
       previous,
       delta,
-      saveHint: saveHintFor(cur.total, previous, delta || cur.total * 0.2),
+      saveHint: saveHintFor(cur.total, delta || cur.total * 0.2, currency),
       isAnt: isAntCategoryId(categoryId, spendConcepts),
     });
   }
@@ -117,9 +131,10 @@ export function buildAntSpendTips(
 export function pickAntSpendTip(
   transactions: Transaction[],
   spendConcepts: SpendConcept[],
-  now = new Date()
+  now = new Date(),
+  currency: Currency = 'COP'
 ): AntSpendTip | null {
-  return buildAntSpendTips(transactions, spendConcepts, now)[0] ?? null;
+  return buildAntSpendTips(transactions, spendConcepts, now, currency)[0] ?? null;
 }
 
 const TITLE_VARIANT_COUNT = 4;

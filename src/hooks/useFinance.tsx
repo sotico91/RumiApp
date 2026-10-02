@@ -890,8 +890,8 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
   );
 
   const recurringTransactions = useMemo(
-    () => detectRecurring(transactions),
-    [transactions]
+    () => detectRecurring(transactions, settings.currency),
+    [transactions, settings.currency]
   );
 
   const predictedThisMonth = useMemo(() => {

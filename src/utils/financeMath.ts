@@ -1,7 +1,7 @@
 import { getAntCategoryIds } from '@/src/data/financeDefaults';
 import { findSpendSub, resolveConceptColor } from '@/src/data/spendConcepts';
 import type { Debt, Period, Transaction } from '@/src/types/finance';
-import type { SpendConcept } from '@/src/types/settings';
+import type { Currency, SpendConcept } from '@/src/types/settings';
 
 function startOfDay(date: Date): Date {
   const d = new Date(date);
@@ -220,12 +220,20 @@ export function antExpenseBreakdown(
   return { total, items };
 }
 
-export function detectRecurring(transactions: Transaction[]): Transaction[] {
+/** Amounts within one bucket count as "the same" spend: ~1.000 COP or ~1 USD. */
+function recurringBucket(amount: number, currency: Currency): number {
+  return Math.round(amount / (currency === 'USD' ? 1 : 1000));
+}
+
+export function detectRecurring(
+  transactions: Transaction[],
+  currency: Currency = 'COP'
+): Transaction[] {
   const expenses = transactions.filter((t) => t.type === 'expense' && t.categoryId);
   const groups = new Map<string, Transaction[]>();
 
   for (const t of expenses) {
-    const key = `${t.categoryId}|${Math.round(t.amount / 1000)}|${t.paymentMethod ?? ''}`;
+    const key = `${t.categoryId}|${recurringBucket(t.amount, currency)}|${t.paymentMethod ?? ''}`;
     const list = groups.get(key) ?? [];
     list.push(t);
     groups.set(key, list);
