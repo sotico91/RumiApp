@@ -390,13 +390,9 @@ export const translations = {
       'This is the default wallet slot — change the name instead of deleting it.',
     'wealth.walletNameNeed': 'Type a name for this wallet.',
     'wealth.walletNameTaken': 'You already have a wallet with that name.',
-    'wealth.walletManageHint':
-      'Rename it, or remove it once it is at $0.',
     'wealth.bankDelete': 'Remove bank',
     'wealth.bankNameNeed': 'Type a name for this bank.',
     'wealth.bankNameTaken': 'You already have a bank with that name.',
-    'wealth.bankManageHint':
-      'Rename it, or remove extra banks once they are at $0.',
     'wealth.debts': 'Debts & credit',
     'wealth.cards': 'Cards & credit lines',
     'wealth.loans': 'Loans & installments',
@@ -1369,13 +1365,9 @@ export const translations = {
       'Esa es la billetera de base: cámbiale el nombre, no la borres.',
     'wealth.walletNameNeed': 'Escribe un nombre para esta billetera.',
     'wealth.walletNameTaken': 'Ya tienes una billetera con ese nombre.',
-    'wealth.walletManageHint':
-      'Cámbiale el nombre, o elimínala cuando esté en $0.',
     'wealth.bankDelete': 'Eliminar banco',
     'wealth.bankNameNeed': 'Escribe un nombre para este banco.',
     'wealth.bankNameTaken': 'Ya tienes un banco con ese nombre.',
-    'wealth.bankManageHint':
-      'Cámbiale el nombre, o quita los bancos extra cuando estén en $0.',
     'wealth.debts': 'Deudas y créditos',
     'wealth.cards': 'Tarjetas y cupos',
     'wealth.loans': 'Créditos y cuotas',

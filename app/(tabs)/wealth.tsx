@@ -861,11 +861,8 @@ export default function WealthScreen() {
             })}
           </CollapsibleSection>
           <View style={styles.addWalletCard}>
-            <Text style={styles.addWalletHint}>{t('wealth.walletManageHint')}</Text>
             <WalletQuickAdd />
-            <Text style={[styles.addWalletHint, { marginTop: 14 }]}>
-              {t('wealth.bankManageHint')}
-            </Text>
+            <View style={styles.addBankGap} />
             <BankQuickAdd />
           </View>
         </FadeInBlock>
@@ -974,6 +971,7 @@ export default function WealthScreen() {
 
 const styles = StyleSheet.create({
   content: { padding: 22, paddingBottom: 168, gap: 12 },
+  addBankGap: { height: 14 },
   addWalletCard: {
     marginTop: 12,
     backgroundColor: palette.surfaceSolid,
@@ -981,13 +979,6 @@ const styles = StyleSheet.create({
     padding: 14,
     borderWidth: 1,
     borderColor: palette.border,
-  },
-  addWalletHint: {
-    fontFamily: 'DMSans_400Regular',
-    fontSize: 13,
-    color: palette.inkMuted,
-    lineHeight: 18,
-    marginBottom: 10,
   },
   accountsHint: {
     fontFamily: 'DMSans_400Regular',
