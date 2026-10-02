@@ -71,8 +71,12 @@ export default function HomeScreen() {
   const income = totalForPeriod('mes', 'income');
   const expenses = totalForPeriod('mes', 'expense');
   const savings = income - expenses;
+  const spendConcepts = settings.spendConcepts ?? [];
   // Where the month is heading (fixed bills once + day-to-day pace), shown once it means something.
-  const pace = useMemo(() => projectMonth(transactions, debts), [transactions, debts]);
+  const pace = useMemo(
+    () => projectMonth(transactions, debts, new Date(), spendConcepts),
+    [transactions, debts, spendConcepts]
+  );
   const paceHint =
     !loading && !pace.early && pace.income > 0
       ? t(pace.projectedLeft >= 0 ? 'home.paceAhead' : 'home.paceBehind', {
@@ -81,7 +85,6 @@ export default function HomeScreen() {
       : undefined;
   const expenseConcepts = insightsForPeriod('mes', 'expense');
   const incomeConcepts = insightsForPeriod('mes', 'income');
-  const spendConcepts = settings.spendConcepts ?? [];
   /** Only strictly over limit — keep attention actionable and short. */
   const ATTENTION_OVER_LIMIT = 3;
   const overBudgetAlerts = [...budgetStatus]

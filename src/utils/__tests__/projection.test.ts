@@ -136,7 +136,10 @@ describe('savings pace note', () => {
       tx('income', 4_000_000, '2026-10-01T08:00', { categoryId: 'salario' }),
       tx('expense', 1_200_000, '2026-10-01T09:00', { categoryId: 'arriendo' }),
     ];
-    const notes = buildSmartInsights(list, t, format, [], 'mes');
+    const concepts = [
+      { id: 'concept-vivienda', name: 'Vivienda', color: '#000', subs: [{ id: 'arriendo', name: 'Arriendo' }] },
+    ];
+    const notes = buildSmartInsights(list, t, format, concepts, 'mes');
     const pace = notes.find((n) => n.id === 'savings-pace');
     expect(pace?.text).toMatch(/guardarías cerca del 70%/);
     expect(pace?.tone).toBe('good');

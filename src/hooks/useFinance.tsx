@@ -895,8 +895,8 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
 
   const predictedThisMonth = useMemo(() => {
     const mine = filterByPersonScope(transactions, 'mine', settings.personId);
-    return predictMonthlySpends(mine, debts, now);
-  }, [transactions, debts, now, monthKey, settings.personId]);
+    return predictMonthlySpends(mine, debts, now, settings.spendConcepts ?? []);
+  }, [transactions, debts, now, monthKey, settings.personId, settings.spendConcepts]);
 
   const availableByAccount = useMemo(
     () => mapLiquidAccounts(accounts, 'principal'),

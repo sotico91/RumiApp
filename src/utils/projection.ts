@@ -1,4 +1,5 @@
 import type { Debt, Transaction } from '@/src/types/finance';
+import type { SpendConcept } from '@/src/types/settings';
 import {
   calendarMonthRange,
   filterByCalendarMonth,
@@ -37,7 +38,8 @@ export type MonthProjection = {
 export function projectMonth(
   transactions: Transaction[],
   debts: Debt[] = [],
-  now = new Date()
+  now = new Date(),
+  spendConcepts?: SpendConcept[]
 ): MonthProjection {
   const year = now.getFullYear();
   const monthIndex = now.getMonth();
@@ -51,7 +53,7 @@ export function projectMonth(
 
   // Card payments are not outflow (their purchases already are), so a card's
   // statement payment must not be added as a pending fixed cost either.
-  const predictions = predictMonthlySpends(transactions, debts, now).filter(
+  const predictions = predictMonthlySpends(transactions, debts, now, spendConcepts).filter(
     (p) => !(p.debtId && revolving.has(p.debtId))
   );
   const fixedCategories = new Set(predictions.map((p) => p.categoryId));

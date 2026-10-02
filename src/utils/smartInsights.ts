@@ -340,7 +340,7 @@ export function buildSmartInsights(
 
   // Forward-looking: where this month is heading, once the pace means something.
   if (period === 'mes') {
-    const pace = projectMonth(transactions, debts, now);
+    const pace = projectMonth(transactions, debts, now, spendConcepts);
     if (!pace.early && pace.income > 0) {
       const percent = Math.round((pace.projectedLeft / pace.income) * 100);
       cards.push({
@@ -1633,7 +1633,7 @@ function answerAfford(
 ): string {
   const amount = parseQueryAmount(q);
   const available = options.availableCash;
-  const p = projectMonth(transactions, options.debts, now);
+  const p = projectMonth(transactions, options.debts, now, options.spendConcepts);
   if (amount == null) {
     // "¿Cuánto puedo gastar?" → a daily budget for the rest of the month.
     if (p.income > 0 && includesAny(q, ['cuanto', 'how much'])) {
@@ -1708,7 +1708,11 @@ function answerCut(
   }
 
   const revolving = revolvingDebtIds(options.debts);
-  const fixed = new Set(predictMonthlySpends(transactions, options.debts ?? [], now).map((p) => p.categoryId));
+  const fixed = new Set(
+    predictMonthlySpends(transactions, options.debts ?? [], now, options.spendConcepts).map(
+      (p) => p.categoryId
+    )
+  );
   const byCategory = new Map<string, number>();
   for (const tx of filterByPeriod(transactions, 'mes', now)) {
     if (tx.type !== 'expense' || !tx.categoryId || fixed.has(tx.categoryId)) continue;
@@ -1742,6 +1746,7 @@ function answerProjection(
   format: (n: number) => string,
   t: TFn,
   debts?: Debt[],
+  spendConcepts?: SpendConcept[],
   now = new Date()
 ): string {
   let projected: number;
@@ -1752,7 +1757,7 @@ function answerProjection(
   let pending = 0;
   let early: boolean;
   if (period.analog === 'month') {
-    const p = projectMonth(allTransactions, debts, now);
+    const p = projectMonth(allTransactions, debts, now, spendConcepts);
     ({ spent, income, days, totalDays, early } = p);
     projected = p.projectedSpend;
     pending = p.pendingFixed;
@@ -2108,7 +2113,7 @@ export function answerFinanceQuery(
   }
 
   if (wantsProjection && inProgress && period.analog !== 'day') {
-    return answerProjection(transactions, list, period, format, t, options.debts);
+    return answerProjection(transactions, list, period, format, t, options.debts, options.spendConcepts);
   }
 
   if (wantsSavings) {

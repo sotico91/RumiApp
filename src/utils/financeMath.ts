@@ -327,8 +327,13 @@ function median(values: number[]): number {
 export function predictMonthlySpends(
   transactions: Transaction[],
   debts: Debt[],
-  now = new Date()
+  now = new Date(),
+  /** When given, repeating bills only count for subcategories that still exist. */
+  spendConcepts?: SpendConcept[]
 ): PredictedSpend[] {
+  const liveSubIds = spendConcepts
+    ? new Set(spendConcepts.flatMap((c) => c.subs.map((s) => s.id)))
+    : null;
   const year = now.getFullYear();
   const monthIndex = now.getMonth();
 
@@ -421,6 +426,8 @@ export function predictMonthlySpends(
   for (const [categoryId, agg] of byCategory) {
     if (agg.monthsPresent.size < 2) continue;
     if (coveredCategories.has(categoryId)) continue;
+    // Deleted or renamed-away subcategories should not keep showing up as "to pay".
+    if (liveSubIds && !liveSubIds.has(categoryId)) continue;
     results.push({
       id: `hist-${categoryId}`,
       categoryId,
