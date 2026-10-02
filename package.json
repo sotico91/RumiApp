@@ -59,7 +59,8 @@
     "eas:submit:android": "eas submit --platform android --profile production",
     "eas:submit:ios": "eas submit --platform ios --profile production",
     "test": "jest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "version:bump": "node scripts/bump-version.js"
   },
   "jest": {
     "testEnvironment": "node",

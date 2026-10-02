@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Constants from 'expo-constants';
 import { router } from 'expo-router';
 
 import { useLanguage } from '@/src/i18n/LanguageContext';
@@ -7,6 +8,7 @@ import { tapFeedback } from '@/src/utils/selectFeedback';
 
 const COPYRIGHT_YEAR = 2026;
 const DEVELOPER = 'Sotico91';
+const APP_VERSION = Constants.expoConfig?.version ?? '';
 
 /** Footer credit + copyright for settings-style screens. */
 export function AppCopyright() {
@@ -26,6 +28,9 @@ export function AppCopyright() {
         {t('about.copyright', { year: COPYRIGHT_YEAR, name: DEVELOPER })}
       </Text>
       <Text style={styles.rights}>{t('about.allRights')}</Text>
+      {APP_VERSION ? (
+        <Text style={styles.version}>{t('about.version', { version: APP_VERSION })}</Text>
+      ) : null}
       <Pressable onPress={openPrivacy} hitSlop={8} style={styles.privacyBtn}>
         <Text style={styles.privacy}>{t('about.privacyPolicy')}</Text>
       </Pressable>
@@ -58,6 +63,14 @@ const styles = StyleSheet.create({
     color: palette.brandMuted,
     textAlign: 'center',
     opacity: 0.85,
+  },
+  version: {
+    fontFamily: 'DMSans_400Regular',
+    fontSize: 10,
+    color: palette.brandMuted,
+    textAlign: 'center',
+    opacity: 0.6,
+    letterSpacing: 0.4,
   },
   privacyBtn: {
     marginTop: 8,
