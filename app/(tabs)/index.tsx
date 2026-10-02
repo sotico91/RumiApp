@@ -216,6 +216,7 @@ export default function HomeScreen() {
             />
             <DashTile
               label={t('home.savings')}
+              wide
               value={format(savings)}
               tone={savingsTone}
               hint={
@@ -412,12 +413,15 @@ function DashTile({
   tone = 'neutral',
   hint,
   onPress,
+  wide = false,
 }: {
   label: string;
   value: string;
   tone?: SignalTone;
   hint?: string;
   onPress?: () => void;
+  /** Full row, for the month result under income / expenses. */
+  wide?: boolean;
 }) {
   const Wrapper = onPress ? Pressable : View;
   return (
@@ -426,6 +430,7 @@ function DashTile({
       onPressIn={onPress ? () => tapFeedback() : undefined}
       style={[
         styles.tile,
+        wide && styles.tileWide,
         tone === 'danger' && styles.boxDanger,
         tone === 'warn' && styles.boxWarn,
         tone === 'good' && styles.boxGood,
@@ -592,6 +597,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: palette.inkSoft,
     lineHeight: 16,
+  },
+  tileWide: {
+    width: '100%',
   },
   tile: {
     width: '48%',

@@ -1874,13 +1874,13 @@ export const translations = {
     'habit.cueEvening': 'En la tarde, un minuto',
     'habit.cueHintAfterPay': 'Hoy: anota justo después de pagar.',
     'habit.cueHintEvening': 'Hoy: un minuto a las 8pm para lo que gastaste.',
-    'habit.todayDone': 'Hoy ya hay registro. Mañana, el mismo cue.',
+    'habit.todayDone': 'Hoy ya hay registro. Mañana, a la misma hora.',
     'habit.enableReminder': 'Activar aviso a las 8pm',
     'habit.reminderOn': 'El aviso de la tarde está activo — tócalo para anotar.',
     'habit.reminderPush': 'Un minuto para lo de hoy. ¿Qué gastaste?',
     'habit.wrapTitle': 'Se cumplieron 14 días',
     'habit.wrapPass':
-      'Registraste {logged} de 14 días. El diario está formándose — sigue el mismo cue.',
+      'Registraste {logged} de 14 días. El diario está formándose: sigue con la misma rutina.',
     'habit.wrapFail':
       'Registraste {logged} de 14 días (la meta era 8+). Prueba atarlo a pagar, no solo al aviso.',
     'habit.gotIt': 'Entendido',
