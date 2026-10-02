@@ -65,6 +65,8 @@ type Props = {
   onSwitchAdvanced?: () => void;
   initialIntent?: FriendlyIntent;
   initialDebtId?: string;
+  /** When set, tapping "I spent" opens the one-screen quick form instead. */
+  onPickSpend?: () => void;
 };
 
 export function FriendlyAddFlow({
@@ -72,6 +74,7 @@ export function FriendlyAddFlow({
   onSwitchAdvanced,
   initialIntent,
   initialDebtId,
+  onPickSpend,
 }: Props) {
   const { t } = useLanguage();
   const { format, formatPlain, parse, currency } = useMoney();
@@ -539,6 +542,10 @@ export function FriendlyAddFlow({
                   key={item.id}
                   onPress={() => {
                     tapFeedback();
+                    if (item.id === 'spend' && onPickSpend) {
+                      onPickSpend();
+                      return;
+                    }
                     setFromTemplate(false);
                     setIntent(item.id);
                     if (item.id !== 'debt') {

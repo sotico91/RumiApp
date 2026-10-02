@@ -23,12 +23,8 @@ export default function AgregarScreen() {
     intent?: string;
     debtId?: string;
   }>();
-  const opensSpecificFlow =
-    params.mode === 'advanced' || !!params.categoryId || !!params.intent || !!params.debtId;
-  // Plain "Add" opens the one-screen expense; deep links keep the guided flow.
-  const [mode, setMode] = useState<'quick' | 'friendly' | 'advanced'>(
-    opensSpecificFlow ? 'friendly' : 'quick'
-  );
+  // "Add" opens the "What happened?" cards; "I spent" goes to the one-screen form.
+  const [mode, setMode] = useState<'quick' | 'friendly' | 'advanced'>('friendly');
   const [guidedIntent, setGuidedIntent] = useState<FriendlyIntent | undefined>(undefined);
   const prefilledCategoryId =
     typeof params.categoryId === 'string' ? params.categoryId : undefined;
@@ -90,6 +86,10 @@ export default function AgregarScreen() {
         {mode === 'quick' ? (
           <QuickSpendForm
             onSaved={handleSaved}
+            onBack={() => {
+              setGuidedIntent(undefined);
+              setMode('friendly');
+            }}
             onOpenGuided={(intent) => {
               setGuidedIntent(intent);
               setMode('friendly');
@@ -116,10 +116,12 @@ export default function AgregarScreen() {
 
           {mode === 'friendly' ? (
             <FriendlyAddFlow
+              key={guidedIntent ?? 'pick'}
               onSaved={handleSaved}
               onSwitchAdvanced={() => setMode('advanced')}
               initialIntent={guidedIntent ?? payIntent}
               initialDebtId={payDebtId}
+              onPickSpend={guidedIntent || payIntent ? undefined : () => setMode('quick')}
             />
           ) : (
             <KeyboardSafeScroll

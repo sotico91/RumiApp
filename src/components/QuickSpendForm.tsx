@@ -24,14 +24,10 @@ import { tapFeedback } from '@/src/utils/selectFeedback';
 
 const MAX_CHIPS = 8;
 
-const OTHER_INTENTS: { intent: Exclude<FriendlyIntent, 'spend'>; key: TranslationKey }[] = [
-  { intent: 'earn', key: 'quick.income' },
-  { intent: 'move', key: 'quick.move' },
-  { intent: 'debt', key: 'quick.debt' },
-];
-
 type Props = {
   onSaved?: (result: SavedMovement) => void;
+  /** Back to the "What happened?" cards. */
+  onBack: () => void;
   /** Open the guided flow for anything the quick form does not cover. */
   onOpenGuided: (intent: FriendlyIntent) => void;
 };
@@ -41,7 +37,7 @@ type Props = {
  * from, save. Everything else (income, moves, debt payments, new
  * subcategories) opens the guided flow.
  */
-export function QuickSpendForm({ onSaved, onOpenGuided }: Props) {
+export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
   const { t } = useLanguage();
   const { formatPlain, parse } = useMoney();
   const { settings, updateQuickTemplate } = useSettings();
@@ -154,22 +150,15 @@ export function QuickSpendForm({ onSaved, onOpenGuided }: Props) {
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.body}>
-      <View style={styles.intentRow}>
-        <View style={[styles.intentChip, styles.intentChipOn]}>
-          <Text style={[styles.intentText, styles.intentTextOn]}>{t('quick.spend')}</Text>
-        </View>
-        {OTHER_INTENTS.map(({ intent, key }) => (
-          <Pressable
-            key={intent}
-            onPress={() => {
-              tapFeedback();
-              onOpenGuided(intent);
-            }}
-            style={styles.intentChip}>
-            <Text style={styles.intentText}>{t(key)}</Text>
-          </Pressable>
-        ))}
-      </View>
+      <Pressable
+        onPress={() => {
+          tapFeedback();
+          onBack();
+        }}
+        hitSlop={8}
+        style={styles.back}>
+        <Text style={styles.backText}>← {t('flow.back')}</Text>
+      </Pressable>
 
       <View style={styles.card}>
         <View style={styles.amountRow}>
@@ -254,33 +243,17 @@ export function QuickSpendForm({ onSaved, onOpenGuided }: Props) {
 }
 
 const styles = StyleSheet.create({
+  back: { alignSelf: 'flex-start', paddingVertical: 4 },
+  backText: {
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 14,
+    color: palette.white,
+  },
   body: {
     paddingTop: 4,
     paddingBottom: 48,
     gap: 12,
   },
-  intentRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  intentChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.35)',
-  },
-  intentChipOn: {
-    backgroundColor: palette.white,
-    borderColor: palette.white,
-  },
-  intentText: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 13,
-    color: palette.white,
-  },
-  intentTextOn: { color: palette.ink },
   card: {
     backgroundColor: palette.surfaceSolid,
     borderRadius: radii.xl,
