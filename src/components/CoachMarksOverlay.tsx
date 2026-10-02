@@ -16,9 +16,9 @@ type Step = {
   body: TranslationKey;
 };
 
+// Two marks: where to log, and where everything else is. The eye explains
+// itself and Home's ⓘ legend covers "available vs. this month".
 const STEPS: Step[] = [
-  { id: 'privacy', title: 'coach.privacyTitle', body: 'coach.privacyBody' },
-  { id: 'money', title: 'coach.moneyTitle', body: 'coach.moneyBody' },
   { id: 'glance', title: 'coach.glanceTitle', body: 'coach.glanceBody' },
   { id: 'tabs', title: 'coach.tabsTitle', body: 'coach.tabsBody' },
 ];
@@ -31,7 +31,6 @@ export function CoachMarksOverlay() {
   const insets = useSafeAreaInsets();
   const { t } = useLanguage();
   const { settings, ready, coachMarksPending, completeCoachMarks } = useSettings();
-  const { openGuide } = useHowToGuide();
   const [step, setStep] = useState(0);
   const [dismissing, setDismissing] = useState(false);
 
@@ -46,7 +45,6 @@ export function CoachMarksOverlay() {
     if (dismissing) return;
     setDismissing(true);
     await completeCoachMarks();
-    setTimeout(() => openGuide(), 450);
   }
 
   function goNext() {

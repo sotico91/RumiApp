@@ -680,7 +680,7 @@ export const translations = {
 
     'onboard.welcomeTitle': 'Welcome to Rumi',
     'onboard.welcomeBody':
-      'In a minute you’ll set your name, currency and a few spending categories. Coffee, power or Uber come later in Plan, as subcategories.\n\nFirst-day order: Wealth (where the money sits), Plan (what you spend on), then one real I spent. Don’t start by inventing an expense.',
+      'Log in seconds, see how your month is going and what is coming. First, what should we call you?',
     'onboard.welcomeShare':
       'If you later share a household, each person only logs their own transactions — never someone else’s.',
     'onboard.start': 'Sounds good',
@@ -696,6 +696,12 @@ export const translations = {
     'onboard.currencyBody': 'Choose carefully: it can’t be changed later, because your amounts are saved in this currency.',
     'onboard.currencyCop': 'Colombian pesos (COP)',
     'onboard.currencyUsd': 'US dollars (USD)',
+    'onboard.balanceTitle': 'How much money do you have today?',
+    'onboard.balanceBody': 'Optional — so “Spendable today” starts with your real balance. You can change it anytime in Wealth.',
+    'notify.menuTurnOn': 'Turn on alerts when I log',
+    'notify.menuTurnOff': 'Turn off alerts when I log',
+    'notify.permissionTitle': 'Notifications are off',
+    'notify.permissionBody': 'Allow notifications for Rumi in your phone settings, then try again.',
     'onboard.categoriesTitle': 'What do you usually spend on?',
     'onboard.categoriesBody':
       'Pick a few broad categories. Things like coffee or power belong later as subcategories in Plan.',
@@ -727,10 +733,10 @@ export const translations = {
       'Home shows what you can still spend. Tap the wallet for cash, banks and wallets (your accounts). This month’s result is whether this month stayed in the green — only what you logged.',
     'coach.glanceTitle': 'Log a transaction',
     'coach.glanceBody':
-      'The ◎ button on the right is for logging: type the amount, tap what it was for, save. Income, transfers and debt payments are one tap above.',
+      'Tap ◎ to log: pick what happened, type the amount, save.',
     'coach.tabsTitle': 'The rest lives down here',
     'coach.tabsBody':
-      'Activity to edit, Plan for categories, Wealth for accounts, Insights to ask Rumi. Next you’ll get a first-day recipe. If you get lost, tap ? or ⋯ → How to use.',
+      'Activity to fix entries, Plan for categories, Wealth for accounts, Insights to ask Rumi. Lost? Tap ?.',
 
     'guide.menu': 'How to use',
     'guide.openA11y': 'How to use Rumi',
@@ -739,28 +745,28 @@ export const translations = {
     'guide.kicker': 'First day, in this order',
     'guide.introTitle': 'Don’t start with the expense',
     'guide.introBody':
-      'If you’re trying Rumi for the first time, first say WHERE your money sits and WHAT you spend on. Then log one real transaction and you’ll know if it fits.',
+      'Tell Rumi where your money is first, then log one real expense. It takes two minutes.',
     'guide.step1Title': 'Wealth — where your money is',
     'guide.step1Body':
-      'Open the Wealth tab (bottom). Cash, bank, savings and investments are already there: type the real balance of each. Use Nequi or Daviplata? Add them as a wallet. Another bank? Add it, or rename the main one. That’s your map of accounts.',
+      'Open Wealth and type the real balance of cash, bank and savings. Use Nequi or another bank? Add it there.',
     'guide.step2Title': 'Plan — what you’ll find there',
     'guide.step2Body':
-      'Open Plan. Inside:\n• My categories — create the buckets (Food, Bills) and subcategories (Coffee, Uber, Power). Until you add them, spends land in “General”.\n• Monthly limits — tap a subcategory if you want a cap.\n• Small spends — mark the small leaks so Insights can show them apart.\n• Reminders — if you want a ping on bill day, set it here.',
+      'Your categories (Food, Bills…) and their subcategories (Coffee, Power…). Optional: monthly limits, reminders and small spends 🐜 to watch.',
     'guide.step3Title': 'Log an expense',
     'guide.step3Body':
-      'Tap the round ◎ button (bottom right). Type the amount, tap the subcategory and the account or card it came from, then save. Need another category? Tap “Other category…”. Paid with money (cash, Nequi, bank)? That account goes down now. Paid with a card or credit line? It counts as spend this month, and the bank waits until you Pay the card. Paid a store by bank transfer? Still an expense — that is how you paid, not a move between your accounts.',
+      'Tap ◎ → I spent. Type the amount, tap what it was for and the account or card it came from. Save.',
     'guide.step4Title': 'Income, or just moving money',
     'guide.step4Body':
-      'Got paid? ◎ → Add transaction → I received money, and pick which account it entered (bank, Nequi, cash).\n\nMoved Nequi to savings, or bank to cash? ◎ → Add transaction → I moved money. Pick from and to. Not a spend: it was already yours, it only changed account.',
+      'Got paid: ◎ → I received money. Moved money between your accounts: ◎ → I moved money. Moving is not an expense.',
     'guide.step5Title': 'Cards and loans are two different things',
     'guide.step5Body':
-      'In Wealth they are separate.\n\nCards & credit lines: available, what you owe, and what you will pay this month. Charging Netflix is I spent — available credit goes down, cash does not. The day you pay the statement: Pay card.\n\nLoans & installments: apartment, car, payroll loan. Remaining balance and a fixed installment. There is no cupo. Pay installment is what leaves Nequi or the bank.',
+      'Buying with a card is an expense. Paying the card later is not a new one — Rumi counts the purchase once. Loans: log each installment when you pay it.',
     'guide.step6Title': 'Insights — the analysis engine',
     'guide.step6Body':
-      'Open the Insights tab (bottom). At the top is Ask Rumi: type the month you care about and tap Ask. Examples: “July”, “how much in March 2025”, “2 months ago”, “coffee last month”. A few chips are only examples — not a list of every month.\n\nToday / Week / Month only change the charts and notes below. The box uses the period you wrote.\n\nAnts and limits are marked in Plan; Insights is where you ask how they behaved.',
+      'Ask in your own words: “July”, “coffee this month”, “can I buy 200k?”, “where can I cut back?”. Smart notes below summarize the period.',
     'guide.step7Title': 'Home and Activity',
     'guide.step7Body':
-      'Home shows what you can still spend and whether this month is in the green. The first 14 days a diary sits there to build the habit. Activity is where you edit or delete a mistake. One-tap on Home appears after you repeat a usual expense a couple of times.',
+      'Home: what you have, how the month is going and what is due. Activity: every transaction, to edit or delete.',
     'guide.hint': 'Open this again anytime with ? or ⋯ → How to use.',
 
     'reminder.title': 'Expense reminders',
@@ -1655,7 +1661,7 @@ export const translations = {
 
     'onboard.welcomeTitle': 'Bienvenido a Rumi',
     'onboard.welcomeBody':
-      'En un minuto eliges tu nombre, moneda y unos conceptos de gasto. Café, luz o Uber van después en Plan, como subcategorías.\n\nEl orden del primer día: Patrimonio (dónde está la plata), Plan (en qué sueles gastar) y luego un Gasté real. No empieces inventando un gasto.',
+      'Registra en segundos, mira cómo va tu mes y qué viene. Primero, ¿cómo te llamamos?',
     'onboard.welcomeShare':
       'Si más adelante compartes el hogar, cada persona solo registra lo suyo — nunca el movimiento de otra.',
     'onboard.start': 'Suena bien',
@@ -1671,6 +1677,12 @@ export const translations = {
     'onboard.currencyBody': 'Elige bien: no se puede cambiar después, porque tus montos se guardan en esta moneda.',
     'onboard.currencyCop': 'Pesos colombianos (COP)',
     'onboard.currencyUsd': 'Dólares (USD)',
+    'onboard.balanceTitle': '¿Cuánta plata tienes hoy?',
+    'onboard.balanceBody': 'Opcional: así “Disponible hoy” arranca con tu saldo real. Lo puedes cambiar cuando quieras en Patrimonio.',
+    'notify.menuTurnOn': 'Activar avisos al registrar',
+    'notify.menuTurnOff': 'Desactivar avisos al registrar',
+    'notify.permissionTitle': 'Las notificaciones están apagadas',
+    'notify.permissionBody': 'Permite las notificaciones de Rumi en los ajustes del teléfono e inténtalo de nuevo.',
     'onboard.categoriesTitle': '¿En qué sueles gastar?',
     'onboard.categoriesBody':
       'Elige pocos conceptos amplios. Café, luz o Uber los agregas luego como subcategorías en Plan.',
@@ -1702,10 +1714,10 @@ export const translations = {
       'En Inicio ves lo que aún puedes gastar. Toca la billetera para efectivo, bancos y billeteras (tus bolsillos). El resultado del mes es si vas a favor o en rojo — solo lo que registraste.',
     'coach.glanceTitle': 'Registrar un movimiento',
     'coach.glanceBody':
-      'El botón ◎ a la derecha es para registrar: escribe el monto, toca en qué fue y guarda. Ingresos, movimientos y pagos de deuda están a un toque, arriba.',
+      'Toca ◎ para registrar: elige qué pasó, escribe el monto y guarda.',
     'coach.tabsTitle': 'El resto está abajo',
     'coach.tabsBody':
-      'Actividad para editar, Plan para conceptos, Patrimonio para bolsillos, Análisis para preguntarle a Rumi. Luego verás la receta del primer día. Si te pierdes, toca ? o ⋯ → Cómo usar.',
+      'Actividad para corregir, Plan para categorías, Patrimonio para cuentas, Análisis para preguntarle a Rumi. ¿Perdido? Toca ?.',
 
     'guide.menu': 'Cómo usar',
     'guide.openA11y': 'Cómo usar Rumi',
@@ -1714,28 +1726,28 @@ export const translations = {
     'guide.kicker': 'Primer día, en este orden',
     'guide.introTitle': 'No empieces por el gasto',
     'guide.introBody':
-      'Si estás probando Rumi por primera vez, primero di DÓNDE está tu plata y EN QUÉ sueles gastar. Después registra un movimiento real y vas a saber si te encaja.',
+      'Primero dile a Rumi dónde está tu plata y luego registra un gasto real. Toma dos minutos.',
     'guide.step1Title': 'Patrimonio: dónde está tu plata',
     'guide.step1Body':
-      'Abre la pestaña Patrimonio (abajo). Ya están Efectivo, banco, ahorros e inversiones: pon el saldo real de cada una. ¿Usas Nequi o Daviplata? Agrégalas como billetera. ¿Tienes otro banco? Agrégalo, o renombra el principal. Eso es el mapa de tus bolsillos.',
+      'Abre Patrimonio y escribe el saldo real de efectivo, banco y ahorros. ¿Usas Nequi u otro banco? Agrégalo ahí.',
     'guide.step2Title': 'Plan: qué encuentras ahí',
     'guide.step2Body':
-      'Abre Plan. En esta sección:\n• Mis conceptos de gasto — arma los cajones (Alimentación, Recibos) y las subcategorías (Café, Uber, Luz). Hasta que las crees, los gastos caen en “General”.\n• Topes mensuales — si quieres un límite, tócalo en la subcategoría.\n• Gastos hormiga — marca lo chico para verlo aparte en Análisis.\n• Recordatorios — si quieres que te avise el día de la luz o la cuota, se configura aquí.',
+      'Tus categorías (Alimentación, Recibos…) y sus subcategorías (Café, Luz…). Opcional: topes mensuales, recordatorios y gastos hormiga 🐜 para vigilar.',
     'guide.step3Title': 'Registra un gasto',
     'guide.step3Body':
-      'Toca el botón redondo ◎ (abajo a la derecha). Escribe el monto, toca la subcategoría y la cuenta o tarjeta de donde salió, y guarda. ¿Necesitas otra categoría? Toca “Otra categoría…”. ¿Pagaste con plata (efectivo, Nequi, banco)? Esa cuenta baja de una vez. ¿Con tarjeta o cupo? Cuenta como gasto del mes y el banco espera hasta que pagues la tarjeta. ¿Le pagaste a un comercio por transferencia? Sigue siendo un gasto: es la forma de pago, no un traslado entre tus cuentas.',
+      'Toca ◎ → Gasté. Escribe el monto, toca en qué fue y la cuenta o tarjeta de donde salió. Guarda.',
     'guide.step4Title': 'Si te pagaron o solo moviste plata',
     'guide.step4Body':
-      '¿Te llegó el salario o un giro? ◎ → Registrar → Recibí dinero, y elige en qué cuenta entra (banco, Nequi, efectivo).\n\n¿Pasaste de Nequi a ahorros, o de banco a efectivo? ◎ → Registrar → Moví dinero. Elige de dónde sale y a dónde llega. No es un gasto: la plata ya era tuya, solo cambió de bolsillo.',
+      'Te pagaron: ◎ → Recibí dinero. Moviste plata entre tus cuentas: ◎ → Moví dinero. Mover no es un gasto.',
     'guide.step5Title': 'Tarjetas y créditos son dos cosas distintas',
     'guide.step5Body':
-      'En Patrimonio van aparte.\n\nTarjetas y cupos: disponible, lo que debes y lo que vas a pagar este mes. Cargar Netflix es Gasté: baja el cupo, no el efectivo. El día del extracto: Pagar tarjeta.\n\nCréditos y cuotas: apto, carro, libranza. Saldo que falta y una cuota fija. No hay cupo. Pagar cuota es lo que sale de Nequi o del banco.',
+      'Comprar con tarjeta es un gasto. Pagar la tarjeta después no es otro: Rumi cuenta la compra una sola vez. Préstamos: registra cada cuota cuando la pagues.',
     'guide.step6Title': 'Análisis: el motor de preguntas',
     'guide.step6Body':
-      'Abre la pestaña Análisis (abajo). Arriba está Pregúntale a Rumi: escribe el mes que te interesa y toca Preguntar. Ejemplos: “julio”, “cuánto gasté en marzo 2025”, “hace 2 meses”, “café el mes pasado”. Las chips son solo ejemplos, no una lista de todos los meses.\n\nHoy / Semana / Mes de esa pantalla solo cambian las gráficas y notas de abajo. La caja usa el período que escribiste.\n\nSi quieres saber de hormiga o topes, se marcan en Plan; en Análisis preguntas cómo se comportaron.',
+      'Pregunta como hablas: “julio”, “café este mes”, “¿puedo comprar algo de 200 mil?”, “¿en qué puedo recortar?”. Abajo, las notas resumen el periodo.',
     'guide.step7Title': 'Inicio y Actividad',
     'guide.step7Body':
-      'En Inicio ves cuánto puedes gastar y si el mes va a favor. Los primeros 14 días hay un diario para crear el hábito. En Actividad editas o borras si te equivocaste. El registro rápido de un toque aparece cuando ya repetiste un gasto un par de veces.',
+      'Inicio: lo que tienes, cómo va el mes y qué viene. Actividad: todos tus movimientos, para editar o borrar.',
     'guide.hint': 'Vuelve a abrir esto con ? o en ⋯ → Cómo usar.',
 
     'reminder.title': 'Recordatorios de gastos',

@@ -59,6 +59,8 @@ type SettingsContextValue = {
   }) => Promise<void>;
   completeCoachMarks: () => Promise<void>;
   updateAppLock: (enabled: boolean) => Promise<void>;
+  /** Confirmation notification after each logged transaction. */
+  updateNotifyOnExpense: (enabled: boolean) => Promise<boolean>;
   updateUserName: (userName: string) => Promise<void>;
   addSpendConcept: (name: string, color?: string) => Promise<SpendConcept | null>;
   updateSpendConceptColor: (conceptId: string, color: string) => Promise<void>;
@@ -240,6 +242,16 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const updateAppLock = useCallback(
     async (enabled: boolean) => {
       await persist({ ...settings, appLockEnabled: enabled });
+    },
+    [settings, persist]
+  );
+
+  /** Returns false when the user denied the system notification permission. */
+  const updateNotifyOnExpense = useCallback(
+    async (enabled: boolean) => {
+      if (enabled && !(await ensureNotificationPermission())) return false;
+      await persist({ ...settings, notifyOnExpense: enabled });
+      return true;
     },
     [settings, persist]
   );
@@ -568,6 +580,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       completeOnboarding,
       completeCoachMarks,
       updateAppLock,
+      updateNotifyOnExpense,
       updateUserName,
       addSpendConcept,
       updateSpendConceptColor,
@@ -598,6 +611,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       completeOnboarding,
       completeCoachMarks,
       updateAppLock,
+      updateNotifyOnExpense,
       updateUserName,
       addSpendConcept,
       updateSpendConceptColor,

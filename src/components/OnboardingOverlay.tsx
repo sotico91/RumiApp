@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import {
   Alert,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -14,27 +13,27 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppModal } from '@/src/components/AppModal';
 import { KeyboardSafeOverlay } from '@/src/components/KeyboardSafe';
 import { createSpendSub, ONBOARDING_CONCEPTS } from '@/src/data/spendConcepts';
+import { useFinance } from '@/src/hooks/useFinance';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
-import type { TranslationKey } from '@/src/i18n/translations';
 import { palette, radii } from '@/src/theme/colors';
 import type { Currency } from '@/src/types/settings';
-import { reminderPushCopy } from '@/src/utils/reminderCopy';
+import { parseAmountInput } from '@/src/utils/money';
 
-const TOTAL_STEPS = 6;
+/** Name, currency, today's money. Concepts, notifications and reminders
+ * have sensible defaults and live in Plan / the ⋯ menu afterwards. */
+const TOTAL_STEPS = 3;
 
 export function OnboardingOverlay() {
   const insets = useSafeAreaInsets();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const { settings, ready, completeOnboarding } = useSettings();
+  const { setAccountBalance } = useFinance();
   const [step, setStep] = useState(0);
   const [userName, setUserName] = useState('');
   const [currency, setCurrency] = useState<Currency>('COP');
-  const [selected, setSelected] = useState<string[]>(() =>
-    ONBOARDING_CONCEPTS.map((c) => c.id)
-  );
-  const [notifyOnExpense, setNotifyOnExpense] = useState(true);
-  const [reminderIds, setReminderIds] = useState<string[]>([]);
+  const [bank, setBank] = useState('');
+  const [cash, setCash] = useState('');
   const [saving, setSaving] = useState(false);
 
   const visible = ready && !settings.onboardingDone;
@@ -44,69 +43,41 @@ export function OnboardingOverlay() {
     [step, t]
   );
 
-  function toggleCategory(id: string) {
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  }
-
-  function toggleReminder(id: string) {
-    setReminderIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  }
-
   async function finish() {
     const trimmed = userName.trim();
     if (!trimmed) {
       Alert.alert(t('onboard.nameTitle'), t('onboard.nameNeed'));
-      setStep(1);
-      return;
-    }
-    if (selected.length === 0) {
-      Alert.alert(t('onboard.categoriesTitle'), t('onboard.categoriesNeedOne'));
+      setStep(0);
       return;
     }
     setSaving(true);
     try {
-      const spendConcepts = ONBOARDING_CONCEPTS.filter((c) => selected.includes(c.id)).map(
-        (c) => ({
-          id: c.id,
-          name: t(c.nameKey),
-          color: c.color,
-          subs: [createSpendSub(c.id, t('onboard.concept.general'))],
-        })
-      );
-      const reminderCategoryIds = reminderIds
-        .map((conceptId) => spendConcepts.find((c) => c.id === conceptId)?.subs[0]?.id)
-        .filter((id): id is string => !!id);
-      const reminderLabels = Object.fromEntries(
-        reminderCategoryIds.map((categoryId) => [
-          categoryId,
-          reminderPushCopy(categoryId, spendConcepts, t, language),
-        ])
-      );
+      const spendConcepts = ONBOARDING_CONCEPTS.map((c) => ({
+        id: c.id,
+        name: t(c.nameKey),
+        color: c.color,
+        subs: [createSpendSub(c.id, t('onboard.concept.general'))],
+      }));
       await completeOnboarding({
         userName: trimmed,
         currency,
         spendConcepts,
-        notifyOnExpense,
-        reminderCategoryIds,
-        reminderHour: 20,
-        reminderLabels,
+        // Asked later, in context (⋯ menu), instead of a permission prompt on day one.
+        notifyOnExpense: false,
+        reminderCategoryIds: [],
       });
+      const bankAmount = parseAmountInput(bank, currency);
+      const cashAmount = parseAmountInput(cash, currency);
+      if (bankAmount) await setAccountBalance('bank-main', bankAmount);
+      if (cashAmount) await setAccountBalance('cash', cashAmount);
     } finally {
       setSaving(false);
     }
   }
 
   function goNext() {
-    if (step === 1 && !userName.trim()) {
+    if (step === 0 && !userName.trim()) {
       Alert.alert(t('onboard.nameTitle'), t('onboard.nameNeed'));
-      return;
-    }
-    if (step === 3 && selected.length === 0) {
-      Alert.alert(t('onboard.categoriesTitle'), t('onboard.categoriesNeedOne'));
       return;
     }
     if (step >= TOTAL_STEPS - 1) {
@@ -152,14 +123,6 @@ export function OnboardingOverlay() {
               <Text style={styles.kicker}>{t('brand.name')}</Text>
               <Text style={styles.title}>{t('onboard.welcomeTitle')}</Text>
               <Text style={styles.copy}>{t('onboard.welcomeBody')}</Text>
-              <Text style={styles.copy}>{t('onboard.welcomeShare')}</Text>
-            </Animated.View>
-          ) : null}
-
-          {step === 1 ? (
-            <Animated.View entering={FadeInDown.springify()} style={styles.body}>
-              <Text style={styles.title}>{t('onboard.nameTitle')}</Text>
-              <Text style={styles.copy}>{t('onboard.nameBody')}</Text>
               <TextInput
                 value={userName}
                 onChangeText={setUserName}
@@ -167,7 +130,6 @@ export function OnboardingOverlay() {
                 placeholderTextColor={palette.inkSoft}
                 autoCapitalize="words"
                 autoCorrect={false}
-                autoFocus
                 maxLength={40}
                 style={styles.nameInput}
                 returnKeyType="next"
@@ -176,7 +138,7 @@ export function OnboardingOverlay() {
             </Animated.View>
           ) : null}
 
-          {step === 2 ? (
+          {step === 1 ? (
             <Animated.View entering={FadeInDown.springify()} style={styles.body}>
               <Text style={styles.title}>{t('onboard.currencyTitle')}</Text>
               <Text style={styles.copy}>{t('onboard.currencyBody')}</Text>
@@ -193,77 +155,28 @@ export function OnboardingOverlay() {
             </Animated.View>
           ) : null}
 
-          {step === 3 ? (
+          {step === 2 ? (
             <Animated.View entering={FadeInDown.springify()} style={styles.body}>
-              <Text style={styles.title}>{t('onboard.categoriesTitle')}</Text>
-              <Text style={styles.copy}>{t('onboard.categoriesBody')}</Text>
-              <ScrollView style={styles.catScroll} contentContainerStyle={styles.catWrap}>
-                {ONBOARDING_CONCEPTS.map((concept) => {
-                  const active = selected.includes(concept.id);
-                  return (
-                    <Pressable
-                      key={concept.id}
-                      onPress={() => toggleCategory(concept.id)}
-                      style={[
-                        styles.catChip,
-                        active && {
-                          backgroundColor: concept.color,
-                          borderColor: concept.color,
-                        },
-                      ]}>
-                      <Text style={[styles.catText, active && styles.catTextActive]}>
-                        {t(concept.nameKey)}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
-            </Animated.View>
-          ) : null}
-
-          {step === 4 ? (
-            <Animated.View entering={FadeInDown.springify()} style={styles.body}>
-              <Text style={styles.title}>{t('onboard.notifyTitle')}</Text>
-              <Text style={styles.copy}>{t('onboard.notifyBody')}</Text>
-              <OptionCard
-                selected={notifyOnExpense}
-                title={t('onboard.notifyYes')}
-                onPress={() => setNotifyOnExpense(true)}
+              <Text style={styles.title}>{t('onboard.balanceTitle')}</Text>
+              <Text style={styles.copy}>{t('onboard.balanceBody')}</Text>
+              <Text style={styles.fieldLabel}>{t('account.bankMain')}</Text>
+              <TextInput
+                value={bank}
+                onChangeText={setBank}
+                placeholder="0"
+                placeholderTextColor={palette.inkSoft}
+                keyboardType="decimal-pad"
+                style={styles.amountInput}
               />
-              <OptionCard
-                selected={!notifyOnExpense}
-                title={t('onboard.notifyNo')}
-                onPress={() => setNotifyOnExpense(false)}
+              <Text style={styles.fieldLabel}>{t('account.cash')}</Text>
+              <TextInput
+                value={cash}
+                onChangeText={setCash}
+                placeholder="0"
+                placeholderTextColor={palette.inkSoft}
+                keyboardType="decimal-pad"
+                style={styles.amountInput}
               />
-            </Animated.View>
-          ) : null}
-
-          {step === 5 ? (
-            <Animated.View entering={FadeInDown.springify()} style={styles.body}>
-              <Text style={styles.title}>{t('onboard.reminderTitle')}</Text>
-              <Text style={styles.copy}>{t('onboard.reminderBody')}</Text>
-              <ScrollView style={styles.catScroll} contentContainerStyle={styles.catWrap}>
-                {ONBOARDING_CONCEPTS.filter((c) => selected.includes(c.id)).map((concept) => {
-                    const active = reminderIds.includes(concept.id);
-                    return (
-                      <Pressable
-                        key={concept.id}
-                        onPress={() => toggleReminder(concept.id)}
-                        style={[
-                          styles.catChip,
-                          active && {
-                            backgroundColor: concept.color,
-                            borderColor: concept.color,
-                          },
-                        ]}>
-                        <Text style={[styles.catText, active && styles.catTextActive]}>
-                          {t(concept.nameKey)}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-              </ScrollView>
-              <Text style={styles.copy}>{t('onboard.reminderHint')}</Text>
             </Animated.View>
           ) : null}
 
@@ -394,6 +307,23 @@ const styles = StyleSheet.create({
     color: palette.inkMuted,
     lineHeight: 22,
   },
+  fieldLabel: {
+    marginTop: 6,
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 13,
+    color: palette.inkMuted,
+  },
+  amountInput: {
+    borderWidth: 1,
+    borderColor: palette.border,
+    backgroundColor: '#fff',
+    borderRadius: radii.md,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontFamily: 'Fraunces_600SemiBold',
+    fontSize: 20,
+    color: palette.ink,
+  },
   nameInput: {
     marginTop: 4,
     borderWidth: 1.5,
@@ -439,31 +369,6 @@ const styles = StyleSheet.create({
   },
   optionTextSelected: {
     fontFamily: 'DMSans_600SemiBold',
-  },
-  catScroll: {
-    maxHeight: 220,
-  },
-  catWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    paddingBottom: 4,
-  },
-  catChip: {
-    borderWidth: 1,
-    borderColor: palette.border,
-    backgroundColor: '#F7FAFC',
-    borderRadius: 14,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-  },
-  catText: {
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 14,
-    color: palette.ink,
-  },
-  catTextActive: {
-    color: palette.white,
   },
   actions: {
     flexDirection: 'row',

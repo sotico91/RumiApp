@@ -35,8 +35,14 @@ export function ProfileMenuButton({ light = true }: Props) {
   const insets = useSafeAreaInsets();
   const { t, language, setLanguage } = useLanguage();
   const { openGuide } = useHowToGuide();
-  const { settings, quickTemplates, updateUserName, restoreSettingsFromBackup, updateAppLock } =
-    useSettings();
+  const {
+    settings,
+    quickTemplates,
+    updateUserName,
+    restoreSettingsFromBackup,
+    updateAppLock,
+    updateNotifyOnExpense,
+  } = useSettings();
   const {
     transactions,
     accounts,
@@ -181,6 +187,12 @@ export function ProfileMenuButton({ light = true }: Props) {
     ]);
   }
 
+  async function toggleNotifyOnExpense() {
+    setMenuOpen(false);
+    const ok = await updateNotifyOnExpense(!settings.notifyOnExpense);
+    if (!ok) Alert.alert(t('notify.permissionTitle'), t('notify.permissionBody'));
+  }
+
   function switchLanguage() {
     setMenuOpen(false);
     setLanguage(language === 'es' ? 'en' : 'es');
@@ -313,6 +325,16 @@ export function ProfileMenuButton({ light = true }: Props) {
               }}
               style={styles.menuItem}>
               <Text style={styles.menuItemText}>{t('support.report')}</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                tapFeedback();
+                void toggleNotifyOnExpense();
+              }}
+              style={styles.menuItem}>
+              <Text style={styles.menuItemText}>
+                {settings.notifyOnExpense ? t('notify.menuTurnOff') : t('notify.menuTurnOn')}
+              </Text>
             </Pressable>
             <Pressable
               onPress={() => {
