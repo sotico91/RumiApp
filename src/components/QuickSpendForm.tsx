@@ -49,18 +49,19 @@ export function QuickSpendForm({ onSaved, onOpenGuided }: Props) {
   const spendConcepts = settings.spendConcepts ?? [];
 
   // Recent subcategories first, then the rest of the tree.
-  const categoryChips = useMemo(() => {
+  const { categoryChips, hasRecent } = useMemo(() => {
     const ids: string[] = [];
     for (const tx of transactions) {
       if (tx.type !== 'expense' || !tx.categoryId || ids.includes(tx.categoryId)) continue;
       if (findSpendSub(spendConcepts, tx.categoryId)) ids.push(tx.categoryId);
       if (ids.length >= MAX_CHIPS) break;
     }
+    const recentCount = ids.length;
     for (const sub of flattenSpendSubs(spendConcepts)) {
       if (ids.length >= MAX_CHIPS) break;
       if (!ids.includes(sub.id)) ids.push(sub.id);
     }
-    return ids
+    const chips = ids
       .map((id) => findSpendSub(spendConcepts, id))
       .filter((hit): hit is NonNullable<typeof hit> => !!hit)
       .map(({ concept, sub }) => ({
@@ -68,6 +69,7 @@ export function QuickSpendForm({ onSaved, onOpenGuided }: Props) {
         label: isGeneralSubName(sub.name) ? concept.name : sub.name,
         color: concept.color,
       }));
+    return { categoryChips: chips, hasRecent: recentCount > 0 };
   }, [transactions, spendConcepts]);
 
   const payAccounts = useMemo(() => {
@@ -80,7 +82,9 @@ export function QuickSpendForm({ onSaved, onOpenGuided }: Props) {
   }, [accounts, debts, t]);
 
   const [amount, setAmount] = useState('');
-  const [categoryId, setCategoryId] = useState<string | null>(() => categoryChips[0]?.id ?? null);
+  const [pickedCategoryId, setCategoryId] = useState<string | null>(null);
+  // With history, preselect the last-used subcategory; on a fresh install let the user pick.
+  const categoryId = pickedCategoryId ?? (hasRecent ? categoryChips[0]?.id ?? null : null);
   const [pickedAccountId, setPickedAccountId] = useState<string | null>(null);
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);

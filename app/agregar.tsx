@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ExpenseForm, type SavedMovement } from '@/src/components/ExpenseForm';
-import { RaisedText } from '@/src/components/RaisedText';
 import { FriendlyAddFlow } from '@/src/components/FriendlyAddFlow';
 import { QuickSpendForm } from '@/src/components/QuickSpendForm';
 import type { FriendlyIntent } from '@/src/data/friendlyTemplates';
@@ -88,8 +87,6 @@ export default function AgregarScreen() {
   return (
     <ScreenBackground edges="none">
       <View style={styles.content}>
-        <RaisedText style={styles.title}>{t('add.title')}</RaisedText>
-
         {mode === 'quick' ? (
           <QuickSpendForm
             onSaved={handleSaved}
@@ -149,12 +146,6 @@ const styles = StyleSheet.create({
     padding: 22,
     paddingBottom: 28,
     gap: 12,
-  },
-  title: {
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 32,
-    color: palette.brand,
-    letterSpacing: -0.8,
   },
   modeSwitch: {
     flexDirection: 'row',
