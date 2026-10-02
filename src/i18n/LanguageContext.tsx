@@ -8,6 +8,7 @@ import React, {
   useState,
 } from 'react';
 
+import { interpolate, type TranslateOptions } from '@/src/i18n/interpolate';
 import {
   type Language,
   type TranslationKey,
@@ -15,8 +16,6 @@ import {
 } from '@/src/i18n/translations';
 
 const STORAGE_KEY = 'rumi:language:v1';
-
-type TranslateOptions = Record<string, string | number>;
 
 type LanguageContextValue = {
   language: Language;
@@ -26,14 +25,6 @@ type LanguageContextValue = {
 };
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
-
-function interpolate(template: string, options?: TranslateOptions): string {
-  if (!options) return template;
-  return Object.entries(options).reduce(
-    (text, [key, value]) => text.replace(new RegExp(`\\{${key}\\}`, 'g'), String(value)),
-    template
-  );
-}
 
 function detectDeviceLanguage(): Language {
   try {

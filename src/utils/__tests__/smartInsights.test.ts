@@ -1,3 +1,4 @@
+import { interpolate } from '@/src/i18n/interpolate';
 import { translations, type TranslationKey } from '@/src/i18n/translations';
 import type { Debt, Transaction } from '@/src/types/finance';
 import { comparableRange, sumSpendOut } from '@/src/utils/financeMath';
@@ -7,7 +8,7 @@ import { answerFinanceQuery, buildSmartInsights } from '@/src/utils/smartInsight
 function translator(lang: 'en' | 'es') {
   const dict = translations[lang] as Record<string, string>;
   return (key: TranslationKey, params?: Record<string, string | number>) =>
-    (dict[key] ?? key).replace(/\{(\w+)\}/g, (_m, name: string) => String(params?.[name] ?? `{${name}}`));
+    interpolate(dict[key] ?? key, params);
 }
 const t = translator('es');
 const tEn = translator('en');
@@ -135,6 +136,10 @@ describe('Ask Rumi', () => {
     const answer = ask('¿cuánto ahorré este mes?');
     expect(answer).toMatch(/hasta hoy/);
     expect(answer).not.toMatch(/Ahorraste/);
+  });
+
+  it('uses singular and plural correctly', () => {
+    expect(ask('café')).toMatch(/en 1 movimiento\./);
   });
 
   it('shows readable category names, not raw ids', () => {
