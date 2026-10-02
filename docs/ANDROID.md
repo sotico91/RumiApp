@@ -51,7 +51,7 @@ Fresh machine checklist (if reinstalling elsewhere):
 
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"
-cd ~/Documents/GitHub/Rumi
+cd ~/Documents/GitHub/RumiApp
 npm install
 ```
 

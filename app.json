@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "primaryColor": "#1B3A4B",
     "description": "Personal finance tracker. Log expenses, budgets, debts and insights — data stays on your device.",
-    "githubUrl": "https://github.com/sotico91/Rumi",
+    "githubUrl": "https://github.com/sotico91/RumiApp",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.rumi.app",
@@ -128,7 +128,7 @@
       ]
     ],
     "extra": {
-      "privacyPolicyUrl": "https://sotico91.github.io/Rumi/privacy-policy.html",
+      "privacyPolicyUrl": "https://sotico91.github.io/RumiApp/privacy-policy.html",
       "supportEmail": "edavidvelascop@gmail.com"
     },
     "experiments": {
