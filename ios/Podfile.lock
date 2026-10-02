@@ -35,8 +35,6 @@ PODS:
     - ExpoModulesCore
   - ExpoBlur (57.0.2):
     - ExpoModulesCore
-  - ExpoDocumentPicker (57.0.1):
-    - ExpoModulesCore
   - ExpoDomWebView (57.0.1):
     - ExpoModulesCore
   - ExpoFileSystem (57.0.2):
@@ -109,8 +107,6 @@ PODS:
     - ExpoModulesCore
     - ExpoModulesWorklets
     - React-RCTFabric
-  - ExpoWebBrowser (57.0.2):
-    - ExpoModulesCore
   - FBLazyVector (0.86.2)
   - hermes-engine (250829098.0.16):
     - hermes-engine/Pre-built (= 250829098.0.16)
@@ -2296,7 +2292,6 @@ DEPENDENCIES:
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
   - ExpoAudio (from `../node_modules/expo-audio/ios`)
   - ExpoBlur (from `../node_modules/expo-blur/ios`)
-  - ExpoDocumentPicker (from `../node_modules/expo-document-picker/ios`)
   - "ExpoDomWebView (from `../node_modules/@expo/dom-webview/ios`)"
   - ExpoFileSystem (from `../node_modules/expo-file-system/ios/ExpoFileSystem.podspec`)
   - ExpoFont (from `../node_modules/expo-font/ios/ExpoFont.podspec`)
@@ -2318,7 +2313,6 @@ DEPENDENCIES:
   - ExpoSymbols (from `../node_modules/expo-symbols/ios`)
   - ExpoSystemUI (from `../node_modules/expo-system-ui/ios`)
   - "ExpoUI (from `../node_modules/@expo/ui/ios`)"
-  - ExpoWebBrowser (from `../node_modules/expo-web-browser/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - RCTDeprecation (from `../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
@@ -2416,8 +2410,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-audio/ios"
   ExpoBlur:
     :path: "../node_modules/expo-blur/ios"
-  ExpoDocumentPicker:
-    :path: "../node_modules/expo-document-picker/ios"
   ExpoDomWebView:
     :path: "../node_modules/@expo/dom-webview/ios"
   ExpoFileSystem:
@@ -2460,8 +2452,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-system-ui/ios"
   ExpoUI:
     :path: "../node_modules/@expo/ui/ios"
-  ExpoWebBrowser:
-    :path: "../node_modules/expo-web-browser/ios"
   FBLazyVector:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
   hermes-engine:
@@ -2635,7 +2625,6 @@ SPEC CHECKSUMS:
   ExpoAsset: 21e4a9006373f2ede718ec1f440bbe40f95f6376
   ExpoAudio: a275c6d3473cbccc7cfd27c3f24b572c0b1701d8
   ExpoBlur: 0f2c616d5422a2b1a31e622d2add98784eed1ceb
-  ExpoDocumentPicker: cc366f0080a6c2c71b896bfb4d0d0e63da4cb709
   ExpoDomWebView: fa9c72fe29dd4649197a7ecb07ddd870d55c4eda
   ExpoFileSystem: 5f22d602c86c37460df3b954cf1ceb00a5e5ca75
   ExpoFont: 17668fb7b4e06edf35e015183eb7bc09d83be637
@@ -2646,7 +2635,7 @@ SPEC CHECKSUMS:
   ExpoLinking: bf2536dae511c60982db438b4cd65f8a33c329eb
   ExpoLocalAuthentication: cfa9a87c91f8f349e4fe82c9ac299e024f7ad765
   ExpoLogBox: 40f17ecef6fcb296b5f5ee4d6ec85cc82ce6ba0f
-  ExpoModulesCore: d3b7495fd2a7cc1cefaf6ad1202f55a3e2868914
+  ExpoModulesCore: 7504045f701c68ebba777458755fe37b29263818
   ExpoModulesJSI: 6cb6d299ace493e7dd20ba94c99e8c4799b07afd
   ExpoModulesWorklets: b9ae1e07dbb9a2de570c18bc117f293e0310ed5c
   ExpoModulesWorkletsAdapter: 07038279717b8486147e54b6f125339d6e6f1d87
@@ -2657,9 +2646,8 @@ SPEC CHECKSUMS:
   ExpoSymbols: 546737c564b51716b0d6d6db867e1191a9b6943f
   ExpoSystemUI: e898bb2967e58b2e5ed8e26fb5a89bd004103d51
   ExpoUI: 0f926fff60b1541d43691bb3eebde517dd988ee2
-  ExpoWebBrowser: f93f4989f6c2a34cfaba5461ea3572c191947e0f
   FBLazyVector: 3c3be9a019176b5699455f7f66c5444b78a411c6
-  hermes-engine: fb115ba27abbb443441c25b4ba5cae615393bc21
+  hermes-engine: c7b9a9d01f548be38ccd1f845c29c82c3a43a311
   RCTDeprecation: bccb6545c26db881ecddfd83a3f9ea82aba1605f
   RCTRequired: b2f74764d596fc0051f00fee94b49bf41a6f7f5a
   RCTSwiftUI: c6d6a31b849b9dfa64c33b55dc91ac15dd55774c
@@ -2741,6 +2729,6 @@ SPEC CHECKSUMS:
   RNWorklets: ca7e0a49681a74e09f09e389aefd9e453fa0079b
   Yoga: 9891cfb1c680f64de9c41b09e7453dea33454d2b
 
-PODFILE CHECKSUM: c10ff673abbe45cc08d3ee581fbe70c215855801
+PODFILE CHECKSUM: 207de11d340cb23c304fd7866b679b7da209e666
 
 COCOAPODS: 1.17.0

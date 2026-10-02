@@ -28,7 +28,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>rumi</string>
-				<string>com.rumi.app</string>
+				<string>com.sotico91.rumi</string>
 			</array>
 		</dict>
 	</array>

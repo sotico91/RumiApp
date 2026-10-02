@@ -12,7 +12,7 @@
     "githubUrl": "https://github.com/sotico91/RumiApp",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.rumi.app",
+      "bundleIdentifier": "com.sotico91.rumi",
       "icon": {
         "light": "./assets/images/icon.png",
         "dark": "./assets/images/icon.png"
