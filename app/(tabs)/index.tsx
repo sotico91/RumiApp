@@ -1,14 +1,12 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppModal } from '@/src/components/AppModal';
 import { AntSpendTipCard } from '@/src/components/AntSpendTipCard';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
 import { ConceptGlanceSheet } from '@/src/components/ConceptGlanceSheet';
-import { EditTransactionModal } from '@/src/components/EditTransactionModal';
-import { ExpenseRow } from '@/src/components/ExpenseRow';
 import { FadeInBlock } from '@/src/components/FadeInBlock';
 import { HabitPilotCard } from '@/src/components/HabitPilotCard';
 import { HowToGuideButton } from '@/src/components/HowToGuideButton';
@@ -26,7 +24,6 @@ import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
 import { palette, radii } from '@/src/theme/colors';
-import type { Transaction } from '@/src/types/finance';
 import { projectMonth } from '@/src/utils/projection';
 import { categoryLabel } from '@/src/utils/categoryLabel';
 import {
@@ -50,22 +47,17 @@ export default function HomeScreen() {
   const {
     totalForPeriod,
     insightsForPeriod,
-    transactionsForPeriod,
     transactions,
     loading,
     availableCash,
     debts,
     budgetStatus,
-    removeTransaction,
-    canEditTransaction,
     predictedThisMonth,
   } = useFinance();
-  const [editing, setEditing] = useState<Transaction | null>(null);
   const [glance, setGlance] = useState<'expense' | 'income' | null>(null);
   const [moneyInfo, setMoneyInfo] = useState<MoneyInfoKind | null>(null);
   const [attentionOpen, setAttentionOpen] = useState(false);
   const [predictOpen, setPredictOpen] = useState(false);
-  const [todayOpen, setTodayOpen] = useState(true);
 
   const displayName = settings.userName.trim();
   const greeting = displayName
@@ -87,7 +79,6 @@ export default function HomeScreen() {
           amount: format(Math.abs(pace.projectedLeft)),
         })
       : undefined;
-  const recent = transactionsForPeriod('hoy');
   const expenseConcepts = insightsForPeriod('mes', 'expense');
   const incomeConcepts = insightsForPeriod('mes', 'income');
   const spendConcepts = settings.spendConcepts ?? [];
@@ -126,30 +117,7 @@ export default function HomeScreen() {
   const antTipBodyVariant = settings.antTipLastBodyVariant ?? 0;
 
 
-  function confirmDelete(tx: Transaction) {
-    if (!canEditTransaction(tx)) {
-      Alert.alert(t('history.deleteTitle'), t('history.onlyOwn'));
-      return;
-    }
-    Alert.alert(t('history.deleteTitle'), t('history.deleteMessage'), [
-      { text: t('history.cancel'), style: 'cancel' },
-      {
-        text: t('history.delete'),
-        style: 'destructive',
-        onPress: () => {
-          void removeTransaction(tx.id);
-        },
-      },
-    ]);
-  }
 
-  function openEdit(tx: Transaction) {
-    if (!canEditTransaction(tx)) {
-      Alert.alert(t('history.editTitle'), t('history.onlyOwn'));
-      return;
-    }
-    setEditing(tx);
-  }
 
   return (
     <ScreenBackground>
@@ -310,33 +278,6 @@ export default function HomeScreen() {
           </CollapsibleSection>
         </FadeInBlock>
 
-        {recent.length > 0 ? (
-          <FadeInBlock index={9}>
-            <CollapsibleSection
-              title={t('home.todayList')}
-              open={todayOpen}
-              onToggle={() => setTodayOpen((v) => !v)}
-              summary={t('home.todayListSummary', {
-                count: Math.min(recent.length, 8),
-              })}>
-              <View style={styles.todayList}>
-                {recent.slice(0, 8).map((tx, index) => {
-                  const mine = canEditTransaction(tx);
-                  return (
-                    <ExpenseRow
-                      key={tx.id}
-                      expense={tx}
-                      last={index === Math.min(recent.length, 8) - 1}
-                      showRegistrant={false}
-                      onEdit={mine ? () => openEdit(tx) : undefined}
-                      onDelete={mine ? () => confirmDelete(tx) : undefined}
-                    />
-                  );
-                })}
-              </View>
-            </CollapsibleSection>
-          </FadeInBlock>
-        ) : null}
 
       </KeyboardSafeScroll>
 
@@ -348,11 +289,6 @@ export default function HomeScreen() {
         total={glance === 'income' ? income : expenses}
       />
 
-      <EditTransactionModal
-        visible={!!editing}
-        transaction={editing}
-        onClose={() => setEditing(null)}
-      />
 
       <AppModal
         visible={moneyInfo != null}
@@ -768,13 +704,6 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 16,
     color: palette.white,
-  },
-  todayList: {
-    backgroundColor: palette.surfaceSolid,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: palette.border,
-    paddingHorizontal: 16,
   },
   sectionTitle: {
     fontFamily: 'Fraunces_600SemiBold',
