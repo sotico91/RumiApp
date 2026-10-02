@@ -521,6 +521,16 @@ export const translations = {
     'add.type': 'Type',
     'add.method': 'Payment method',
     'add.account': 'Account',
+    'quick.spend': 'Expense',
+    'quick.income': 'Income',
+    'quick.move': 'Transfer',
+    'quick.debt': 'Debt payment',
+    'quick.what': 'What for?',
+    'quick.otherCategory': 'Other category…',
+    'quick.noCategories': 'No categories yet — tap “Other category…” to create one.',
+    'quick.from': 'Paid from',
+    'quick.save': 'Save expense',
+    'quick.saveAmount': 'Save {amount}',
 
     'flow.stepOf': 'Step {current} of {total}',
     'flow.whatHappened': 'What happened with your money?',
@@ -755,7 +765,7 @@ export const translations = {
       'Home shows what you can still spend. Tap the wallet for cash, banks and wallets (your accounts). This month’s result is whether this month stayed in the green — only what you logged.',
     'coach.glanceTitle': 'Log a transaction',
     'coach.glanceBody':
-      'The ◎ button on the right opens this month’s summary. Tap Add transaction for I spent, I received money, I moved money or I paid a debt.',
+      'The ◎ button on the right is for logging: type the amount, tap what it was for, save. Income, transfers and debt payments are one tap above.',
     'coach.tabsTitle': 'The rest lives down here',
     'coach.tabsBody':
       'Activity to edit, Plan for categories, Wealth for accounts, Insights to ask Rumi. Next you’ll get a first-day recipe. If you get lost, tap ? or ⋯ → How to use.',
@@ -776,7 +786,7 @@ export const translations = {
       'Open Plan. Inside:\n• My categories — create the buckets (Food, Bills) and subcategories (Coffee, Uber, Power). Until you add them, spends land in “General”.\n• Monthly limits — tap a subcategory if you want a cap.\n• Small spends — mark the small leaks so Insights can show them apart.\n• Reminders — if you want a ping on bill day, set it here.',
     'guide.step3Title': 'Log an expense',
     'guide.step3Body':
-      'Tap the round ◎ button (bottom right), then Add transaction. Choose I spent. Type the amount. Pick the category and subcategory. Then: with money (cash, Nequi, bank — that account goes down) or with a card/credit line (spend this month, bank waits until you Pay the card). Paid a store by bank transfer? Still I spent — that’s a payment method, not moving money between your accounts.',
+      'Tap the round ◎ button (bottom right). Type the amount, tap the subcategory and the account or card it came from, then save. Need another category? Tap “Other category…”. Paid with money (cash, Nequi, bank)? That account goes down now. Paid with a card or credit line? It counts as spend this month, and the bank waits until you Pay the card. Paid a store by bank transfer? Still an expense — that is how you paid, not a move between your accounts.',
     'guide.step4Title': 'Income, or just moving money',
     'guide.step4Body':
       'Got paid? ◎ → Add transaction → I received money, and pick which account it entered (bank, Nequi, cash).\n\nMoved Nequi to savings, or bank to cash? ◎ → Add transaction → I moved money. Pick from and to. Not a spend: it was already yours, it only changed account.',
@@ -1522,6 +1532,16 @@ export const translations = {
     'add.type': 'Tipo',
     'add.method': 'Medio de pago',
     'add.account': 'Cuenta',
+    'quick.spend': 'Gasto',
+    'quick.income': 'Ingreso',
+    'quick.move': 'Mover',
+    'quick.debt': 'Pago de deuda',
+    'quick.what': '¿En qué?',
+    'quick.otherCategory': 'Otra categoría…',
+    'quick.noCategories': 'Aún no tienes categorías: toca “Otra categoría…” para crear una.',
+    'quick.from': '¿De dónde salió?',
+    'quick.save': 'Guardar gasto',
+    'quick.saveAmount': 'Guardar {amount}',
 
     'flow.stepOf': 'Paso {current} de {total}',
     'flow.whatHappened': '¿Qué pasó con tu dinero?',
@@ -1758,7 +1778,7 @@ export const translations = {
       'En Inicio ves lo que aún puedes gastar. Toca la billetera para efectivo, bancos y billeteras (tus bolsillos). El resultado del mes es si vas a favor o en rojo — solo lo que registraste.',
     'coach.glanceTitle': 'Registrar un movimiento',
     'coach.glanceBody':
-      'El botón ◎ a la derecha abre el resumen del mes. Ahí tocas Registrar para Gasté, Recibí dinero, Moví dinero o Pagué una deuda.',
+      'El botón ◎ a la derecha es para registrar: escribe el monto, toca en qué fue y guarda. Ingresos, movimientos y pagos de deuda están a un toque, arriba.',
     'coach.tabsTitle': 'El resto está abajo',
     'coach.tabsBody':
       'Actividad para editar, Plan para conceptos, Patrimonio para bolsillos, Análisis para preguntarle a Rumi. Luego verás la receta del primer día. Si te pierdes, toca ? o ⋯ → Cómo usar.',
@@ -1779,7 +1799,7 @@ export const translations = {
       'Abre Plan. En esta sección:\n• Mis conceptos de gasto — arma los cajones (Alimentación, Recibos) y las subcategorías (Café, Uber, Luz). Hasta que las crees, los gastos caen en “General”.\n• Topes mensuales — si quieres un límite, tócalo en la subcategoría.\n• Gastos hormiga — marca lo chico para verlo aparte en Análisis.\n• Recordatorios — si quieres que te avise el día de la luz o la cuota, se configura aquí.',
     'guide.step3Title': 'Registra un gasto',
     'guide.step3Body':
-      'Toca el botón redondo ◎ (abajo a la derecha) y luego Registrar. Elige Gasté. Escribe el monto. Elige el concepto y la subcategoría. Luego: con plata (efectivo, Nequi, banco — ese bolsillo baja) o con tarjeta/cupo (gasto del mes; el banco espera hasta que pagues la tarjeta). ¿Le pagaste a un comercio por transferencia? Sigue siendo Gasté: eso es la forma de pago, no un traslado entre tus bolsillos.',
+      'Toca el botón redondo ◎ (abajo a la derecha). Escribe el monto, toca la subcategoría y la cuenta o tarjeta de donde salió, y guarda. ¿Necesitas otra categoría? Toca “Otra categoría…”. ¿Pagaste con plata (efectivo, Nequi, banco)? Esa cuenta baja de una vez. ¿Con tarjeta o cupo? Cuenta como gasto del mes y el banco espera hasta que pagues la tarjeta. ¿Le pagaste a un comercio por transferencia? Sigue siendo un gasto: es la forma de pago, no un traslado entre tus cuentas.',
     'guide.step4Title': 'Si te pagaron o solo moviste plata',
     'guide.step4Body':
       '¿Te llegó el salario o un giro? ◎ → Registrar → Recibí dinero, y elige en qué cuenta entra (banco, Nequi, efectivo).\n\n¿Pasaste de Nequi a ahorros, o de banco a efectivo? ◎ → Registrar → Moví dinero. Elige de dónde sale y a dónde llega. No es un gasto: la plata ya era tuya, solo cambió de bolsillo.',

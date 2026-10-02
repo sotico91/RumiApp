@@ -83,9 +83,8 @@ export function FriendlyAddFlow({
   const liveDebts = useMemo(() => openDebts(debts), [debts]);
   const incomeAccounts = useMemo(() => incomeDestinationAccounts(accounts), [accounts]);
 
-  const [step, setStep] = useState(() =>
-    initialIntent && initialDebtId ? 1 : 0
-  );
+  // Arriving with an intent (from the quick form or a debt) skips "What happened?".
+  const [step, setStep] = useState(() => (initialIntent ? 1 : 0));
   const [intent, setIntent] = useState<FriendlyIntent>(initialIntent ?? 'spend');
   const [amount, setAmount] = useState('');
   const [conceptId, setConceptId] = useState<string | null>(null);

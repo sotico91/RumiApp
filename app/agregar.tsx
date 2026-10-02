@@ -5,6 +5,8 @@ import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native
 import { ExpenseForm, type SavedMovement } from '@/src/components/ExpenseForm';
 import { RaisedText } from '@/src/components/RaisedText';
 import { FriendlyAddFlow } from '@/src/components/FriendlyAddFlow';
+import { QuickSpendForm } from '@/src/components/QuickSpendForm';
+import type { FriendlyIntent } from '@/src/data/friendlyTemplates';
 import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
 import { ScreenBackground } from '@/src/components/ScreenBackground';
 import { useMoney } from '@/src/hooks/useMoney';
@@ -22,7 +24,13 @@ export default function AgregarScreen() {
     intent?: string;
     debtId?: string;
   }>();
-  const [mode, setMode] = useState<'friendly' | 'advanced'>('friendly');
+  const opensSpecificFlow =
+    params.mode === 'advanced' || !!params.categoryId || !!params.intent || !!params.debtId;
+  // Plain "Add" opens the one-screen expense; deep links keep the guided flow.
+  const [mode, setMode] = useState<'quick' | 'friendly' | 'advanced'>(
+    opensSpecificFlow ? 'friendly' : 'quick'
+  );
+  const [guidedIntent, setGuidedIntent] = useState<FriendlyIntent | undefined>(undefined);
   const prefilledCategoryId =
     typeof params.categoryId === 'string' ? params.categoryId : undefined;
   const prefilledAmount =
@@ -82,41 +90,53 @@ export default function AgregarScreen() {
       <View style={styles.content}>
         <RaisedText style={styles.title}>{t('add.title')}</RaisedText>
 
-        <View style={styles.modeSwitch}>
-          <Pressable
-            onPress={() => setMode('friendly')}
-            style={[styles.modeBtn, mode === 'friendly' && styles.modeOn]}>
-            <Text style={[styles.modeText, mode === 'friendly' && styles.modeTextOn]}>
-              {t('flow.friendly')}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setMode('advanced')}
-            style={[styles.modeBtn, mode === 'advanced' && styles.modeOn]}>
-            <Text style={[styles.modeText, mode === 'advanced' && styles.modeTextOn]}>
-              {t('flow.advanced')}
-            </Text>
-          </Pressable>
-        </View>
-
-        {mode === 'friendly' ? (
-          <FriendlyAddFlow
+        {mode === 'quick' ? (
+          <QuickSpendForm
             onSaved={handleSaved}
-            onSwitchAdvanced={() => setMode('advanced')}
-            initialIntent={payIntent}
-            initialDebtId={payDebtId}
+            onOpenGuided={(intent) => {
+              setGuidedIntent(intent);
+              setMode('friendly');
+            }}
           />
         ) : (
-          <KeyboardSafeScroll
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.advancedPad}>
-            <ExpenseForm
+          <>
+          <View style={styles.modeSwitch}>
+            <Pressable
+              onPress={() => setMode('friendly')}
+              style={[styles.modeBtn, mode === 'friendly' && styles.modeOn]}>
+              <Text style={[styles.modeText, mode === 'friendly' && styles.modeTextOn]}>
+                {t('flow.friendly')}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setMode('advanced')}
+              style={[styles.modeBtn, mode === 'advanced' && styles.modeOn]}>
+              <Text style={[styles.modeText, mode === 'advanced' && styles.modeTextOn]}>
+                {t('flow.advanced')}
+              </Text>
+            </Pressable>
+          </View>
+
+          {mode === 'friendly' ? (
+            <FriendlyAddFlow
               onSaved={handleSaved}
-              initialCategoryId={prefilledCategoryId}
-              initialAmount={prefilledAmount}
-              initialNote={prefilledNote}
+              onSwitchAdvanced={() => setMode('advanced')}
+              initialIntent={guidedIntent ?? payIntent}
+              initialDebtId={payDebtId}
             />
-          </KeyboardSafeScroll>
+          ) : (
+            <KeyboardSafeScroll
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.advancedPad}>
+              <ExpenseForm
+                onSaved={handleSaved}
+                initialCategoryId={prefilledCategoryId}
+                initialAmount={prefilledAmount}
+                initialNote={prefilledNote}
+              />
+            </KeyboardSafeScroll>
+          )}
+          </>
         )}
       </View>
     </ScreenBackground>

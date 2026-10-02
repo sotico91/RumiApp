@@ -1,0 +1,365 @@
+import { useMemo, useRef, useState } from 'react';
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+
+import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
+import type { SavedMovement } from '@/src/components/ExpenseForm';
+import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
+import { findSpendSub, flattenSpendSubs, isGeneralSubName } from '@/src/data/spendConcepts';
+import type { FriendlyIntent } from '@/src/data/friendlyTemplates';
+import { useFinance } from '@/src/hooks/useFinance';
+import { useMoney } from '@/src/hooks/useMoney';
+import { useSettings } from '@/src/hooks/useSettings';
+import { useLanguage } from '@/src/i18n/LanguageContext';
+import type { TranslationKey } from '@/src/i18n/translations';
+import { palette, radii } from '@/src/theme/colors';
+import {
+  accountsForExpenseSource,
+  defaultSpendAccountId,
+  paymentMethodForAccount,
+} from '@/src/utils/accounts';
+import { debtIdFromPayAccountId, openDebts, payAccountIdForDebt } from '@/src/utils/debts';
+import { movementNotifyCopy } from '@/src/utils/movementNotify';
+import { notifyExpenseRegistered } from '@/src/utils/notifications';
+import { tapFeedback } from '@/src/utils/selectFeedback';
+
+const MAX_CHIPS = 8;
+
+const OTHER_INTENTS: { intent: Exclude<FriendlyIntent, 'spend'>; key: TranslationKey }[] = [
+  { intent: 'earn', key: 'quick.income' },
+  { intent: 'move', key: 'quick.move' },
+  { intent: 'debt', key: 'quick.debt' },
+];
+
+type Props = {
+  onSaved?: (result: SavedMovement) => void;
+  /** Open the guided flow for anything the quick form does not cover. */
+  onOpenGuided: (intent: FriendlyIntent) => void;
+};
+
+/**
+ * One-screen expense: amount, a recent subcategory, the account it came
+ * from, save. Everything else (income, moves, debt payments, new
+ * subcategories) opens the guided flow.
+ */
+export function QuickSpendForm({ onSaved, onOpenGuided }: Props) {
+  const { t } = useLanguage();
+  const { formatPlain, parse } = useMoney();
+  const { settings, updateQuickTemplate } = useSettings();
+  const { addTransaction, totalForPeriod, accounts, debts, transactions } = useFinance();
+  const spendConcepts = settings.spendConcepts ?? [];
+
+  // Recent subcategories first, then the rest of the tree.
+  const categoryChips = useMemo(() => {
+    const ids: string[] = [];
+    for (const tx of transactions) {
+      if (tx.type !== 'expense' || !tx.categoryId || ids.includes(tx.categoryId)) continue;
+      if (findSpendSub(spendConcepts, tx.categoryId)) ids.push(tx.categoryId);
+      if (ids.length >= MAX_CHIPS) break;
+    }
+    for (const sub of flattenSpendSubs(spendConcepts)) {
+      if (ids.length >= MAX_CHIPS) break;
+      if (!ids.includes(sub.id)) ids.push(sub.id);
+    }
+    return ids
+      .map((id) => findSpendSub(spendConcepts, id))
+      .filter((hit): hit is NonNullable<typeof hit> => !!hit)
+      .map(({ concept, sub }) => ({
+        id: sub.id,
+        label: isGeneralSubName(sub.name) ? concept.name : sub.name,
+        color: concept.color,
+      }));
+  }, [transactions, spendConcepts]);
+
+  const payAccounts = useMemo(() => {
+    const debtLabel = (debt: (typeof debts)[number]) =>
+      debt.nameKey ? t(debt.nameKey as TranslationKey) : debt.name ?? t('debt.mainCard');
+    return [
+      ...accountsForExpenseSource(accounts, 'debit'),
+      ...accountsForExpenseSource(accounts, 'credit', { debts: openDebts(debts), debtLabel }),
+    ];
+  }, [accounts, debts, t]);
+
+  const [amount, setAmount] = useState('');
+  const [categoryId, setCategoryId] = useState<string | null>(() => categoryChips[0]?.id ?? null);
+  const [pickedAccountId, setPickedAccountId] = useState<string | null>(null);
+  const [note, setNote] = useState('');
+  const [saving, setSaving] = useState(false);
+  const savingLock = useRef(false);
+
+  // Until the user picks one, use the account last used for this subcategory.
+  const accountId = useMemo(() => {
+    if (pickedAccountId) return pickedAccountId;
+    const last =
+      (categoryId &&
+        transactions.find(
+          (tx) => tx.type === 'expense' && tx.categoryId === categoryId && (tx.accountId || tx.creditDebtId)
+        )) ||
+      transactions.find((tx) => tx.type === 'expense' && (tx.accountId || tx.creditDebtId));
+    const lastId = last?.creditDebtId ? payAccountIdForDebt(last.creditDebtId) : last?.accountId;
+    if (lastId && payAccounts.some((a) => a.id === lastId)) return lastId;
+    return defaultSpendAccountId(accounts);
+  }, [pickedAccountId, categoryId, transactions, payAccounts, accounts]);
+
+  const parsed = parse(amount);
+  const canSave = !!parsed && !!categoryId && !!accountId && !saving;
+
+  async function save() {
+    if (savingLock.current || !parsed || !categoryId || !accountId) return;
+    savingLock.current = true;
+    setSaving(true);
+    try {
+      const beforeExpense = totalForPeriod('hoy', 'expense');
+      const isCard = !!debtIdFromPayAccountId(accountId);
+      await addTransaction({
+        type: 'expense',
+        amount: parsed,
+        categoryId,
+        paymentMethod: isCard
+          ? 'credit'
+          : paymentMethodForAccount(accounts.find((a) => a.id === accountId), 'debit'),
+        accountId,
+        note,
+      });
+      await updateQuickTemplate({ categoryId, amount: parsed, note: note.trim() || undefined });
+
+      if (settings.notifyOnExpense) {
+        const copy = movementNotifyCopy({
+          t,
+          type: 'expense',
+          amount: formatPlain(parsed),
+          transactions,
+          spendConcepts,
+          accounts,
+          categoryId,
+          accountId,
+          note,
+        });
+        void notifyExpenseRegistered(copy.title, copy.body).catch(() => undefined);
+      }
+      onSaved?.({ kind: 'expense', amount: beforeExpense + parsed });
+    } catch {
+      Alert.alert(t('add.invalidTitle'), t('add.saveError'));
+    } finally {
+      savingLock.current = false;
+      setSaving(false);
+    }
+  }
+
+  return (
+    <KeyboardSafeScroll
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={styles.body}>
+      <View style={styles.intentRow}>
+        <View style={[styles.intentChip, styles.intentChipOn]}>
+          <Text style={[styles.intentText, styles.intentTextOn]}>{t('quick.spend')}</Text>
+        </View>
+        {OTHER_INTENTS.map(({ intent, key }) => (
+          <Pressable
+            key={intent}
+            onPress={() => {
+              tapFeedback();
+              onOpenGuided(intent);
+            }}
+            style={styles.intentChip}>
+            <Text style={styles.intentText}>{t(key)}</Text>
+          </Pressable>
+        ))}
+      </View>
+
+      <View style={styles.card}>
+        <View style={styles.amountRow}>
+          <Text style={styles.currency}>$</Text>
+          <TextInput
+            value={amount}
+            onChangeText={setAmount}
+            placeholder="0"
+            placeholderTextColor={palette.inkMuted}
+            keyboardType="decimal-pad"
+            autoFocus
+            style={styles.amountInput}
+            accessibilityLabel={t('add.kicker')}
+          />
+        </View>
+
+        <Text style={styles.section}>{t('quick.what')}</Text>
+        {categoryChips.length === 0 ? (
+          <Text style={styles.hint}>{t('quick.noCategories')}</Text>
+        ) : null}
+        <View style={styles.chipWrap}>
+          {categoryChips.map((chip) => {
+            const on = chip.id === categoryId;
+            return (
+              <Pressable
+                key={chip.id}
+                onPress={() => {
+                  tapFeedback();
+                  setCategoryId(chip.id);
+                }}
+                style={[styles.chip, on && styles.chipOn]}>
+                <View style={[styles.dot, { backgroundColor: on ? palette.white : chip.color }]} />
+                <Text style={[styles.chipText, on && styles.chipTextOn]}>{chip.label}</Text>
+              </Pressable>
+            );
+          })}
+          <Pressable
+            onPress={() => {
+              tapFeedback();
+              onOpenGuided('spend');
+            }}
+            style={[styles.chip, styles.chipGhost]}>
+            <Text style={styles.chipText}>{t('quick.otherCategory')}</Text>
+          </Pressable>
+        </View>
+
+        <Text style={styles.section}>{t('quick.from')}</Text>
+        <AccountChoiceChips
+          accounts={payAccounts}
+          selectedId={accountId}
+          onSelect={(id) => setPickedAccountId(id)}
+          allowAddWallet={false}
+        />
+
+        <TextInput
+          value={note}
+          onChangeText={setNote}
+          placeholder={t('add.notePlaceholder')}
+          placeholderTextColor={palette.inkMuted}
+          style={styles.noteInput}
+          returnKeyType="done"
+        />
+
+        <Pressable
+          onPress={() => void save()}
+          disabled={!canSave}
+          style={[styles.primary, !canSave && styles.primaryOff]}>
+          <Text style={styles.primaryText}>
+            {saving
+              ? t('add.saving')
+              : parsed
+                ? t('quick.saveAmount', { amount: formatPlain(parsed) })
+                : t('quick.save')}
+          </Text>
+        </Pressable>
+      </View>
+    </KeyboardSafeScroll>
+  );
+}
+
+const styles = StyleSheet.create({
+  body: {
+    paddingTop: 4,
+    paddingBottom: 48,
+    gap: 12,
+  },
+  intentRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  intentChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
+  },
+  intentChipOn: {
+    backgroundColor: palette.white,
+    borderColor: palette.white,
+  },
+  intentText: {
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 13,
+    color: palette.white,
+  },
+  intentTextOn: { color: palette.ink },
+  card: {
+    backgroundColor: palette.surfaceSolid,
+    borderRadius: radii.xl,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: palette.border,
+    gap: 12,
+  },
+  amountRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    borderBottomWidth: 2,
+    borderBottomColor: palette.accent,
+    gap: 4,
+  },
+  currency: {
+    fontFamily: 'Fraunces_700Bold',
+    fontSize: 36,
+    color: palette.accent,
+    marginBottom: 8,
+  },
+  amountInput: {
+    flex: 1,
+    fontFamily: 'Fraunces_700Bold',
+    fontSize: 48,
+    color: palette.ink,
+    paddingVertical: 6,
+  },
+  section: {
+    marginTop: 4,
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 14,
+    color: palette.inkMuted,
+  },
+  hint: {
+    fontFamily: 'DMSans_400Regular',
+    fontSize: 13,
+    color: palette.inkMuted,
+  },
+  chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1,
+    borderColor: palette.border,
+    backgroundColor: '#F7FAFC',
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  chipOn: {
+    backgroundColor: palette.accent,
+    borderColor: palette.accent,
+  },
+  chipGhost: {
+    backgroundColor: 'transparent',
+    borderStyle: 'dashed',
+  },
+  dot: { width: 8, height: 8, borderRadius: 4 },
+  chipText: {
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 14,
+    color: palette.ink,
+  },
+  chipTextOn: { color: palette.white },
+  noteInput: {
+    borderWidth: 1,
+    borderColor: palette.border,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontFamily: 'DMSans_400Regular',
+    color: palette.ink,
+    backgroundColor: '#fff',
+  },
+  primary: {
+    backgroundColor: palette.accent,
+    borderRadius: 14,
+    paddingVertical: 15,
+    alignItems: 'center',
+  },
+  primaryOff: { opacity: 0.45 },
+  primaryText: {
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 16,
+    color: palette.white,
+  },
+});
