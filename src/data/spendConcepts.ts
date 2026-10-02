@@ -1,5 +1,6 @@
 import { CATEGORIES, expenseCategories, getCategoryById } from '@/src/data/financeDefaults';
 import type { Budget, Category } from '@/src/types/finance';
+import { FRIENDLY_TEMPLATES } from '@/src/data/friendlyTemplates';
 import { translations, type Language } from '@/src/i18n/translations';
 import type { CustomConcept, SpendConcept, SpendSub } from '@/src/types/settings';
 
@@ -33,17 +34,38 @@ export function localizeDefaultConcepts(
   concepts: SpendConcept[],
   language: Language
 ): { concepts: SpendConcept[]; changed: boolean } {
+  const en = translations.en as Record<string, string>;
+  const es = translations.es as Record<string, string>;
+  const target = translations[language] as Record<string, string>;
   let changed = false;
+
   const next = concepts.map((concept) => {
+    let out = concept;
     const def = ONBOARDING_CONCEPTS.find((d) => d.id === concept.id);
-    if (!def) return concept;
-    const builtIn = new Set<string>([translations.en[def.nameKey], translations.es[def.nameKey]]);
-    if (concept.id === CREDITS_CONCEPT_ID) builtIn.add(CREDITS_CONCEPT_NAME);
-    if (!builtIn.has(concept.name)) return concept;
-    const name = translations[language][def.nameKey];
-    if (concept.name === name) return concept;
-    changed = true;
-    return { ...concept, name };
+    if (def) {
+      const builtIn = new Set<string>([en[def.nameKey], es[def.nameKey]]);
+      if (concept.id === CREDITS_CONCEPT_ID) builtIn.add(CREDITS_CONCEPT_NAME);
+      const name = target[def.nameKey];
+      if (builtIn.has(concept.name) && concept.name !== name) out = { ...out, name };
+    }
+
+    // Subcategories created from a guided-flow template ("Coffee" / "Café").
+    const subKeys = FRIENDLY_TEMPLATES.filter((tpl) => tpl.spend?.conceptId === concept.id).map(
+      (tpl) => tpl.titleKey
+    );
+    if (subKeys.length > 0) {
+      let subsChanged = false;
+      const subs = out.subs.map((sub) => {
+        const key = subKeys.find((k) => sub.name === en[k] || sub.name === es[k]);
+        if (!key || sub.name === target[key]) return sub;
+        subsChanged = true;
+        return { ...sub, name: target[key] };
+      });
+      if (subsChanged) out = { ...out, subs };
+    }
+
+    if (out !== concept) changed = true;
+    return out;
   });
   return { concepts: changed ? next : concepts, changed };
 }

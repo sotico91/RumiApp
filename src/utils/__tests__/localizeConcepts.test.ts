@@ -23,6 +23,22 @@ describe('localizeDefaultConcepts', () => {
     expect(concepts[0].name).toBe('Credit');
   });
 
+  it('translates subcategories created from templates, but not your own', () => {
+    const food: SpendConcept = {
+      id: 'concept-alimentacion',
+      name: 'Food',
+      color: '#000',
+      subs: [
+        { id: 'sub-a', name: 'Coffee' },
+        { id: 'sub-b', name: 'Almuerzo oficina' },
+      ],
+    };
+    const { concepts } = localizeDefaultConcepts([food], 'es');
+    expect(concepts[0].name).toBe('Alimentación');
+    expect(concepts[0].subs.map((s) => s.name)).toEqual(['Café', 'Almuerzo oficina']);
+    expect(concepts[0].subs[0].id).toBe('sub-a');
+  });
+
   it('never touches concepts the user named', () => {
     const own = [concept('concept-recibos', 'Servicios de casa'), concept('custom-x', 'Mascotas')];
     const { concepts, changed } = localizeDefaultConcepts(own, 'en');
