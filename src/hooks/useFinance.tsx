@@ -55,7 +55,7 @@ import {
   sumSpendOut,
   type PredictedSpend,
 } from '@/src/utils/financeMath';
-import { mapLiquidAccounts, mergeDefaultAccounts, ensureWalletAccount, renameWalletAccount, removeWalletAccount, ensureBankAccount, renameBankAccount, removeBankAccount, resolveSpendAccountId, settleLiquidOverdrafts } from '@/src/utils/accounts';
+import { mapLiquidAccounts, mergeDefaultAccounts, ensureWalletAccount, renameWalletAccount, removeWalletAccount, ensureBankAccount, renameBankAccount, removeBankAccount, ensureInvestmentAccount, renameInvestmentAccount, removeInvestmentAccount, resolveSpendAccountId, settleLiquidOverdrafts } from '@/src/utils/accounts';
 import {
   closePaidInstallments,
   closedAtAfterBalance,
@@ -164,6 +164,14 @@ type FinanceContextValue = {
   }) => Promise<void>;
   addWallet: (name: string) => Promise<Account | null>;
   addBank: (name: string) => Promise<Account | null>;
+  addInvestment: (name: string) => Promise<Account | null>;
+  renameInvestment: (
+    id: string,
+    name: string
+  ) => Promise<{ account: Account } | { error: 'missing' | 'empty' | 'duplicate' }>;
+  removeInvestment: (
+    id: string
+  ) => Promise<{ ok: true } | { error: 'missing' | 'protected' | 'hasBalance' }>;
   renameWallet: (
     id: string,
     name: string
@@ -569,6 +577,37 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
 
   const removeBank = useCallback(async (id: string) => {
     const result = removeBankAccount(accountsRef.current, id);
+    if ('error' in result) return result;
+    accountsRef.current = result.accounts;
+    setAccounts(result.accounts);
+    await saveAccounts(result.accounts);
+    return { ok: true as const };
+  }, []);
+
+  const addInvestment = useCallback(async (name: string) => {
+    const trimmed = name.trim();
+    if (!trimmed) return null;
+    const current = accountsRef.current;
+    const { accounts: next, account } = ensureInvestmentAccount(current, trimmed);
+    if (next !== current) {
+      accountsRef.current = next;
+      setAccounts(next);
+      await saveAccounts(next);
+    }
+    return account;
+  }, []);
+
+  const renameInvestment = useCallback(async (id: string, name: string) => {
+    const result = renameInvestmentAccount(accountsRef.current, id, name);
+    if ('error' in result) return result;
+    accountsRef.current = result.accounts;
+    setAccounts(result.accounts);
+    await saveAccounts(result.accounts);
+    return { account: result.account };
+  }, []);
+
+  const removeInvestment = useCallback(async (id: string) => {
+    const result = removeInvestmentAccount(accountsRef.current, id);
     if ('error' in result) return result;
     accountsRef.current = result.accounts;
     setAccounts(result.accounts);
@@ -984,6 +1023,9 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       removeDebt,
       addWallet,
       addBank,
+      addInvestment,
+      renameInvestment,
+      removeInvestment,
       renameWallet,
       renameBank,
       removeWallet,
@@ -1028,6 +1070,9 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       removeDebt,
       addWallet,
       addBank,
+      addInvestment,
+      renameInvestment,
+      removeInvestment,
       renameWallet,
       renameBank,
       removeWallet,

@@ -292,6 +292,83 @@ export function removeBankAccount(
 }
 
 /** Add newly introduced default accounts (e.g. virtual wallet) without wiping balances. */
+/** Default investments pocket; extra ones are named (CDT, fund, stocks…). */
+export const DEFAULT_INVESTMENT_ID = 'investments';
+
+export function slugInvestmentId(name: string): string {
+  const slug = name
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 40);
+  return `invest-${slug || 'extra'}`;
+}
+
+export function findInvestmentByName(accounts: Account[], name: string): Account | undefined {
+  const wanted = name.trim().toLowerCase();
+  if (!wanted) return undefined;
+  const id = slugInvestmentId(name);
+  return accounts.find(
+    (a) =>
+      a.type === 'investment' &&
+      (a.id === id || (a.name ?? '').trim().toLowerCase() === wanted)
+  );
+}
+
+export function ensureInvestmentAccount(
+  accounts: Account[],
+  name: string
+): { accounts: Account[]; account: Account; created: boolean } {
+  const trimmed = name.trim();
+  const existing = findInvestmentByName(accounts, trimmed);
+  if (existing) return { accounts, account: existing, created: false };
+  let id = slugInvestmentId(trimmed);
+  if (accounts.some((a) => a.id === id)) id = `${id}-${Date.now().toString(36)}`;
+  const account: Account = {
+    id,
+    nameKey: 'account.investments',
+    name: trimmed,
+    type: 'investment',
+    balance: 0,
+  };
+  return { accounts: sortAccountsByKind([...accounts, account]), account, created: true };
+}
+
+export function isRemovableInvestment(acc: Pick<Account, 'id' | 'type'>): boolean {
+  return acc.type === 'investment' && acc.id !== DEFAULT_INVESTMENT_ID;
+}
+
+export function renameInvestmentAccount(
+  accounts: Account[],
+  id: string,
+  name: string
+):
+  | { accounts: Account[]; account: Account }
+  | { error: 'missing' | 'empty' | 'duplicate' } {
+  const trimmed = name.trim();
+  if (!trimmed) return { error: 'empty' };
+  const current = accounts.find((a) => a.id === id);
+  if (!current || current.type !== 'investment') return { error: 'missing' };
+  const clash = findInvestmentByName(accounts, trimmed);
+  if (clash && clash.id !== id) return { error: 'duplicate' };
+  const account = { ...current, name: trimmed };
+  return { accounts: accounts.map((a) => (a.id === id ? account : a)), account };
+}
+
+export function removeInvestmentAccount(
+  accounts: Account[],
+  id: string
+): { accounts: Account[] } | { error: 'missing' | 'protected' | 'hasBalance' } {
+  const current = accounts.find((a) => a.id === id);
+  if (!current || current.type !== 'investment') return { error: 'missing' };
+  if (!isRemovableInvestment(current)) return { error: 'protected' };
+  if (Math.abs(current.balance) >= 0.01) return { error: 'hasBalance' };
+  return { accounts: accounts.filter((a) => a.id !== id) };
+}
+
 export function mergeDefaultAccounts(stored: Account[] | null | undefined): {
   accounts: Account[];
   changed: boolean;

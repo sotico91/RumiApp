@@ -1,5 +1,11 @@
 import type { Account, Debt, Transaction } from '@/src/types/finance';
 import {
+  accountDisplayName,
+  ensureInvestmentAccount,
+  removeInvestmentAccount,
+  renameInvestmentAccount,
+} from '@/src/utils/accounts';
+import {
   applyAccountDelta,
   applyDebtPayment,
   applyTxDebts,
@@ -130,5 +136,38 @@ describe('debt payments', () => {
     const card: Debt = { ...loan, id: 'card', balance: 0, kind: 'revolving', creditLimit: 1000000 };
     const [next] = applyTxDebts([card], tx({ amount: 40000, creditDebtId: 'card' }), 1);
     expect(next.balance).toBe(40000);
+  });
+});
+
+describe('named investments', () => {
+  const base: Account[] = [
+    { id: 'investments', nameKey: 'account.investments', type: 'investment', balance: 0 },
+  ];
+  const t = ((key: string) => (key === 'account.investments' ? 'Inversiones' : key)) as never;
+
+  it('adds a named investment and shows its name', () => {
+    const { accounts, account, created } = ensureInvestmentAccount(base, 'CDT Bancolombia');
+    expect(created).toBe(true);
+    expect(accounts).toHaveLength(2);
+    expect(accountDisplayName(account, t)).toBe('CDT Bancolombia');
+  });
+
+  it('renames the default investments pocket', () => {
+    const result = renameInvestmentAccount(base, 'investments', 'Fondo Lulo');
+    expect('error' in result).toBe(false);
+    if (!('error' in result)) expect(accountDisplayName(result.account, t)).toBe('Fondo Lulo');
+  });
+
+  it('rejects duplicate names and keeps the default pocket', () => {
+    const { accounts } = ensureInvestmentAccount(base, 'Acciones');
+    expect(renameInvestmentAccount(accounts, 'investments', 'acciones')).toEqual({ error: 'duplicate' });
+    expect(removeInvestmentAccount(accounts, 'investments')).toEqual({ error: 'protected' });
+  });
+
+  it('only removes an extra investment once it is at $0', () => {
+    const { accounts, account } = ensureInvestmentAccount(base, 'Cripto');
+    const funded = accounts.map((a) => (a.id === account.id ? { ...a, balance: 10 } : a));
+    expect(removeInvestmentAccount(funded, account.id)).toEqual({ error: 'hasBalance' });
+    expect(removeInvestmentAccount(accounts, account.id)).toEqual({ accounts: base });
   });
 });

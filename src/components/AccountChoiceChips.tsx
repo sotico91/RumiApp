@@ -19,6 +19,7 @@ import {
   accountDisplayName,
   accountRoleKey,
   findBankByName,
+  findInvestmentByName,
   findWalletByName,
   sortAccountsByKind,
 } from '@/src/utils/accounts';
@@ -226,6 +227,82 @@ export function BankQuickAdd({
             styles.addBtn,
             (!custom.trim() || busy) && styles.addBtnDisabled,
           ]}>
+          {busy ? (
+            <ActivityIndicator size="small" color={palette.white} />
+          ) : (
+            <Text style={styles.addBtnText}>{t('flow.addSubButton')}</Text>
+          )}
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+const INVESTMENT_PRESET_KEYS = [
+  'invest.presetCdt',
+  'invest.presetFund',
+  'invest.presetStocks',
+  'invest.presetCrypto',
+] as const;
+
+/** Add a named investment (CDT, fund, stocks…) so Wealth says where it is. */
+export function InvestmentQuickAdd({ onAdded }: { onAdded?: (id: string) => void }) {
+  const { t } = useLanguage();
+  const { accounts, addInvestment } = useFinance();
+  const [custom, setCustom] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function create(name: string) {
+    const trimmed = name.trim();
+    if (!trimmed || busy) return;
+    setBusy(true);
+    try {
+      const acc = await addInvestment(trimmed);
+      if (!acc) return;
+      tapFeedback();
+      setCustom('');
+      onAdded?.(acc.id);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const unusedPresets = INVESTMENT_PRESET_KEYS.map((key) => t(key)).filter(
+    (name) => !findInvestmentByName(accounts, name)
+  );
+
+  return (
+    <View style={styles.addBlock}>
+      {unusedPresets.length > 0 ? (
+        <View style={styles.wrap}>
+          {unusedPresets.map((name) => (
+            <Pressable
+              key={name}
+              onPress={() => void create(name)}
+              disabled={busy}
+              style={styles.preset}>
+              <Text style={styles.presetText}>+ {name}</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+      <Text style={styles.addLabel}>{t('invest.add')}</Text>
+      <Text style={styles.addHint}>{t('invest.addHint')}</Text>
+      <View style={styles.row}>
+        <TextInput
+          value={custom}
+          onChangeText={setCustom}
+          placeholder={t('invest.namePlaceholder')}
+          placeholderTextColor={palette.inkSoft}
+          style={styles.input}
+          editable={!busy}
+          onSubmitEditing={() => void create(custom)}
+          returnKeyType="done"
+        />
+        <Pressable
+          onPress={() => void create(custom)}
+          disabled={busy || !custom.trim()}
+          style={[styles.addBtn, (!custom.trim() || busy) && styles.addBtnDisabled]}>
           {busy ? (
             <ActivityIndicator size="small" color={palette.white} />
           ) : (

@@ -2,7 +2,11 @@ import { useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 
-import { WalletQuickAdd, BankQuickAdd } from '@/src/components/AccountChoiceChips';
+import {
+  BankQuickAdd,
+  InvestmentQuickAdd,
+  WalletQuickAdd,
+} from '@/src/components/AccountChoiceChips';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
 import { FadeInBlock } from '@/src/components/FadeInBlock';
 import { HowToGuideButton } from '@/src/components/HowToGuideButton';
@@ -25,6 +29,7 @@ import {
   accountGroupKey,
   isRemovableWallet,
   isRemovableBank,
+  isRemovableInvestment,
   moneyPockets,
   sortAccountsByKind,
 } from '@/src/utils/accounts';
@@ -96,6 +101,8 @@ export default function WealthScreen() {
     removeDebt,
     renameWallet,
     renameBank,
+    renameInvestment,
+    removeInvestment,
     removeWallet,
     removeBank,
     setAccountBalance,
@@ -601,20 +608,22 @@ export default function WealthScreen() {
     const current = accounts.find((a) => a.id === editingWalletId);
     setSavingWallet(true);
     try {
+      const kind = current?.type;
       const result =
-        current?.type === 'bank'
+        kind === 'bank'
           ? await renameBank(editingWalletId, walletNameDraft)
-          : await renameWallet(editingWalletId, walletNameDraft);
+          : kind === 'investment'
+            ? await renameInvestment(editingWalletId, walletNameDraft)
+            : await renameWallet(editingWalletId, walletNameDraft);
       if ('error' in result) {
+        const duplicate = result.error === 'duplicate';
         Alert.alert(
           t('wealth.walletRename'),
-          result.error === 'duplicate'
-            ? current?.type === 'bank'
-              ? t('wealth.bankNameTaken')
-              : t('wealth.walletNameTaken')
-            : current?.type === 'bank'
-              ? t('wealth.bankNameNeed')
-              : t('wealth.walletNameNeed')
+          kind === 'bank'
+            ? t(duplicate ? 'wealth.bankNameTaken' : 'wealth.bankNameNeed')
+            : kind === 'investment'
+              ? t(duplicate ? 'invest.nameTaken' : 'invest.nameNeed')
+              : t(duplicate ? 'wealth.walletNameTaken' : 'wealth.walletNameNeed')
         );
         return;
       }
@@ -629,10 +638,14 @@ export default function WealthScreen() {
     id: string,
     label: string,
     balance: number,
-    kind: 'wallet' | 'bank'
+    kind: 'wallet' | 'bank' | 'investment'
   ) {
     const deleteTitle =
-      kind === 'bank' ? t('wealth.bankDelete') : t('wealth.walletDelete');
+      kind === 'bank'
+        ? t('wealth.bankDelete')
+        : kind === 'investment'
+          ? t('invest.delete')
+          : t('wealth.walletDelete');
     if (Math.abs(balance) >= 0.01) {
       Alert.alert(deleteTitle, t('wealth.walletDeleteNeedEmpty'));
       return;
@@ -645,7 +658,11 @@ export default function WealthScreen() {
         onPress: () => {
           void (async () => {
             const result =
-              kind === 'bank' ? await removeBank(id) : await removeWallet(id);
+              kind === 'bank'
+                ? await removeBank(id)
+                : kind === 'investment'
+                  ? await removeInvestment(id)
+                  : await removeWallet(id);
             if ('error' in result) {
               Alert.alert(
                 deleteTitle,
@@ -696,10 +713,11 @@ export default function WealthScreen() {
             summary={t('wealth.accountsCollapsed', { count: cashAccounts.length })}>
             <Text style={styles.accountsHint}>{t('wealth.accountsHint')}</Text>
             {groupedAccounts.map((acc, index) => {
-              const canRename = acc.type === 'wallet' || acc.type === 'bank';
+              const canRename =
+                acc.type === 'wallet' || acc.type === 'bank' || acc.type === 'investment';
               const canEditBalance = isEditablePocketBalance(acc.type);
               const canRemove =
-                isRemovableWallet(acc) || isRemovableBank(acc);
+                isRemovableWallet(acc) || isRemovableBank(acc) || isRemovableInvestment(acc);
               const renaming = editingWalletId === acc.id;
               const editingBal = editingBalanceId === acc.id;
               const label = accountDisplayName(acc, t);
@@ -724,6 +742,9 @@ export default function WealthScreen() {
                   <View style={styles.sectionRow}>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.cardTitle}>{label}</Text>
+                      {acc.type === 'investment' && !acc.name ? (
+                        <Text style={styles.cardHint}>{t('invest.whereHint')}</Text>
+                      ) : null}
                     </View>
                     <View style={styles.cardActions}>
                       {canEditBalance ? (
@@ -743,7 +764,11 @@ export default function WealthScreen() {
                               acc.id,
                               label,
                               acc.balance,
-                              acc.type === 'bank' ? 'bank' : 'wallet'
+                              acc.type === 'bank'
+                                ? 'bank'
+                                : acc.type === 'investment'
+                                  ? 'investment'
+                                  : 'wallet'
                             )
                           }>
                           <Text style={styles.deleteText}>
@@ -864,6 +889,8 @@ export default function WealthScreen() {
             <WalletQuickAdd />
             <View style={styles.addBankGap} />
             <BankQuickAdd />
+            <View style={styles.addBankGap} />
+            <InvestmentQuickAdd />
           </View>
         </FadeInBlock>
 
@@ -1226,6 +1253,12 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 16,
     color: palette.ink,
+  },
+  cardHint: {
+    marginTop: 2,
+    fontFamily: 'DMSans_400Regular',
+    fontSize: 12,
+    color: palette.inkMuted,
   },
   conceptChip: {
     marginTop: 2,
