@@ -6,7 +6,7 @@ import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { reminderPushCopy } from '@/src/utils/reminderCopy';
 
-const REMINDER_COPY_REV_KEY = 'billing-app:reminder-push-rev';
+const REMINDER_COPY_REV_KEY = 'rumi:reminder-push-rev';
 const REMINDER_COPY_REV = 'pay-concept-sub-v2';
 
 /**

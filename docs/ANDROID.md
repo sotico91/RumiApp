@@ -2,7 +2,7 @@
 
 Same Expo/React Native app as iOS. **No Kotlin rewrite required.**
 
-Package: `com.billingapp.personal`  
+Package: `com.rumi.app`  
 Version name: `1.0.0` (from `app.json`) · versionCode: `1`
 
 ## 1. Machine requirements
@@ -51,7 +51,7 @@ Fresh machine checklist (if reinstalling elsewhere):
 
 ```bash
 export PATH="$HOME/.local/node/bin:$PATH"
-cd ~/Documents/GitHub/BillingAppIOS
+cd ~/Documents/GitHub/Rumi
 npm install
 ```
 
@@ -95,7 +95,7 @@ Profiles in [`eas.json`](../eas.json):
 ## 4. Play Store checklist
 
 - [ ] Google Play Console account (one-time developer fee).
-- [ ] App created with package `com.billingapp.personal`.
+- [ ] App created with package `com.rumi.app`.
 - [ ] Store listing: title, short/full description (ES/EN), screenshots (phone), feature graphic.
 - [ ] Privacy policy URL (local-only data; still required by Play).
 - [ ] Content rating questionnaire.
@@ -108,7 +108,7 @@ Profiles in [`eas.json`](../eas.json):
 ## 5. Android-specific behavior already wired
 
 - Adaptive icon + splash (`app.json`).
-- Local notifications channel `billing-alerts` + `POST_NOTIFICATIONS` / exact alarm permissions.
+- Local notifications channel `rumi-alerts` + `POST_NOTIFICATIONS` / exact alarm permissions.
 - Keyboard resize mode for forms.
 - Reminder scheduling uses the Android notification channel id.
 

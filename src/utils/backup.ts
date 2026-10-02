@@ -17,7 +17,7 @@ import {
   BACKUP_FORMAT,
   BACKUP_VERSION,
   parseBackupJson,
-  type BillingBackup,
+  type RumiBackup,
 } from '@/src/utils/backupParse';
 import type { Language, TranslationKey } from '@/src/i18n/translations';
 
@@ -27,7 +27,7 @@ export {
   LEGACY_BACKUP_FORMAT,
   parseBackupJson,
 } from '@/src/utils/backupParse';
-export type { BillingBackup } from '@/src/utils/backupParse';
+export type { RumiBackup } from '@/src/utils/backupParse';
 
 export type BackupSnapshot = {
   transactions: Transaction[];
@@ -110,7 +110,7 @@ function debtLabel(debtId: string | undefined, debts: Debt[], t: TranslateFn): s
   return '';
 }
 
-export function buildBackup(snapshot: BackupSnapshot): BillingBackup {
+export function buildBackup(snapshot: BackupSnapshot): RumiBackup {
   return {
     format: BACKUP_FORMAT,
     version: BACKUP_VERSION,
@@ -203,7 +203,7 @@ export async function shareTransactionsCsv(
 }
 
 /** Uses Expo FileSystem picker (already linked) — no DocumentPicker native module. */
-export async function pickAndReadBackupFile(): Promise<BillingBackup> {
+export async function pickAndReadBackupFile(): Promise<RumiBackup> {
   const result = await File.pickFileAsync({
     mimeTypes: ['application/json', 'text/plain', 'public.json', '*/*'],
   });

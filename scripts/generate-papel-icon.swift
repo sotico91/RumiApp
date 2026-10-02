@@ -128,7 +128,8 @@ func writePNG(size: Int, path: String, opaque: Bool, background: NSColor?, markS
   print("wrote \(path)")
 }
 
-let root = "/Users/edgar/Documents/GitHub/BillingAppIOS"
+// Run from the repo root: swift scripts/generate-papel-icon.swift
+let root = FileManager.default.currentDirectoryPath
 
 writePNG(size: 1024, path: "\(root)/assets/images/icon.png", opaque: true, background: cream, markScale: 1, kind: .color)
 writePNG(size: 1024, path: "\(root)/assets/images/splash-icon.png", opaque: false, background: nil, markScale: 1.05, kind: .color)
@@ -139,7 +140,7 @@ writePNG(size: 1024, path: "\(root)/assets/images/notification-icon.png", opaque
 writePNG(size: 48, path: "\(root)/assets/images/favicon.png", opaque: true, background: cream, markScale: 1, kind: .color)
 writePNG(
   size: 1024,
-  path: "\(root)/ios/Billing/Images.xcassets/AppIcon.appiconset/App-Icon-1024x1024@1x.png",
+  path: "\(root)/ios/Rumi/Images.xcassets/AppIcon.appiconset/App-Icon-1024x1024@1x.png",
   opaque: true,
   background: cream,
   markScale: 1,
@@ -147,7 +148,7 @@ writePNG(
 )
 writePNG(
   size: 1024,
-  path: "\(root)/ios/Billing/Images.xcassets/AppIcon.appiconset/App-Icon-dark-1024x1024@1x.png",
+  path: "\(root)/ios/Rumi/Images.xcassets/AppIcon.appiconset/App-Icon-dark-1024x1024@1x.png",
   opaque: true,
   background: cream,
   markScale: 1,
@@ -155,7 +156,7 @@ writePNG(
 )
 writePNG(
   size: 72,
-  path: "\(root)/ios/Billing/Images.xcassets/SplashScreenLogo.imageset/image.png",
+  path: "\(root)/ios/Rumi/Images.xcassets/SplashScreenLogo.imageset/image.png",
   opaque: false,
   background: nil,
   markScale: 1.05,
@@ -163,7 +164,7 @@ writePNG(
 )
 writePNG(
   size: 144,
-  path: "\(root)/ios/Billing/Images.xcassets/SplashScreenLogo.imageset/image@2x.png",
+  path: "\(root)/ios/Rumi/Images.xcassets/SplashScreenLogo.imageset/image@2x.png",
   opaque: false,
   background: nil,
   markScale: 1.05,
@@ -171,7 +172,7 @@ writePNG(
 )
 writePNG(
   size: 216,
-  path: "\(root)/ios/Billing/Images.xcassets/SplashScreenLogo.imageset/image@3x.png",
+  path: "\(root)/ios/Rumi/Images.xcassets/SplashScreenLogo.imageset/image@3x.png",
   opaque: false,
   background: nil,
   markScale: 1.05,

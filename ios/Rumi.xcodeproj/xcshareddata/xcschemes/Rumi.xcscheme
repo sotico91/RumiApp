@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "Billing.app"
-               BlueprintName = "Billing"
-               ReferencedContainer = "container:Billing.xcodeproj">
+               BuildableName = "Rumi.app"
+               BlueprintName = "Rumi"
+               ReferencedContainer = "container:Rumi.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "BillingTests.xctest"
-               BlueprintName = "BillingTests"
-               ReferencedContainer = "container:Billing.xcodeproj">
+               BuildableName = "RumiTests.xctest"
+               BlueprintName = "RumiTests"
+               ReferencedContainer = "container:Rumi.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "Billing.app"
-            BlueprintName = "Billing"
-            ReferencedContainer = "container:Billing.xcodeproj">
+            BuildableName = "Rumi.app"
+            BlueprintName = "Rumi"
+            ReferencedContainer = "container:Rumi.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "Billing.app"
-            BlueprintName = "Billing"
-            ReferencedContainer = "container:Billing.xcodeproj">
+            BuildableName = "Rumi.app"
+            BlueprintName = "Rumi"
+            ReferencedContainer = "container:Rumi.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

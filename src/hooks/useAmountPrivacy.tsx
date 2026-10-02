@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 
-const AMOUNTS_VISIBLE_KEY = '@billingapp/amounts_visible';
+const AMOUNTS_VISIBLE_KEY = '@rumi/amounts_visible';
 
 type AmountPrivacyContextValue = {
   /** When false, monetary displays show a mask. Preference is persisted. */

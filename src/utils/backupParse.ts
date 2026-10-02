@@ -11,10 +11,11 @@ import type {
 import type { QuickTemplate, UserSettings } from '@/src/types/settings';
 
 export const BACKUP_FORMAT = 'rumi-backup';
+/** Format id written by app versions before the Rumi rename; still accepted on restore. */
 export const LEGACY_BACKUP_FORMAT = 'billingapp-backup';
 export const BACKUP_VERSION = 1;
 
-export type BillingBackup = {
+export type RumiBackup = {
   format: typeof BACKUP_FORMAT;
   version: number;
   exportedAt: string;
@@ -160,7 +161,7 @@ function requireList<T>(
  * transaction (no createdAt, amount as text) would otherwise be stored
  * and crash the app on every launch.
  */
-export function parseBackupJson(raw: string): BillingBackup {
+export function parseBackupJson(raw: string): RumiBackup {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);

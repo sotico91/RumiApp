@@ -16,11 +16,11 @@ import type {
 } from '@/src/types/finance';
 import { isPocketMove } from '@/src/types/finance';
 
-const TX_KEY = 'billing-app:transactions:v2';
-const ACCOUNTS_KEY = 'billing-app:accounts:v2';
-const BUDGETS_KEY = 'billing-app:budgets:v2';
-const DEBTS_KEY = 'billing-app:debts:v2';
-const SUBS_KEY = 'billing-app:subscriptions:v2';
+const TX_KEY = 'rumi:transactions:v2';
+const ACCOUNTS_KEY = 'rumi:accounts:v2';
+const BUDGETS_KEY = 'rumi:budgets:v2';
+const DEBTS_KEY = 'rumi:debts:v2';
+const SUBS_KEY = 'rumi:subscriptions:v2';
 const LEGACY_EXPENSES = 'gastos-hormiga:expenses:v1';
 
 async function loadJson<T>(key: string, fallback: T): Promise<T> {

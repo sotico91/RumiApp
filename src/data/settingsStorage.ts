@@ -20,8 +20,8 @@ import {
 import type { QuickTemplate, ReminderRule, UserSettings } from '@/src/types/settings';
 import { localDateKey } from '@/src/utils/habitPilot';
 
-const SETTINGS_KEY = 'billing-app:settings:v1';
-const QUICK_KEY = 'billing-app:quick-templates:v2';
+const SETTINGS_KEY = 'rumi:settings:v1';
+const QUICK_KEY = 'rumi:quick-templates:v2';
 
 export const CURRENT_CATALOG_VERSION = 5;
 

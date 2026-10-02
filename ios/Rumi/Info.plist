@@ -28,8 +28,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>rumi</string>
-				<string>billingapp</string>
-				<string>com.billingapp.personal</string>
+				<string>com.rumi.app</string>
 			</array>
 		</dict>
 	</array>

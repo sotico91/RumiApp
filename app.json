@@ -5,14 +5,14 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": ["rumi", "billingapp"],
+    "scheme": "rumi",
     "userInterfaceStyle": "automatic",
     "primaryColor": "#1B3A4B",
     "description": "Personal finance tracker. Log expenses, budgets, debts and insights — data stays on your device.",
-    "githubUrl": "https://github.com/sotico91/BillingApp",
+    "githubUrl": "https://github.com/sotico91/Rumi",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.billingapp.personal",
+      "bundleIdentifier": "com.rumi.app",
       "icon": {
         "light": "./assets/images/icon.png",
         "dark": "./assets/images/icon.png"
@@ -60,7 +60,7 @@
       }
     },
     "android": {
-      "package": "com.billingapp.personal",
+      "package": "com.rumi.app",
       "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#F3E6D8",
@@ -115,7 +115,7 @@
         {
           "icon": "./assets/images/notification-icon.png",
           "color": "#FF6B4A",
-          "defaultChannel": "billing-alerts",
+          "defaultChannel": "rumi-alerts",
           "sounds": []
         }
       ],
@@ -128,7 +128,7 @@
       ]
     ],
     "extra": {
-      "privacyPolicyUrl": "https://sotico91.github.io/BillingApp/privacy-policy.html",
+      "privacyPolicyUrl": "https://sotico91.github.io/Rumi/privacy-policy.html",
       "supportEmail": "edavidvelascop@gmail.com"
     },
     "experiments": {

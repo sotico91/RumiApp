@@ -14,7 +14,7 @@ import {
   translations,
 } from '@/src/i18n/translations';
 
-const STORAGE_KEY = 'billing-app:language:v1';
+const STORAGE_KEY = 'rumi:language:v1';
 
 type TranslateOptions = Record<string, string | number>;
 

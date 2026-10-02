@@ -18,9 +18,9 @@ Notifications.setNotificationHandler({
   },
 });
 
-const ANDROID_CHANNEL_ID = 'billing-alerts';
+const ANDROID_CHANNEL_ID = 'rumi-alerts';
 /** Dedicated channel so badge + importance apply on devices that already had the old channel. */
-const ANDROID_REMINDER_CHANNEL_ID = 'billing-reminders';
+const ANDROID_REMINDER_CHANNEL_ID = 'rumi-reminders';
 const ANDROID_ACCENT = '#FF6B4A';
 
 let cachedLogoUri: string | null | undefined;
@@ -54,7 +54,7 @@ async function iosLogoAttachments(): Promise<
   if (!cachedLogoUri) return undefined;
   return [
     {
-      identifier: 'billing-logo',
+      identifier: 'rumi-logo',
       url: cachedLogoUri,
       type: 'image/png',
       typeHint: 'public.png',
@@ -138,7 +138,7 @@ export function startBadgeClearOnActive(): () => void {
 }
 
 let lastExpenseNotify: { key: string; at: number } | null = null;
-const EXPENSE_NOTIFY_PREFIX = 'billing-expense-';
+const EXPENSE_NOTIFY_PREFIX = 'rumi-expense-';
 
 async function clearPriorExpenseConfirms(): Promise<void> {
   try {
@@ -240,7 +240,7 @@ export async function syncCategoryReminders(opts: {
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
   await Promise.all(
     scheduled
-      .filter((n) => n.identifier.startsWith('billing-reminder-'))
+      .filter((n) => n.identifier.startsWith('rumi-reminder-'))
       .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier))
   );
 
@@ -264,7 +264,7 @@ export async function syncCategoryReminders(opts: {
 
     const attachments = await iosLogoAttachments();
     await Notifications.scheduleNotificationAsync({
-      identifier: `billing-reminder-${item.categoryId}`,
+      identifier: `rumi-reminder-${item.categoryId}`,
       content: {
         title: item.title,
         body: item.body,
@@ -312,12 +312,12 @@ export async function clearCategoryReminders(): Promise<void> {
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
   await Promise.all(
     scheduled
-      .filter((n) => n.identifier.startsWith('billing-reminder-'))
+      .filter((n) => n.identifier.startsWith('rumi-reminder-'))
       .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier))
   );
 }
 
-const ANT_TIP_NOTIFY_ID = 'billing-ant-tip';
+const ANT_TIP_NOTIFY_ID = 'rumi-ant-tip';
 
 /** Cancel the weekly soft ant-spend tip, if any. */
 export async function clearAntSpendTipNotification(): Promise<void> {
@@ -386,9 +386,9 @@ export async function cancelRemindersExcept(allowedCategoryIds: Set<string>): Pr
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
   await Promise.all(
     scheduled
-      .filter((n) => n.identifier.startsWith('billing-reminder-'))
+      .filter((n) => n.identifier.startsWith('rumi-reminder-'))
       .filter((n) => {
-        const categoryId = n.identifier.replace(/^billing-reminder-/, '');
+        const categoryId = n.identifier.replace(/^rumi-reminder-/, '');
         return !allowedCategoryIds.has(categoryId);
       })
       .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier))

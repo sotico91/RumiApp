@@ -3,7 +3,7 @@ import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import { useEffect, useRef } from 'react';
 
-const HANDLED_KEY = 'billing-app:last-reminder-response-id';
+const HANDLED_KEY = 'rumi:last-reminder-response-id';
 
 function categoryIdFromData(data: unknown): string | null {
   if (!data || typeof data !== 'object') return null;
