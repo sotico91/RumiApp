@@ -82,9 +82,9 @@ export default function HistorialScreen() {
     if (page > totalPages - 1) setPage(Math.max(0, totalPages - 1));
   }, [page, totalPages]);
 
-  // Match Home savings: expenses include debt installments.
+  // Match Home savings: expenses plus loan installments (card payments excluded).
   const expenseTotal =
-    period === 'mes' ? sumSpendOut(items) : totalForPeriod(period, 'expense', 'mine');
+    period === 'mes' ? sumSpendOut(items, debts) : totalForPeriod(period, 'expense', 'mine');
   const incomeTotal = sumByType(items, 'income');
   const monthBalance = incomeTotal - expenseTotal;
 

@@ -52,6 +52,7 @@ import {
   percentOfBase,
   predictMonthlySpends,
   sumByType,
+  sumSpendOut,
   type PredictedSpend,
 } from '@/src/utils/financeMath';
 import { mapLiquidAccounts, mergeDefaultAccounts, ensureWalletAccount, renameWalletAccount, removeWalletAccount, ensureBankAccount, renameBankAccount, removeBankAccount, resolveSpendAccountId, settleLiquidOverdrafts } from '@/src/utils/accounts';
@@ -838,13 +839,11 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       const list = transactionsForPeriod(period, scope);
       if (type === 'expense') {
         // Only real logged spend — unpaid Wealth installments are reminders, not expenses.
-        return list
-          .filter((t) => t.type === 'expense' || t.type === 'debt_payment')
-          .reduce((s, t) => s + t.amount, 0);
+        return sumSpendOut(list, debts);
       }
       return sumByType(list, type);
     },
-    [transactionsForPeriod]
+    [transactionsForPeriod, debts]
   );
 
   const insightsForPeriod = useCallback(

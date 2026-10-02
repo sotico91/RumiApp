@@ -10,13 +10,16 @@ import type { Account, Period, Transaction, Debt } from '@/src/types/finance';
 import type { SpendConcept } from '@/src/types/settings';
 import { categoryLabel as resolveCategoryLabel } from '@/src/utils/categoryLabel';
 import { accountDisplayName } from '@/src/utils/accounts';
-import { isRevolving } from '@/src/utils/debts';
 import {
   antExpenseBreakdown,
   calendarMonthRange,
+  comparableRange,
   filterBetween,
   filterByPeriod,
+  periodEnd,
+  periodStart,
   previousMonthRange,
+  revolvingDebtIds,
   sumByType,
   sumSpendOut,
 } from '@/src/utils/financeMath';
@@ -175,10 +178,15 @@ function sumExpenseCategory(list: Transaction[], categoryId: string): number {
     .reduce((s, x) => s + x.amount, 0);
 }
 
+/** Ignore small wiggles: a concept must grow 20%+ and be at least 5% of current spend. */
+const RISE_MIN_RATIO = 1.2;
+const RISE_MIN_SHARE = 0.05;
+
 /** Only categories with real spend in both periods (or growth from a prior base). */
 function topRisingExpenseCategory(
   thisMonth: Transaction[],
-  lastMonth: Transaction[]
+  lastMonth: Transaction[],
+  totalSpend: number
 ): { categoryId: string; delta: number } | null {
   const ids = new Set<string>();
   for (const t of [...thisMonth, ...lastMonth]) {
@@ -190,8 +198,9 @@ function topRisingExpenseCategory(
     const now = sumExpenseCategory(thisMonth, categoryId);
     const prev = sumExpenseCategory(lastMonth, categoryId);
     // Require prior spend so we never "predict" a category the user never used.
-    if (prev <= 0 || now <= prev) continue;
+    if (prev <= 0 || now < prev * RISE_MIN_RATIO) continue;
     const delta = now - prev;
+    if (delta < totalSpend * RISE_MIN_SHARE) continue;
     if (!best || delta > best.delta) {
       best = { categoryId, delta };
     }
@@ -230,14 +239,16 @@ export function buildSmartInsights(
     debts,
     period
   );
-  const { from, to } =
-    period === 'mes'
-      ? previousMonthRange()
-      : previousAnalogRange(period);
+  const now = new Date();
+  const { from, to } = comparableRange(
+    { from: periodStart(period, now), to: periodEnd(period, now) },
+    period === 'mes' ? previousMonthRange(now) : previousAnalogRange(period, now),
+    now
+  );
   const previous = filterBetween(transactions, from, to);
 
-  const spendNow = sumSpendOut(current);
-  const spendPrev = sumSpendOut(previous);
+  const spendNow = sumSpendOut(current, debts);
+  const spendPrev = sumSpendOut(previous, debts);
   const incomeNow = sumByType(current, 'income');
   const ant = antExpenseBreakdown(current, spendConcepts);
   const cards: InsightCard[] = [];
@@ -283,7 +294,7 @@ export function buildSmartInsights(
     });
   }
 
-  const rising = topRisingExpenseCategory(current, previous);
+  const rising = topRisingExpenseCategory(current, previous, spendNow);
   if (rising) {
     cards.push({
       id: `rise-${rising.categoryId}`,
@@ -564,7 +575,11 @@ function presetPeriod(
   return { label: t('period.mes'), from, to, analog: 'month', explicit: true };
 }
 
-function analogRange(period: QueryPeriod): { from: Date; to: Date } {
+function analogRange(period: QueryPeriod, now = new Date()): { from: Date; to: Date } {
+  return comparableRange(period, fullAnalogRange(period), now);
+}
+
+function fullAnalogRange(period: QueryPeriod): { from: Date; to: Date } {
   if (period.analog === 'month') {
     const prev = new Date(period.from);
     prev.setMonth(prev.getMonth() - 1);
@@ -928,7 +943,7 @@ function detectCategories(
         ids: [cat.id],
         label: cat.id,
         score: best,
-        displayName: cat.id,
+        // No displayName: built-in ids ("cafe") are translated via categoryLabel.
       });
     }
   }
@@ -955,10 +970,6 @@ function expenseTxs(list: Transaction[]): Transaction[] {
 
 function obligationTxs(list: Transaction[]): Transaction[] {
   return list.filter(isObligationTx);
-}
-
-function revolvingDebtIds(debts?: Debt[]): Set<string> {
-  return new Set((debts ?? []).filter((d) => isRevolving(d)).map((d) => d.id));
 }
 
 /** Paying the card / cupo / credicheque — not a new spend. */
@@ -1185,6 +1196,7 @@ function rankingDetail(
   list: Transaction[],
   spendConcepts: SpendConcept[],
   format: (n: number) => string,
+  labelFor: (id: string) => string,
   limit = 3
 ): string {
   const totals = [...expenseTotalsByConcept(list, spendConcepts).entries()].sort(
@@ -1195,7 +1207,7 @@ function rankingDetail(
     .map(([id, v]) => {
       const concept = findConceptById(spendConcepts, id);
       const hit = findSpendSub(spendConcepts, id);
-      const label = concept?.name ?? hit?.concept.name ?? id;
+      const label = concept?.name ?? hit?.concept.name ?? labelFor(id);
       return `${label} ${format(v.amount)}`;
     })
     .join(' · ');
@@ -1557,6 +1569,59 @@ export function buildSearchSuggestions(
  * Answers finance questions from the user's own data.
  * Always tries to match the intent of the question instead of defaulting blindly.
  */
+/** The period has started and has not ended yet (this week, this month…). */
+function isInProgress(period: QueryPeriod, now = new Date()): boolean {
+  return now.getTime() >= period.from.getTime() && now.getTime() < period.to.getTime();
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Linear run-rate for the running week/month: spend so far ÷ days elapsed ×
+ * days in the period. Simple on purpose — early in the month one big bill
+ * skews it, so we flag the estimate as early.
+ */
+function answerProjection(
+  list: Transaction[],
+  period: QueryPeriod,
+  format: (n: number) => string,
+  t: TFn,
+  debts?: Debt[],
+  now = new Date()
+): string {
+  const spent = sumSpendOut(list, debts);
+  const income = sumByType(list, 'income');
+  // A running week ends "tomorrow" in QueryPeriod, so use its real length.
+  const totalDays =
+    period.analog === 'week'
+      ? 7
+      : Math.max(1, Math.round((period.to.getTime() - period.from.getTime()) / DAY_MS));
+  const days = Math.min(totalDays, Math.max(1, Math.ceil((now.getTime() - period.from.getTime()) / DAY_MS)));
+  const projected = (spent / days) * totalDays;
+  const unit = t(period.analog === 'week' ? 'search.unitWeek' : 'search.unitMonth');
+
+  let text = t('search.answerProjection', {
+    projected: format(projected),
+    unit,
+    spent: format(spent),
+    days,
+    total: totalDays,
+  });
+  if (income > 0) {
+    const left = income - projected;
+    text += ' ';
+    text +=
+      left >= 0
+        ? t('search.answerProjectionLeft', { income: format(income), left: format(left) })
+        : t('search.answerProjectionShort', { income: format(income), short: format(-left) });
+  }
+  if (days < Math.min(7, totalDays)) {
+    text += ' ';
+    text += t('search.answerProjectionEarly');
+  }
+  return text;
+}
+
 export function answerFinanceQuery(
   query: string,
   transactions: Transaction[],
@@ -1616,10 +1681,39 @@ export function answerFinanceQuery(
       'save',
       'sobro',
       'sobró',
-      'me queda',
       'balance',
       'neto del mes',
     ]);
+  const wantsProjection = includesAny(q, [
+    'voy a gastar',
+    'vamos a gastar',
+    'gastare',
+    'voy a ahorrar',
+    'puedo ahorrar',
+    'podre ahorrar',
+    'me queda',
+    'me quedara',
+    'nos queda',
+    'fin de mes',
+    'final del mes',
+    'cierre del mes',
+    'cerrar el mes',
+    'cerraria',
+    'proyeccion',
+    'a este ritmo',
+    'will i spend',
+    'going to spend',
+    'will i save',
+    'can i save',
+    'going to save',
+    'left to spend',
+    'end of the month',
+    'end of month',
+    'forecast',
+    'projection',
+    'projected',
+    'at this pace',
+  ]);
   const wantsAnt = includesAny(q, [
     'hormiga',
     'hormigas',
@@ -1805,11 +1899,29 @@ export function answerFinanceQuery(
 
   // --- Specific intents (order matters) ---
 
+  const inProgress = isInProgress(period);
+
+  if (wantsProjection && inProgress && period.analog !== 'day') {
+    return answerProjection(list, period, format, t, options.debts);
+  }
+
   if (wantsSavings) {
     const income = sumByType(list, 'income');
-    const expense = sumByType(list, 'expense');
-    const obligations = sumByType(list, 'debt_payment');
+    // Same rule as Home: expenses + loan installments; card payments are not new spend.
+    const expense = sumSpendOut(list, options.debts);
+    const obligations = cardObligationTxs(list, options.debts).reduce((s, x) => s + x.amount, 0);
     const saved = income - expense;
+    if (inProgress) {
+      const soFar = t('search.answerSavingsSoFar', {
+        amount: format(saved),
+        period: periodLabel,
+        income: format(income),
+        expenses: format(expense),
+      });
+      return obligations > 0
+        ? `${soFar} ${t('search.answerCardPayNote', { obligations: format(obligations) })}`
+        : soFar;
+    }
     if (obligations > 0) {
       return t('search.answerSavingsWithObligations', {
         amount: format(saved),
@@ -2207,7 +2319,7 @@ export function answerFinanceQuery(
         period: periodLabel,
       });
     }
-    const detail = rankingDetail(expenses, spendConcepts, format);
+    const detail = rankingDetail(expenses, spendConcepts, format, categoryLabel);
     if (obligations.length > 0) {
       return t('search.answerExpensesVsObligations', {
         expenses: format(amount),

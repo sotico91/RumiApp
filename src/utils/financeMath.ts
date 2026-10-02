@@ -29,6 +29,33 @@ export function periodStart(period: Period, now = new Date()): Date {
   return startOfMonth(now);
 }
 
+/** Exclusive end of the current day / week / month. */
+export function periodEnd(period: Period, now = new Date()): Date {
+  const end = new Date(periodStart(period, now));
+  if (period === 'hoy') end.setDate(end.getDate() + 1);
+  else if (period === 'semana') end.setDate(end.getDate() + 7);
+  else end.setMonth(end.getMonth() + 1);
+  return end;
+}
+
+/**
+ * Previous window to compare a period against. While the current period is
+ * still running, cut the previous one to the same elapsed time — otherwise
+ * Oct 1–2 is compared with all of September and always looks "98% less".
+ */
+export function comparableRange(
+  current: { from: Date; to: Date },
+  previous: { from: Date; to: Date },
+  now = new Date()
+): { from: Date; to: Date } {
+  if (now.getTime() >= current.to.getTime() || now.getTime() <= current.from.getTime()) {
+    return previous;
+  }
+  const elapsed = now.getTime() - current.from.getTime();
+  const cut = new Date(Math.min(previous.from.getTime() + elapsed, previous.to.getTime()));
+  return { from: previous.from, to: cut };
+}
+
 export function previousMonthRange(now = new Date()): { from: Date; to: Date } {
   const to = startOfMonth(now);
   const from = new Date(to);
@@ -118,9 +145,26 @@ export function sumByType(
 }
 
 /** Money out: regular expenses + debt installment payments. */
-export function sumSpendOut(transactions: Transaction[]): number {
+/** Ids of cards / credit lines: their charges are already logged as expenses. */
+export function revolvingDebtIds(debts: Pick<Debt, 'id' | 'kind'>[] = []): Set<string> {
+  return new Set(debts.filter((d) => d.kind === 'revolving').map((d) => d.id));
+}
+
+/**
+ * Money that left this month: expenses plus loan installments. Paying a card
+ * is excluded — the purchases on it were already counted as expenses, so
+ * counting the payment too would double the spend.
+ */
+export function isMonthOutflow(t: Transaction, revolvingIds: Set<string>): boolean {
+  if (t.type === 'expense') return true;
+  if (t.type !== 'debt_payment') return false;
+  return !(t.debtId && revolvingIds.has(t.debtId));
+}
+
+export function sumSpendOut(transactions: Transaction[], debts: Pick<Debt, 'id' | 'kind'>[] = []): number {
+  const revolving = revolvingDebtIds(debts);
   return transactions
-    .filter((t) => t.type === 'expense' || t.type === 'debt_payment')
+    .filter((t) => isMonthOutflow(t, revolving))
     .reduce((sum, t) => sum + t.amount, 0);
 }
 

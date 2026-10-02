@@ -65,7 +65,7 @@ export const translations = {
     'home.availableSecondaryHint': 'Of that, {amount} is in wallets or savings',
     'home.availableTotal': 'Total available',
     'home.savingsInfoBody':
-      'This calendar month: income minus expenses and debt payments you actually logged. Installments in Wealth stay as reminders until you register the payment — they do not inflate this number.',
+      'This calendar month: income minus expenses and loan installments you actually logged. Paying a card is not counted again — its purchases already are. Installments in Wealth stay as reminders until you register the payment.',
     'home.savingsInfoCompare':
       'It restarts at zero every new month. A transfer to savings does not change it — that is not income or spend.',
     'home.moneyInfoEyebrow': 'What this tile means',
@@ -248,21 +248,21 @@ export const translations = {
     'home.editNameBody': 'Update how we greet you on Home. New expenses will use this name.',
     'home.saveName': 'Save name',
 
-    'lock.enable': 'Turn on Face ID',
-    'lock.disable': 'Turn off Face ID',
-    'lock.unavailableTitle': 'Can’t turn on Face ID yet',
+    'lock.enable': 'Turn on app lock',
+    'lock.disable': 'Turn off app lock',
+    'lock.unavailableTitle': 'Can’t turn on app lock yet',
     'lock.unavailableBody':
-      'Add Face ID, a fingerprint or a phone PIN in iPhone Settings, then try again.',
-    'lock.enabledTitle': 'Face ID is on',
+      'Set up Face ID, a fingerprint or a screen lock (PIN) in your phone settings, then try again.',
+    'lock.enabledTitle': 'App lock is on',
     'lock.enabledBody':
-      'If you close the app, it asks for Face ID or your fingerprint next time. Quick hops under a minute stay open. Turn it off anytime from ⋯.',
-    'lock.disabledTitle': 'Face ID is off',
+      'If you close the app, it asks for your face, fingerprint or PIN next time. Quick hops under a minute stay open. Turn it off anytime from ⋯.',
+    'lock.disabledTitle': 'App lock is off',
     'lock.disabledBody':
-      'The app opens right away, with no Face ID. Turn it on again anytime from ⋯.',
+      'The app opens right away, with no lock. Turn it on again anytime from ⋯.',
     'lock.promptFace': 'Unlock with Face ID',
     'lock.promptFinger': 'Unlock with fingerprint',
     'lock.promptPin': 'Unlock Rumi',
-    'lock.promptDisable': 'Confirm with Face ID to turn it off',
+    'lock.promptDisable': 'Confirm it’s you to turn off app lock',
     'lock.faceTitle': 'Unlock with Face ID',
     'lock.faceBody':
       'Use Face ID to open the app. Turn this on or off anytime from ⋯.',
@@ -273,7 +273,7 @@ export const translations = {
     'lock.fingerAction': 'Unlock with fingerprint',
     'lock.pinTitle': 'Unlock with device PIN',
     'lock.pinBody':
-      'Use your phone PIN. You can still turn Face ID on or off from ⋯.',
+      'Use your phone PIN. Turn app lock on or off anytime from ⋯.',
     'lock.pinAction': 'Unlock',
     'lock.unlocking': 'Waiting…',
     'lock.tapToUnlock': 'Tap to unlock',
@@ -719,7 +719,7 @@ export const translations = {
     'onboard.namePlaceholder': 'Your first name',
     'onboard.nameNeed': 'Please enter your name to continue.',
     'onboard.currencyTitle': 'What currency do you use day to day?',
-    'onboard.currencyBody': 'You can change this later in settings.',
+    'onboard.currencyBody': 'Choose carefully: it can’t be changed later, because your amounts are saved in this currency.',
     'onboard.currencyCop': 'Colombian pesos (COP)',
     'onboard.currencyUsd': 'US dollars (USD)',
     'onboard.categoriesTitle': 'What do you usually spend on?',
@@ -884,7 +884,21 @@ export const translations = {
     'search.answerSavings':
       'You saved {amount} {period} (income {income} − expenses {expenses}).',
     'search.answerSavingsWithObligations':
-      'Income vs spend {period}: {amount} (income {income} − expenses {expenses}). You also paid {obligations} in obligations (card/installments) — that is not new spend.',
+      'Income vs spend {period}: {amount} (income {income} − expenses {expenses}). You also paid {obligations} on cards — not new spend: those purchases already count as expenses.',
+    'search.answerSavingsSoFar':
+      '{period} so far: balance {amount} (income {income} − spend {expenses}). The month is not over yet.',
+    'search.answerCardPayNote':
+      'You also paid {obligations} on cards — not new spend.',
+    'search.unitMonth': 'month',
+    'search.unitWeek': 'week',
+    'search.answerProjection':
+      'At this pace you would spend about {projected} by the end of the {unit} ({spent} so far, {days} of {total} days).',
+    'search.answerProjectionLeft':
+      'With {income} of income logged, about {left} would be left.',
+    'search.answerProjectionShort':
+      'With {income} of income logged, you would be short by about {short}.',
+    'search.answerProjectionEarly':
+      'Early estimate — it gets sharper as you log more days.',
     'search.answerCategory':
       '{label} ({period}): {amount} across {count} movements.',
     'search.answerCategoryMethod':
@@ -1021,7 +1035,7 @@ export const translations = {
     'home.availableSecondaryHint': 'De eso, {amount} está en billeteras o ahorros',
     'home.availableTotal': 'Total disponible',
     'home.savingsInfoBody':
-      'Este mes calendario: ingresos menos gastos y pagos de deuda que sí registraste. Las cuotas en Patrimonio son recordatorio hasta que registres el pago — no inflan este número.',
+      'Este mes calendario: ingresos menos gastos y cuotas de préstamos que sí registraste. Pagar la tarjeta no se cuenta otra vez: sus compras ya cuentan. Las cuotas en Patrimonio son recordatorio hasta que registres el pago.',
     'home.savingsInfoCompare':
       'Vuelve a cero cada mes nuevo. Una transferencia a ahorro no lo cambia — eso no es ingreso ni gasto.',
     'home.moneyInfoEyebrow': 'Qué significa esta caja',
@@ -1206,21 +1220,21 @@ export const translations = {
       'Así te saludamos en Inicio. Los gastos nuevos usarán este nombre.',
     'home.saveName': 'Guardar nombre',
 
-    'lock.enable': 'Activar Face ID',
-    'lock.disable': 'Quitar Face ID',
-    'lock.unavailableTitle': 'Aún no se puede activar Face ID',
+    'lock.enable': 'Activar bloqueo de la app',
+    'lock.disable': 'Quitar bloqueo de la app',
+    'lock.unavailableTitle': 'Aún no se puede activar el bloqueo',
     'lock.unavailableBody':
-      'Primero configura Face ID, huella o un PIN en Ajustes del iPhone e inténtalo de nuevo.',
-    'lock.enabledTitle': 'Face ID activado',
+      'Primero configura Face ID, huella o un bloqueo de pantalla (PIN) en los ajustes del teléfono e inténtalo de nuevo.',
+    'lock.enabledTitle': 'Bloqueo activado',
     'lock.enabledBody':
-      'Si cierras la app, al abrirla pide Face ID o huella. Si solo sales un momento (menos de un minuto), sigues dentro. Para quitarlo, entra otra vez a ⋯.',
-    'lock.disabledTitle': 'Face ID desactivado',
+      'Si cierras la app, al abrirla pide tu rostro, huella o PIN. Si solo sales un momento (menos de un minuto), sigues dentro. Para quitarlo, entra otra vez a ⋯.',
+    'lock.disabledTitle': 'Bloqueo desactivado',
     'lock.disabledBody':
-      'La app se abre de una vez, sin Face ID. Puedes activarlo otra vez cuando quieras en ⋯.',
+      'La app se abre de una vez, sin bloqueo. Puedes activarlo otra vez cuando quieras en ⋯.',
     'lock.promptFace': 'Desbloquear con Face ID',
     'lock.promptFinger': 'Desbloquear con huella',
     'lock.promptPin': 'Desbloquear Rumi',
-    'lock.promptDisable': 'Confirma con Face ID para quitarlo',
+    'lock.promptDisable': 'Confirma que eres tú para quitar el bloqueo',
     'lock.faceTitle': 'Desbloquear con Face ID',
     'lock.faceBody':
       'Usa Face ID para entrar. Actívalo o quítalo cuando quieras en ⋯.',
@@ -1231,7 +1245,7 @@ export const translations = {
     'lock.fingerAction': 'Desbloquear con huella',
     'lock.pinTitle': 'Desbloquear con PIN',
     'lock.pinBody':
-      'Usa el PIN del teléfono. Face ID se sigue activando o quitando desde ⋯.',
+      'Usa el PIN del teléfono. El bloqueo se activa o se quita desde ⋯.',
     'lock.pinAction': 'Desbloquear',
     'lock.unlocking': 'Esperando…',
     'lock.tapToUnlock': 'Toca para desbloquear',
@@ -1679,7 +1693,7 @@ export const translations = {
     'onboard.namePlaceholder': 'Tu nombre',
     'onboard.nameNeed': 'Escribe tu nombre para continuar.',
     'onboard.currencyTitle': '¿En qué moneda manejas el día a día?',
-    'onboard.currencyBody': 'Puedes cambiarla después en ajustes.',
+    'onboard.currencyBody': 'Elige bien: no se puede cambiar después, porque tus montos se guardan en esta moneda.',
     'onboard.currencyCop': 'Pesos colombianos (COP)',
     'onboard.currencyUsd': 'Dólares (USD)',
     'onboard.categoriesTitle': '¿En qué sueles gastar?',
@@ -1845,7 +1859,21 @@ export const translations = {
     'search.answerSavings':
       'Ahorraste {amount} {period} (ingresos {income} − gastos {expenses}).',
     'search.answerSavingsWithObligations':
-      'Ingresos vs gastos {period}: {amount} (ingresos {income} − gastos {expenses}). Además pagaste {obligations} en obligaciones (tarjeta/cuotas): eso no es gasto nuevo.',
+      'Ingresos vs gastos {period}: {amount} (ingresos {income} − gastos {expenses}). Además pagaste {obligations} de tarjetas: no es gasto nuevo, esas compras ya cuentan como gasto.',
+    'search.answerSavingsSoFar':
+      '{period} hasta hoy: balance de {amount} (ingresos {income} − gastos {expenses}). El mes aún no termina.',
+    'search.answerCardPayNote':
+      'Además pagaste {obligations} de tarjetas: no es gasto nuevo.',
+    'search.unitMonth': 'del mes',
+    'search.unitWeek': 'de la semana',
+    'search.answerProjection':
+      'A este ritmo gastarías cerca de {projected} al cierre {unit} ({spent} hasta hoy, {days} de {total} días).',
+    'search.answerProjectionLeft':
+      'Con {income} de ingresos registrados, te quedarían unos {left}.',
+    'search.answerProjectionShort':
+      'Con {income} de ingresos registrados, te faltarían unos {short}.',
+    'search.answerProjectionEarly':
+      'Es una estimación temprana: se afina a medida que registras más días.',
     'search.answerCategory':
       '{label} ({period}): {amount} en {count} movimientos.',
     'search.answerCategoryMethod':
