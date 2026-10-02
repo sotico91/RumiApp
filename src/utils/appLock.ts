@@ -7,9 +7,16 @@ export type AppLockAuthResult =
   | { ok: true }
   | { ok: false; reason: 'cancel' | 'denied' | 'failed' };
 
+type AppLockFailReason = Extract<AppLockAuthResult, { ok: false }>['reason'];
+
+/** Read AppState fresh: it can change while an auth prompt is awaited. */
+function isInBackground(): boolean {
+  return (AppState.currentState as string) === 'background';
+}
+
 function cancelReason(
   error: LocalAuthentication.LocalAuthenticationError | undefined
-): AppLockAuthResult['reason'] {
+): AppLockFailReason {
   if (error === 'user_cancel' || error === 'system_cancel' || error === 'app_cancel') {
     return 'cancel';
   }
@@ -101,14 +108,14 @@ export async function authenticateAppLock(
 
     const error = 'error' in bio ? bio.error : undefined;
     // Left the prompt, or put the app in the switcher / background.
-    if (isUserOrSystemCancel(error) || AppState.currentState === 'background') {
+    if (isUserOrSystemCancel(error) || isInBackground()) {
       return { ok: false, reason: 'cancel' };
     }
 
     // Face ID not recognized, locked out, or "Use passcode" — device PIN.
     // Face ID itself sets AppState to inactive; that must not skip the PIN.
     await wait(280);
-    if (AppState.currentState === 'background') {
+    if (isInBackground()) {
       return { ok: false, reason: 'cancel' };
     }
 

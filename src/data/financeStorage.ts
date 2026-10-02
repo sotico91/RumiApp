@@ -33,11 +33,19 @@ async function loadJson<T>(key: string, fallback: T): Promise<T> {
   }
 }
 
+/** Records without these fields would crash sorting on every launch. */
+function isLoadableTransaction(tx: unknown): tx is Transaction {
+  if (!tx || typeof tx !== 'object') return false;
+  const rec = tx as Partial<Transaction>;
+  return typeof rec.id === 'string' && typeof rec.createdAt === 'string';
+}
+
 export async function loadTransactions(): Promise<Transaction[]> {
   const existing = await loadJson<Transaction[] | null>(TX_KEY, null);
   if (existing && Array.isArray(existing)) {
-    let changed = false;
-    const cleaned = existing.map((tx) => {
+    const loadable = existing.filter(isLoadableTransaction);
+    let changed = loadable.length !== existing.length;
+    const cleaned = loadable.map((tx) => {
       if (!isPocketMove(tx.type)) return tx;
       if (!tx.categoryId && !tx.paymentMethod && !tx.creditDebtId && !tx.debtId) {
         return tx;
@@ -126,4 +134,27 @@ export async function loadSubscriptions(): Promise<Subscription[]> {
 
 export async function saveSubscriptions(items: Subscription[]): Promise<void> {
   await AsyncStorage.setItem(SUBS_KEY, JSON.stringify(items));
+}
+
+export type FinanceSnapshot = {
+  transactions?: Transaction[];
+  accounts?: Account[];
+  budgets?: Budget[];
+  debts?: Debt[];
+  subscriptions?: Subscription[];
+};
+
+/**
+ * Persist related lists in one multiSet so a crash mid-save cannot leave
+ * balances out of sync with the transaction history.
+ */
+export async function saveFinanceState(snapshot: FinanceSnapshot): Promise<void> {
+  const pairs: [string, string][] = [];
+  if (snapshot.transactions) pairs.push([TX_KEY, JSON.stringify(snapshot.transactions)]);
+  if (snapshot.accounts) pairs.push([ACCOUNTS_KEY, JSON.stringify(snapshot.accounts)]);
+  if (snapshot.budgets) pairs.push([BUDGETS_KEY, JSON.stringify(snapshot.budgets)]);
+  if (snapshot.debts) pairs.push([DEBTS_KEY, JSON.stringify(snapshot.debts)]);
+  if (snapshot.subscriptions) pairs.push([SUBS_KEY, JSON.stringify(snapshot.subscriptions)]);
+  if (pairs.length === 0) return;
+  await AsyncStorage.multiSet(pairs);
 }

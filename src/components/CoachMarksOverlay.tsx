@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dim: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(8,20,28,0.62)',
   },
   spot: {

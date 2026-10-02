@@ -466,7 +466,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   );
 
   const pruneQuickTemplatesToExistingExpenses = useCallback(
-    async (expenses: { categoryId: string; amount: number }[]) => {
+    async (expenses: { categoryId: string }[]) => {
       const next = quickTemplates.filter((t) =>
         expenses.some((e) => e.categoryId === t.categoryId)
       );

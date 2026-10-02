@@ -2,6 +2,7 @@ import { Share, Platform } from 'react-native';
 import { File, Paths } from 'expo-file-system';
 
 import { categoryLabel } from '@/src/utils/categoryLabel';
+import { csvEscape } from '@/src/utils/csv';
 import type {
   Account,
   Debt,
@@ -12,24 +13,21 @@ import type {
   PaymentMethod,
 } from '@/src/types/finance';
 import type { QuickTemplate, SpendConcept, UserSettings } from '@/src/types/settings';
+import {
+  BACKUP_FORMAT,
+  BACKUP_VERSION,
+  parseBackupJson,
+  type BillingBackup,
+} from '@/src/utils/backupParse';
 import type { Language, TranslationKey } from '@/src/i18n/translations';
 
-export const BACKUP_FORMAT = 'rumi-backup';
-export const LEGACY_BACKUP_FORMAT = 'billingapp-backup';
-export const BACKUP_VERSION = 1;
-
-export type BillingBackup = {
-  format: typeof BACKUP_FORMAT;
-  version: number;
-  exportedAt: string;
-  transactions: Transaction[];
-  accounts: Account[];
-  budgets: Budget[];
-  debts: Debt[];
-  subscriptions: Subscription[];
-  settings: UserSettings;
-  quickTemplates: QuickTemplate[];
-};
+export {
+  BACKUP_FORMAT,
+  BACKUP_VERSION,
+  LEGACY_BACKUP_FORMAT,
+  parseBackupJson,
+} from '@/src/utils/backupParse';
+export type { BillingBackup } from '@/src/utils/backupParse';
 
 export type BackupSnapshot = {
   transactions: Transaction[];
@@ -55,11 +53,6 @@ function stamp(): string {
   const d = new Date();
   const p = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`;
-}
-
-function csvEscape(value: string): string {
-  if (/[",\n\r]/.test(value)) return `"${value.replace(/"/g, '""')}"`;
-  return value;
 }
 
 function formatCsvDate(iso: string, language: Language): string {
@@ -168,42 +161,6 @@ export function transactionsToCsv(
     );
   // BOM helps Excel open UTF-8 accents correctly.
   return `\uFEFF${[header.join(','), ...rows].join('\n')}`;
-}
-
-export function parseBackupJson(raw: string): BillingBackup {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    throw new Error('INVALID_JSON');
-  }
-  if (!parsed || typeof parsed !== 'object') throw new Error('INVALID_BACKUP');
-  const data = parsed as Partial<BillingBackup>;
-  if (data.format !== BACKUP_FORMAT && data.format !== LEGACY_BACKUP_FORMAT) {
-    throw new Error('INVALID_FORMAT');
-  }
-  if (typeof data.version !== 'number') throw new Error('INVALID_VERSION');
-  if (!Array.isArray(data.transactions)) throw new Error('INVALID_TRANSACTIONS');
-  if (!Array.isArray(data.accounts)) throw new Error('INVALID_ACCOUNTS');
-  if (!Array.isArray(data.budgets)) throw new Error('INVALID_BUDGETS');
-  if (!Array.isArray(data.debts)) throw new Error('INVALID_DEBTS');
-  if (!Array.isArray(data.subscriptions)) throw new Error('INVALID_SUBSCRIPTIONS');
-  if (!data.settings || typeof data.settings !== 'object') throw new Error('INVALID_SETTINGS');
-  return {
-    format: BACKUP_FORMAT,
-    version: data.version,
-    exportedAt:
-      typeof data.exportedAt === 'string' ? data.exportedAt : new Date().toISOString(),
-    transactions: data.transactions as Transaction[],
-    accounts: data.accounts as Account[],
-    budgets: data.budgets as Budget[],
-    debts: data.debts as Debt[],
-    subscriptions: data.subscriptions as Subscription[],
-    settings: data.settings as UserSettings,
-    quickTemplates: Array.isArray(data.quickTemplates)
-      ? (data.quickTemplates as QuickTemplate[])
-      : [],
-  };
 }
 
 async function writeCacheFile(filename: string, contents: string): Promise<File> {

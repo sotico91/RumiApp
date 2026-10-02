@@ -28,7 +28,7 @@ import {
   saveAccounts,
   saveBudgets,
   saveDebts,
-  saveSubscriptions,
+  saveFinanceState,
   saveTransactions,
 } from '@/src/data/financeStorage';
 import type {
@@ -56,13 +56,13 @@ import {
 } from '@/src/utils/financeMath';
 import { mapLiquidAccounts, mergeDefaultAccounts, ensureWalletAccount, renameWalletAccount, removeWalletAccount, ensureBankAccount, renameBankAccount, removeBankAccount, resolveSpendAccountId, settleLiquidOverdrafts } from '@/src/utils/accounts';
 import {
-  applyRevolvingCharge,
   closePaidInstallments,
   closedAtAfterBalance,
   debtIdFromPayAccountId,
 } from '@/src/utils/debts';
 import {
   applyAccountDelta,
+  applyTxDebts,
   isEditablePocketBalance,
   pocketMoveAccountsReady,
 } from '@/src/utils/ledger';
@@ -241,42 +241,6 @@ function createId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function applyDebtPayment(
-  list: Debt[],
-  tx: Transaction,
-  direction: 1 | -1
-): Debt[] {
-  if (tx.type !== 'debt_payment' || !tx.debtId) return list;
-  return list.map((d) => {
-    if (d.id !== tx.debtId) return d;
-    if (direction === 1) {
-      const paid = Math.min(tx.amount, d.balance);
-      const nextBalance = Math.max(0, d.balance - paid);
-      const nextDate = new Date();
-      nextDate.setMonth(nextDate.getMonth() + 1);
-      return {
-        ...d,
-        balance: nextBalance,
-        paidCapital: d.paidCapital + paid,
-        nextPaymentDate: nextDate.toISOString(),
-        closedAt: closedAtAfterBalance(d, nextBalance, tx.createdAt),
-      };
-    }
-    const nextBalance = d.balance + tx.amount;
-    return {
-      ...d,
-      balance: nextBalance,
-      paidCapital: Math.max(0, (d.paidCapital || 0) - tx.amount),
-      closedAt: closedAtAfterBalance(d, nextBalance, d.closedAt ?? tx.createdAt),
-    };
-  });
-}
-
-function applyTxDebts(list: Debt[], tx: Transaction, direction: 1 | -1): Debt[] {
-  const charged = applyRevolvingCharge(list, tx.creditDebtId, tx.amount, direction);
-  return applyDebtPayment(charged, tx, direction);
-}
-
 export function FinanceProvider({ children }: { children: React.ReactNode }) {
   const { settings, ready: settingsReady, pruneQuickTemplatesToExistingExpenses } =
     useSettings();
@@ -435,11 +399,11 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       setTransactions(nextTx);
       setAccounts(nextAccounts);
       setDebts(nextDebts);
-      await Promise.all([
-        saveTransactions(nextTx),
-        saveAccounts(nextAccounts),
-        saveDebts(nextDebts),
-      ]);
+      await saveFinanceState({
+        transactions: nextTx,
+        accounts: nextAccounts,
+        debts: nextDebts,
+      });
       return tx;
     },
     [settings.personId, settings.userName]
@@ -645,11 +609,11 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       setTransactions(nextTx);
       setAccounts(nextAccounts);
       setDebts(nextDebts);
-      await Promise.all([
-        saveTransactions(nextTx),
-        saveAccounts(nextAccounts),
-        saveDebts(nextDebts),
-      ]);
+      await saveFinanceState({
+        transactions: nextTx,
+        accounts: nextAccounts,
+        debts: nextDebts,
+      });
       // One-tap = repeat an existing spend; drop chips when nothing remains to repeat.
       if (existing.type === 'expense') {
         await pruneQuickTemplatesToExistingExpenses(
@@ -754,11 +718,11 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       setTransactions(nextTx);
       setAccounts(nextAccounts);
       setDebts(nextDebts);
-      await Promise.all([
-        saveTransactions(nextTx),
-        saveAccounts(nextAccounts),
-        saveDebts(nextDebts),
-      ]);
+      await saveFinanceState({
+        transactions: nextTx,
+        accounts: nextAccounts,
+        debts: nextDebts,
+      });
       return updated;
     },
     [settings.personId]
@@ -783,13 +747,13 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     setDebts(nextDebts);
     setSubscriptions(nextSubs);
 
-    await Promise.all([
-      saveTransactions(nextTx),
-      saveAccounts(blankAccounts),
-      saveBudgets(nextBudgets),
-      saveDebts(nextDebts),
-      saveSubscriptions(nextSubs),
-    ]);
+    await saveFinanceState({
+      transactions: nextTx,
+      accounts: blankAccounts,
+      budgets: nextBudgets,
+      debts: nextDebts,
+      subscriptions: nextSubs,
+    });
   }, []);
 
   const restoreFromBackup = useCallback(
@@ -815,13 +779,13 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       setDebts(backup.debts);
       setSubscriptions(backup.subscriptions);
       setAttributed(true);
-      await Promise.all([
-        saveTransactions(nextTx),
-        saveAccounts(nextAccounts),
-        saveBudgets(backup.budgets),
-        saveDebts(backup.debts),
-        saveSubscriptions(backup.subscriptions),
-      ]);
+      await saveFinanceState({
+        transactions: nextTx,
+        accounts: nextAccounts,
+        budgets: backup.budgets,
+        debts: backup.debts,
+        subscriptions: backup.subscriptions,
+      });
     },
     []
   );

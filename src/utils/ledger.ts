@@ -1,4 +1,5 @@
-import type { Account, Transaction } from '@/src/types/finance';
+import type { Account, Debt, Transaction } from '@/src/types/finance';
+import { applyRevolvingCharge, closedAtAfterBalance } from '@/src/utils/debts';
 
 /**
  * Apply one movement to account balances.
@@ -69,4 +70,41 @@ export function isEditablePocketBalance(type: Account['type']): boolean {
     type === 'wallet' ||
     type === 'investment'
   );
+}
+
+/** Apply a debt payment to the matching debt. direction 1 = register, -1 = undo. */
+export function applyDebtPayment(
+  list: Debt[],
+  tx: Transaction,
+  direction: 1 | -1
+): Debt[] {
+  if (tx.type !== 'debt_payment' || !tx.debtId) return list;
+  return list.map((d) => {
+    if (d.id !== tx.debtId) return d;
+    if (direction === 1) {
+      const paid = Math.min(tx.amount, d.balance);
+      const nextBalance = Math.max(0, d.balance - paid);
+      const nextDate = new Date();
+      nextDate.setMonth(nextDate.getMonth() + 1);
+      return {
+        ...d,
+        balance: nextBalance,
+        paidCapital: (d.paidCapital || 0) + paid,
+        nextPaymentDate: nextDate.toISOString(),
+        closedAt: closedAtAfterBalance(d, nextBalance, tx.createdAt),
+      };
+    }
+    const nextBalance = d.balance + tx.amount;
+    return {
+      ...d,
+      balance: nextBalance,
+      paidCapital: Math.max(0, (d.paidCapital || 0) - tx.amount),
+      closedAt: closedAtAfterBalance(d, nextBalance, d.closedAt ?? tx.createdAt),
+    };
+  });
+}
+
+export function applyTxDebts(list: Debt[], tx: Transaction, direction: 1 | -1): Debt[] {
+  const charged = applyRevolvingCharge(list, tx.creditDebtId, tx.amount, direction);
+  return applyDebtPayment(charged, tx, direction);
 }
