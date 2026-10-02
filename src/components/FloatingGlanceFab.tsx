@@ -1,7 +1,6 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,6 +10,7 @@ import {
 import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppModal } from '@/src/components/AppModal';
 import { PocketFlowList } from '@/src/components/PocketFlowList';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useKeyboardVisible } from '@/src/hooks/useKeyboardVisible';
@@ -59,7 +59,7 @@ export function FloatingGlanceFab() {
       </Animated.View>
       )}
 
-      <Modal
+      <AppModal
         visible={open}
         transparent
         animationType="fade"
@@ -181,7 +181,7 @@ export function FloatingGlanceFab() {
             <Text style={styles.footnote}>{t('fab.footnote')}</Text>
           </Animated.View>
         </View>
-      </Modal>
+      </AppModal>
     </>
   );
 }

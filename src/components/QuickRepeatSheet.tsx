@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Dimensions,
   Keyboard,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -26,6 +25,7 @@ import {
 } from '@/src/utils/accounts';
 import { isDebtPayAccountId, revolvingAsPayAccounts } from '@/src/utils/debts';
 import { tapFeedback } from '@/src/utils/selectFeedback';
+import { AppModal } from '@/src/components/AppModal';
 import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
 import {
   SpendSourcePicker,
@@ -167,7 +167,7 @@ export function QuickRepeatSheet({
     : Dimensions.get('window').height * 0.88;
 
   return (
-    <Modal
+    <AppModal
       visible={visible}
       transparent
       animationType="fade"
@@ -346,7 +346,7 @@ export function QuickRepeatSheet({
           </View>
         </View>
       </View>
-    </Modal>
+    </AppModal>
   );
 }
 

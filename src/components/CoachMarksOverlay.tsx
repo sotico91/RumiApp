@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppModal } from '@/src/components/AppModal';
 import { useHowToGuide } from '@/src/hooks/useHowToGuide';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
@@ -71,7 +72,7 @@ export function CoachMarksOverlay() {
   const tabTop = Math.max(insets.bottom, 12) + 18;
 
   return (
-    <Modal visible transparent animationType="fade" statusBarTranslucent>
+    <AppModal visible transparent animationType="fade" statusBarTranslucent>
       <Pressable style={styles.root} onPress={goNext}>
         <View style={styles.dim} />
 
@@ -188,7 +189,7 @@ export function CoachMarksOverlay() {
           <Text style={styles.hint}>{t('coach.tapHint')}</Text>
         </Animated.View>
       </Pressable>
-    </Modal>
+    </AppModal>
   );
 }
 

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 
+import { AppModal } from '@/src/components/AppModal';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { palette } from '@/src/theme/colors';
@@ -165,7 +166,7 @@ export function AppLockOverlay() {
   if (!visible) return null;
 
   return (
-    <Modal visible transparent animationType="fade" statusBarTranslucent>
+    <AppModal visible transparent animationType="fade" statusBarTranslucent>
       <Pressable
         style={styles.root}
         onPress={() => {
@@ -181,7 +182,7 @@ export function AppLockOverlay() {
           </View>
         ) : null}
       </Pressable>
-    </Modal>
+    </AppModal>
   );
 }
 

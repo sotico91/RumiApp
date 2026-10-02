@@ -16,6 +16,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { AppLockOverlay } from '@/src/components/AppLockOverlay';
+import { ModalHost } from '@/src/components/AppModal';
 import { BootSplash } from '@/src/components/BootSplash';
 import { CoachMarksOverlay } from '@/src/components/CoachMarksOverlay';
 import { NamePromptOverlay } from '@/src/components/NamePromptOverlay';
@@ -82,18 +83,20 @@ export default function RootLayout() {
         <SettingsProvider>
           <AmountPrivacyProvider>
             <ExpensesProvider>
-              <HowToGuideProvider>
-                <StatusBar style="light" />
-                <RootNavigator />
-                <ReminderHygiene />
-                <HabitPilotHygiene />
-                <AntSpendTipHygiene />
-                <ReminderDeepLink />
-                <OnboardingOverlay />
-                <NamePromptOverlay />
-                <CoachMarksOverlay />
-              </HowToGuideProvider>
-              <AppLockOverlay />
+              <ModalHost>
+                <HowToGuideProvider>
+                  <StatusBar style="light" />
+                  <RootNavigator />
+                  <ReminderHygiene />
+                  <HabitPilotHygiene />
+                  <AntSpendTipHygiene />
+                  <ReminderDeepLink />
+                  <OnboardingOverlay />
+                  <NamePromptOverlay />
+                  <CoachMarksOverlay />
+                  <AppLockOverlay />
+                </HowToGuideProvider>
+              </ModalHost>
             </ExpensesProvider>
           </AmountPrivacyProvider>
         </SettingsProvider>

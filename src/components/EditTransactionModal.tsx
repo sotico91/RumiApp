@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
-  Modal,
   Pressable,
   StyleSheet,
   Text,
@@ -24,6 +23,7 @@ import type { PaymentMethod, Transaction, TransactionType } from '@/src/types/fi
 import { isPocketMove } from '@/src/types/finance';
 import { categoryLabel } from '@/src/utils/categoryLabel';
 import { incomeDestinationAccounts } from '@/src/utils/netWorth';
+import { AppModal } from '@/src/components/AppModal';
 import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
 import { KeyboardSafeOverlay, KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
 import { SpendSourcePicker, spendSourceFromMethod } from '@/src/components/SpendSourcePicker';
@@ -166,7 +166,7 @@ export function EditTransactionModal({ transaction, visible, onClose }: Props) {
   }
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <AppModal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardSafeOverlay>
         <View style={[styles.backdrop, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 8 }]}>
           <View style={styles.sheet}>
@@ -360,7 +360,7 @@ export function EditTransactionModal({ transaction, visible, onClose }: Props) {
         </View>
         </View>
       </KeyboardSafeOverlay>
-    </Modal>
+    </AppModal>
   );
 }
 

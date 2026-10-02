@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
   Alert,
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,6 +11,7 @@ import {
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppModal } from '@/src/components/AppModal';
 import { KeyboardSafeOverlay } from '@/src/components/KeyboardSafe';
 import { createSpendSub, ONBOARDING_CONCEPTS } from '@/src/data/spendConcepts';
 import { useSettings } from '@/src/hooks/useSettings';
@@ -117,7 +117,7 @@ export function OnboardingOverlay() {
   }
 
   return (
-    <Modal visible={visible} animationType="fade" transparent>
+    <AppModal visible={visible} animationType="fade" transparent>
       <KeyboardSafeOverlay>
       <View
         style={[
@@ -291,7 +291,7 @@ export function OnboardingOverlay() {
         </Animated.View>
       </View>
       </KeyboardSafeOverlay>
-    </Modal>
+    </AppModal>
   );
 }
 

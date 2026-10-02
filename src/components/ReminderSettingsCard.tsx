@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   FlatList,
-  Modal,
   Pressable,
   StyleSheet,
   Text,
@@ -11,6 +10,7 @@ import {
 } from 'react-native';
 
 import { flattenSpendSubs } from '@/src/data/spendConcepts';
+import { AppModal } from '@/src/components/AppModal';
 import { KeyboardSafeOverlay } from '@/src/components/KeyboardSafe';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
@@ -272,7 +272,7 @@ export function ReminderSettingsCard() {
         </Text>
       </Pressable>
 
-      <Modal
+      <AppModal
         visible={pickerOpen}
         animationType="slide"
         transparent
@@ -316,7 +316,7 @@ export function ReminderSettingsCard() {
           </Pressable>
         </Pressable>
         </KeyboardSafeOverlay>
-      </Modal>
+      </AppModal>
     </View>
   );
 }

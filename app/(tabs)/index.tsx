@@ -1,8 +1,9 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppModal } from '@/src/components/AppModal';
 import { AntSpendTipCard } from '@/src/components/AntSpendTipCard';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
 import { ConceptGlanceSheet } from '@/src/components/ConceptGlanceSheet';
@@ -427,7 +428,7 @@ export default function HomeScreen() {
         onClose={() => setEditing(null)}
       />
 
-      <Modal
+      <AppModal
         visible={moneyInfo != null}
         transparent
         animationType="fade"
@@ -476,7 +477,7 @@ export default function HomeScreen() {
             </Pressable>
           </View>
         </View>
-      </Modal>
+      </AppModal>
     </ScreenBackground>
   );
 }

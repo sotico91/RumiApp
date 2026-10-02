@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppModal } from '@/src/components/AppModal';
 import { MoneyText } from '@/src/components/MoneyText';
 import { findSpendSub, isGeneralSubName } from '@/src/data/spendConcepts';
 import { useMoney } from '@/src/hooks/useMoney';
@@ -118,7 +119,7 @@ export function ConceptGlanceSheet({ visible, onClose, kind, items, total }: Pro
   }
 
   return (
-    <Modal
+    <AppModal
       visible={visible}
       transparent
       animationType="fade"
@@ -266,7 +267,7 @@ export function ConceptGlanceSheet({ visible, onClose, kind, items, total }: Pro
           </ScrollView>
         </View>
       </View>
-    </Modal>
+    </AppModal>
   );
 }
 

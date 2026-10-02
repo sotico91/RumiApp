@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   Alert,
-  Modal,
   Pressable,
   StyleSheet,
   Text,
@@ -11,6 +10,7 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppModal } from '@/src/components/AppModal';
 import { KeyboardSafeOverlay } from '@/src/components/KeyboardSafe';
 
 import { useSettings } from '@/src/hooks/useSettings';
@@ -43,7 +43,7 @@ export function NamePromptOverlay() {
   }
 
   return (
-    <Modal visible={visible} animationType="fade" transparent>
+    <AppModal visible={visible} animationType="fade" transparent>
       <KeyboardSafeOverlay>
       <View
         style={[
@@ -74,7 +74,7 @@ export function NamePromptOverlay() {
         </Animated.View>
       </View>
       </KeyboardSafeOverlay>
-    </Modal>
+    </AppModal>
   );
 }
 

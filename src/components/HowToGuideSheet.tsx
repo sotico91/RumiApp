@@ -1,6 +1,7 @@
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppModal } from '@/src/components/AppModal';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
 import { palette, radii } from '@/src/theme/colors';
@@ -33,7 +34,7 @@ export function HowToGuideSheet({ visible, onClose }: Props) {
   const { t } = useLanguage();
 
   return (
-    <Modal
+    <AppModal
       visible={visible}
       transparent
       animationType="slide"
@@ -77,7 +78,7 @@ export function HowToGuideSheet({ visible, onClose }: Props) {
           </Pressable>
         </View>
       </View>
-    </Modal>
+    </AppModal>
   );
 }
 

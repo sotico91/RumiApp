@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import {
   Alert,
   Linking,
-  Modal,
   Pressable,
   StyleSheet,
   Text,
@@ -12,6 +11,7 @@ import {
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppModal } from '@/src/components/AppModal';
 import { KeyboardSafeOverlay } from '@/src/components/KeyboardSafe';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useSettings } from '@/src/hooks/useSettings';
@@ -246,7 +246,7 @@ export function ProfileMenuButton({ light = true }: Props) {
         <Text style={[styles.dots, light && styles.dotsLight]}>⋯</Text>
       </Pressable>
 
-      <Modal
+      <AppModal
         visible={menuOpen}
         transparent
         animationType="fade"
@@ -343,9 +343,9 @@ export function ProfileMenuButton({ light = true }: Props) {
             </Pressable>
           </View>
         </Pressable>
-      </Modal>
+      </AppModal>
 
-      <Modal
+      <AppModal
         visible={editOpen}
         transparent
         animationType="slide"
@@ -388,7 +388,7 @@ export function ProfileMenuButton({ light = true }: Props) {
           </View>
         </View>
         </KeyboardSafeOverlay>
-      </Modal>
+      </AppModal>
     </>
   );
 }

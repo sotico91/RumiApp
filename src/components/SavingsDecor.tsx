@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import {
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -22,6 +21,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppModal } from '@/src/components/AppModal';
 import { PocketFlowList } from '@/src/components/PocketFlowList';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
@@ -119,7 +119,7 @@ export function SavingsDecor({
         </Pressable>
       </Animated.View>
 
-      <Modal
+      <AppModal
         visible={open}
         transparent
         animationType="fade"
@@ -161,7 +161,7 @@ export function SavingsDecor({
             <Text style={styles.panelHint}>{t('decor.totalsHint')}</Text>
           </Animated.View>
         </View>
-      </Modal>
+      </AppModal>
     </>
   );
 }
