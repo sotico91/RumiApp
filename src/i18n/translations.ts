@@ -244,6 +244,8 @@ export const translations = {
     'insights.topGood': 'Expenses look controlled here',
     'home.savingsGood': 'You’re ahead this month',
     'home.savingsBad': 'You’re behind this month',
+    'home.paceAhead': 'At this pace: +{amount} by month end',
+    'home.paceBehind': 'At this pace: −{amount} by month end',
     'home.savingsHint': 'Income − expenses this month (only logged transactions)',
     'home.moneyLegend':
       'Available now = cash, main bank, savings and wallets today. This month’s result = whether this month’s income covered this month’s spend — it resets every new month.',
@@ -1257,6 +1259,8 @@ export const translations = {
     'insights.topGood': 'Aquí el gasto se ve controlado',
     'home.savingsGood': 'Este mes vas a favor',
     'home.savingsBad': 'Este mes vas en rojo',
+    'home.paceAhead': 'A este ritmo: +{amount} al cierre',
+    'home.paceBehind': 'A este ritmo: −{amount} al cierre',
     'home.savingsHint': 'Ingresos − gastos del mes (solo movimientos registrados)',
     'home.moneyLegend':
       'Disponible hoy = efectivo, banco, ahorros y billeteras ahora. Resultado del mes = si lo que entró este mes cubrió lo que salió — se reinicia cada mes nuevo.',

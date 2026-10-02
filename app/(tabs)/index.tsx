@@ -27,15 +27,12 @@ import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
 import { palette, radii } from '@/src/theme/colors';
 import type { Transaction } from '@/src/types/finance';
+import { projectMonth } from '@/src/utils/projection';
 import { categoryLabel } from '@/src/utils/categoryLabel';
 import {
   antTipWeekKey,
   pickAntSpendTip,
 } from '@/src/utils/antSpendTips';
-import {
-  openDebts,
-  totalOwed,
-} from '@/src/utils/debts';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import {
   toneFromExpensePressure,
@@ -57,9 +54,7 @@ export default function HomeScreen() {
     transactions,
     loading,
     availableCash,
-    netWorth,
     debts,
-    antForPeriod,
     budgetStatus,
     removeTransaction,
     canEditTransaction,
@@ -70,8 +65,7 @@ export default function HomeScreen() {
   const [moneyInfo, setMoneyInfo] = useState<MoneyInfoKind | null>(null);
   const [attentionOpen, setAttentionOpen] = useState(false);
   const [predictOpen, setPredictOpen] = useState(false);
-  const [todayOpen, setTodayOpen] = useState(false);
-  const [antOpen, setAntOpen] = useState(false);
+  const [todayOpen, setTodayOpen] = useState(true);
 
   const displayName = settings.userName.trim();
   const greeting = displayName
@@ -85,9 +79,14 @@ export default function HomeScreen() {
   const income = totalForPeriod('mes', 'income');
   const expenses = totalForPeriod('mes', 'expense');
   const savings = income - expenses;
-  const debtTotal = totalOwed(debts);
-  const liveDebtCount = openDebts(debts).length;
-  const ant = antForPeriod('mes');
+  // Where the month is heading (fixed bills once + day-to-day pace), shown once it means something.
+  const pace = useMemo(() => projectMonth(transactions, debts), [transactions, debts]);
+  const paceHint =
+    !loading && !pace.early && pace.income > 0
+      ? t(pace.projectedLeft >= 0 ? 'home.paceAhead' : 'home.paceBehind', {
+          amount: format(Math.abs(pace.projectedLeft)),
+        })
+      : undefined;
   const recent = transactionsForPeriod('hoy');
   const expenseConcepts = insightsForPeriod('mes', 'expense');
   const incomeConcepts = insightsForPeriod('mes', 'income');
@@ -109,9 +108,6 @@ export default function HomeScreen() {
     income,
     worstBudgetRatio,
   });
-  const antShare = expenses > 0 ? ant.total / expenses : 0;
-  const antTone: SignalTone =
-    antShare >= 0.25 ? 'danger' : antShare >= 0.15 ? 'warn' : ant.total > 0 ? 'good' : 'neutral';
 
   const antTip = useMemo(() => {
     if (loading || !settings.onboardingDone) return null;
@@ -129,12 +125,6 @@ export default function HomeScreen() {
   const antTipTitleVariant = settings.antTipLastTitleVariant ?? 0;
   const antTipBodyVariant = settings.antTipLastBodyVariant ?? 0;
 
-  const todayHint =
-    recent.length === 0
-      ? t('home.noExpensesToday')
-      : t(recent.length === 1 ? 'home.transactionsToday' : 'home.transactionsToday_other', {
-          count: recent.length,
-        });
 
   function confirmDelete(tx: Transaction) {
     if (!canEditTransaction(tx)) {
@@ -175,7 +165,6 @@ export default function HomeScreen() {
                 {greeting}
               </RaisedText>
               <Text style={styles.spaceLabel}>{spaceLabel}</Text>
-              <Text style={styles.subtitle}>{t('home.subtitle')}</Text>
             </View>
             <View style={styles.heroAside}>
               <View style={styles.avatarRow}>
@@ -230,39 +219,16 @@ export default function HomeScreen() {
               value={format(savings)}
               tone={savingsTone}
               hint={
-                savingsTone === 'good'
+                paceHint ??
+                (savingsTone === 'good'
                   ? t('home.savingsGood')
                   : savingsTone === 'danger'
                     ? t('home.savingsBad')
-                    : undefined
+                    : undefined)
               }
               onPress={() => setMoneyInfo('savings')}
             />
-            <DashTile
-              label={t('home.debts')}
-              value={format(debtTotal)}
-              tone={debtTotal > 0 ? 'warn' : 'neutral'}
-              hint={
-                liveDebtCount > 1
-                  ? t('home.debtsManyHint', { count: liveDebtCount })
-                  : liveDebtCount === 1
-                    ? t('home.debtsOneHint')
-                    : undefined
-              }
-              onPress={() => router.push('/(tabs)/wealth')}
-            />
-            <DashTile
-              label={t('home.netWorth')}
-              value={format(netWorth.net)}
-              tone={toneFromSavings(netWorth.net)}
-            />
           </View>
-          {!loading && expenses === 0 ? (
-            <Text style={styles.monthFresh}>
-              {t('home.monthFresh', { amount: format(0) })}
-            </Text>
-          ) : null}
-          <Text style={styles.todayHint}>{todayHint}</Text>
         </FadeInBlock>
 
         <FadeInBlock index={5}>
@@ -370,49 +336,6 @@ export default function HomeScreen() {
           </FadeInBlock>
         ) : null}
 
-        <FadeInBlock index={10}>
-          <CollapsibleSection
-            title={t('home.antTitle')}
-            open={antOpen}
-            onToggle={() => setAntOpen((v) => !v)}
-            summary={`${t('home.antTotal')}: ${format(ant.total)}`}>
-            <View
-              style={[
-                styles.antBox,
-                antTone === 'danger' && styles.boxDanger,
-                antTone === 'warn' && styles.boxWarn,
-                antTone === 'good' && styles.boxGood,
-              ]}>
-              <Text
-                style={[
-                  styles.antTotal,
-                  antTone === 'danger' && styles.textDanger,
-                  antTone === 'good' && styles.textGood,
-                ]}>
-                {t('home.antTotal')}: {format(ant.total)}
-              </Text>
-              <Text
-                style={[
-                  styles.antHint,
-                  antTone === 'danger' && styles.textDanger,
-                  antTone === 'good' && styles.textGood,
-                ]}>
-                {antTone === 'danger' || antTone === 'warn'
-                  ? t('home.antAlert')
-                  : t('home.antOk')}
-              </Text>
-              {ant.items.length === 0 ? (
-                <Text style={styles.antHint}>{t('home.antEmpty')}</Text>
-              ) : (
-                ant.items.map((item) => (
-                  <Text key={item.categoryId} style={styles.antLine}>
-                    {categoryLabel(item.categoryId, t, spendConcepts)}: {format(item.amount)}
-                  </Text>
-                ))
-              )}
-            </View>
-          </CollapsibleSection>
-        </FadeInBlock>
       </KeyboardSafeScroll>
 
       <ConceptGlanceSheet
@@ -571,12 +494,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: palette.brandMuted,
   },
-  subtitle: {
-    fontFamily: 'DMSans_400Regular',
-    fontSize: 15,
-    color: palette.brandMuted,
-    marginTop: 4,
-  },
   heroAside: {
     alignItems: 'center',
     gap: 10,
@@ -704,12 +621,6 @@ const styles = StyleSheet.create({
     color: palette.inkMuted,
     lineHeight: 14,
   },
-  todayHint: {
-    marginTop: 8,
-    fontFamily: 'DMSans_400Regular',
-    fontSize: 13,
-    color: palette.brandMuted,
-  },
   infoRoot: {
     flex: 1,
     backgroundColor: 'rgba(8,20,28,0.55)',
@@ -815,13 +726,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: palette.white,
   },
-  monthFresh: {
-    marginTop: 10,
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 13,
-    color: palette.brand,
-    lineHeight: 18,
-  },
   todayList: {
     backgroundColor: palette.surfaceSolid,
     borderRadius: radii.lg,
@@ -875,14 +779,6 @@ const styles = StyleSheet.create({
     color: palette.inkMuted,
     textDecorationLine: 'underline',
   },
-  antBox: {
-    backgroundColor: palette.surfaceSolid,
-    borderRadius: radii.lg,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: palette.border,
-    gap: 6,
-  },
   boxDanger: {
     backgroundColor: palette.dangerSoft,
     borderColor: 'rgba(214,69,69,0.4)',
@@ -894,23 +790,6 @@ const styles = StyleSheet.create({
   boxGood: {
     backgroundColor: palette.successSoft,
     borderColor: 'rgba(31,157,108,0.35)',
-  },
-  antTotal: {
-    fontFamily: 'Fraunces_600SemiBold',
-    fontSize: 18,
-    color: palette.ink,
-    marginBottom: 2,
-  },
-  antHint: {
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 13,
-    color: palette.inkMuted,
-    marginBottom: 4,
-  },
-  antLine: {
-    fontFamily: 'DMSans_400Regular',
-    fontSize: 14,
-    color: palette.inkMuted,
   },
   textDanger: { color: palette.danger },
   textGood: { color: palette.success },
