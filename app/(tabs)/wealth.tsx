@@ -105,7 +105,7 @@ export default function WealthScreen() {
 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [accountsOpen, setAccountsOpen] = useState(false);
+  const [accountsOpen, setAccountsOpen] = useState(true);
   const [cardsOpen, setCardsOpen] = useState(true);
   const [loansOpen, setLoansOpen] = useState(true);
   const [name, setName] = useState('');

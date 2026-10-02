@@ -314,7 +314,7 @@ export const translations = {
     'fab.emptyConcepts': 'No expenses logged this month yet.',
     'fab.budgetAlerts': '{count} {count|category|categories} over limit',
     'fab.add': 'Add transaction',
-    'fab.reset': 'Reset data',
+    'fab.reset': 'Delete all data',
     'fab.resetting': 'Resetting…',
     'fab.resetTitle': 'Reset all money data?',
     'fab.resetMessage':
@@ -323,7 +323,7 @@ export const translations = {
     'fab.resetTitle2': 'Are you sure?',
     'fab.resetMessage2': 'Confirm once more to wipe all values and start from zero.',
     'fab.resetConfirm2': 'Yes, reset everything',
-    'fab.footnote': 'Wrong entry? Edit/delete it in Activity, or reset here for a clean start.',
+    'fab.footnote': 'Wrong entry? Edit or delete it in Activity.',
 
     'plan.title': 'Limits & small spends',
     'plan.subtitle': 'Your categories, optional limits, and reminders.',
@@ -699,6 +699,7 @@ export const translations = {
     'category.ingresos': 'Other income',
 
     'language.label': 'Language',
+    'language.switch': 'Cambiar a español',
     'language.en': 'EN',
     'language.es': 'ES',
 
@@ -1314,7 +1315,7 @@ export const translations = {
     'fab.emptyConcepts': 'Aún no hay gastos este mes.',
     'fab.budgetAlerts': '{count} {count|categoría|categorías} sobre el tope',
     'fab.add': 'Registrar',
-    'fab.reset': 'Resetear datos',
+    'fab.reset': 'Borrar todos los datos',
     'fab.resetting': 'Reseteando…',
     'fab.resetTitle': '¿Resetear todos los datos de dinero?',
     'fab.resetMessage':
@@ -1323,7 +1324,7 @@ export const translations = {
     'fab.resetTitle2': '¿Estás seguro?',
     'fab.resetMessage2': 'Confirma otra vez para dejar todos los valores en cero.',
     'fab.resetConfirm2': 'Sí, resetear todo',
-    'fab.footnote': '¿Gasto erróneo? Edítalo o bórralo en Actividad, o resetea aquí para empezar limpio.',
+    'fab.footnote': '¿Gasto erróneo? Edítalo o bórralo en Actividad.',
 
     'plan.title': 'Presupuestos y hormiga',
     'plan.subtitle': 'Tus conceptos, topes opcionales y recordatorios.',
@@ -1701,6 +1702,7 @@ export const translations = {
     'category.ingresos': 'Otros ingresos',
 
     'language.label': 'Idioma',
+    'language.switch': 'Switch to English',
     'language.en': 'EN',
     'language.es': 'ES',
 

@@ -1,7 +1,6 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
-  Alert,
   Modal,
   Pressable,
   ScrollView,
@@ -32,10 +31,8 @@ export function FloatingGlanceFab() {
     insightsForPeriod,
     totalForPeriod,
     budgetStatus,
-    resetFinance,
   } = useFinance();
   const [open, setOpen] = useState(false);
-  const [resetting, setResetting] = useState(false);
   const keyboardVisible = useKeyboardVisible();
 
   const concepts = useMemo(() => insightsForPeriod('mes', 'expense'), [insightsForPeriod]);
@@ -43,36 +40,6 @@ export function FloatingGlanceFab() {
   const income = totalForPeriod('mes', 'income');
   const savings = income - expenses;
   const alerts = budgetStatus.filter((b) => b.ratio > 1 && b.spent > 0 && b.limit > 0).length;
-
-  function confirmReset() {
-    Alert.alert(t('fab.resetTitle'), t('fab.resetMessage'), [
-      { text: t('history.cancel'), style: 'cancel' },
-      {
-        text: t('fab.resetConfirm'),
-        style: 'destructive',
-        onPress: () => {
-          Alert.alert(t('fab.resetTitle2'), t('fab.resetMessage2'), [
-            { text: t('history.cancel'), style: 'cancel' },
-            {
-              text: t('fab.resetConfirm2'),
-              style: 'destructive',
-              onPress: () => {
-                void (async () => {
-                  setResetting(true);
-                  try {
-                    await resetFinance();
-                    setOpen(false);
-                  } finally {
-                    setResetting(false);
-                  }
-                })();
-              },
-            },
-          ]);
-        },
-      },
-    ]);
-  }
 
   return (
     <>
@@ -202,14 +169,6 @@ export function FloatingGlanceFab() {
             </ScrollView>
 
             <View style={styles.actions}>
-              <Pressable
-                style={styles.secondary}
-                onPress={confirmReset}
-                disabled={resetting}>
-                <Text style={styles.secondaryText}>
-                  {resetting ? t('fab.resetting') : t('fab.reset')}
-                </Text>
-              </Pressable>
               <Pressable
                 style={styles.primary}
                 onPress={() => {
@@ -451,20 +410,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     marginTop: 12,
-  },
-  secondary: {
-    flex: 1,
-    backgroundColor: palette.dangerSoft,
-    borderRadius: 14,
-    paddingVertical: 13,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(214,69,69,0.25)',
-  },
-  secondaryText: {
-    fontFamily: 'DMSans_600SemiBold',
-    color: palette.danger,
-    fontSize: 13,
   },
   primary: {
     flex: 1.2,

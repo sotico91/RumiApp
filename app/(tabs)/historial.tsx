@@ -42,7 +42,7 @@ export default function HistorialScreen() {
   });
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [summaryOpen, setSummaryOpen] = useState(false);
-  const [listOpen, setListOpen] = useState(false);
+  const [listOpen, setListOpen] = useState(true);
   const [settledOpen, setSettledOpen] = useState(false);
   const [page, setPage] = useState(0);
 

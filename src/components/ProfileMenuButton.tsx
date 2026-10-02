@@ -33,7 +33,7 @@ type Props = {
 
 export function ProfileMenuButton({ light = true }: Props) {
   const insets = useSafeAreaInsets();
-  const { t, language } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
   const { openGuide } = useHowToGuide();
   const { settings, quickTemplates, updateUserName, restoreSettingsFromBackup, updateAppLock } =
     useSettings();
@@ -44,6 +44,7 @@ export function ProfileMenuButton({ light = true }: Props) {
     debts,
     subscriptions,
     restoreFromBackup,
+    resetFinance,
   } = useFinance();
   const [menuOpen, setMenuOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -180,6 +181,42 @@ export function ProfileMenuButton({ light = true }: Props) {
     ]);
   }
 
+  function switchLanguage() {
+    setMenuOpen(false);
+    setLanguage(language === 'es' ? 'en' : 'es');
+  }
+
+  /** Destructive: lives here, away from the everyday Add button. Two confirmations. */
+  function confirmReset() {
+    setMenuOpen(false);
+    Alert.alert(t('fab.resetTitle'), t('fab.resetMessage'), [
+      { text: t('history.cancel'), style: 'cancel' },
+      {
+        text: t('fab.resetConfirm'),
+        style: 'destructive',
+        onPress: () => {
+          Alert.alert(t('fab.resetTitle2'), t('fab.resetMessage2'), [
+            { text: t('history.cancel'), style: 'cancel' },
+            {
+              text: t('fab.resetConfirm2'),
+              style: 'destructive',
+              onPress: () => {
+                void (async () => {
+                  setBusy(true);
+                  try {
+                    await resetFinance();
+                  } finally {
+                    setBusy(false);
+                  }
+                })();
+              },
+            },
+          ]);
+        },
+      },
+    ]);
+  }
+
   function openPrivacyPolicy() {
     setMenuOpen(false);
     router.push('/privacidad');
@@ -280,10 +317,26 @@ export function ProfileMenuButton({ light = true }: Props) {
             <Pressable
               onPress={() => {
                 tapFeedback();
+                switchLanguage();
+              }}
+              style={styles.menuItem}>
+              <Text style={styles.menuItemText}>{t('language.switch')}</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                tapFeedback();
                 openPrivacyPolicy();
               }}
               style={styles.menuItem}>
               <Text style={styles.menuItemText}>{t('about.privacyPolicy')}</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                tapFeedback();
+                confirmReset();
+              }}
+              style={styles.menuItem}>
+              <Text style={[styles.menuItemText, styles.menuDanger]}>{t('fab.reset')}</Text>
             </Pressable>
             <Pressable onPress={() => setMenuOpen(false)} style={styles.menuCancel}>
               <Text style={styles.menuCancelText}>{t('history.cancel')}</Text>

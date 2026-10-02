@@ -12,7 +12,6 @@ import { FadeInBlock } from '@/src/components/FadeInBlock';
 import { HabitPilotCard } from '@/src/components/HabitPilotCard';
 import { HowToGuideButton } from '@/src/components/HowToGuideButton';
 import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
-import { LanguageSwitcher } from '@/src/components/LanguageSwitcher';
 import { PredictedSpendsCard } from '@/src/components/PredictedSpendsCard';
 import { ProfileMenuButton } from '@/src/components/ProfileMenuButton';
 import { QuickAddBar } from '@/src/components/QuickAddBar';
@@ -187,10 +186,6 @@ export default function HomeScreen() {
               <SavingsDecor />
             </View>
           </View>
-        </FadeInBlock>
-
-        <FadeInBlock index={1}>
-          <LanguageSwitcher />
         </FadeInBlock>
 
         <FadeInBlock index={2}>
