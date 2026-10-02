@@ -4,6 +4,7 @@ import * as Sharing from 'expo-sharing';
 
 import { categoryLabel } from '@/src/utils/categoryLabel';
 import { csvEscape } from '@/src/utils/csv';
+import { backupFileName } from '@/src/utils/fileNames';
 import type {
   Account,
   Debt,
@@ -199,7 +200,7 @@ const CSV_TYPE = { mimeType: 'text/csv', UTI: 'public.comma-separated-values-tex
 export async function shareBackupJson(snapshot: BackupSnapshot): Promise<void> {
   const backup = buildBackup(snapshot);
   const contents = JSON.stringify(backup, null, 2);
-  const filename = `Rumi-backup-${stamp()}.json`;
+  const filename = backupFileName(snapshot.settings.userName ?? '');
   const file = await writeCacheFile(filename, contents);
   await shareFile(file, contents, filename, JSON_TYPE);
 }
