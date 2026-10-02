@@ -94,6 +94,7 @@ export default function InsightsScreen() {
         budgetStatus,
         language: language === 'es' ? 'es' : 'en',
         accounts,
+        currency: settings.currency,
       })
     );
   }

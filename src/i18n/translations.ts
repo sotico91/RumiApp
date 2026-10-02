@@ -899,6 +899,33 @@ export const translations = {
       'With {income} of income logged, you would be short by about {short}.',
     'search.answerProjectionEarly':
       'Early estimate — it gets sharper as you log more days.',
+    'search.answerProjectionPending':
+      'That includes {pending} in expected bills and installments still to come.',
+    'search.answerAffordNeedAmount':
+      'Tell me the amount — e.g. “Can I afford 500,000?” or “Can I buy something for 200k?”',
+    'search.answerAffordYes':
+      'If you buy {amount}, at your current pace you would still end the month with about {left} left.',
+    'search.answerAffordNo':
+      'If you buy {amount}, at your current pace you would end the month about {short} short.',
+    'search.answerAffordCash':
+      'No income logged this month. You have {available} available now; after {amount} you would have {left}.',
+    'search.answerAffordCashNo':
+      'No income logged this month, and you have {available} available — {amount} is {short} more than that.',
+    'search.answerAffordCashWarn': 'Heads-up: right now you only have {available} available.',
+    'search.answerDailyBudget':
+      'To end the month even, you could spend about {perDay} a day for the {days} {days|day|days} left ({left} in total, after bills still to come).',
+    'search.answerDailyBudgetNone':
+      'Counting bills still to come, this month’s spending is already about {short} over your income.',
+    'search.answerCut': 'Where to trim: {detail}. Together, about {total} back in your month.',
+    'search.answerCutItem': '{label} ({amount} this month, ease ~{save})',
+    'search.answerCutTop':
+      'Nothing is climbing fast. Your biggest day-to-day spend this month is {label} ({amount}); trimming 10% would free about {save}.',
+    'search.answerCutEmpty':
+      'No day-to-day spend logged this month yet — log a few expenses and I can suggest where to trim.',
+    'smart.savingsPace':
+      'At this pace you would keep about {percent}% of your income this month ({amount}). A common goal is 20%.',
+    'smart.savingsPaceShort':
+      'At this pace your spending would pass your income by about {amount} this month.',
     'search.answerCategory':
       '{label} ({period}): {amount} across {count} {count|transaction|transactions}.',
     'search.answerCategoryMethod':
@@ -1874,6 +1901,33 @@ export const translations = {
       'Con {income} de ingresos registrados, te faltarían unos {short}.',
     'search.answerProjectionEarly':
       'Es una estimación temprana: se afina a medida que registras más días.',
+    'search.answerProjectionPending':
+      'Incluye {pending} de cuentas y cuotas esperadas que aún faltan.',
+    'search.answerAffordNeedAmount':
+      'Dime el monto, por ejemplo: “¿Me alcanza para 500.000?” o “¿Puedo comprar algo de 200 mil?”',
+    'search.answerAffordYes':
+      'Si compras algo de {amount}, a tu ritmo actual cerrarías el mes con unos {left} a favor.',
+    'search.answerAffordNo':
+      'Si compras algo de {amount}, a tu ritmo actual te faltarían unos {short} para cerrar el mes.',
+    'search.answerAffordCash':
+      'No hay ingresos registrados este mes. Tienes {available} disponibles; después de {amount} te quedarían {left}.',
+    'search.answerAffordCashNo':
+      'No hay ingresos registrados este mes y tienes {available} disponibles: {amount} supera eso por {short}.',
+    'search.answerAffordCashWarn': 'Ojo: hoy solo tienes {available} disponibles.',
+    'search.answerDailyBudget':
+      'Para cerrar el mes sin perder, podrías gastar cerca de {perDay} al día en {days|el|los} {days} {days|día|días} que faltan ({left} en total, ya descontando las cuentas que vienen).',
+    'search.answerDailyBudgetNone':
+      'Contando las cuentas que aún vienen, el gasto de este mes ya supera tu ingreso en unos {short}.',
+    'search.answerCut': 'Dónde recortar: {detail}. En total, unos {total} de vuelta para tu mes.',
+    'search.answerCutItem': '{label} ({amount} este mes, baja ~{save})',
+    'search.answerCutTop':
+      'Nada está subiendo rápido. Tu mayor gasto del día a día este mes es {label} ({amount}); bajarlo 10% liberaría unos {save}.',
+    'search.answerCutEmpty':
+      'Aún no hay gastos del día a día este mes: registra algunos y te digo dónde recortar.',
+    'smart.savingsPace':
+      'A este ritmo guardarías cerca del {percent}% de tu ingreso este mes ({amount}). Una meta común es 20%.',
+    'smart.savingsPaceShort':
+      'A este ritmo tus gastos superarían tu ingreso en unos {amount} este mes.',
     'search.answerCategory':
       '{label} ({period}): {amount} en {count} {count|movimiento|movimientos}.',
     'search.answerCategoryMethod':

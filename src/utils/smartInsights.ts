@@ -7,9 +7,12 @@ import {
 } from '@/src/data/spendConcepts';
 import type { TranslationKey } from '@/src/i18n/translations';
 import type { Account, Period, Transaction, Debt } from '@/src/types/finance';
-import type { SpendConcept } from '@/src/types/settings';
+import type { Currency, SpendConcept } from '@/src/types/settings';
 import { categoryLabel as resolveCategoryLabel } from '@/src/utils/categoryLabel';
 import { accountDisplayName } from '@/src/utils/accounts';
+import { buildAntSpendTips } from '@/src/utils/antSpendTips';
+import { normalizeAmountDigits } from '@/src/utils/money';
+import { projectMonth } from '@/src/utils/projection';
 import {
   antExpenseBreakdown,
   calendarMonthRange,
@@ -18,6 +21,8 @@ import {
   filterByPeriod,
   periodEnd,
   periodStart,
+  isMonthOutflow,
+  predictMonthlySpends,
   previousMonthRange,
   revolvingDebtIds,
   sumByType,
@@ -41,6 +46,7 @@ type AskOptions = {
   debts?: Debt[];
   language?: 'en' | 'es';
   accounts?: Account[];
+  currency?: Currency;
 };
 
 const CATEGORY_ALIASES: Record<string, string[]> = {
@@ -330,6 +336,22 @@ export function buildSmartInsights(
         period: periodLabel,
       }),
     });
+  }
+
+  // Forward-looking: where this month is heading, once the pace means something.
+  if (period === 'mes') {
+    const pace = projectMonth(transactions, debts, now);
+    if (!pace.early && pace.income > 0) {
+      const percent = Math.round((pace.projectedLeft / pace.income) * 100);
+      cards.push({
+        id: 'savings-pace',
+        tone: percent >= 20 ? 'good' : percent >= 0 ? 'info' : 'warn',
+        text:
+          pace.projectedLeft >= 0
+            ? t('smart.savingsPace', { percent, amount: format(pace.projectedLeft) })
+            : t('smart.savingsPaceShort', { amount: format(-pace.projectedLeft) }),
+      });
+    }
   }
 
   if (ant.total > 0) {
@@ -1540,6 +1562,8 @@ export function buildSearchSuggestions(
     } else if (topName) {
       prompts.push(`¿Cuánto gasté en ${topName} ${when}?`);
     }
+    if (period === 'mes') prompts.push('¿Cuánto voy a gastar este mes?');
+    prompts.push('¿En qué puedo recortar?');
     prompts.push(
       period === 'mes'
         ? '¿Cuáles son mis gastos hormiga?'
@@ -1555,10 +1579,12 @@ export function buildSearchSuggestions(
     } else if (topName) {
       prompts.push(`How much on ${topName} ${when}?`);
     }
+    if (period === 'mes') prompts.push('How much will I spend this month?');
+    prompts.push('Where can I cut back?');
     prompts.push(
       period === 'mes'
-        ? 'What are my ant expenses?'
-        : `What are my ant expenses ${when}?`
+        ? 'What are my small spends?'
+        : `What are my small spends ${when}?`
     );
     prompts.push('How much available cash do I have?');
   }
@@ -1569,6 +1595,135 @@ export function buildSearchSuggestions(
  * Answers finance questions from the user's own data.
  * Always tries to match the intent of the question instead of defaulting blindly.
  */
+const AMOUNT_MULTIPLIERS: Record<string, number> = {
+  k: 1_000,
+  mil: 1_000,
+  m: 1_000_000,
+  mm: 1_000_000,
+  millon: 1_000_000,
+  millones: 1_000_000,
+  palo: 1_000_000,
+  palos: 1_000_000,
+};
+
+/** "500000", "500.000", "500 mil", "500k", "1,5 millones" → number. */
+export function parseQueryAmount(q: string): number | null {
+  const re = /(\d[\d.,]*)\s*(k|mil|mm|m|millon|millones|palos?)?(?![a-z])/g;
+  let best: number | null = null;
+  for (const match of q.matchAll(re)) {
+    const digits = normalizeAmountDigits(match[1]);
+    const base = Number(digits);
+    if (!Number.isFinite(base) || base <= 0) continue;
+    const unit = match[2];
+    // A bare 4-digit year ("en 2025") is not a price.
+    if (!unit && /^(19|20)\d{2}$/.test(match[1])) continue;
+    const value = unit ? base * AMOUNT_MULTIPLIERS[unit] : base;
+    if (best == null || value > best) best = value;
+  }
+  return best;
+}
+
+function answerAfford(
+  q: string,
+  transactions: Transaction[],
+  format: (n: number) => string,
+  t: TFn,
+  options: AskOptions,
+  now = new Date()
+): string {
+  const amount = parseQueryAmount(q);
+  const available = options.availableCash;
+  const p = projectMonth(transactions, options.debts, now);
+  if (amount == null) {
+    // "¿Cuánto puedo gastar?" → a daily budget for the rest of the month.
+    if (p.income > 0 && includesAny(q, ['cuanto', 'how much'])) {
+      const remainingDays = Math.max(1, p.totalDays - p.days + 1);
+      const left = p.income - p.spent - p.pendingFixed;
+      return left > 0
+        ? t('search.answerDailyBudget', {
+            perDay: format(left / remainingDays),
+            days: remainingDays,
+            left: format(left),
+          })
+        : t('search.answerDailyBudgetNone', { short: format(-left) });
+    }
+    return t('search.answerAffordNeedAmount');
+  }
+
+  if (p.income <= 0) {
+    if (available == null) return t('search.answerAffordNeedAmount');
+    return available >= amount
+      ? t('search.answerAffordCash', {
+          amount: format(amount),
+          available: format(available),
+          left: format(available - amount),
+        })
+      : t('search.answerAffordCashNo', {
+          amount: format(amount),
+          available: format(available),
+          short: format(amount - available),
+        });
+  }
+
+  const leftAfter = p.projectedLeft - amount;
+  const parts = [
+    leftAfter >= 0
+      ? t('search.answerAffordYes', { amount: format(amount), left: format(leftAfter) })
+      : t('search.answerAffordNo', { amount: format(amount), short: format(-leftAfter) }),
+  ];
+  if (available != null && amount > available) {
+    parts.push(t('search.answerAffordCashWarn', { available: format(available) }));
+  }
+  if (p.early) parts.push(t('search.answerProjectionEarly'));
+  return parts.join(' ');
+}
+
+/** Concepts climbing vs last month first; otherwise trim the biggest day-to-day spend. */
+function answerCut(
+  transactions: Transaction[],
+  format: (n: number) => string,
+  t: TFn,
+  options: AskOptions,
+  labelFor: (id: string) => string,
+  now = new Date()
+): string {
+  const tips = buildAntSpendTips(
+    transactions,
+    options.spendConcepts ?? [],
+    now,
+    options.currency ?? 'COP'
+  ).slice(0, 3);
+  if (tips.length > 0) {
+    const detail = tips
+      .map((tip) =>
+        t('search.answerCutItem', {
+          label: labelFor(tip.categoryId),
+          amount: format(tip.current),
+          save: format(tip.saveHint),
+        })
+      )
+      .join(' · ');
+    const total = tips.reduce((s, tip) => s + tip.saveHint, 0);
+    return t('search.answerCut', { detail, total: format(total) });
+  }
+
+  const revolving = revolvingDebtIds(options.debts);
+  const fixed = new Set(predictMonthlySpends(transactions, options.debts ?? [], now).map((p) => p.categoryId));
+  const byCategory = new Map<string, number>();
+  for (const tx of filterByPeriod(transactions, 'mes', now)) {
+    if (tx.type !== 'expense' || !tx.categoryId || fixed.has(tx.categoryId)) continue;
+    if (!isMonthOutflow(tx, revolving)) continue;
+    byCategory.set(tx.categoryId, (byCategory.get(tx.categoryId) ?? 0) + tx.amount);
+  }
+  const top = [...byCategory.entries()].sort((a, b) => b[1] - a[1])[0];
+  if (!top) return t('search.answerCutEmpty');
+  return t('search.answerCutTop', {
+    label: labelFor(top[0]),
+    amount: format(top[1]),
+    save: format(top[1] * 0.1),
+  });
+}
+
 /** The period has started and has not ended yet (this week, this month…). */
 function isInProgress(period: QueryPeriod, now = new Date()): boolean {
   return now.getTime() >= period.from.getTime() && now.getTime() < period.to.getTime();
@@ -1577,11 +1732,11 @@ function isInProgress(period: QueryPeriod, now = new Date()): boolean {
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
- * Linear run-rate for the running week/month: spend so far ÷ days elapsed ×
- * days in the period. Simple on purpose — early in the month one big bill
- * skews it, so we flag the estimate as early.
+ * Month: fixed payments once + day-to-day spend at its current pace (see
+ * projectMonth). Week: plain run-rate, since fixed bills are monthly.
  */
 function answerProjection(
+  allTransactions: Transaction[],
   list: Transaction[],
   period: QueryPeriod,
   format: (n: number) => string,
@@ -1589,37 +1744,50 @@ function answerProjection(
   debts?: Debt[],
   now = new Date()
 ): string {
-  const spent = sumSpendOut(list, debts);
-  const income = sumByType(list, 'income');
-  // A running week ends "tomorrow" in QueryPeriod, so use its real length.
-  const totalDays =
-    period.analog === 'week'
-      ? 7
-      : Math.max(1, Math.round((period.to.getTime() - period.from.getTime()) / DAY_MS));
-  const days = Math.min(totalDays, Math.max(1, Math.ceil((now.getTime() - period.from.getTime()) / DAY_MS)));
-  const projected = (spent / days) * totalDays;
+  let projected: number;
+  let spent: number;
+  let income: number;
+  let days: number;
+  let totalDays: number;
+  let pending = 0;
+  let early: boolean;
+  if (period.analog === 'month') {
+    const p = projectMonth(allTransactions, debts, now);
+    ({ spent, income, days, totalDays, early } = p);
+    projected = p.projectedSpend;
+    pending = p.pendingFixed;
+  } else {
+    spent = sumSpendOut(list, debts);
+    income = sumByType(list, 'income');
+    totalDays = 7;
+    days = Math.min(totalDays, Math.max(1, Math.ceil((now.getTime() - period.from.getTime()) / DAY_MS)));
+    projected = (spent / days) * totalDays;
+    early = days < 3;
+  }
   const unit = t(period.analog === 'week' ? 'search.unitWeek' : 'search.unitMonth');
 
-  let text = t('search.answerProjection', {
-    projected: format(projected),
-    unit,
-    spent: format(spent),
-    days,
-    total: totalDays,
-  });
+  const parts = [
+    t('search.answerProjection', {
+      projected: format(projected),
+      unit,
+      spent: format(spent),
+      days,
+      total: totalDays,
+    }),
+  ];
+  if (pending > 0) {
+    parts.push(t('search.answerProjectionPending', { pending: format(pending) }));
+  }
   if (income > 0) {
     const left = income - projected;
-    text += ' ';
-    text +=
+    parts.push(
       left >= 0
         ? t('search.answerProjectionLeft', { income: format(income), left: format(left) })
-        : t('search.answerProjectionShort', { income: format(income), short: format(-left) });
+        : t('search.answerProjectionShort', { income: format(income), short: format(-left) })
+    );
   }
-  if (days < Math.min(7, totalDays)) {
-    text += ' ';
-    text += t('search.answerProjectionEarly');
-  }
-  return text;
+  if (early) parts.push(t('search.answerProjectionEarly'));
+  return parts.join(' ');
 }
 
 export function answerFinanceQuery(
@@ -1714,7 +1882,35 @@ export function answerFinanceQuery(
     'projected',
     'at this pace',
   ]);
+  const wantsCut = includesAny(q, [
+    'recortar',
+    'recorto',
+    'recorte',
+    'reducir',
+    'gastar menos',
+    'ahorrar en',
+    'donde ahorro',
+    'en que ahorro',
+    'cut back',
+    'cut down',
+    'spend less',
+    'where can i save',
+    'trim',
+  ]);
+  const wantsAfford = includesAny(q, [
+    'puedo comprar',
+    'me alcanza',
+    'alcanza para',
+    'puedo gastar',
+    'puedo pagar',
+    'can i afford',
+    'afford',
+    'can i buy',
+    'can i spend',
+  ]);
   const wantsAnt = includesAny(q, [
+    'small spend',
+    'small spends',
     'hormiga',
     'hormigas',
     'gasto hormiga',
@@ -1901,8 +2097,18 @@ export function answerFinanceQuery(
 
   const inProgress = isInProgress(period);
 
+  if (wantsAfford) {
+    return answerAfford(q, transactions, format, t, options);
+  }
+
+  if (wantsCut) {
+    return answerCut(transactions, format, t, options, (id) =>
+      resolveCategoryLabel(id, t, options.spendConcepts ?? [])
+    );
+  }
+
   if (wantsProjection && inProgress && period.analog !== 'day') {
-    return answerProjection(list, period, format, t, options.debts);
+    return answerProjection(transactions, list, period, format, t, options.debts);
   }
 
   if (wantsSavings) {
