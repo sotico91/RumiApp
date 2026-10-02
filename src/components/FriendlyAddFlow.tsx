@@ -796,7 +796,6 @@ export function FriendlyAddFlow({
             ) : (
               <>
                 <Text style={styles.title}>{t('flow.intent.move')}</Text>
-                <Text style={styles.intentSub}>{t('flow.intent.moveSub')}</Text>
               </>
             )}
           </Animated.View>
@@ -834,11 +833,6 @@ export function FriendlyAddFlow({
 
         {step === paymentStep ? (
           <Animated.View entering={FadeInDown.springify()} style={styles.block}>
-            {intent === 'move' ? (
-              <Text style={[styles.intentSub, { marginBottom: 12 }]}>
-                {t('flow.moveNotSpend')}
-              </Text>
-            ) : null}
             {intent === 'spend' ? (
               <>
                 <Text style={styles.title}>{t('flow.howPaid')}</Text>

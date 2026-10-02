@@ -12,8 +12,6 @@ export const translations = {
     'home.today': 'Today',
     'home.week': 'Week',
     'home.month': 'Month',
-    'home.noExpensesToday': 'No expenses logged today yet.',
-    'home.monthFresh': 'New month: this month’s expenses start at {amount}. Money already in wallets, savings, cash or bank is still there.',
     'home.todayList': 'Today — tap Edit to fix a mistake',
     'home.transactionsToday': '{count} transaction today',
     'home.transactionsToday_other': '{count} transactions today',
@@ -22,7 +20,7 @@ export const translations = {
     'home.emptyCategory': 'Add your first transaction to unlock analysis.',
     'home.quickTitle': 'One-tap expenses',
     'home.quickHint':
-      'Your top subcategories — tap to repeat the last amount (change it if today was different). Hold for full Add.',
+      'Tap to repeat the last amount. Hold for the full form.',
     'home.quickEmpty': 'Log a usual expense a couple of times and it can appear here.',
     'home.quickLastAmount': 'Last {amount}',
     'home.quickConfirmTitle': 'Repeat expense',
@@ -34,7 +32,7 @@ export const translations = {
     'home.quickConfirmFull': 'Open full form (account, note…)',
     'home.quickConfirmClose': 'Close',
     'home.quickConfirmHint':
-      'Tap outside to close. Same subcategory as last time — you can change the amount, the note, and whether it left an account or a card. 🐜 = small spend, marked in Plan.',
+      'Change the amount, note or account if today was different.',
     'home.quickConfirmAccount': 'Which account did it come from?',
     'home.quickAntBadge': 'Small spend',
     'home.income': 'Income',
@@ -55,19 +53,18 @@ export const translations = {
     'home.savings': 'This month’s result',
     'home.savingsCaption': 'Income − spend this month (only what you logged)',
     'home.availableInfoBody':
-      'This is money you can spend or move right now — cash, each bank (payroll usually lands in the main one), wallets like Nequi or Ualá, and savings. Moving between those accounts does not change the total available: the main account goes down and the wallet goes up. A real spend leaves the account you pick and counts as an expense.',
+      'Money you can use right now: cash, banks, wallets (Nequi, Ualá…) and savings. Moving money between them does not change this total; an expense lowers it.',
     'home.availableInfoCompare':
-      'This is today’s stock, not the month in History. Pick the account the money actually left so that line goes down. Bonus or salary is the kind of income; it lands in the account you chose.',
+      'It is today’s balance, not this month’s spending. Log each expense from the account it really came from.',
     'home.availableByAccount': 'Where it is',
     'home.availablePrincipal': 'Main accounts',
     'home.availableSecondary': 'Secondary — wallets and savings',
     'home.availableSecondaryTotal': 'In secondary accounts',
-    'home.availableSecondaryHint': 'Of that, {amount} is in wallets or savings',
     'home.availableTotal': 'Total available',
     'home.savingsInfoBody':
-      'This calendar month: income minus expenses and loan installments you actually logged. Paying a card is not counted again — its purchases already are. Installments in Wealth stay as reminders until you log the payment.',
+      'This calendar month: income minus expenses and loan installments you logged. Card payments are not counted twice — the purchases already are.',
     'home.savingsInfoCompare':
-      'It restarts at zero every new month. A transfer to savings does not change it — that is not income or spend.',
+      'It restarts at zero each month. Moving money to savings does not change it.',
     'home.moneyInfoEyebrow': 'What this tile means',
     'home.moneyInfoGotIt': 'Got it',
     'home.positionTitle': 'Where you stand',
@@ -80,10 +77,7 @@ export const translations = {
     'home.pocketBanks': 'Banks',
     'home.pocketWallets': 'Wallets',
     'home.pocketSavings': 'Savings',
-    'home.debtsManyHint': '{count} {count|credit|credits} · installments in Wealth',
-    'home.debtsOneHint': 'Installment in Wealth',
     'home.debts': 'Debts',
-    'home.netWorth': 'Net worth',
     'home.attention': 'Needs attention',
     'home.attentionEmpty': 'No limits exceeded this month.',
     'home.attentionEmptyShort': 'All clear',
@@ -211,7 +205,7 @@ export const translations = {
     'insights.pocketsUnknown': 'No account',
     'insights.smartTitle': 'Smart notes',
     'insights.smartHint':
-      'Short auto-summaries of the period you pick above. They are not buttons — they change when you log money or switch Today / Week / Month.',
+      'Automatic notes for the period you pick above.',
     'insights.smartCollapsed': '{count} {count|note|notes} — tap to open',
     'insights.expense': 'expense',
     'insights.expenses': 'expenses',
@@ -225,13 +219,13 @@ export const translations = {
     'decor.totalsTitle': 'Your money',
     'decor.monthTitle': 'This month',
     'decor.totalsHint':
-      'Cash, banks and wallets are what you can spend now. Income and expenses are only this month. Tap outside or ✕ to close.',
+      'Accounts: what you can use now. Income and expenses: this month only.',
     'decor.overlayHint': 'Quick glance — layout stays put',
     'insights.searchTitle': 'Ask Rumi',
     'insights.searchPlaceholder': 'How much did I spend in July?',
     'insights.searchAsk': 'Ask',
     'insights.searchHint':
-      'Spending and paying the card are not the same. The expense is when you buy; a card payment is an obligation. Try July, coffee, or “how much did I pay on the card”.',
+      'Ask in your own words: “July”, “coffee this month”, “can I buy 200k?”',
     'insights.searchSuggestions': 'Try one of these',
     'insights.searchAnswer': 'Answer',
     'insights.searchClear': 'Clear',
@@ -244,14 +238,11 @@ export const translations = {
     'insights.topGood': 'Expenses look controlled here',
     'home.savingsGood': 'You’re ahead this month',
     'home.savingsBad': 'You’re behind this month',
+    'home.savingsLegend': 'Income − expenses this month. Tap for more.',
     'home.paceAhead': 'At this pace: +{amount} by month end',
     'home.paceBehind': 'At this pace: −{amount} by month end',
     'home.savingsHint': 'Income − expenses this month (only logged transactions)',
-    'home.moneyLegend':
-      'Available now = cash, main bank, savings and wallets today. This month’s result = whether this month’s income covered this month’s spend — it resets every new month.',
     'home.frequentAlert': 'Most frequent: {category} ({count} {count|time|times})',
-    'home.antAlert': 'Small spends are eating your month',
-    'home.antOk': 'Small spends look manageable',
     'home.profileMenu': 'Profile options',
     'home.editName': 'Edit name',
     'home.editNameTitle': 'Correct your name',
@@ -311,20 +302,11 @@ export const translations = {
     'csv.debt': 'Debt',
     'csv.note': 'Note',
 
-    'fab.open': 'Open this month',
     'fab.eyebrow': 'This month',
     'fab.title': 'This month by category',
     'fab.whereTitle': 'Where it is',
-    'fab.whereHint': 'Spend or move from the account you choose.',
-    'fab.byConcept': 'Top categories',
-    'fab.percentHint':
-      'The % is each category’s share of this month’s total expenses — not of your income.',
-    'fab.heavyShare': 'Large share of expenses',
-    'fab.emptyConcepts': 'No expenses logged this month yet.',
-    'fab.budgetAlerts': '{count} {count|category|categories} over limit',
     'fab.add': 'Add transaction',
     'fab.reset': 'Delete all data',
-    'fab.resetting': 'Resetting…',
     'fab.resetTitle': 'Reset all money data?',
     'fab.resetMessage':
       'This permanently clears transactions, account balances, debts and monthly limits. Your categories stay. This cannot be undone.',
@@ -332,7 +314,6 @@ export const translations = {
     'fab.resetTitle2': 'Are you sure?',
     'fab.resetMessage2': 'Confirm once more to wipe all values and start from zero.',
     'fab.resetConfirm2': 'Yes, reset everything',
-    'fab.footnote': 'Wrong entry? Edit or delete it in Activity.',
 
     'plan.title': 'Limits & small spends',
     'plan.subtitle': 'Your categories, optional limits, and reminders.',
@@ -344,7 +325,7 @@ export const translations = {
     'plan.antTitle': 'Small spends',
     'plan.antEmpty': 'No expenses on marked small-spend subcategories this month.',
     'plan.antHint':
-      'Small spends = little, frequent expenses you mark yourself (coffee, gas, football…). Toggle “Small” on each subcategory in My categories.',
+      'Mark small, frequent spends (coffee, snacks…) to keep an eye on them.',
     'plan.antMarkNone': 'No small-spend subcategories marked yet. Open a category and tap Small.',
     'plan.antMarked': 'Marked as small spend',
     'plan.antCollapsed': 'Small-spend total {amount} — tap to expand',
@@ -384,10 +365,10 @@ export const translations = {
 
     'wealth.title': 'Wealth',
     'wealth.subtitle':
-      'Net worth = what you have in accounts minus debts. Income raises the account you chose (cash, bank, savings or a virtual wallet), not a separate “bonus” pot.',
+      'What you have minus what you owe.',
     'wealth.accounts': 'Accounts, banks & wallets',
     'wealth.accountsHint':
-      'Where your money sits: cash, one or more banks, savings, investments, plus wallets you add (Nequi, etc.). Cards live under Cards & credit lines — not here.',
+      'Cash, banks, savings and wallets. Cards are further down.',
     'wealth.groupInvestments': 'Investments',
     'wealth.groupCredit': 'Credit',
     'wealth.accountsCollapsed': '{count} {count|account|accounts} — tap to open',
@@ -410,12 +391,12 @@ export const translations = {
     'wealth.walletNameNeed': 'Type a name for this wallet.',
     'wealth.walletNameTaken': 'You already have a wallet with that name.',
     'wealth.walletManageHint':
-      'Wrong name? Rename it, or remove it when the balance is $0. Removing the first wallet turns it back into a generic virtual wallet.',
+      'Rename it, or remove it once it is at $0.',
     'wealth.bankDelete': 'Remove bank',
     'wealth.bankNameNeed': 'Type a name for this bank.',
     'wealth.bankNameTaken': 'You already have a bank with that name.',
     'wealth.bankManageHint':
-      'Rename the main bank if that’s where payroll lands. Need another bank? Add it here. Extra banks can be removed at $0.',
+      'Rename it, or remove extra banks once they are at $0.',
     'wealth.debts': 'Debts & credit',
     'wealth.cards': 'Cards & credit lines',
     'wealth.loans': 'Loans & installments',
@@ -425,8 +406,6 @@ export const translations = {
     'wealth.debtsCollapsed': '{count} · {amount}/mo — tap to open',
     'wealth.cardsCollapsed': '{count} · {available} available — tap to open',
     'wealth.loansCollapsed': '{count} · {amount}/mo — tap to open',
-    'wealth.debtsEmpty':
-      'Fixed installments (apartment, car) or revolving credit (card, credicheque, credit line). If the amount changes every month and it is not a credit line, skip this and log it as spend when you pay.',
     'wealth.cardsEmpty':
       'Visa, credicheque or a bank credit line. A charge uses available credit. Pay card uses cash.',
     'wealth.loansEmpty':
@@ -434,10 +413,6 @@ export const translations = {
     'wealth.addDebt': 'Add a debt',
     'wealth.addCard': 'Add a card',
     'wealth.addLoan': 'Add a loan',
-    'wealth.cardsHint':
-      'Available credit, what you owe, and the statement payment. This is not a loan with installments.',
-    'wealth.loansHint':
-      'Remaining balance and a fixed monthly installment. If the amount changes every month and it is not a credit line, log it as spend when you pay.',
     'wealth.kindLabel': 'What kind of debt',
     'wealth.kindInstallment': 'Fixed installment',
     'wealth.kindRevolving': 'Revolving credit',
@@ -450,8 +425,6 @@ export const translations = {
     'wealth.debtUsed': 'Amount used / owed',
     'wealth.debtMonthPay': 'Payment due this month',
     'wealth.creditAvailable': 'Available on this line: {amount}',
-    'wealth.revolvingHint':
-      'Available credit = limit minus used. Charging Netflix or groceries is a spend (the bank does not move). Paying the card is what leaves cash, bank or Nequi.',
     'wealth.debtNamePlaceholderRevolving': 'Visa, Credicheque, bank credit line…',
     'wealth.debtNeedRevolving':
       'Name, credit limit, and this month’s payment (used can be 0).',
@@ -471,12 +444,6 @@ export const translations = {
     'wealth.debtEditing': 'Editing debt',
     'wealth.debtDelete': 'Remove',
     'wealth.debtNeed': 'Name, balance and monthly installment must be greater than 0.',
-    'wealth.howToPay':
-      'Saving an installment here does not spend money. Charge on a card is a spend and lowers available credit. Pay is what leaves cash, bank or Nequi. Pay the remaining total and that account leaves Wealth; it stays in Activity.',
-    'wealth.howToPayCard':
-      'Charge is a spend: available credit goes down, Nequi does not. Pay card is what leaves the account you pick. Pay the remaining total and the card leaves Wealth; it stays in Activity.',
-    'wealth.howToPayLoan':
-      'Saving the installment here does not spend money. Tap Pay installment (or ◎ → I paid a debt) so it leaves Nequi or the bank. Pay the remaining total and that loan leaves Wealth; it stays in Activity.',
     'wealth.cardsOwed': 'You owe',
     'wealth.cardsAvailable': 'Available',
     'wealth.cardsToPay': 'To pay this month',
@@ -484,15 +451,7 @@ export const translations = {
     'wealth.chargeSpend': 'Charge',
     'wealth.payCard': 'Pay card',
     'wealth.payInstallment': 'Pay installment',
-    'wealth.chargeVsPayHint':
-      'Charge is a spend (uses available credit). Pay is what leaves Nequi or the bank.',
     'wealth.cupoTotal': 'Limit {amount}',
-    'wealth.debtPermanentHint':
-      'Only the fixed installment amount — a reminder, not a loan calculator. It becomes spend when you log the payment with Add transaction.',
-    'wealth.debtConceptHint':
-      'Cards and loans are separate. Log the amount you pay — not an interest rate.',
-    'wealth.debtBudgetHint':
-      'Saving also sets a monthly limit equal to the installment on that subcategory.',
     'wealth.fixedMonth': 'Fixed installments this month',
     'wealth.fixedPaid': 'Paid {paid} of {due} due',
     'wealth.openPlan': 'See categories & limits in Plan',
@@ -569,11 +528,11 @@ export const translations = {
       'No account matches this way of paying. Add it in Wealth.',
     'flow.walletAdd': 'Add another virtual wallet',
     'flow.walletAddHint':
-      'You can have as many as you use. Spend from each one, or move money to cash, bank, savings, or another wallet.',
+      'Nequi, Daviplata… add as many as you use.',
     'flow.walletNamePlaceholder': 'Wallet name',
     'flow.bankAdd': 'Add another bank account',
     'flow.bankAddHint':
-      'Payroll usually lands in your main bank. If you have another, add it here. Then you can move money between banks and wallets.',
+      'Have more than one bank? Add it here.',
     'flow.bankNamePlaceholder': 'Bancolombia, Davivienda…',
     'flow.whichAccountIncome': 'Which account did it land in?',
     'flow.whichAccountTo': 'To which account?',
@@ -589,8 +548,6 @@ export const translations = {
     'flow.summaryAccount': 'Account',
     'flow.summaryAccountSpend': 'Left from',
     'flow.summaryChargedTo': 'Charged to',
-    'flow.chargeReviewHint':
-      'This does not lower cash or Nequi. It uses available credit until you Pay the card in Wealth.',
     'flow.summaryAccountIncome': 'Received in',
     'flow.summaryAccountTo': 'To',
     'flow.summaryAmount': 'Amount',
@@ -601,11 +558,9 @@ export const translations = {
     'flow.intent.earnSub': 'Salary, freelance, gift…',
     'flow.intent.move': 'I moved money',
     'flow.intent.moveSub':
-      'Bank → Ualá/Nequi/savings. Not a spend — only changes which account holds it.',
-    'flow.moveNotSpend':
-      'This is not a spend. The money leaves one of your accounts and arrives in another. Total available stays the same; month expenses do not change.',
+      'Bank → Nequi, savings… Not an expense.',
     'flow.movePreview': '{from} −{amount} → {to} +{amount}',
-    'flow.moveAvailableSame': 'Total available stays the same. This is not an expense.',
+    'flow.moveAvailableSame': 'Your total available stays the same.',
     'flow.moveNeedDistinct': 'Pick two different accounts: where it leaves and where it arrives.',
     'history.moveRoute': '{from} → {to}',
     'history.fromPocket': 'from {pocket}',
@@ -1028,8 +983,6 @@ export const translations = {
     'home.today': 'Hoy',
     'home.week': 'Semana',
     'home.month': 'Mes',
-    'home.noExpensesToday': 'Todavía no registraste nada hoy.',
-    'home.monthFresh': 'Mes nuevo: los gastos de este mes empiezan en {amount}. El dinero que ya tenías en billeteras, ahorros, efectivo o banco sigue ahí.',
     'home.todayList': 'Hoy — toca Editar si te equivocaste',
     'home.transactionsToday': '{count} movimiento hoy',
     'home.transactionsToday_other': '{count} movimientos hoy',
@@ -1038,7 +991,7 @@ export const translations = {
     'home.emptyCategory': 'Agrega tu primer movimiento para desbloquear el análisis.',
     'home.quickTitle': 'Gastos en un toque',
     'home.quickHint':
-      'Tus subcategorías más usadas — toca para repetir el último monto (cámbialo si hoy fue distinto). Mantén pulsado para Agregar completo.',
+      'Toca para repetir el último monto. Mantén pulsado para el formulario completo.',
     'home.quickEmpty': 'Repite un gasto habitual un par de veces y puede aparecer aquí.',
     'home.quickLastAmount': 'Último {amount}',
     'home.quickConfirmTitle': 'Repetir gasto',
@@ -1050,7 +1003,7 @@ export const translations = {
     'home.quickConfirmFull': 'Formulario completo (cuenta, nota…)',
     'home.quickConfirmClose': 'Cerrar',
     'home.quickConfirmHint':
-      'Toca fuera para cerrar. Misma subcategoría de siempre: puedes cambiar el monto, la observación y si salió de un bolsillo o de una tarjeta. Hormiga 🐜 = marcado en Plan.',
+      'Cambia el monto, la nota o la cuenta si hoy fue distinto.',
     'home.quickConfirmAccount': '¿De qué bolsillo salió?',
     'home.quickAntBadge': 'Gasto hormiga',
     'home.income': 'Ingresos',
@@ -1071,19 +1024,18 @@ export const translations = {
     'home.savings': 'Resultado del mes',
     'home.savingsCaption': 'Ingresos − gastos de este mes (solo lo que registraste)',
     'home.availableInfoBody':
-      'Esto es lo que puedes gastar o mover ahora: efectivo, cada banco (la nómina suele caer en el principal), billeteras como Nequi o Ualá, y ahorros. Mover entre esos bolsillos no cambia el total disponible: baja la cuenta principal y sube la billetera. Un gasto de verdad sale del bolsillo que elijas y sí cuenta como gasto.',
+      'La plata que puedes usar ahora: efectivo, bancos, billeteras (Nequi, Ualá…) y ahorros. Moverla entre ellas no cambia este total; un gasto sí lo baja.',
     'home.availableInfoCompare':
-      'Es el saldo de hoy, no el mes en Historial. Elige el bolsillo del que realmente salió para que esa línea baje. Bonos o salario es el tipo de ingreso; queda en la cuenta que elegiste.',
+      'Es tu saldo de hoy, no el gasto del mes. Registra cada gasto desde la cuenta de donde realmente salió.',
     'home.availableByAccount': 'Dónde está',
     'home.availablePrincipal': 'Cuentas principales',
     'home.availableSecondary': 'Secundarias — billeteras y ahorros',
     'home.availableSecondaryTotal': 'En bolsillos secundarios',
-    'home.availableSecondaryHint': 'De eso, {amount} está en billeteras o ahorros',
     'home.availableTotal': 'Total disponible',
     'home.savingsInfoBody':
-      'Este mes calendario: ingresos menos gastos y cuotas de préstamos que sí registraste. Pagar la tarjeta no se cuenta otra vez: sus compras ya cuentan. Las cuotas en Patrimonio son recordatorio hasta que registres el pago.',
+      'Este mes calendario: ingresos menos gastos y cuotas de préstamos que registraste. Pagar la tarjeta no cuenta dos veces: las compras ya cuentan.',
     'home.savingsInfoCompare':
-      'Vuelve a cero cada mes nuevo. Una transferencia a ahorro no lo cambia — eso no es ingreso ni gasto.',
+      'Vuelve a cero cada mes. Pasar plata a ahorros no lo cambia.',
     'home.moneyInfoEyebrow': 'Qué significa esta caja',
     'home.moneyInfoGotIt': 'Entendido',
     'home.positionTitle': 'Dónde estás',
@@ -1096,10 +1048,7 @@ export const translations = {
     'home.pocketBanks': 'Bancos',
     'home.pocketWallets': 'Billeteras',
     'home.pocketSavings': 'Ahorros',
-    'home.debtsManyHint': '{count} {count|crédito|créditos} · cuotas en Patrimonio',
-    'home.debtsOneHint': 'Cuota en Patrimonio',
     'home.debts': 'Deudas',
-    'home.netWorth': 'Patrimonio',
     'home.attention': 'Merece atención',
     'home.attentionEmpty': 'Ningún tope superado este mes.',
     'home.attentionEmptyShort': 'Todo bien',
@@ -1228,7 +1177,7 @@ export const translations = {
     'insights.pocketsUnknown': 'Sin cuenta',
     'insights.smartTitle': 'Notas inteligentes',
     'insights.smartHint':
-      'Resúmenes automáticos del periodo que eliges arriba. No son botones: cambian al registrar movimientos o al pasar Hoy / Semana / Mes.',
+      'Notas automáticas del periodo que elijas arriba.',
     'insights.smartCollapsed': '{count} {count|nota|notas} — toca para abrir',
     'insights.expense': 'gasto',
     'insights.expenses': 'gastos',
@@ -1242,13 +1191,13 @@ export const translations = {
     'decor.totalsTitle': 'Tu plata',
     'decor.monthTitle': 'Este mes',
     'decor.totalsHint':
-      'Efectivo, bancos y billeteras son lo que puedes gastar ahora. Ingresos y gastos son solo este mes. Toca afuera o ✕ para cerrar.',
+      'Cuentas: lo que puedes usar ahora. Ingresos y gastos: solo este mes.',
     'decor.overlayHint': 'Vista rápida — sin mover el contenido',
     'insights.searchTitle': 'Pregúntale a Rumi',
     'insights.searchPlaceholder': '¿Cuánto gasté en julio?',
     'insights.searchAsk': 'Preguntar',
     'insights.searchHint':
-      'Gastar y pagar la tarjeta no es lo mismo: el gasto es cuando compras; el pago de TC es una obligación. Prueba “julio”, “café” o “cuánto pagué de tarjeta”.',
+      'Pregunta como hablas: “julio”, “café este mes”, “¿puedo comprar algo de 200 mil?”',
     'insights.searchSuggestions': 'Prueba una de estas',
     'insights.searchAnswer': 'Respuesta',
     'insights.searchClear': 'Limpiar',
@@ -1261,14 +1210,11 @@ export const translations = {
     'insights.topGood': 'Aquí el gasto se ve controlado',
     'home.savingsGood': 'Este mes vas a favor',
     'home.savingsBad': 'Este mes vas en rojo',
+    'home.savingsLegend': 'Ingresos − gastos de este mes. Toca para ver más.',
     'home.paceAhead': 'A este ritmo: +{amount} al cierre',
     'home.paceBehind': 'A este ritmo: −{amount} al cierre',
     'home.savingsHint': 'Ingresos − gastos del mes (solo movimientos registrados)',
-    'home.moneyLegend':
-      'Disponible hoy = efectivo, banco, ahorros y billeteras ahora. Resultado del mes = si lo que entró este mes cubrió lo que salió — se reinicia cada mes nuevo.',
     'home.frequentAlert': 'Más frecuente: {category} ({count} {count|vez|veces})',
-    'home.antAlert': 'Los gastos hormiga se están comiendo el mes',
-    'home.antOk': 'Los gastos hormiga se ven manejables',
     'home.profileMenu': 'Opciones de perfil',
     'home.editName': 'Editar nombre',
     'home.editNameTitle': 'Corrige tu nombre',
@@ -1329,20 +1275,11 @@ export const translations = {
     'csv.debt': 'Deuda',
     'csv.note': 'Nota',
 
-    'fab.open': 'Abrir resumen del mes',
     'fab.eyebrow': 'Este mes',
     'fab.title': 'Resumen por concepto',
     'fab.whereTitle': 'Dónde está',
-    'fab.whereHint': 'Gasta o mueve desde el bolsillo que elijas.',
-    'fab.byConcept': 'Principales categorías',
-    'fab.percentHint':
-      'El % es la parte de cada categoría sobre el total gastado este mes — no sobre tu salario.',
-    'fab.heavyShare': 'Pesa mucho en el gasto',
-    'fab.emptyConcepts': 'Aún no hay gastos este mes.',
-    'fab.budgetAlerts': '{count} {count|categoría|categorías} sobre el tope',
     'fab.add': 'Registrar',
     'fab.reset': 'Borrar todos los datos',
-    'fab.resetting': 'Reseteando…',
     'fab.resetTitle': '¿Resetear todos los datos de dinero?',
     'fab.resetMessage':
       'Se borran de forma permanente movimientos, saldos de cuentas, deudas y topes. Tus conceptos se conservan. No se puede deshacer.',
@@ -1350,7 +1287,6 @@ export const translations = {
     'fab.resetTitle2': '¿Estás seguro?',
     'fab.resetMessage2': 'Confirma otra vez para dejar todos los valores en cero.',
     'fab.resetConfirm2': 'Sí, resetear todo',
-    'fab.footnote': '¿Gasto erróneo? Edítalo o bórralo en Actividad.',
 
     'plan.title': 'Presupuestos y hormiga',
     'plan.subtitle': 'Tus conceptos, topes opcionales y recordatorios.',
@@ -1362,7 +1298,7 @@ export const translations = {
     'plan.antTitle': 'Gastos hormiga',
     'plan.antEmpty': 'Este mes no hay gastos en subcategorías marcadas como hormiga.',
     'plan.antHint':
-      'Hormiga = gastos chicos/repetidos que tú marcas (café, gasolina, fútbol…). En Mis conceptos, abre una subcategoría y toca “Hormiga”.',
+      'Marca gastos chicos y frecuentes (café, mecato…) para vigilarlos.',
     'plan.antMarkNone': 'Aún no marcaste ninguna hormiga. Abre un concepto y toca Hormiga.',
     'plan.antMarked': 'Marcadas como hormiga',
     'plan.antCollapsed': 'Total hormiga {amount} — toca para ver',
@@ -1402,10 +1338,10 @@ export const translations = {
 
     'wealth.title': 'Patrimonio',
     'wealth.subtitle':
-      'Patrimonio = lo que hay en tus cuentas menos deudas. Un ingreso sube la cuenta que elegiste (efectivo, banco, ahorro o una billetera virtual). Bonos es solo el tipo de ingreso.',
+      'Lo que tienes menos lo que debes.',
     'wealth.accounts': 'Cuentas, bancos y billeteras',
     'wealth.accountsHint':
-      'Dónde está tu plata: efectivo, uno o varios bancos, ahorros, inversiones, y las billeteras que agregas (Nequi, etc.). Las tarjetas viven en Tarjetas y cupos, no aquí.',
+      'Efectivo, bancos, ahorros y billeteras. Las tarjetas van más abajo.',
     'wealth.groupInvestments': 'Inversiones',
     'wealth.groupCredit': 'Créditos',
     'wealth.accountsCollapsed': '{count} {count|bolsillo|bolsillos} — toca para abrir',
@@ -1428,12 +1364,12 @@ export const translations = {
     'wealth.walletNameNeed': 'Escribe un nombre para esta billetera.',
     'wealth.walletNameTaken': 'Ya tienes una billetera con ese nombre.',
     'wealth.walletManageHint':
-      'Si te equivocaste en el nombre, cámbialo. También puedes eliminar una billetera en $0 — la primera vuelve a “Billetera virtual”.',
+      'Cámbiale el nombre, o elimínala cuando esté en $0.',
     'wealth.bankDelete': 'Eliminar banco',
     'wealth.bankNameNeed': 'Escribe un nombre para este banco.',
     'wealth.bankNameTaken': 'Ya tienes un banco con ese nombre.',
     'wealth.bankManageHint':
-      'Renombra el banco principal si ahí te pagan la nómina. ¿Tienes otro banco? Agrégalo aquí. Los extra se pueden quitar en $0.',
+      'Cámbiale el nombre, o quita los bancos extra cuando estén en $0.',
     'wealth.debts': 'Deudas y créditos',
     'wealth.cards': 'Tarjetas y cupos',
     'wealth.loans': 'Créditos y cuotas',
@@ -1443,8 +1379,6 @@ export const translations = {
     'wealth.debtsCollapsed': '{count} · {amount}/mes — toca para abrir',
     'wealth.cardsCollapsed': '{count} · {available} disponibles — toca para abrir',
     'wealth.loansCollapsed': '{count} · {amount}/mes — toca para abrir',
-    'wealth.debtsEmpty':
-      'Cuotas fijas (apto, carro) o crédito rotativo (tarjeta, credicheque, cupo). Si el monto cambia cada mes y no es un cupo, no lo pongas aquí: regístralo como gasto cuando pagues.',
     'wealth.cardsEmpty':
       'Visa, credicheque o un cupo del banco. Cargar gasto usa cupo. Pagar tarjeta usa plata.',
     'wealth.loansEmpty':
@@ -1452,10 +1386,6 @@ export const translations = {
     'wealth.addDebt': 'Agregar deuda',
     'wealth.addCard': 'Agregar tarjeta',
     'wealth.addLoan': 'Agregar crédito',
-    'wealth.cardsHint':
-      'Cupo disponible, lo que debes y el pago del extracto. No es un crédito a cuotas.',
-    'wealth.loansHint':
-      'Saldo que falta y una cuota fija. Si el monto cambia cada mes y no es un cupo, regístralo como gasto cuando pagues.',
     'wealth.kindLabel': 'Qué tipo de deuda',
     'wealth.kindInstallment': 'Cuota fija',
     'wealth.kindRevolving': 'Crédito rotativo',
@@ -1468,8 +1398,6 @@ export const translations = {
     'wealth.debtUsed': 'Lo que ya usaste / debes',
     'wealth.debtMonthPay': 'Pago de este mes',
     'wealth.creditAvailable': 'Cupo disponible: {amount}',
-    'wealth.revolvingHint':
-      'El cupo disponible es el límite menos lo usado. Cargar Netflix o el mercado es un gasto (el banco no se mueve). Pagar la tarjeta sí sale de efectivo, banco o Nequi.',
     'wealth.debtNamePlaceholderRevolving': 'Visa, Credicheque, cupo del banco…',
     'wealth.debtNeedRevolving':
       'Nombre, cupo y un pago del mes (el usado puede ser 0).',
@@ -1489,12 +1417,6 @@ export const translations = {
     'wealth.debtEditing': 'Editando deuda',
     'wealth.debtDelete': 'Eliminar',
     'wealth.debtNeed': 'Nombre, saldo y cuota mensual mayores a 0.',
-    'wealth.howToPay':
-      'Anotar la cuota aquí no gasta plata. Cargar a la tarjeta sí es gasto y baja el cupo. Pagar es lo que sale de efectivo, banco o Nequi. Si pagas el total que queda, esa cuenta sale de Patrimonio y queda en Actividad.',
-    'wealth.howToPayCard':
-      'Cargar es un gasto: baja el cupo, no Nequi. Pagar la tarjeta sí sale del bolsillo que elijas. Si pagas el total, la tarjeta sale de Patrimonio y queda en Actividad.',
-    'wealth.howToPayLoan':
-      'Anotar la cuota aquí no gasta plata. Toca Pagar cuota (o ◎ → Pagué una deuda) para que salga de Nequi o del banco. Si pagas el total, ese crédito sale de Patrimonio y queda en Actividad.',
     'wealth.cardsOwed': 'Debes',
     'wealth.cardsAvailable': 'Disponible',
     'wealth.cardsToPay': 'A pagar este mes',
@@ -1502,15 +1424,7 @@ export const translations = {
     'wealth.chargeSpend': 'Cargar gasto',
     'wealth.payCard': 'Pagar tarjeta',
     'wealth.payInstallment': 'Pagar cuota',
-    'wealth.chargeVsPayHint':
-      'Cargar es un gasto (usa cupo). Pagar es lo que sale de Nequi o del banco.',
     'wealth.cupoTotal': 'Cupo {amount}',
-    'wealth.debtPermanentHint':
-      'Solo el valor de la cuota fija — un recordatorio, no una calculadora de crédito. Es gasto cuando registras el pago con Registrar.',
-    'wealth.debtConceptHint':
-      'Tarjetas y créditos van aparte. Aquí registras el valor que pagas, no la tasa.',
-    'wealth.debtBudgetHint':
-      'Al guardar también se crea un tope mensual igual a la cuota en esa subcategoría.',
     'wealth.fixedMonth': 'Cuotas fijas del mes',
     'wealth.fixedPaid': 'Pagado {paid} de {due} esperados',
     'wealth.openPlan': 'Ver conceptos y topes en Plan',
@@ -1589,11 +1503,11 @@ export const translations = {
       'No hay una cuenta para esta forma de pago. Regístrala en Patrimonio.',
     'flow.walletAdd': 'Agregar otra billetera virtual',
     'flow.walletAddHint':
-      'Puedes tener varias. Gasta desde cada una o mueve el dinero a efectivo, banco, ahorros u otra billetera.',
+      'Nequi, Daviplata… agrega todas las que uses.',
     'flow.walletNamePlaceholder': 'Nombre de la billetera',
     'flow.bankAdd': 'Agregar otra cuenta bancaria',
     'flow.bankAddHint':
-      'La nómina suele caer en el banco principal. Si tienes otro banco, agrégalo aquí. Luego puedes mover plata entre bancos y billeteras.',
+      '¿Tienes más de un banco? Agrégalo aquí.',
     'flow.bankNamePlaceholder': 'Bancolombia, Davivienda…',
     'flow.whichAccountIncome': '¿En qué cuenta entró?',
     'flow.whichAccountTo': '¿A qué cuenta?',
@@ -1609,8 +1523,6 @@ export const translations = {
     'flow.summaryAccount': 'Cuenta',
     'flow.summaryAccountSpend': 'Salió de',
     'flow.summaryChargedTo': 'Cargado a',
-    'flow.chargeReviewHint':
-      'Esto no baja efectivo ni Nequi. Usa cupo hasta que pagues la tarjeta en Patrimonio.',
     'flow.summaryAccountIncome': 'Entró en',
     'flow.summaryAccountTo': 'Hacia',
     'flow.summaryAmount': 'Monto',
@@ -1621,11 +1533,9 @@ export const translations = {
     'flow.intent.earnSub': 'Salario, freelance, regalo…',
     'flow.intent.move': 'Moví dinero',
     'flow.intent.moveSub':
-      'Banco → Ualá/Nequi/ahorros. No es un gasto: solo cambia en qué bolsillo está.',
-    'flow.moveNotSpend':
-      'Esto no es un gasto. La plata sale de uno de tus bolsillos y llega a otro. El total disponible se mantiene; el gasto del mes no cambia.',
+      'Banco → Nequi, ahorros… No es un gasto.',
     'flow.movePreview': '{from} −{amount} → {to} +{amount}',
-    'flow.moveAvailableSame': 'El total disponible se mantiene. Esto no es un gasto.',
+    'flow.moveAvailableSame': 'Tu disponible total no cambia.',
     'flow.moveNeedDistinct': 'Elige dos bolsillos distintos: de dónde sale y a dónde llega.',
     'history.moveRoute': '{from} → {to}',
     'history.fromPocket': 'salió de {pocket}',

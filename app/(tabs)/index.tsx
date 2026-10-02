@@ -217,6 +217,7 @@ export default function HomeScreen() {
             <DashTile
               label={t('home.savings')}
               wide
+              legend={t('home.savingsLegend')}
               value={format(savings)}
               tone={savingsTone}
               hint={
@@ -414,6 +415,7 @@ function DashTile({
   hint,
   onPress,
   wide = false,
+  legend,
 }: {
   label: string;
   value: string;
@@ -422,6 +424,8 @@ function DashTile({
   onPress?: () => void;
   /** Full row, for the month result under income / expenses. */
   wide?: boolean;
+  /** Short "what is this" shown on the right of a wide tile, with an ⓘ. */
+  legend?: string;
 }) {
   const Wrapper = onPress ? Pressable : View;
   return (
@@ -434,7 +438,9 @@ function DashTile({
         tone === 'danger' && styles.boxDanger,
         tone === 'warn' && styles.boxWarn,
         tone === 'good' && styles.boxGood,
+        legend ? styles.tileRow : null,
       ]}>
+      <View style={legend ? styles.tileMain : undefined}>
       <Text
         style={[
           styles.tileLabel,
@@ -465,6 +471,13 @@ function DashTile({
           ]}>
           {hint}
         </Text>
+      ) : null}
+      </View>
+      {legend ? (
+        <View style={styles.tileLegend}>
+          <Text style={styles.tileInfo}>ⓘ</Text>
+          <Text style={styles.tileLegendText}>{legend}</Text>
+        </View>
       ) : null}
     </Wrapper>
   );
@@ -600,6 +613,28 @@ const styles = StyleSheet.create({
   },
   tileWide: {
     width: '100%',
+  },
+  tileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  tileMain: { flex: 1 },
+  tileLegend: {
+    width: '42%',
+    alignItems: 'flex-end',
+    gap: 4,
+  },
+  tileInfo: {
+    fontSize: 16,
+    color: palette.inkMuted,
+  },
+  tileLegendText: {
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 12,
+    lineHeight: 16,
+    color: palette.inkMuted,
+    textAlign: 'right',
   },
   tile: {
     width: '48%',
