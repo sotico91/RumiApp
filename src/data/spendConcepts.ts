@@ -1,5 +1,6 @@
 import { CATEGORIES, expenseCategories, getCategoryById } from '@/src/data/financeDefaults';
 import type { Budget, Category } from '@/src/types/finance';
+import { translations, type Language } from '@/src/i18n/translations';
 import type { CustomConcept, SpendConcept, SpendSub } from '@/src/types/settings';
 
 export const CREDITS_CONCEPT_ID = 'concept-creditos';
@@ -22,6 +23,30 @@ export const ONBOARDING_CONCEPTS: {
   { id: 'concept-alimentacion', color: '#E07A5F', nameKey: 'onboard.concept.alimentacion' },
   { id: 'concept-vivienda', color: '#3E6B8A', nameKey: 'onboard.concept.vivienda' },
 ];
+
+/**
+ * Default concepts (Bills, Credit, Transport…) follow the app language.
+ * Only names still equal to a built-in translation are switched, so a
+ * concept the user named themselves is never touched.
+ */
+export function localizeDefaultConcepts(
+  concepts: SpendConcept[],
+  language: Language
+): { concepts: SpendConcept[]; changed: boolean } {
+  let changed = false;
+  const next = concepts.map((concept) => {
+    const def = ONBOARDING_CONCEPTS.find((d) => d.id === concept.id);
+    if (!def) return concept;
+    const builtIn = new Set<string>([translations.en[def.nameKey], translations.es[def.nameKey]]);
+    if (concept.id === CREDITS_CONCEPT_ID) builtIn.add(CREDITS_CONCEPT_NAME);
+    if (!builtIn.has(concept.name)) return concept;
+    const name = translations[language][def.nameKey];
+    if (concept.name === name) return concept;
+    changed = true;
+    return { ...concept, name };
+  });
+  return { concepts: changed ? next : concepts, changed };
+}
 
 /** Palette the user can pick when creating/editing a concept. */
 export const CONCEPT_COLOR_OPTIONS = [

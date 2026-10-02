@@ -13,6 +13,7 @@ import {
   ensureCreditSub,
   ensureSpendConceptSub,
   hasDuplicateSubName,
+  localizeDefaultConcepts,
 } from '@/src/data/spendConcepts';
 import {
   CURRENT_CATALOG_VERSION,
@@ -35,6 +36,7 @@ import {
   ensureNotificationPermission,
   syncRemindersFromRules,
 } from '@/src/utils/notifications';
+import { useLanguage } from '@/src/i18n/LanguageContext';
 import { appendUniqueDay, localDateKey } from '@/src/utils/habitPilot';
 import { antTipWeekKey } from '@/src/utils/antSpendTips';
 
@@ -119,6 +121,7 @@ function createId(): string {
 }
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
+  const { language } = useLanguage();
   const [settings, setSettings] = useState<UserSettings>(DEFAULT_SETTINGS);
   const [quickTemplates, setQuickTemplates] = useState<QuickTemplate[]>([]);
   const [ready, setReady] = useState(false);
@@ -158,6 +161,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     setSettings(next);
     await saveSettings(next);
   }, []);
+
+  // Default concepts (Bills / Recibos…) follow the app language.
+  useEffect(() => {
+    if (!ready) return;
+    const { concepts, changed } = localizeDefaultConcepts(settings.spendConcepts ?? [], language);
+    if (!changed) return;
+    void persist({ ...settings, spendConcepts: concepts });
+  }, [ready, language, settings, persist]);
 
   const completeOnboarding = useCallback(
     async (input: {
