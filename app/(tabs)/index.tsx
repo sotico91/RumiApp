@@ -101,6 +101,7 @@ export default function HomeScreen() {
   const alertsHidden = Math.max(0, overBudgetAlerts.length - alerts.length);
   const predictPending = predictedThisMonth.filter((p) => p.status === 'pending');
   const predictTotal = predictedThisMonth.reduce((s, p) => s + p.amount, 0);
+  const predictPendingTotal = predictPending.reduce((s, p) => s + p.amount, 0);
   const worstBudgetRatio = Math.max(0, ...budgetStatus.map((b) => b.ratio));
   const savingsTone = toneFromSavings(savings);
   const expensesTone = toneFromExpensePressure({
@@ -334,7 +335,7 @@ export default function HomeScreen() {
                 ? t('home.predictSummaryClear', { amount: format(predictTotal) })
                 : t('home.predictSummary', {
                     pending: predictPending.length,
-                    amount: format(predictTotal),
+                    amount: format(predictPendingTotal),
                   })
             }>
             <PredictedSpendsCard items={predictedThisMonth} />
