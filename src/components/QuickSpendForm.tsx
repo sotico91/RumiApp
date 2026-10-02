@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
 import type { SavedMovement } from '@/src/components/ExpenseForm';
@@ -199,6 +199,9 @@ export function QuickSpendForm({ onSaved, onOpenGuided }: Props) {
                 onPress={() => {
                   tapFeedback();
                   setCategoryId(chip.id);
+                  // Amount is typed first; picking a category reveals accounts + Save
+                  // (iOS decimal pad has no "Done" key).
+                  Keyboard.dismiss();
                 }}
                 style={[styles.chip, on && styles.chipOn]}>
                 <View style={[styles.dot, { backgroundColor: on ? palette.white : chip.color }]} />
