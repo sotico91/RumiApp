@@ -65,6 +65,7 @@ export async function planShardWrites(items: Transaction[]): Promise<ShardWrites
 
 async function readShards(keys: string[]): Promise<Transaction[]> {
   const out: Transaction[] = [];
+  if (keys.length === 0) return out;
   for (const [key, raw] of await AsyncStorage.multiGet(keys)) {
     if (raw == null) continue;
     const list = await decodeStored<Transaction[]>(key, raw);
@@ -93,6 +94,11 @@ export async function loadShardedTransactions(): Promise<Transaction[] | null> {
   if (raw == null) return null;
   const legacy = await decodeStored<Transaction[]>(LEGACY_TX_KEY, raw);
   if (!Array.isArray(legacy)) return null;
+  if (legacy.length === 0) {
+    // Nothing to move (AsyncStorage also rejects an empty multiSet).
+    await AsyncStorage.removeItem(LEGACY_TX_KEY);
+    return [];
+  }
 
   const plan = await planShardWrites(legacy);
   await AsyncStorage.multiSet(plan.set);

@@ -7,9 +7,18 @@ import { setCipherForTests, takeUnreadableNotice } from '@/src/data/secureStorag
 import { LEGACY_TX_KEY, resetShardCacheForTests } from '@/src/data/transactionShards';
 import type { Transaction } from '@/src/types/finance';
 
-jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
-);
+jest.mock('@react-native-async-storage/async-storage', () => {
+  const mock = require('@react-native-async-storage/async-storage/jest/async-storage-mock');
+  // Like the real library: an empty multiSet throws (the mock accepts it).
+  const multiSet = mock.multiSet;
+  mock.multiSet = jest.fn((pairs: unknown[], ...rest: unknown[]) => {
+    if (!Array.isArray(pairs) || pairs.length === 0) {
+      throw new Error('[AsyncStorage] Expected array of key-value pairs as first argument to multiSet');
+    }
+    return multiSet(pairs, ...rest);
+  });
+  return mock;
+});
 
 // Reversible stand-in for native AES-GCM (text reversed, so words are not
 // readable on disk); rejects anything it did not produce, like a wrong key.
@@ -90,6 +99,20 @@ describe('monthly encrypted movements', () => {
     for (const value of Object.values(data)) expect(value.startsWith('enc1:')).toBe(true);
     // The note never sits on disk in clear text.
     expect(JSON.stringify(data)).not.toContain('Juan');
+  });
+
+  it('handles an old list with no movements (a new phone)', async () => {
+    await AsyncStorage.setItem(LEGACY_TX_KEY, '[]');
+
+    expect(await loadTransactions()).toEqual([]);
+    expect(await AsyncStorage.getItem(LEGACY_TX_KEY)).toBeNull();
+  });
+
+  it('starts empty and saves the first movement into its month', async () => {
+    expect(await loadTransactions()).toEqual([]);
+    await saveTransactions([tx('first', '2026-10-03T09:00:00.000Z')]);
+
+    expect(Object.keys(await stored())).toContain('rumi:tx:2026-10');
   });
 
   it('rewrites only the month that changed', async () => {
