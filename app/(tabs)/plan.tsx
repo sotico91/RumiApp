@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { BrandScreen, ScreenHeader } from '@/src/components/ui';
 import { space } from '@/src/theme';
+import { AmountPrivacyToggle } from '@/src/components/AmountPrivacyToggle';
 import { AppCopyright } from '@/src/components/AppCopyright';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
 import { ConceptsPlanCard } from '@/src/components/ConceptsPlanCard';
@@ -49,7 +50,12 @@ export default function PlanScreen() {
           <ScreenHeader
             title={t('plan.title')}
             subtitle={t('plan.subtitle')}
-            actions={<HowToGuideButton light variant="chip" />}
+            actions={
+              <>
+                <HowToGuideButton light />
+                <AmountPrivacyToggle />
+              </>
+            }
           />
         </>
       }>

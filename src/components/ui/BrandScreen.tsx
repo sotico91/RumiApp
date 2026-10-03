@@ -20,8 +20,7 @@ type Props = {
 
 /**
  * Tab screen layout: a petrol header with rounded bottom corners scrolls away
- * over a cream body. Owns the safe-area top, the status-bar band and the
- * room left for the tab bar and floating buttons.
+ * over a cream body. Owns the safe-area top and the status-bar band.
  */
 export function BrandScreen({ header, children, gap = space.xl, overlay }: Props) {
   const insets = useSafeAreaInsets();
@@ -72,8 +71,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg.screen,
   },
   screen: { flex: 1 },
-  // Clears the tab bar and the floating eye / add buttons.
-  content: { paddingBottom: 168 },
+  content: { paddingBottom: space.huge },
   overscroll: {
     position: 'absolute',
     top: -1000,

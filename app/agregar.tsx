@@ -7,10 +7,9 @@ import { FriendlyAddFlow } from '@/src/components/FriendlyAddFlow';
 import { QuickSpendForm } from '@/src/components/QuickSpendForm';
 import type { FriendlyIntent } from '@/src/data/friendlyTemplates';
 import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
-import { ScreenBackground } from '@/src/components/ScreenBackground';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useLanguage } from '@/src/i18n/LanguageContext';
-import { palette, radii } from '@/src/theme/colors';
+import { colors, radius, shadow, space, type } from '@/src/theme';
 
 export default function AgregarScreen() {
   const { t } = useLanguage();
@@ -81,7 +80,7 @@ export default function AgregarScreen() {
   }
 
   return (
-    <ScreenBackground edges="none">
+    <View style={styles.root}>
       <View style={styles.content}>
         {mode === 'quick' ? (
           <QuickSpendForm
@@ -138,41 +137,46 @@ export default function AgregarScreen() {
           </>
         )}
       </View>
-    </ScreenBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: colors.bg.screen,
+  },
   content: {
     flex: 1,
-    padding: 22,
-    paddingBottom: 28,
-    gap: 12,
+    padding: space.gutter,
+    paddingBottom: space.xxl,
+    gap: space.sm,
   },
   modeSwitch: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: radii.md,
-    padding: 4,
-    gap: 4,
+    backgroundColor: 'rgba(15,28,36,0.06)',
+    borderRadius: radius.md,
+    padding: space.xxs,
+    gap: space.xxs,
   },
   modeBtn: {
     flex: 1,
     paddingVertical: 10,
-    borderRadius: 12,
+    borderRadius: radius.sm,
     alignItems: 'center',
   },
   modeOn: {
-    backgroundColor: palette.surfaceSolid,
+    backgroundColor: colors.bg.surface,
+    ...shadow.e1,
   },
   modeText: {
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 13,
-    color: palette.brandMuted,
+    ...type.caption,
+    fontFamily: type.bodyStrong.fontFamily,
+    color: colors.text.secondary,
   },
   modeTextOn: {
-    color: palette.ink,
-    fontFamily: 'DMSans_600SemiBold',
+    color: colors.text.primary,
+    fontFamily: type.label.fontFamily,
   },
   advancedPad: {
     paddingBottom: 120,

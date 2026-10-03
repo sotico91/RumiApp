@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AmountPrivacyToggle } from '@/src/components/AmountPrivacyToggle';
 import { AppModal } from '@/src/components/AppModal';
 import { AntSpendTipCard } from '@/src/components/AntSpendTipCard';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
@@ -136,6 +137,7 @@ export default function HomeScreen() {
             <View style={styles.heroAside}>
               <View style={styles.avatarRow}>
                 <HowToGuideButton light />
+                <AmountPrivacyToggle />
                 <ProfileMenuButton />
                 <View style={styles.avatar}>
                   <Text style={styles.avatarText}>{initial}</Text>

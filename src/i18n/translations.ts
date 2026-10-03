@@ -744,7 +744,7 @@ export const translations = {
       'Home shows what you can still spend. Tap the wallet for cash, banks and wallets (your accounts). This month’s result is whether this month stayed in the green — only what you logged.',
     'coach.glanceTitle': 'Log a transaction',
     'coach.glanceBody':
-      'Tap ◎ to log: pick what happened, type the amount, save.',
+      'Tap + to log: pick what happened, type the amount, save.',
     'coach.tabsTitle': 'The rest lives down here',
     'coach.tabsBody':
       'Activity to fix entries, Plan for categories, Wealth for accounts, Insights to ask Rumi. Lost? Tap ?.',
@@ -765,10 +765,10 @@ export const translations = {
       'Your categories (Food, Bills…) and their subcategories (Coffee, Power…). Optional: monthly limits, reminders and small spends 🐜 to watch.',
     'guide.step3Title': 'Log an expense',
     'guide.step3Body':
-      'Tap ◎ → I spent. Type the amount, tap what it was for and the account or card it came from. Save.',
+      'Tap + → I spent. Type the amount, tap what it was for and the account or card it came from. Save.',
     'guide.step4Title': 'Income, or just moving money',
     'guide.step4Body':
-      'Got paid: ◎ → I received money. Moved money between your accounts: ◎ → I moved money. Moving is not an expense.',
+      'Got paid: + → I received money. Moved money between your accounts: + → I moved money. Moving is not an expense.',
     'guide.step5Title': 'Cards and loans are two different things',
     'guide.step5Body':
       'Buying with a card is an expense. Paying the card later is not a new one — Rumi counts the purchase once. Loans: log each installment when you pay it.',
@@ -1736,7 +1736,7 @@ export const translations = {
       'En Inicio ves lo que aún puedes gastar. Toca la billetera para efectivo, bancos y billeteras (tus bolsillos). El resultado del mes es si vas a favor o en rojo — solo lo que registraste.',
     'coach.glanceTitle': 'Registrar un movimiento',
     'coach.glanceBody':
-      'Toca ◎ para registrar: elige qué pasó, escribe el monto y guarda.',
+      'Toca + para registrar: elige qué pasó, escribe el monto y guarda.',
     'coach.tabsTitle': 'El resto está abajo',
     'coach.tabsBody':
       'Actividad para corregir, Plan para categorías, Patrimonio para cuentas, Análisis para preguntarle a Rumi. ¿Perdido? Toca ?.',
@@ -1757,10 +1757,10 @@ export const translations = {
       'Tus categorías (Alimentación, Recibos…) y sus subcategorías (Café, Luz…). Opcional: topes mensuales, recordatorios y gastos hormiga 🐜 para vigilar.',
     'guide.step3Title': 'Registra un gasto',
     'guide.step3Body':
-      'Toca ◎ → Gasté. Escribe el monto, toca en qué fue y la cuenta o tarjeta de donde salió. Guarda.',
+      'Toca + → Gasté. Escribe el monto, toca en qué fue y la cuenta o tarjeta de donde salió. Guarda.',
     'guide.step4Title': 'Si te pagaron o solo moviste plata',
     'guide.step4Body':
-      'Te pagaron: ◎ → Recibí dinero. Moviste plata entre tus cuentas: ◎ → Moví dinero. Mover no es un gasto.',
+      'Te pagaron: + → Recibí dinero. Moviste plata entre tus cuentas: + → Moví dinero. Mover no es un gasto.',
     'guide.step5Title': 'Tarjetas y créditos son dos cosas distintas',
     'guide.step5Body':
       'Comprar con tarjeta es un gasto. Pagar la tarjeta después no es otro: Rumi cuenta la compra una sola vez. Préstamos: registra cada cuota cuando la pagues.',

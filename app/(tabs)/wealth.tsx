@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 
+import { AmountPrivacyToggle } from '@/src/components/AmountPrivacyToggle';
 import {
   BankQuickAdd,
   InvestmentQuickAdd,
@@ -688,7 +689,12 @@ export default function WealthScreen() {
           <ScreenHeader
             title={t('wealth.title')}
             subtitle={t('wealth.subtitle')}
-            actions={<HowToGuideButton light variant="chip" />}
+            actions={
+              <>
+                <HowToGuideButton light />
+                <AmountPrivacyToggle />
+              </>
+            }
           />
           <View style={styles.net}>
             <AppText variant="overline" color="onBrandMuted">

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { AmountPrivacyToggle } from '@/src/components/AmountPrivacyToggle';
 import { BrandScreen, ScreenHeader } from '@/src/components/ui';
 import { colors, space } from '@/src/theme';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
@@ -133,7 +134,7 @@ export default function HistorialScreen() {
       gap={space.md}
       header={
         <>
-          <ScreenHeader title={t('history.title')} />
+          <ScreenHeader title={t('history.title')} actions={<AmountPrivacyToggle />} />
           <PeriodToggle
             value={period}
             onChange={(next) => {

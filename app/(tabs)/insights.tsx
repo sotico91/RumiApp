@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { AmountPrivacyToggle } from '@/src/components/AmountPrivacyToggle';
 import { BrandScreen, ScreenHeader } from '@/src/components/ui';
 import { colors, space } from '@/src/theme';
 import { CategoryBreakdown } from '@/src/components/CategoryBreakdown';
@@ -113,7 +114,8 @@ export default function InsightsScreen() {
             subtitle={t('insights.subtitle')}
             actions={
               <View style={styles.heroActions}>
-                <HowToGuideButton light variant="chip" />
+                <HowToGuideButton light />
+                <AmountPrivacyToggle />
                 <SavingsDecor size="md" />
               </View>
             }

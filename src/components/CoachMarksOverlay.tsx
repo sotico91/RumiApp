@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppModal } from '@/src/components/AppModal';
+import { addButtonFrame } from '@/src/components/RumiTabBar';
 import { useHowToGuide } from '@/src/hooks/useHowToGuide';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
@@ -25,10 +26,14 @@ const STEPS: Step[] = [
 
 const STEP_MS = 4200;
 const FAB_SIZE = 52;
-const GLANCE_SIZE = 58;
+/** Room between the spotlight ring and the + button. */
+const RING = 8;
+/** Card side margin; also where the card's arrow is measured from. */
+const CARD_SIDE = 18;
 
 export function CoachMarksOverlay() {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const { t } = useLanguage();
   const { settings, ready, coachMarksPending, completeCoachMarks } = useSettings();
   const [step, setStep] = useState(0);
@@ -68,6 +73,8 @@ export function CoachMarksOverlay() {
   const current = STEPS[step];
   const fabBottom = Math.max(insets.bottom, 12) + 78;
   const tabTop = Math.max(insets.bottom, 12) + 18;
+  const add = addButtonFrame(width, insets.bottom);
+  const addSpot = add.size + RING * 2;
 
   return (
     <AppModal visible transparent animationType="fade" statusBarTranslucent>
@@ -96,11 +103,11 @@ export function CoachMarksOverlay() {
             style={[
               styles.spot,
               {
-                width: GLANCE_SIZE + 16,
-                height: GLANCE_SIZE + 16,
-                borderRadius: (GLANCE_SIZE + 16) / 2,
-                right: 10,
-                bottom: fabBottom - 8,
+                width: addSpot,
+                height: addSpot,
+                borderRadius: addSpot / 2,
+                left: add.centerX - addSpot / 2,
+                bottom: add.bottom - RING,
               },
             ]}
           />
@@ -144,7 +151,11 @@ export function CoachMarksOverlay() {
             styles.cardWrap,
             current.id === 'privacy' && { left: 16, bottom: fabBottom + FAB_SIZE + 18 },
             current.id === 'money' && { left: 18, right: 18, top: insets.top + 350 },
-            current.id === 'glance' && { right: 16, bottom: fabBottom + GLANCE_SIZE + 18 },
+            current.id === 'glance' && {
+              left: CARD_SIDE,
+              right: CARD_SIDE,
+              bottom: add.bottom + add.size + RING + 18,
+            },
             current.id === 'tabs' && { left: 18, right: 18, bottom: tabTop + 86 },
           ]}>
           <View
@@ -152,7 +163,7 @@ export function CoachMarksOverlay() {
               styles.card,
               current.id === 'privacy' && styles.cardLeft,
               current.id === 'money' && styles.cardCenter,
-              current.id === 'glance' && styles.cardRight,
+              current.id === 'glance' && styles.cardCenter,
             ]}>
             <Text style={styles.kicker}>
               {t('coach.step', { current: step + 1, total: STEPS.length })}
@@ -164,7 +175,7 @@ export function CoachMarksOverlay() {
                 styles.arrow,
                 current.id === 'privacy' && styles.arrowLeft,
                 current.id === 'money' && styles.arrowTop,
-                current.id === 'glance' && styles.arrowRight,
+                current.id === 'glance' && { left: add.centerX - CARD_SIDE - 6 },
                 current.id === 'tabs' && styles.arrowCenter,
               ]}
             />
@@ -227,7 +238,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
   },
   cardLeft: { alignSelf: 'flex-start' },
-  cardRight: { alignSelf: 'flex-end' },
   cardCenter: { alignSelf: 'center', maxWidth: 340 },
   kicker: {
     fontFamily: 'DMSans_600SemiBold',
@@ -259,7 +269,6 @@ const styles = StyleSheet.create({
     bottom: -6,
   },
   arrowLeft: { left: 22 },
-  arrowRight: { right: 22 },
   arrowCenter: { alignSelf: 'center', left: '50%', marginLeft: -6 },
   arrowTop: { top: -6, bottom: undefined, alignSelf: 'center', left: '50%', marginLeft: -6 },
   footer: {

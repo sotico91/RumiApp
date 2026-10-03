@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   backText: {
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 14,
-    color: palette.white,
+    color: palette.bg,
   },
   body: {
     paddingTop: 4,

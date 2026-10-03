@@ -1,41 +1,27 @@
 import { SymbolView } from 'expo-symbols';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet } from 'react-native';
 
 import { useAmountPrivacy } from '@/src/hooks/useAmountPrivacy';
-import { useKeyboardVisible } from '@/src/hooks/useKeyboardVisible';
 import { useLanguage } from '@/src/i18n/LanguageContext';
-import { palette } from '@/src/theme/colors';
+import { colors, radius } from '@/src/theme';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 
-type Props = {
-  /** Embed inline (e.g. home header) instead of floating. */
-  inline?: boolean;
-  light?: boolean;
-};
-
-export function AmountPrivacyToggle({ inline = false, light = false }: Props) {
-  const insets = useSafeAreaInsets();
+/**
+ * Eye in each screen's petrol header that shows / hides every amount.
+ * Same size and glass style as the ? button next to it.
+ */
+export function AmountPrivacyToggle() {
   const { t } = useLanguage();
   const { amountsVisible, toggleAmountsVisible } = useAmountPrivacy();
-  const keyboardVisible = useKeyboardVisible();
 
-  const tint =
-    amountsVisible || light || !inline ? palette.white : palette.ink;
-
-  const button = (
+  return (
     <Pressable
       onPress={() => {
         tapFeedback();
         toggleAmountsVisible();
       }}
       hitSlop={10}
-      style={[
-        styles.btn,
-        light && styles.btnLight,
-        amountsVisible && styles.btnOn,
-        inline && styles.btnInline,
-      ]}
+      style={({ pressed }) => [styles.btn, pressed && styles.pressed]}
       accessibilityRole="button"
       accessibilityState={{ selected: amountsVisible }}
       accessibilityLabel={
@@ -47,61 +33,23 @@ export function AmountPrivacyToggle({ inline = false, light = false }: Props) {
           android: amountsVisible ? 'visibility' : 'visibility_off',
           web: amountsVisible ? 'visibility' : 'visibility_off',
         }}
-        tintColor={tint}
-        size={inline ? 17 : 20}
+        tintColor={colors.text.onBrand}
+        size={18}
       />
     </Pressable>
-  );
-
-  if (inline) return button;
-  if (keyboardVisible) return null;
-
-  // Left side so it never fights the glance FAB on the right — visible on every tab.
-  return (
-    <View
-      pointerEvents="box-none"
-      style={[
-        styles.floatWrap,
-        { bottom: Math.max(insets.bottom, 12) + 78, left: 16 },
-      ]}>
-      {button}
-    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  floatWrap: {
-    position: 'absolute',
-    zIndex: 40,
-  },
   btn: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#163642',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-  },
-  btnInline: {
     width: 36,
     height: 36,
-    borderRadius: 18,
-    shadowOpacity: 0,
-    backgroundColor: 'rgba(8,20,28,0.12)',
-    borderColor: 'rgba(8,20,28,0.08)',
-  },
-  btnLight: {
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.22)',
-    borderColor: 'rgba(255,255,255,0.28)',
   },
-  btnOn: {
-    backgroundColor: palette.accent,
-    borderColor: palette.accent,
+  pressed: {
+    backgroundColor: 'rgba(255,255,255,0.32)',
   },
 });
