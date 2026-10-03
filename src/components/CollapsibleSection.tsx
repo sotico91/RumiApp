@@ -12,7 +12,7 @@ type Props = {
   open: boolean;
   onToggle: () => void;
   children: ReactNode;
-  /** Optional index for spacing consistency with FadeInBlock sections. */
+  /** Optional style for the wrapper. */
   style?: object;
   /** `surface` for the cream body (default), `brand` for petrol backgrounds. */
   tone?: 'brand' | 'surface';

@@ -2,6 +2,7 @@ import { SymbolView } from 'expo-symbols';
 import { Tabs } from 'expo-router';
 
 import { RumiTabBar } from '@/src/components/RumiTabBar';
+import { colors } from '@/src/theme';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 
@@ -18,6 +19,9 @@ export default function TabLayout() {
       }}
       screenOptions={{
         headerShown: false,
+        // Cream behind every tab while it mounts, instead of the petrol
+        // navigation background flashing through on first open.
+        sceneStyle: { backgroundColor: colors.bg.screen },
       }}>
       <Tabs.Screen
         name="index"

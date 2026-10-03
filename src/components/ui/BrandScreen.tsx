@@ -3,7 +3,6 @@ import { useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FadeInBlock } from '@/src/components/FadeInBlock';
 import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
 import { colors, radius, scale, space } from '@/src/theme';
 
@@ -46,7 +45,9 @@ export function BrandScreen({
           if (next !== scrolled) setScrolled(next);
         }}
         showsVerticalScrollIndicator={false}>
-        <FadeInBlock>
+        {/* No entering animation: a tab opened for the first time was showing
+            cream for a moment and then sliding the header in, which read as a flicker. */}
+        <View>
           {/* Pulling down past the top (iOS bounce) shows petrol, not cream. */}
           <View style={styles.overscroll} />
           <View style={[styles.header, { paddingTop: insets.top + space.xs }]}>
@@ -58,11 +59,9 @@ export function BrandScreen({
             />
             {header}
           </View>
-        </FadeInBlock>
+        </View>
 
-        <FadeInBlock index={1}>
-          <View style={[styles.body, { gap }]}>{children}</View>
-        </FadeInBlock>
+        <View style={[styles.body, { gap }]}>{children}</View>
       </KeyboardSafeScroll>
 
       {/* Keeps the light status bar readable once the header scrolls away. */}
