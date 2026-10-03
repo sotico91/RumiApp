@@ -60,6 +60,9 @@ export const colors = {
     onBrandMuted: 'rgba(255,255,255,0.78)',
     onAction: '#FFFFFF',
     highlight: scale.gold[400],
+    /** Status colors light enough to read on petrol. */
+    onBrandSuccess: '#7DFFC8',
+    onBrandDanger: '#FFB4A8',
   },
   action: {
     primary: scale.coral[500],

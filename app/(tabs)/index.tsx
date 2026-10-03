@@ -1,3 +1,5 @@
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -11,26 +13,27 @@ import { FadeInBlock } from '@/src/components/FadeInBlock';
 import { HabitPilotCard } from '@/src/components/HabitPilotCard';
 import { HowToGuideButton } from '@/src/components/HowToGuideButton';
 import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
+import { MoneyText } from '@/src/components/MoneyText';
 import { PredictedSpendsCard } from '@/src/components/PredictedSpendsCard';
 import { ProfileMenuButton } from '@/src/components/ProfileMenuButton';
 import { QuickAddBar } from '@/src/components/QuickAddBar';
 import { PocketFlowList } from '@/src/components/PocketFlowList';
 import { RaisedText } from '@/src/components/RaisedText';
 import { SavingsDecor } from '@/src/components/SavingsDecor';
-import { ScreenBackground } from '@/src/components/ScreenBackground';
+import { SelectPressable } from '@/src/components/SelectPressable';
+import { AppText, Button, Card } from '@/src/components/ui';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
-import { palette, radii } from '@/src/theme/colors';
+import { colors, radius, scale, shadow, space, type } from '@/src/theme';
 import { projectMonth } from '@/src/utils/projection';
 import { categoryLabel } from '@/src/utils/categoryLabel';
 import {
   antTipWeekKey,
   pickAntSpendTip,
 } from '@/src/utils/antSpendTips';
-import { tapFeedback } from '@/src/utils/selectFeedback';
 import {
   toneFromExpensePressure,
   toneFromSavings,
@@ -58,6 +61,8 @@ export default function HomeScreen() {
   const [moneyInfo, setMoneyInfo] = useState<MoneyInfoKind | null>(null);
   const [attentionOpen, setAttentionOpen] = useState(false);
   const [predictOpen, setPredictOpen] = useState(false);
+  // The petrol status band only shows once the hero has scrolled under it.
+  const [scrolled, setScrolled] = useState(false);
 
   const displayName = settings.userName.trim();
   const greeting = displayName
@@ -119,170 +124,197 @@ export default function HomeScreen() {
   const antTipTitleVariant = settings.antTipLastTitleVariant ?? 0;
   const antTipBodyVariant = settings.antTipLastBodyVariant ?? 0;
 
-
-
-
   return (
-    <ScreenBackground>
+    <View style={styles.root}>
       <KeyboardSafeScroll
         style={styles.screen}
         contentContainerStyle={styles.content}
+        scrollEventThrottle={16}
+        onScroll={(e) => {
+          const next = e.nativeEvent.contentOffset.y > space.xs;
+          if (next !== scrolled) setScrolled(next);
+        }}
         showsVerticalScrollIndicator={false}>
         <FadeInBlock>
-          <View style={styles.heroRow}>
-            <View style={styles.heroCopy}>
-              <RaisedText style={styles.brand}>{t('brand.name')}</RaisedText>
-              <RaisedText tone="gold" style={styles.greeting}>
-                {greeting}
-              </RaisedText>
-              <Text style={styles.spaceLabel}>{spaceLabel}</Text>
-            </View>
-            <View style={styles.heroAside}>
-              <View style={styles.avatarRow}>
-                <HowToGuideButton light />
-                <ProfileMenuButton />
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{initial}</Text>
-                </View>
+          {/* Pulling down past the top (iOS bounce) shows petrol, not cream. */}
+          <View style={styles.overscroll} />
+          <View style={[styles.hero, { paddingTop: insets.top + space.xs }]}>
+            <LinearGradient
+              colors={[scale.petrol[700], scale.petrol[600]]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={StyleSheet.absoluteFill}
+            />
+            <View style={styles.heroRow}>
+              <View style={styles.heroCopy}>
+                <RaisedText style={styles.brand}>{t('brand.name')}</RaisedText>
+                <RaisedText tone="gold" style={styles.greeting}>
+                  {greeting}
+                </RaisedText>
+                <AppText variant="caption" color="onBrandMuted">
+                  {spaceLabel}
+                </AppText>
               </View>
-              <SavingsDecor />
-            </View>
-          </View>
-        </FadeInBlock>
-
-        <FadeInBlock index={2}>
-          <Pressable
-            onPress={() => setMoneyInfo('available')}
-            onPressIn={() => tapFeedback()}
-            style={styles.positionCard}>
-            <View style={styles.availableHead}>
-              <View style={{ flex: 1, paddingRight: 12 }}>
-                <Text style={styles.positionTitle}>{t('home.available')}</Text>
-                <Text style={styles.positionHint}>{t('home.availableCaption')}</Text>
-              </View>
-              <Text
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.7}
-                style={[styles.availableTodayTotal, styles.textGood]}>
-                {format(loading ? 0 : availableCash)}
-              </Text>
-            </View>
-          </Pressable>
-        </FadeInBlock>
-
-        <FadeInBlock index={3}>
-          <View style={styles.dashGrid}>
-            <DashTile
-              label={t('home.income')}
-              value={format(loading ? 0 : income)}
-              tone="good"
-              onPress={() => setGlance('income')}
-            />
-            <DashTile
-              label={t('home.expenses')}
-              value={format(loading ? 0 : expenses)}
-              tone={expensesTone === 'neutral' ? 'danger' : expensesTone}
-              onPress={() => setGlance('expense')}
-            />
-            <DashTile
-              label={t('home.savings')}
-              wide
-              legend={t('home.savingsLegend')}
-              value={format(savings)}
-              tone={savingsTone}
-              hint={
-                paceHint ??
-                (savingsTone === 'good'
-                  ? t('home.savingsGood')
-                  : savingsTone === 'danger'
-                    ? t('home.savingsBad')
-                    : undefined)
-              }
-              onPress={() => setMoneyInfo('savings')}
-            />
-          </View>
-        </FadeInBlock>
-
-        <FadeInBlock index={5}>
-          <QuickAddBar />
-        </FadeInBlock>
-
-        <FadeInBlock index={6}>
-          <HabitPilotCard />
-        </FadeInBlock>
-
-        {antTip ? (
-          <FadeInBlock index={6}>
-            <AntSpendTipCard
-              tip={antTip}
-              conceptLabel={categoryLabel(antTip.categoryId, t, spendConcepts)}
-              titleVariant={antTipTitleVariant}
-              bodyVariant={antTipBodyVariant}
-              onDismiss={() => {
-                void dismissAntSpendTipWeek();
-              }}
-              onOpen={() => setGlance('expense')}
-            />
-          </FadeInBlock>
-        ) : null}
-
-        <FadeInBlock index={7}>
-          <CollapsibleSection
-            title={t('home.attention')}
-            open={attentionOpen}
-            onToggle={() => setAttentionOpen((v) => !v)}
-            summary={
-              alerts.length === 0
-                ? t('home.attentionEmptyShort')
-                : t('home.attentionSummary', { count: alerts.length + alertsHidden })
-            }>
-            {alerts.length === 0 ? (
-              <View style={[styles.attentionCard, styles.good]}>
-                <Text style={styles.attentionText}>{t('home.attentionEmpty')}</Text>
-              </View>
-            ) : (
-              <>
-                {alerts.map((a) => (
-                  <View key={a.categoryId} style={[styles.attentionCard, styles.danger]}>
-                    <Text style={[styles.attentionText, styles.attentionDangerText]}>
-                      {t('insights.overBudget')}:{' '}
-                      {categoryLabel(a.categoryId, t, spendConcepts)} (
-                      {Math.round(a.ratio * 100)}%)
-                    </Text>
+              <View style={styles.heroAside}>
+                <View style={styles.avatarRow}>
+                  <HowToGuideButton light />
+                  <ProfileMenuButton />
+                  <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>{initial}</Text>
                   </View>
-                ))}
-                {alertsHidden > 0 ? (
-                  <Pressable onPress={() => router.push('/(tabs)/plan')}>
-                    <Text style={styles.attentionMore}>
-                      {t('home.attentionMore', { count: alertsHidden })}
-                    </Text>
-                  </Pressable>
-                ) : null}
-              </>
-            )}
-          </CollapsibleSection>
+                </View>
+                <SavingsDecor />
+              </View>
+            </View>
+
+            <SelectPressable
+              onPress={() => setMoneyInfo('available')}
+              accessibilityRole="button"
+              accessibilityLabel={`${t('home.available')}: ${format(availableCash)}`}
+              style={({ pressed }) => [styles.available, pressed && styles.pressed]}>
+              <View style={styles.availableLabelRow}>
+                <AppText variant="overline" color="onBrandMuted">
+                  {t('home.available')}
+                </AppText>
+                <Ionicons
+                  name="information-circle-outline"
+                  size={16}
+                  color={colors.text.onBrandMuted}
+                />
+              </View>
+              {loading ? (
+                <View style={styles.amountSkeleton} />
+              ) : (
+                <MoneyText
+                  style={[
+                    styles.availableAmount,
+                    availableCash < 0 && { color: colors.text.onBrandDanger },
+                  ]}>
+                  {format(availableCash)}
+                </MoneyText>
+              )}
+              <AppText variant="caption" color="onBrandMuted">
+                {t('home.availableCaption')}
+              </AppText>
+            </SelectPressable>
+          </View>
         </FadeInBlock>
 
-        <FadeInBlock index={8}>
-          <CollapsibleSection
-            title={t('home.predictTitle')}
-            open={predictOpen}
-            onToggle={() => setPredictOpen((v) => !v)}
-            summary={
-              predictPending.length === 0
-                ? t('home.predictSummaryClear', { amount: format(predictTotal) })
-                : t('home.predictSummary', {
-                    pending: predictPending.length,
-                    amount: format(predictPendingTotal),
-                  })
-            }>
-            <PredictedSpendsCard items={predictedThisMonth} />
-          </CollapsibleSection>
+        <FadeInBlock index={1}>
+          <View style={styles.body}>
+            <View>
+              <AppText variant="overline" color="tertiary" style={styles.sectionLabel}>
+                {t('decor.monthTitle')}
+              </AppText>
+              <View style={styles.metrics}>
+                <View style={styles.metricsRow}>
+                  <MetricTile
+                    label={t('home.income')}
+                    value={format(loading ? 0 : income)}
+                    tone="good"
+                    onPress={() => setGlance('income')}
+                  />
+                  <MetricTile
+                    label={t('home.expenses')}
+                    value={format(loading ? 0 : expenses)}
+                    tone={expensesTone}
+                    onPress={() => setGlance('expense')}
+                  />
+                </View>
+                <MetricTile
+                  label={t('home.savings')}
+                  legend={t('home.savingsLegend')}
+                  value={format(savings)}
+                  tone={savingsTone}
+                  hint={
+                    paceHint ??
+                    (savingsTone === 'good'
+                      ? t('home.savingsGood')
+                      : savingsTone === 'danger'
+                        ? t('home.savingsBad')
+                        : undefined)
+                  }
+                  onPress={() => setMoneyInfo('savings')}
+                />
+              </View>
+            </View>
+
+            <QuickAddBar />
+
+            <HabitPilotCard />
+
+            {antTip ? (
+              <AntSpendTipCard
+                tip={antTip}
+                conceptLabel={categoryLabel(antTip.categoryId, t, spendConcepts)}
+                titleVariant={antTipTitleVariant}
+                bodyVariant={antTipBodyVariant}
+                onDismiss={() => {
+                  void dismissAntSpendTipWeek();
+                }}
+                onOpen={() => setGlance('expense')}
+              />
+            ) : null}
+
+            <CollapsibleSection
+              tone="surface"
+              title={t('home.attention')}
+              open={attentionOpen}
+              onToggle={() => setAttentionOpen((v) => !v)}
+              summary={
+                alerts.length === 0
+                  ? t('home.attentionEmptyShort')
+                  : t('home.attentionSummary', { count: alerts.length + alertsHidden })
+              }>
+              {alerts.length === 0 ? (
+                <Card variant="tinted" tone="success" padding="sm">
+                  <AppText variant="bodyStrong">{t('home.attentionEmpty')}</AppText>
+                </Card>
+              ) : (
+                <View style={styles.alertList}>
+                  {alerts.map((a) => (
+                    <Card key={a.categoryId} variant="tinted" tone="danger" padding="sm">
+                      <AppText variant="bodyStrong" style={styles.alertText}>
+                        {t('insights.overBudget')}:{' '}
+                        {categoryLabel(a.categoryId, t, spendConcepts)} (
+                        {Math.round(a.ratio * 100)}%)
+                      </AppText>
+                    </Card>
+                  ))}
+                  {alertsHidden > 0 ? (
+                    <Button
+                      variant="tertiary"
+                      size="sm"
+                      label={t('home.attentionMore', { count: alertsHidden })}
+                      onPress={() => router.push('/(tabs)/plan')}
+                      style={styles.alertMore}
+                    />
+                  ) : null}
+                </View>
+              )}
+            </CollapsibleSection>
+
+            <CollapsibleSection
+              tone="surface"
+              title={t('home.predictTitle')}
+              open={predictOpen}
+              onToggle={() => setPredictOpen((v) => !v)}
+              summary={
+                predictPending.length === 0
+                  ? t('home.predictSummaryClear', { amount: format(predictTotal) })
+                  : t('home.predictSummary', {
+                      pending: predictPending.length,
+                      amount: format(predictPendingTotal),
+                    })
+              }>
+              <PredictedSpendsCard items={predictedThisMonth} />
+            </CollapsibleSection>
+          </View>
         </FadeInBlock>
-
-
       </KeyboardSafeScroll>
+
+      {/* Keeps the light status bar readable once the hero scrolls away. */}
+      {scrolled ? <View style={[styles.statusBand, { height: insets.top }]} /> : null}
 
       <ConceptGlanceSheet
         visible={glance != null}
@@ -291,7 +323,6 @@ export default function HomeScreen() {
         items={glance === 'income' ? incomeConcepts : expenseConcepts}
         total={glance === 'income' ? income : expenses}
       />
-
 
       <AppModal
         visible={moneyInfo != null}
@@ -303,57 +334,63 @@ export default function HomeScreen() {
           <View
             style={[
               styles.infoCard,
-              { marginBottom: Math.max(insets.bottom, 16) + 24 },
+              { marginBottom: Math.max(insets.bottom, space.md) + space.xl },
             ]}>
-            <Text style={styles.infoEyebrow}>{t('home.moneyInfoEyebrow')}</Text>
-            <Text style={styles.infoTitle}>
+            <AppText variant="overline" color="tertiary">
+              {t('home.moneyInfoEyebrow')}
+            </AppText>
+            <AppText variant="h2" style={styles.infoTitle}>
               {t(
                 (moneyInfo === 'available'
                   ? 'home.available'
                   : 'home.savings') as TranslationKey
               )}
-            </Text>
-            <Text style={styles.infoBody}>
+            </AppText>
+            <AppText color="secondary" style={styles.infoBody}>
               {t(
                 (moneyInfo === 'available'
                   ? 'home.availableInfoBody'
                   : 'home.savingsInfoBody') as TranslationKey
               )}
-            </Text>
+            </AppText>
             {moneyInfo === 'available' ? (
               <View style={styles.availableBreakdown}>
                 <PocketFlowList />
               </View>
             ) : null}
-            <Text style={styles.infoCompare}>
+            <AppText variant="bodyStrong" style={styles.infoBody}>
               {t(
                 (moneyInfo === 'available'
                   ? 'home.availableInfoCompare'
                   : 'home.savingsInfoCompare') as TranslationKey
               )}
-            </Text>
-            <Pressable
-              onPress={() => {
-                tapFeedback();
-                setMoneyInfo(null);
-              }}
-              style={styles.infoBtn}>
-              <Text style={styles.infoBtnText}>{t('home.moneyInfoGotIt')}</Text>
-            </Pressable>
+            </AppText>
+            <Button
+              fullWidth
+              label={t('home.moneyInfoGotIt')}
+              onPress={() => setMoneyInfo(null)}
+              style={styles.infoBtn}
+            />
           </View>
         </View>
       </AppModal>
-    </ScreenBackground>
+    </View>
   );
 }
 
-function DashTile({
+const TONE_COLOR: Record<SignalTone, string> = {
+  good: colors.status.success,
+  warn: colors.status.warning,
+  danger: colors.status.danger,
+  neutral: colors.text.primary,
+};
+
+function MetricTile({
   label,
   value,
   tone = 'neutral',
   hint,
   onPress,
-  wide = false,
   legend,
 }: {
   label: string;
@@ -361,412 +398,221 @@ function DashTile({
   tone?: SignalTone;
   hint?: string;
   onPress?: () => void;
-  /** Full row, for the month result under income / expenses. */
-  wide?: boolean;
-  /** Short "what is this" shown on the right of a wide tile, with an ⓘ. */
+  /** Short "what is this" on the right, with an info icon. */
   legend?: string;
 }) {
-  const Wrapper = onPress ? Pressable : View;
+  const toneColor = TONE_COLOR[tone];
   return (
-    <Wrapper
+    <Card
       onPress={onPress}
-      onPressIn={onPress ? () => tapFeedback() : undefined}
-      style={[
-        styles.tile,
-        wide && styles.tileWide,
-        tone === 'danger' && styles.boxDanger,
-        tone === 'warn' && styles.boxWarn,
-        tone === 'good' && styles.boxGood,
-        legend ? styles.tileRow : null,
-      ]}>
-      <View style={legend ? styles.tileMain : undefined}>
-      <Text
-        style={[
-          styles.tileLabel,
-          tone === 'danger' && styles.textDanger,
-          tone === 'good' && styles.textGood,
-          tone === 'warn' && styles.textWarn,
-        ]}>
-        {label}
-      </Text>
-      <Text
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.75}
-        style={[
-          styles.tileValue,
-          tone === 'danger' && styles.textDanger,
-          tone === 'good' && styles.textGood,
-          tone === 'warn' && styles.textWarn,
-        ]}>
-        {value}
-      </Text>
-      {hint ? (
-        <Text
-          style={[
-            styles.tileHint,
-            tone === 'danger' && styles.textDanger,
-            tone === 'good' && styles.textGood,
-          ]}>
-          {hint}
-        </Text>
-      ) : null}
-      </View>
-      {legend ? (
-        <View style={styles.tileLegend}>
-          <Text style={styles.tileInfo}>ⓘ</Text>
-          <Text style={styles.tileLegendText}>{legend}</Text>
+      accessibilityLabel={`${label}: ${value}`}
+      style={legend ? styles.metricWide : styles.metric}>
+      <View style={legend ? styles.metricRow : undefined}>
+        <View style={legend ? styles.metricMain : undefined}>
+          <View style={styles.metricLabelRow}>
+            <View
+              style={[
+                styles.metricDot,
+                { backgroundColor: tone === 'neutral' ? colors.border.strong : toneColor },
+              ]}
+            />
+            <AppText variant="overline" color="tertiary" numberOfLines={1}>
+              {label}
+            </AppText>
+          </View>
+          <MoneyText style={[styles.metricValue, { color: toneColor }]}>{value}</MoneyText>
+          {hint ? (
+            <AppText
+              variant="caption"
+              style={[styles.metricHint, tone !== 'neutral' && { color: toneColor }]}>
+              {hint}
+            </AppText>
+          ) : null}
         </View>
-      ) : null}
-    </Wrapper>
+        {legend ? (
+          <View style={styles.metricLegend}>
+            <Ionicons
+              name="information-circle-outline"
+              size={18}
+              color={colors.text.tertiary}
+            />
+            <AppText variant="caption" color="secondary" align="right">
+              {legend}
+            </AppText>
+          </View>
+        ) : null}
+      </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: colors.bg.screen,
+  },
+  overscroll: {
+    position: 'absolute',
+    top: -1000,
+    height: 1000,
+    left: 0,
+    right: 0,
+    backgroundColor: scale.petrol[700],
+  },
+  statusBand: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: scale.petrol[700],
+  },
   screen: { flex: 1 },
-  content: { paddingHorizontal: 22, paddingBottom: 168, gap: 16 },
+  content: { paddingBottom: 168 },
+  hero: {
+    paddingHorizontal: space.gutter,
+    paddingBottom: space.xl,
+    borderBottomLeftRadius: radius.xl,
+    borderBottomRightRadius: radius.xl,
+    overflow: 'hidden',
+    gap: space.lg,
+  },
   heroRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 8,
+    gap: space.xs,
     alignItems: 'flex-start',
   },
-  heroCopy: { flex: 1, paddingRight: 4 },
-  greeting: {
-    marginTop: 8,
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 28,
-    color: palette.gold,
-    letterSpacing: -0.6,
-  },
+  heroCopy: { flex: 1, paddingRight: space.xxs },
   brand: {
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 36,
-    color: palette.brand,
-    letterSpacing: -1.2,
+    ...type.h1,
+    fontSize: 32,
+    lineHeight: 38,
+    color: colors.text.onBrand,
   },
-  spaceLabel: {
-    marginTop: 2,
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 14,
-    color: palette.brandMuted,
+  greeting: {
+    ...type.h2,
+    fontFamily: type.h1.fontFamily,
+    fontSize: 24,
+    lineHeight: 30,
+    marginTop: space.xxs,
+    color: colors.text.highlight,
   },
   heroAside: {
     alignItems: 'center',
-    gap: 10,
+    gap: space.sm,
   },
   avatarRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: space.xs,
   },
   avatar: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: palette.accent,
+    borderRadius: radius.full,
+    backgroundColor: colors.action.primary,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.55)',
   },
   avatarText: {
-    fontFamily: 'Fraunces_700Bold',
+    fontFamily: type.h1.fontFamily,
     fontSize: 20,
-    color: palette.white,
+    color: colors.text.onBrand,
   },
-  dashGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+  available: {
+    gap: space.xxs,
   },
-  positionCard: {
-    backgroundColor: palette.surfaceSolid,
-    borderRadius: radii.md,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: palette.border,
-  },
-  positionTitle: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 13,
-    color: palette.inkMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-  },
-  positionRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 12,
-  },
-  positionStat: {
-    flex: 1,
-  },
-  positionLabel: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 11,
-    color: palette.inkMuted,
-  },
-  positionValue: {
-    marginTop: 4,
-    fontFamily: 'Fraunces_600SemiBold',
-    fontSize: 18,
-    color: palette.ink,
-  },
-  availableHead: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  availableTodayTotal: {
-    fontFamily: 'Fraunces_600SemiBold',
-    fontSize: 22,
-    color: palette.ink,
-    maxWidth: '46%',
-    textAlign: 'right',
-  },
-  availableTodayList: {
-    marginTop: 14,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: palette.border,
-    gap: 14,
-  },
-  pocketGroup: {
-    gap: 8,
-  },
-  pocketGroupTitle: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 11,
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-    color: palette.inkSoft,
-  },
-  positionHint: {
-    marginTop: 8,
-    fontFamily: 'DMSans_400Regular',
-    fontSize: 12,
-    color: palette.inkSoft,
-    lineHeight: 16,
-  },
-  tileWide: {
-    width: '100%',
-  },
-  tileRow: {
+  pressed: { opacity: 0.85 },
+  availableLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: space.xxs,
   },
-  tileMain: { flex: 1 },
-  tileLegend: {
+  availableAmount: {
+    ...type.display,
+    color: colors.text.onBrand,
+  },
+  amountSkeleton: {
+    width: 180,
+    height: type.display.lineHeight,
+    borderRadius: radius.sm,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+  },
+  body: {
+    paddingHorizontal: space.gutter,
+    paddingTop: space.xl,
+    gap: space.xl,
+  },
+  sectionLabel: {
+    marginBottom: space.sm,
+  },
+  metrics: { gap: space.sm },
+  metricsRow: {
+    flexDirection: 'row',
+    gap: space.sm,
+  },
+  metric: { flex: 1 },
+  metricWide: { alignSelf: 'stretch' },
+  metricRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+  },
+  metricMain: { flex: 1 },
+  metricLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  metricDot: {
+    width: 8,
+    height: 8,
+    borderRadius: radius.full,
+  },
+  metricValue: {
+    ...type.h2,
+    marginTop: space.xs,
+    fontVariant: ['tabular-nums'],
+  },
+  metricHint: {
+    marginTop: space.xxs,
+    color: colors.text.secondary,
+  },
+  metricLegend: {
     width: '42%',
     alignItems: 'flex-end',
-    gap: 4,
+    gap: space.xxs,
   },
-  tileInfo: {
-    fontSize: 16,
-    color: palette.inkMuted,
-  },
-  tileLegendText: {
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 12,
-    lineHeight: 16,
-    color: palette.inkMuted,
-    textAlign: 'right',
-  },
-  tile: {
-    width: '48%',
-    backgroundColor: palette.surfaceSolid,
-    borderRadius: radii.md,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: palette.border,
-  },
-  tileLabel: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 11,
-    color: palette.inkMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  tileValue: {
-    marginTop: 6,
-    fontFamily: 'Fraunces_600SemiBold',
-    fontSize: 20,
-    color: palette.ink,
-  },
-  tileHint: {
-    marginTop: 6,
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 11,
-    color: palette.inkMuted,
-    lineHeight: 14,
-  },
+  alertList: { gap: space.xs },
+  alertText: { color: colors.status.danger },
+  alertMore: { alignSelf: 'flex-start' },
   infoRoot: {
     flex: 1,
-    backgroundColor: 'rgba(8,20,28,0.55)',
+    backgroundColor: colors.bg.scrim,
     justifyContent: 'flex-end',
-    paddingHorizontal: 18,
+    paddingHorizontal: space.md,
   },
   infoCard: {
-    backgroundColor: palette.surfaceSolid,
-    borderRadius: radii.xl,
-    padding: 22,
-    borderWidth: 1,
-    borderColor: palette.border,
-  },
-  infoEyebrow: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 11,
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    color: palette.inkSoft,
+    backgroundColor: colors.bg.surface,
+    borderRadius: radius.xl,
+    padding: space.xl,
+    ...shadow.e3,
   },
   infoTitle: {
-    marginTop: 6,
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 26,
-    color: palette.ink,
-    letterSpacing: -0.3,
+    marginTop: space.xxs,
   },
   infoBody: {
-    marginTop: 10,
-    fontFamily: 'DMSans_400Regular',
-    fontSize: 15,
-    lineHeight: 22,
-    color: palette.inkMuted,
+    marginTop: space.sm,
   },
   availableBreakdown: {
-    marginTop: 14,
-    paddingTop: 12,
+    marginTop: space.md,
+    paddingTop: space.sm,
     borderTopWidth: 1,
-    borderTopColor: palette.border,
-    gap: 14,
-  },
-  availableBreakdownTitle: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 12,
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-    color: palette.inkSoft,
-    marginBottom: 2,
-  },
-  availableBreakdownTitleGap: {
-    marginTop: 12,
-  },
-  availableRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  availableRowLabel: {
-    flex: 1,
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 15,
-    color: palette.ink,
-  },
-  availableRowValue: {
-    fontFamily: 'Fraunces_600SemiBold',
-    fontSize: 16,
-    color: palette.ink,
-  },
-  availableRowTotal: {
-    marginTop: 4,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: palette.border,
-  },
-  availableTotalLabel: {
-    flex: 1,
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 15,
-    color: palette.ink,
-  },
-  availableTotalValue: {
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 18,
-    color: palette.brand,
-  },
-  infoCompare: {
-    marginTop: 10,
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 14,
-    lineHeight: 20,
-    color: palette.ink,
+    borderTopColor: colors.border.subtle,
   },
   infoBtn: {
-    marginTop: 18,
-    backgroundColor: palette.accent,
-    borderRadius: radii.md,
-    paddingVertical: 14,
-    alignItems: 'center',
+    marginTop: space.lg,
   },
-  infoBtnText: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 16,
-    color: palette.white,
-  },
-  sectionTitle: {
-    fontFamily: 'Fraunces_600SemiBold',
-    fontSize: 24,
-    color: palette.brand,
-    marginBottom: 8,
-  },
-  attentionCard: {
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    borderRadius: 14,
-    padding: 12,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: palette.border,
-  },
-  warn: {
-    backgroundColor: palette.warnSoft,
-    borderColor: 'rgba(255,107,74,0.35)',
-  },
-  danger: {
-    backgroundColor: palette.dangerSoft,
-    borderColor: 'rgba(214,69,69,0.4)',
-  },
-  good: {
-    backgroundColor: palette.successSoft,
-    borderColor: 'rgba(31,157,108,0.35)',
-  },
-  info: {
-    backgroundColor: palette.tealSoft,
-    borderColor: 'rgba(46,196,182,0.35)',
-  },
-  attentionText: {
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 14,
-    color: palette.ink,
-    lineHeight: 20,
-  },
-  attentionDangerText: {
-    color: palette.danger,
-  },
-  attentionMore: {
-    marginTop: 4,
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 13,
-    color: palette.inkMuted,
-    textDecorationLine: 'underline',
-  },
-  boxDanger: {
-    backgroundColor: palette.dangerSoft,
-    borderColor: 'rgba(214,69,69,0.4)',
-  },
-  boxWarn: {
-    backgroundColor: palette.warnSoft,
-    borderColor: 'rgba(255,107,74,0.35)',
-  },
-  boxGood: {
-    backgroundColor: palette.successSoft,
-    borderColor: 'rgba(31,157,108,0.35)',
-  },
-  textDanger: { color: palette.danger },
-  textGood: { color: palette.success },
-  textWarn: { color: palette.accentDeep },
 });

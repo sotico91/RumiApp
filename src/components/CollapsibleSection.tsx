@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { colors } from '@/src/theme';
 import { palette } from '@/src/theme/colors';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 
@@ -13,6 +14,8 @@ type Props = {
   children: ReactNode;
   /** Optional index for spacing consistency with FadeInBlock sections. */
   style?: object;
+  /** `brand` for petrol backgrounds (default), `surface` for cream ones. */
+  tone?: 'brand' | 'surface';
 };
 
 export function CollapsibleSection({
@@ -22,7 +25,9 @@ export function CollapsibleSection({
   onToggle,
   children,
   style,
+  tone = 'brand',
 }: Props) {
+  const surface = tone === 'surface';
   return (
     <View style={style}>
       <Pressable
@@ -34,14 +39,16 @@ export function CollapsibleSection({
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}>
         <View style={styles.headerText}>
-          <Text style={styles.title}>{title}</Text>
+          <Text style={[styles.title, surface && styles.titleSurface]}>{title}</Text>
           {!open && summary ? (
-            <Text style={styles.summary} numberOfLines={1}>
+            <Text style={[styles.summary, surface && styles.mutedSurface]} numberOfLines={1}>
               {summary}
             </Text>
           ) : null}
         </View>
-        <Text style={styles.chevron}>{open ? '▾' : '▸'}</Text>
+        <Text style={[styles.chevron, surface && styles.mutedSurface]}>
+          {open ? '▾' : '▸'}
+        </Text>
       </Pressable>
       {open ? <View style={styles.body}>{children}</View> : null}
     </View>
@@ -69,6 +76,12 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_400Regular',
     fontSize: 13,
     color: palette.brandMuted,
+  },
+  titleSurface: {
+    color: colors.text.primary,
+  },
+  mutedSurface: {
+    color: colors.text.tertiary,
   },
   chevron: {
     fontSize: 16,
