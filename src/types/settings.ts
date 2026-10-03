@@ -5,14 +5,18 @@ export type SpendSub = {
   name: string;
   /** Small/recurring “ant” spend the user wants to watch (café, fútbol…). */
   isAnt?: boolean;
+  /** Own color; falls back to the concept color. */
+  color?: string;
 };
 
 /** User-defined spend concept with optional subcategories. */
 export type SpendConcept = {
   id: string;
   name: string;
-  /** Accent color for this concept (and its subs in lists). */
+  /** Accent color for this concept (charts) and default for its subs. */
   color: string;
+  /** MaterialCommunityIcons name from CONCEPT_ICONS. */
+  icon?: string;
   subs: SpendSub[];
 };
 

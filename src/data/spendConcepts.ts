@@ -1,5 +1,6 @@
 import { CATEGORIES, expenseCategories, getCategoryById } from '@/src/data/financeDefaults';
 import type { Budget, Category } from '@/src/types/finance';
+import { guessConceptIcon } from '@/src/data/conceptIcons';
 import { FRIENDLY_TEMPLATES } from '@/src/data/friendlyTemplates';
 import { translations, type Language } from '@/src/i18n/translations';
 import type { CustomConcept, SpendConcept, SpendSub } from '@/src/types/settings';
@@ -68,6 +69,23 @@ export function localizeDefaultConcepts(
     return out;
   });
   return { concepts: changed ? next : concepts, changed };
+}
+
+/** Icon of the category + color of the subcategory (or of the category). */
+export function categoryVisual(
+  categoryId: string,
+  concepts: SpendConcept[]
+): { icon?: string; color: string } {
+  const hit = findSpendSub(concepts, categoryId);
+  if (hit) return { icon: hit.concept.icon, color: subColor(hit.concept, hit.sub) };
+  const concept = concepts.find((c) => c.id === categoryId);
+  if (concept) return { icon: concept.icon, color: concept.color };
+  return { color: resolveConceptColor(categoryId, concepts) };
+}
+
+/** A subcategory's own color, or its concept's. */
+export function subColor(concept: Pick<SpendConcept, 'color'>, sub: Pick<SpendSub, 'color'>): string {
+  return sub.color ?? concept.color;
 }
 
 /** Palette the user can pick when creating/editing a concept. */
@@ -145,6 +163,7 @@ export function createSpendConcept(
   opts?: {
     id?: string;
     color?: string;
+    icon?: string;
     subs?: SpendSub[];
     existing?: SpendConcept[];
   }
@@ -157,6 +176,7 @@ export function createSpendConcept(
     id,
     name: trimmed,
     color,
+    icon: opts?.icon ?? guessConceptIcon({ id, name: trimmed }),
     subs:
       subs && subs.length > 0
         ? subs
@@ -442,6 +462,7 @@ export function ensureCreditSub(
           id: CREDITS_CONCEPT_ID,
           name: CREDITS_CONCEPT_NAME,
           color: nextConceptColor(concepts),
+          icon: guessConceptIcon({ id: CREDITS_CONCEPT_ID, name: CREDITS_CONCEPT_NAME }),
           subs: [sub],
         },
         ...concepts,

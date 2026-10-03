@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppModal } from '@/src/components/AppModal';
 import { KeyboardSafeOverlay } from '@/src/components/KeyboardSafe';
+import { guessConceptIcon } from '@/src/data/conceptIcons';
 import { createSpendSub, ONBOARDING_CONCEPTS } from '@/src/data/spendConcepts';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useSettings } from '@/src/hooks/useSettings';
@@ -56,6 +57,7 @@ export function OnboardingOverlay() {
         id: c.id,
         name: t(c.nameKey),
         color: c.color,
+        icon: guessConceptIcon({ id: c.id, name: t(c.nameKey) }),
         subs: [createSpendSub(c.id, t('onboard.concept.general'))],
       }));
       await completeOnboarding({

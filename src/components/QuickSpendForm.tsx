@@ -5,7 +5,8 @@ import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
 import { CategorySearch, CATEGORY_SEARCH_MIN_SUBS } from '@/src/components/CategorySearch';
 import type { SavedMovement } from '@/src/components/ExpenseForm';
 import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
-import { findSpendSub, flattenSpendSubs, isGeneralSubName } from '@/src/data/spendConcepts';
+import { ConceptIcon } from '@/src/components/ConceptIcon';
+import { findSpendSub, flattenSpendSubs, isGeneralSubName, subColor } from '@/src/data/spendConcepts';
 import type { FriendlyIntent } from '@/src/data/friendlyTemplates';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
@@ -64,7 +65,8 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
       .map(({ concept, sub }) => ({
         id: sub.id,
         label: isGeneralSubName(sub.name) ? concept.name : sub.name,
-        color: concept.color,
+        color: subColor(concept, sub),
+        icon: concept.icon,
       }));
     return { categoryChips: chips, hasRecent: recentCount > 0 };
   }, [transactions, spendConcepts]);
@@ -110,7 +112,8 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
       {
         id: hit.sub.id,
         label: isGeneralSubName(hit.sub.name) ? hit.concept.name : hit.sub.name,
-        color: hit.concept.color,
+        color: subColor(hit.concept, hit.sub),
+        icon: hit.concept.icon,
       },
       ...categoryChips,
     ];
@@ -218,7 +221,7 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
                   Keyboard.dismiss();
                 }}
                 style={[styles.chip, on && styles.chipOn]}>
-                <View style={[styles.dot, { backgroundColor: on ? palette.white : chip.color }]} />
+                <ConceptIcon icon={chip.icon} color={on ? palette.white : chip.color} size={16} />
                 <Text style={[styles.chipText, on && styles.chipTextOn]}>{chip.label}</Text>
               </Pressable>
             );
@@ -338,7 +341,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderStyle: 'dashed',
   },
-  dot: { width: 8, height: 8, borderRadius: 4 },
   chipText: {
     fontFamily: 'DMSans_500Medium',
     fontSize: 14,

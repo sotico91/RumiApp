@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { isGeneralSubName } from '@/src/data/spendConcepts';
+import { ConceptIcon } from '@/src/components/ConceptIcon';
+import { isGeneralSubName, subColor } from '@/src/data/spendConcepts';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { palette } from '@/src/theme/colors';
 import type { SpendConcept } from '@/src/types/settings';
@@ -35,7 +36,7 @@ export function CategorySearch({
   const results = useMemo(() => {
     const q = fold(query);
     if (!q) return [];
-    const hits: { conceptId: string; subId: string; label: string; color: string }[] = [];
+    const hits: { conceptId: string; subId: string; label: string; color: string; icon?: string }[] = [];
     for (const concept of concepts) {
       for (const sub of concept.subs) {
         const general = isGeneralSubName(sub.name);
@@ -44,7 +45,8 @@ export function CategorySearch({
           conceptId: concept.id,
           subId: sub.id,
           label: general ? concept.name : `${concept.name} · ${sub.name}`,
-          color: concept.color,
+          color: subColor(concept, sub),
+          icon: concept.icon,
         });
         if (hits.length >= MAX_RESULTS) return hits;
       }
@@ -77,7 +79,7 @@ export function CategorySearch({
                   setQuery('');
                 }}
                 style={styles.result}>
-                <View style={[styles.dot, { backgroundColor: hit.color }]} />
+                <ConceptIcon icon={hit.icon} color={hit.color} size={16} />
                 <Text style={styles.resultText}>{hit.label}</Text>
               </Pressable>
             ))}
@@ -118,7 +120,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 9,
   },
-  dot: { width: 8, height: 8, borderRadius: 4 },
   resultText: {
     fontFamily: 'DMSans_500Medium',
     fontSize: 14,

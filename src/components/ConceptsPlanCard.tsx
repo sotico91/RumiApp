@@ -13,7 +13,10 @@ import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
-import { CONCEPT_COLOR_OPTIONS } from '@/src/data/spendConcepts';
+import { ConceptIcon } from '@/src/components/ConceptIcon';
+import { IconPicker } from '@/src/components/IconPicker';
+import { guessConceptIcon } from '@/src/data/conceptIcons';
+import { CONCEPT_COLOR_OPTIONS, nextConceptColor, subColor } from '@/src/data/spendConcepts';
 import { SelectPressable } from '@/src/components/SelectPressable';
 import { palette, radii } from '@/src/theme/colors';
 import { categoryLabel } from '@/src/utils/categoryLabel';
@@ -26,6 +29,8 @@ export function ConceptsPlanCard() {
     settings,
     addSpendConcept,
     updateSpendConceptColor,
+    updateSpendConceptIcon,
+    updateSpendSubColor,
     addSpendSub,
     updateSpendSubAnt,
     removeSpendConcept,
@@ -34,7 +39,9 @@ export function ConceptsPlanCard() {
   const { budgetStatus, updateBudget, removeBudget, transactions } = useFinance();
 
   const [conceptDraft, setConceptDraft] = useState('');
-  const [conceptColor, setConceptColor] = useState<string>(CONCEPT_COLOR_OPTIONS[0]);
+  // Until the user picks one, the icon follows the name being typed ("Gasolina" → ⛽).
+  const [pickedIcon, setPickedIcon] = useState<string | null>(null);
+  const [subColorEditing, setSubColorEditing] = useState<string | null>(null);
   const [subDrafts, setSubDrafts] = useState<Record<string, string>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
   const [colorEditingId, setColorEditingId] = useState<string | null>(null);
@@ -44,6 +51,9 @@ export function ConceptsPlanCard() {
   const [budgetsOpen, setBudgetsOpen] = useState(false);
 
   const concepts = settings.spendConcepts ?? [];
+  const newConceptColor = nextConceptColor(concepts);
+  const newConceptIcon =
+    pickedIcon ?? guessConceptIcon({ id: '', name: conceptDraft || '' });
 
   const spentByCategory = useMemo(() => {
     const map = new Map<string, number>();
@@ -62,23 +72,10 @@ export function ConceptsPlanCard() {
     if (!conceptDraft.trim()) return;
     setSaving(true);
     try {
-      const created = await addSpendConcept(conceptDraft, conceptColor);
+      const created = await addSpendConcept(conceptDraft, newConceptColor, newConceptIcon);
       setConceptDraft('');
-      if (created) {
-        setExpanded(created.id);
-        const next =
-          CONCEPT_COLOR_OPTIONS.find(
-            (c) => c !== conceptColor && !concepts.some((x) => x.color === c)
-          ) ??
-          CONCEPT_COLOR_OPTIONS[
-            (CONCEPT_COLOR_OPTIONS.indexOf(
-              conceptColor as (typeof CONCEPT_COLOR_OPTIONS)[number]
-            ) +
-              1) %
-              CONCEPT_COLOR_OPTIONS.length
-          ];
-        setConceptColor(next);
-      }
+      setPickedIcon(null);
+      if (created) setExpanded(created.id);
     } finally {
       setSaving(false);
     }
@@ -135,28 +132,13 @@ export function ConceptsPlanCard() {
         <SelectPressable
           onPress={() => void handleAddConcept()}
           disabled={saving || !conceptDraft.trim()}
-          style={[styles.addBtn, { backgroundColor: conceptColor }]}>
+          style={[styles.addBtn, { backgroundColor: newConceptColor }]}>
           <Text style={styles.addBtnText}>{t('plan.conceptsAdd')}</Text>
         </SelectPressable>
       </View>
 
-      <Text style={styles.colorLabel}>{t('plan.conceptColor')}</Text>
-      <View style={styles.colorRow}>
-        {CONCEPT_COLOR_OPTIONS.map((color) => {
-          const selected = conceptColor === color;
-          return (
-            <SelectPressable
-              key={color}
-              onPress={() => setConceptColor(color)}
-              style={[
-                styles.colorDot,
-                { backgroundColor: color },
-                selected && styles.colorDotSelected,
-              ]}
-            />
-          );
-        })}
-      </View>
+      <Text style={styles.colorLabel}>{t('plan.conceptIcon')}</Text>
+      <IconPicker selected={newConceptIcon} color={newConceptColor} onSelect={setPickedIcon} />
 
       {concepts.length === 0 ? (
         <Text style={styles.copy}>{t('plan.conceptsEmpty')}</Text>
@@ -174,11 +156,14 @@ export function ConceptsPlanCard() {
                     )
                   }
                   hitSlop={8}
-                  style={[
-                    styles.conceptSwatch,
-                    { backgroundColor: concept.color ?? palette.inkSoft },
-                  ]}
-                />
+                  accessibilityLabel={t('plan.conceptIconEdit')}>
+                  <ConceptIcon
+                    icon={concept.icon}
+                    color={concept.color ?? palette.inkSoft}
+                    size={16}
+                    variant="bubble"
+                  />
+                </SelectPressable>
                 <Pressable
                   onPress={() => {
                     tapFeedback();
@@ -193,6 +178,12 @@ export function ConceptsPlanCard() {
 
               {editingColor ? (
                 <View style={styles.colorEditor}>
+                  <Text style={styles.colorLabel}>{t('plan.conceptIconEdit')}</Text>
+                  <IconPicker
+                    selected={concept.icon}
+                    color={concept.color}
+                    onSelect={(icon) => void updateSpendConceptIcon(concept.id, icon)}
+                  />
                   <Text style={styles.colorLabel}>{t('plan.conceptColorEdit')}</Text>
                   <View style={styles.colorRow}>
                     {CONCEPT_COLOR_OPTIONS.map((color) => {
@@ -225,8 +216,22 @@ export function ConceptsPlanCard() {
                       const budget = budgetStatus.find((b) => b.categoryId === sub.id);
                       const spent = spentByCategory.get(sub.id) ?? budget?.spent ?? 0;
                       const antOn = sub.isAnt === true;
+                      const editingSubColor = subColorEditing === sub.id;
                       return (
-                        <View key={sub.id} style={styles.subRow}>
+                        <View key={sub.id}>
+                        <View style={styles.subRow}>
+                          <SelectPressable
+                            onPress={() =>
+                              setSubColorEditing((prev) => (prev === sub.id ? null : sub.id))
+                            }
+                            hitSlop={10}
+                            accessibilityLabel={t('plan.subColor')}
+                            style={[
+                              styles.subDot,
+                              { backgroundColor: subColor(concept, sub) },
+                              editingSubColor && styles.colorDotSelected,
+                            ]}
+                          />
                           <Pressable
                             style={{ flex: 1 }}
                             onPress={() => openLimit(sub.id)}>
@@ -269,6 +274,31 @@ export function ConceptsPlanCard() {
                             }>
                             <Text style={styles.deleteText}>{t('plan.deleteSub')}</Text>
                           </Pressable>
+                        </View>
+                        {editingSubColor ? (
+                          <View style={styles.subColorEditor}>
+                            <Text style={styles.colorLabel}>{t('plan.subColor')}</Text>
+                            <View style={styles.colorRow}>
+                              {CONCEPT_COLOR_OPTIONS.map((color) => (
+                                <SelectPressable
+                                  key={color}
+                                  onPress={() => void updateSpendSubColor(concept.id, sub.id, color)}
+                                  style={[
+                                    styles.colorDot,
+                                    { backgroundColor: color },
+                                    sub.color === color && styles.colorDotSelected,
+                                  ]}
+                                />
+                              ))}
+                            </View>
+                            {sub.color ? (
+                              <Pressable
+                                onPress={() => void updateSpendSubColor(concept.id, sub.id, undefined)}>
+                                <Text style={styles.subColorReset}>{t('plan.subColorReset')}</Text>
+                              </Pressable>
+                            ) : null}
+                          </View>
+                        ) : null}
                         </View>
                       );
                     })
@@ -460,13 +490,6 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 2,
   },
-  conceptSwatch: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: 'rgba(0,0,0,0.12)',
-  },
   colorLabel: {
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 12,
@@ -505,6 +528,21 @@ const styles = StyleSheet.create({
   },
   chevron: { fontSize: 14, color: palette.inkMuted },
   conceptBody: { padding: 12, gap: 8, backgroundColor: '#FFF' },
+  subDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+  },
+  subColorEditor: {
+    gap: 8,
+    paddingBottom: 10,
+    paddingLeft: 24,
+  },
+  subColorReset: {
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 13,
+    color: palette.accent,
+  },
   subRow: {
     flexDirection: 'row',
     alignItems: 'center',

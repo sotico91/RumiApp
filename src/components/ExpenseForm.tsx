@@ -21,6 +21,7 @@ import { InstallmentPayScopePicker } from '@/src/components/InstallmentPayScopeP
 import { SpendSourcePicker, spendSourceFromMethod } from '@/src/components/SpendSourcePicker';
 import { categoriesForKind } from '@/src/data/categories';
 import { CategorySearch, CATEGORY_SEARCH_MIN_SUBS } from '@/src/components/CategorySearch';
+import { ConceptIcon } from '@/src/components/ConceptIcon';
 import {
   findSpendSub,
   flattenSpendSubs,
@@ -505,7 +506,12 @@ export function ExpenseForm({
                   setConceptId(concept.id);
                   setCategoryId(concept.subs[0]?.id ?? categoryId);
                 }}
-                style={[styles.pill, conceptId === concept.id && styles.pillOn]}>
+                style={[styles.pill, styles.pillWithIcon, conceptId === concept.id && styles.pillOn]}>
+                <ConceptIcon
+                  icon={concept.icon}
+                  color={conceptId === concept.id ? palette.white : concept.color}
+                  size={16}
+                />
                 <Text
                   style={[styles.pillText, conceptId === concept.id && styles.pillTextOn]}>
                   {concept.name}
@@ -653,6 +659,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
+  pillWithIcon: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   conceptRow: {
     flexDirection: 'row',
     gap: 8,

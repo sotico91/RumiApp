@@ -1,7 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { MoneyText } from '@/src/components/MoneyText';
-import { resolveConceptColor } from '@/src/data/spendConcepts';
+import { ConceptIcon } from '@/src/components/ConceptIcon';
+import { categoryVisual } from '@/src/data/spendConcepts';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useSettings } from '@/src/hooks/useSettings';
@@ -47,11 +48,8 @@ export function ExpenseRow({
     },
     t
   );
-  const color = pocketMove
-    ? palette.teal
-    : expense.categoryId
-      ? resolveConceptColor(expense.categoryId, spendConcepts)
-      : palette.inkSoft;
+  const visual = expense.categoryId ? categoryVisual(expense.categoryId, spendConcepts) : null;
+  const color = pocketMove ? palette.teal : visual ? visual.color : palette.inkSoft;
 
   return (
     <View style={[styles.row, last && styles.rowLast]}>
@@ -60,9 +58,11 @@ export function ExpenseRow({
           styles.icon,
           { backgroundColor: `${color}22` },
         ]}>
-        <View
-          style={[styles.dot, { backgroundColor: color }]}
-        />
+        {!pocketMove && visual?.icon ? (
+          <ConceptIcon icon={visual.icon} color={color} size={18} />
+        ) : (
+          <View style={[styles.dot, { backgroundColor: color }]} />
+        )}
       </View>
       <Pressable style={styles.content} onPress={onEdit} disabled={!onEdit}>
         <View style={styles.top}>

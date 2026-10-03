@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { findSpendSub } from '@/src/data/spendConcepts';
+import { ConceptIcon } from '@/src/components/ConceptIcon';
+import { categoryVisual, findSpendSub } from '@/src/data/spendConcepts';
 import { MoneyText } from '@/src/components/MoneyText';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useSettings } from '@/src/hooks/useSettings';
@@ -98,18 +99,16 @@ export function CategoryBreakdown({ insights, emptyLabel, budgetStatus }: Props)
             ]}>
             <View style={styles.header}>
               <View style={styles.nameRow}>
-                <View
-                  style={[
-                    styles.swatch,
-                    {
-                      backgroundColor:
-                        tone === 'danger'
-                          ? palette.danger
-                          : tone === 'good'
-                            ? palette.success
-                            : item.color,
-                    },
-                  ]}
+                <ConceptIcon
+                  icon={categoryVisual(item.categoryId, spendConcepts).icon}
+                  color={
+                    tone === 'danger'
+                      ? palette.danger
+                      : tone === 'good'
+                        ? palette.success
+                        : item.color
+                  }
+                  size={18}
                 />
                 <Text
                   style={[
@@ -222,11 +221,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     flex: 1,
-  },
-  swatch: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
   },
   name: {
     fontFamily: 'DMSans_600SemiBold',

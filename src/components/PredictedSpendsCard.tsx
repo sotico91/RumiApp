@@ -1,7 +1,8 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { MoneyText } from '@/src/components/MoneyText';
-import { findSpendSub, isGeneralSubName } from '@/src/data/spendConcepts';
+import { ConceptIcon } from '@/src/components/ConceptIcon';
+import { findSpendSub, isGeneralSubName, subColor } from '@/src/data/spendConcepts';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
@@ -18,6 +19,7 @@ type Row = {
   title: string;
   detail: string;
   color: string;
+  icon?: string;
   /** Days until the typical due day (negative = already past). */
   daysLeft: number;
 };
@@ -54,7 +56,8 @@ export function PredictedSpendsCard({ items }: Props) {
       item,
       title,
       detail,
-      color: hit?.concept.color ?? palette.inkMuted,
+      color: hit ? subColor(hit.concept, hit.sub) : palette.inkMuted,
+      icon: hit?.concept.icon,
       daysLeft: item.typicalDay - today,
     };
   });
@@ -89,7 +92,7 @@ export function PredictedSpendsCard({ items }: Props) {
               <View
                 key={r.item.id}
                 style={[styles.row, index < pending.length - 1 && styles.rowDivider]}>
-                <View style={[styles.dot, { backgroundColor: r.color }]} />
+                <RowIcon row={r} />
                 <View style={styles.rowMain}>
                   <Text style={styles.name} numberOfLines={1}>
                     {r.title}
@@ -119,7 +122,7 @@ export function PredictedSpendsCard({ items }: Props) {
             <View
               key={r.item.id}
               style={[styles.row, styles.rowPaid, index < paid.length - 1 && styles.rowDivider]}>
-              <View style={[styles.dot, { backgroundColor: r.color }]} />
+              <RowIcon row={r} />
               <View style={styles.rowMain}>
                 <Text style={[styles.name, styles.namePaid]} numberOfLines={1}>
                   {r.title}
@@ -139,6 +142,17 @@ export function PredictedSpendsCard({ items }: Props) {
         </>
       ) : null}
     </View>
+  );
+}
+
+function RowIcon({ row }: { row: Row }) {
+  if (row.item.source === 'debt' && !row.icon) {
+    return <ConceptIcon icon="credit-card-outline" color={row.color} size={18} />;
+  }
+  return row.icon ? (
+    <ConceptIcon icon={row.icon} color={row.color} size={18} />
+  ) : (
+    <View style={[styles.dot, { backgroundColor: row.color }]} />
   );
 }
 

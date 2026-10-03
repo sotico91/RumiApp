@@ -33,6 +33,7 @@ import { movementNotifyCopy } from '@/src/utils/movementNotify';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
 import { CategorySearch, CATEGORY_SEARCH_MIN_SUBS } from '@/src/components/CategorySearch';
+import { ConceptIcon } from '@/src/components/ConceptIcon';
 import { InlineSubAdd } from '@/src/components/InlineSubAdd';
 import { InstallmentPayScopePicker } from '@/src/components/InstallmentPayScopePicker';
 import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
@@ -753,7 +754,12 @@ export function FriendlyAddFlow({
                               setCategoryId(concept.subs[0]?.id ?? '');
                             }
                           }}
-                          style={[styles.catCard, selected && styles.catCardOn]}>
+                          style={[styles.catCard, styles.catCardWithIcon, selected && styles.catCardOn]}>
+                          <ConceptIcon
+                            icon={concept.icon}
+                            color={selected ? palette.white : concept.color}
+                            size={18}
+                          />
                           <Text style={[styles.catText, selected && styles.catTextOn]}>
                             {concept.name}
                           </Text>
@@ -1226,6 +1232,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
+  catCardWithIcon: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   catCardOn: {
     backgroundColor: palette.accent,
     borderColor: palette.accent,

@@ -36,6 +36,7 @@ import {
   ensureNotificationPermission,
   syncRemindersFromRules,
 } from '@/src/utils/notifications';
+import { ensureConceptIcons } from '@/src/data/conceptIcons';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { appendUniqueDay, localDateKey } from '@/src/utils/habitPilot';
 import { antTipWeekKey } from '@/src/utils/antSpendTips';
@@ -62,8 +63,11 @@ type SettingsContextValue = {
   /** Confirmation notification after each logged transaction. */
   updateNotifyOnExpense: (enabled: boolean) => Promise<boolean>;
   updateUserName: (userName: string) => Promise<void>;
-  addSpendConcept: (name: string, color?: string) => Promise<SpendConcept | null>;
+  addSpendConcept: (name: string, color?: string, icon?: string) => Promise<SpendConcept | null>;
   updateSpendConceptColor: (conceptId: string, color: string) => Promise<void>;
+  updateSpendConceptIcon: (conceptId: string, icon: string) => Promise<void>;
+  /** `undefined` goes back to the concept color. */
+  updateSpendSubColor: (conceptId: string, subId: string, color?: string) => Promise<void>;
   addSpendSub: (conceptId: string, name: string) => Promise<string | null>;
   /**
    * Create or reuse a spend concept + subcategory (add-flow templates).
@@ -164,12 +168,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     await saveSettings(next);
   }, []);
 
-  // Default concepts (Bills / Recibos…) follow the app language.
+  // Default concepts (Bills / Recibos…) follow the app language, and every
+  // concept gets an icon (data saved before icons existed has none).
   useEffect(() => {
     if (!ready) return;
-    const { concepts, changed } = localizeDefaultConcepts(settings.spendConcepts ?? [], language);
-    if (!changed) return;
-    void persist({ ...settings, spendConcepts: concepts });
+    const localized = localizeDefaultConcepts(settings.spendConcepts ?? [], language);
+    const withIcons = ensureConceptIcons(localized.concepts);
+    if (!localized.changed && !withIcons.changed) return;
+    void persist({ ...settings, spendConcepts: withIcons.concepts });
   }, [ready, language, settings, persist]);
 
   const completeOnboarding = useCallback(
@@ -264,11 +270,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   );
 
   const addSpendConcept = useCallback(
-    async (name: string, color?: string) => {
+    async (name: string, color?: string, icon?: string) => {
       const trimmed = name.trim();
       if (!trimmed) return null;
       const existing = settings.spendConcepts ?? [];
-      const concept = createSpendConcept(trimmed, { color, existing });
+      const concept = createSpendConcept(trimmed, { color, icon, existing });
       if (existing.some((c) => c.id === concept.id)) {
         return existing.find((c) => c.id === concept.id) ?? null;
       }
@@ -332,6 +338,32 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         await persist({ ...settings, spendConcepts: result.concepts });
       }
       return { conceptId: result.conceptId, subId: result.subId };
+    },
+    [settings, persist]
+  );
+
+  const updateSpendConceptIcon = useCallback(
+    async (conceptId: string, icon: string) => {
+      await persist({
+        ...settings,
+        spendConcepts: (settings.spendConcepts ?? []).map((c) =>
+          c.id === conceptId ? { ...c, icon } : c
+        ),
+      });
+    },
+    [settings, persist]
+  );
+
+  const updateSpendSubColor = useCallback(
+    async (conceptId: string, subId: string, color?: string) => {
+      await persist({
+        ...settings,
+        spendConcepts: (settings.spendConcepts ?? []).map((c) =>
+          c.id !== conceptId
+            ? c
+            : { ...c, subs: c.subs.map((s) => (s.id === subId ? { ...s, color } : s)) }
+        ),
+      });
     },
     [settings, persist]
   );
@@ -584,6 +616,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       updateUserName,
       addSpendConcept,
       updateSpendConceptColor,
+      updateSpendConceptIcon,
+      updateSpendSubColor,
       addSpendSub,
       ensureSpendConceptSub: ensureSpendPath,
       updateSpendSubAnt,
@@ -615,6 +649,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       updateUserName,
       addSpendConcept,
       updateSpendConceptColor,
+      updateSpendConceptIcon,
+      updateSpendSubColor,
       addSpendSub,
       ensureSpendPath,
       updateSpendSubAnt,
