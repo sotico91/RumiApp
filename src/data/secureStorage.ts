@@ -16,6 +16,13 @@ const UNREADABLE_PREFIX = 'rumi:unreadable:';
 let cipher: Cipher | null = null;
 let unreadableFound = false;
 let recovery: Promise<void> | null = null;
+let keyCheck: Promise<boolean> | null = null;
+
+/** Whether this phone's key round-trips, checked once per session. */
+function keyWorks(): Promise<boolean> {
+  keyCheck ??= getCipher().keyWorks();
+  return keyCheck;
+}
 
 function getCipher(): Cipher {
   // Loaded lazily so tests can swap in a fake without the native modules.
@@ -28,6 +35,7 @@ function getCipher(): Cipher {
 export function setCipherForTests(next: Cipher | null): void {
   cipher = next;
   recovery = null;
+  keyCheck = null;
 }
 
 /**
@@ -65,7 +73,9 @@ export function takeUnreadableNotice(): boolean {
   return found;
 }
 
+/** Encrypted when this phone's key works; otherwise plain JSON, as before encryption existed. */
 export async function encryptText(json: string): Promise<string> {
+  if (!(await keyWorks())) return json;
   return ENCRYPTED_PREFIX + (await getCipher().encrypt(json));
 }
 
@@ -87,20 +97,25 @@ export async function readSecureJson<T>(key: string): Promise<T | null> {
 
 export async function decodeStored<T>(key: string, raw: string): Promise<T | null> {
   if (!raw.startsWith(ENCRYPTED_PREFIX)) {
+    let value: T;
     try {
-      const value = JSON.parse(raw) as T;
-      await AsyncStorage.setItem(key, await encryptJson(value));
-      return value;
+      value = JSON.parse(raw) as T;
     } catch {
       return null;
     }
+    // Only replace the plain copy once a round trip proves this phone can
+    // read back what it encrypts; otherwise keep using the plain value.
+    if (await keyWorks()) {
+      await AsyncStorage.setItem(key, await encryptJson(value));
+    }
+    return value;
   }
   try {
     return JSON.parse(await getCipher().decrypt(raw.slice(ENCRYPTED_PREFIX.length))) as T;
   } catch (err) {
     // Our key cannot even open our own check value: a fault, not foreign
     // data. Fail loudly and write nothing rather than hide the data.
-    if (!(await getCipher().keyWorks())) throw err;
+    if (!(await keyWorks())) throw err;
     unreadableFound = true;
     await AsyncStorage.setItem(`${UNREADABLE_PREFIX}${key}:${Date.now()}`, raw);
     await AsyncStorage.removeItem(key);

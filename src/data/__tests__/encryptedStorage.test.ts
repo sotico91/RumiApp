@@ -166,6 +166,21 @@ describe('when the key itself fails', () => {
   });
 });
 
+describe('when this phone cannot encrypt', () => {
+  it('keeps plain data as it is instead of replacing it', async () => {
+    const plain = JSON.stringify([{ id: 'cash', type: 'cash', nameKey: 'account.cash', balance: 5 }]);
+    await AsyncStorage.setItem('rumi:accounts:v2', plain);
+    setCipherForTests({ ...fakeCipher, keyWorks: async () => false });
+
+    const accounts = await loadAccounts();
+
+    expect(accounts.find((a) => a.id === 'cash')?.balance).toBe(5);
+    const saved = (await AsyncStorage.getItem('rumi:accounts:v2')) ?? '';
+    expect(saved.startsWith('enc1:')).toBe(false);
+    expect(JSON.parse(saved)[0]).toEqual(JSON.parse(plain)[0]);
+  });
+});
+
 describe('set-aside data', () => {
   it('is put back when this phone can open it after all', async () => {
     const sealed = `enc1:F${[...JSON.stringify([tx('r', '2026-07-01T10:00:00.000Z')])].reverse().join('')}`;
