@@ -14,15 +14,23 @@ type Props = {
   children: ReactNode;
   /** Gap between body blocks. */
   gap?: number;
-  /** Rendered outside the scroll (sheets, modals). */
+  /** Rendered outside the scroll (sheets, modals, floating buttons). */
   overlay?: ReactNode;
+  /** Room kept under the last block, e.g. for a floating button. */
+  bottomSpace?: number;
 };
 
 /**
  * Tab screen layout: a petrol header with rounded bottom corners scrolls away
  * over a cream body. Owns the safe-area top and the status-bar band.
  */
-export function BrandScreen({ header, children, gap = space.xl, overlay }: Props) {
+export function BrandScreen({
+  header,
+  children,
+  gap = space.xl,
+  overlay,
+  bottomSpace = space.huge,
+}: Props) {
   const insets = useSafeAreaInsets();
   // The petrol status band only shows once the header has scrolled under it.
   const [scrolled, setScrolled] = useState(false);
@@ -31,7 +39,7 @@ export function BrandScreen({ header, children, gap = space.xl, overlay }: Props
     <View style={styles.root}>
       <KeyboardSafeScroll
         style={styles.screen}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={{ paddingBottom: bottomSpace }}
         scrollEventThrottle={16}
         onScroll={(e) => {
           const next = e.nativeEvent.contentOffset.y > space.xs;
@@ -71,7 +79,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg.screen,
   },
   screen: { flex: 1 },
-  content: { paddingBottom: space.huge },
   overscroll: {
     position: 'absolute',
     top: -1000,

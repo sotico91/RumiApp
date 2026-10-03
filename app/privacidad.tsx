@@ -61,10 +61,10 @@ export default function PrivacyPolicyScreen() {
             </Text>
             <Text style={styles.h}>4. Notificaciones en la pantalla bloqueada</Text>
             <Text style={styles.p}>
-              Los avisos al registrar un movimiento muestran el monto y la categoría, y pueden
-              verse con el teléfono bloqueado. El ojo que oculta los montos dentro de la App no
-              aplica a esas notificaciones. Puedes apagarlos desde el menú ⋯ de Inicio o en los
-              ajustes de notificaciones del teléfono.
+              Los avisos al registrar un movimiento vienen apagados. Si los activas, muestran el
+              monto y la categoría, y pueden verse con el teléfono bloqueado; el ojo que oculta
+              los montos dentro de la App no aplica a esas notificaciones. Se encienden y apagan
+              en Ajustes (tu inicial en Inicio) o en los ajustes de notificaciones del teléfono.
             </Text>
             <Text style={styles.h}>5. Copias de seguridad del teléfono</Text>
             <Text style={styles.p}>
@@ -87,7 +87,7 @@ export default function PrivacyPolicyScreen() {
             <Text style={styles.h}>8. Conservación y eliminación</Text>
             <Text style={styles.p}>
               Los datos permanecen en tu dispositivo hasta que los borres o desinstales la App.
-              “Borrar todos los datos” (menú ⋯ de Inicio) elimina movimientos, saldos, deudas y
+              “Borrar todos los datos” (en Ajustes) elimina movimientos, saldos, deudas y
               topes; tus categorías y tu nombre se conservan. Desinstalar elimina todo lo
               guardado en el dispositivo; las copias del sistema (punto 5) se gestionan desde tu
               cuenta de Apple o Google.
@@ -131,10 +131,10 @@ export default function PrivacyPolicyScreen() {
             </Text>
             <Text style={styles.h}>4. Notifications on the lock screen</Text>
             <Text style={styles.p}>
-              Alerts sent when you log a movement show the amount and category and can be seen
-              while the phone is locked. The eye that hides amounts inside the App does not
-              apply to them. Turn them off from the ⋯ menu on Home or in your phone’s
-              notification settings.
+              Alerts when you log a movement are off by default. If you turn them on, they show
+              the amount and category and can be seen while the phone is locked; the eye that
+              hides amounts inside the App does not apply to them. Turn them on or off in
+              Settings (your initial on Home) or in your phone’s notification settings.
             </Text>
             <Text style={styles.h}>5. Phone backups</Text>
             <Text style={styles.p}>
@@ -156,7 +156,7 @@ export default function PrivacyPolicyScreen() {
             <Text style={styles.h}>8. Retention and deletion</Text>
             <Text style={styles.p}>
               Data stays on your device until you delete it or uninstall the App. “Delete all
-              data” (⋯ menu on Home) removes movements, balances, debts and limits; your
+              data” (in Settings) removes movements, balances, debts and limits; your
               categories and name are kept. Uninstalling removes everything stored on the
               device; system backups (section 5) are managed from your Apple or Google account.
             </Text>

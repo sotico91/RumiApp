@@ -40,7 +40,8 @@ export const DEFAULT_SETTINGS: UserSettings = {
   spendConcepts: [],
   customConcepts: [],
   catalogVersion: CURRENT_CATALOG_VERSION,
-  notifyOnExpense: true,
+  // Off until asked for: these alerts show amounts on the lock screen.
+  notifyOnExpense: false,
   reminderRules: [],
   reminderCategoryIds: [],
   reminderCustomConcepts: [],

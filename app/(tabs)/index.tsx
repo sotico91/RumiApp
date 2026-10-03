@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ADD_FAB_OFFSET, ADD_FAB_SIZE, AddFab } from '@/src/components/AddFab';
 import { AmountPrivacyToggle } from '@/src/components/AmountPrivacyToggle';
 import { AppModal } from '@/src/components/AppModal';
 import { AntSpendTipCard } from '@/src/components/AntSpendTipCard';
@@ -67,7 +68,6 @@ export default function HomeScreen() {
   const spaceLabel = displayName
     ? t('home.spaceLabel', { name: displayName })
     : t('home.yours');
-  const initial = (displayName.charAt(0) || 'R').toUpperCase();
 
   const income = totalForPeriod('mes', 'income');
   const expenses = totalForPeriod('mes', 'expense');
@@ -139,9 +139,6 @@ export default function HomeScreen() {
                 <HowToGuideButton light />
                 <AmountPrivacyToggle />
                 <ProfileMenuButton />
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>{initial}</Text>
-                </View>
               </View>
               <SavingsDecor />
             </View>
@@ -179,8 +176,10 @@ export default function HomeScreen() {
           </SelectPressable>
         </>
       }
+      bottomSpace={ADD_FAB_SIZE + ADD_FAB_OFFSET * 2}
       overlay={
         <>
+          <AddFab />
           <ConceptGlanceSheet
             visible={glance != null}
             onClose={() => setGlance(null)}
@@ -450,21 +449,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: space.xs,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.full,
-    backgroundColor: colors.action.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.55)',
-  },
-  avatarText: {
-    fontFamily: type.h1.fontFamily,
-    fontSize: 20,
-    color: colors.text.onBrand,
   },
   available: {
     gap: space.xxs,

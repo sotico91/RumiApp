@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import type { ComponentProps, ReactNode } from 'react';
 import {
   Alert,
   Linking,
   Pressable,
+  ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
@@ -15,8 +19,9 @@ import { AppModal } from '@/src/components/AppModal';
 import { KeyboardSafeOverlay } from '@/src/components/KeyboardSafe';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useSettings } from '@/src/hooks/useSettings';
-import { useHowToGuide } from '@/src/hooks/useHowToGuide';
 import { useLanguage } from '@/src/i18n/LanguageContext';
+import { AppText } from '@/src/components/ui';
+import { colors, radius, space, type } from '@/src/theme';
 import { palette, radii } from '@/src/theme/colors';
 import { SUPPORT_EMAIL } from '@/src/constants/store';
 import {
@@ -27,14 +32,13 @@ import {
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import { authenticateAppLock, getAppLockKind } from '@/src/utils/appLock';
 
-type Props = {
-  light?: boolean;
-};
-
-export function ProfileMenuButton({ light = true }: Props) {
+/**
+ * The avatar in Home's header. Opens Settings: profile, preferences, your
+ * data, help, and the destructive reset kept apart at the bottom.
+ */
+export function ProfileMenuButton() {
   const insets = useSafeAreaInsets();
   const { t, language, setLanguage } = useLanguage();
-  const { openGuide } = useHowToGuide();
   const {
     settings,
     quickTemplates,
@@ -57,6 +61,7 @@ export function ProfileMenuButton({ light = true }: Props) {
   const [name, setName] = useState(settings.userName);
   const [saving, setSaving] = useState(false);
   const [busy, setBusy] = useState(false);
+  const initial = (settings.userName.trim().charAt(0) || 'R').toUpperCase();
 
   useEffect(() => {
     if (editOpen) setName(settings.userName);
@@ -188,13 +193,11 @@ export function ProfileMenuButton({ light = true }: Props) {
   }
 
   async function toggleNotifyOnExpense() {
-    setMenuOpen(false);
     const ok = await updateNotifyOnExpense(!settings.notifyOnExpense);
     if (!ok) Alert.alert(t('notify.permissionTitle'), t('notify.permissionBody'));
   }
 
   function switchLanguage() {
-    setMenuOpen(false);
     setLanguage(language === 'es' ? 'en' : 'es');
   }
 
@@ -251,120 +254,108 @@ export function ProfileMenuButton({ light = true }: Props) {
           tapFeedback();
           setMenuOpen(true);
         }}
-        hitSlop={10}
-        style={[styles.dotsBtn, light && styles.dotsBtnLight]}
-        accessibilityLabel={t('home.profileMenu')}
+        hitSlop={6}
+        style={({ pressed }) => [styles.avatar, pressed && styles.avatarPressed]}
+        accessibilityRole="button"
+        accessibilityLabel={t('settings.open')}
         disabled={busy}>
-        <Text style={[styles.dots, light && styles.dotsLight]}>⋯</Text>
+        <Text style={styles.avatarText}>{initial}</Text>
       </Pressable>
 
       <AppModal
         visible={menuOpen}
         transparent
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setMenuOpen(false)}>
-        <Pressable style={styles.menuBackdrop} onPress={() => setMenuOpen(false)}>
-          <View style={[styles.menuSheet, { marginTop: insets.top + 56 }]}>
-            <Pressable
-              onPress={() => {
-                tapFeedback();
-                setMenuOpen(false);
-                openGuide();
-              }}
-              style={styles.menuItem}>
-              <Text style={styles.menuItemText}>{t('guide.menu')}</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                tapFeedback();
-                openEditName();
-              }}
-              style={styles.menuItem}>
-              <Text style={styles.menuItemText}>{t('home.editName')}</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                tapFeedback();
-                void toggleAppLock();
-              }}
-              style={styles.menuItem}>
-              <Text style={styles.menuItemText}>
-                {settings.appLockEnabled ? t('lock.disable') : t('lock.enable')}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                tapFeedback();
-                void exportBackup();
-              }}
-              style={styles.menuItem}>
-              <Text style={styles.menuItemText}>{t('backup.exportJson')}</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                tapFeedback();
-                void exportCsv();
-              }}
-              style={styles.menuItem}>
-              <Text style={styles.menuItemText}>{t('backup.exportCsv')}</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                tapFeedback();
-                confirmRestore();
-              }}
-              style={styles.menuItem}>
-              <Text style={[styles.menuItemText, styles.menuDanger]}>
-                {t('backup.restore')}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                tapFeedback();
-                reportProblem();
-              }}
-              style={styles.menuItem}>
-              <Text style={styles.menuItemText}>{t('support.report')}</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                tapFeedback();
-                void toggleNotifyOnExpense();
-              }}
-              style={styles.menuItem}>
-              <Text style={styles.menuItemText}>
-                {settings.notifyOnExpense ? t('notify.menuTurnOff') : t('notify.menuTurnOn')}
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                tapFeedback();
-                switchLanguage();
-              }}
-              style={styles.menuItem}>
-              <Text style={styles.menuItemText}>{t('language.switch')}</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                tapFeedback();
-                openPrivacyPolicy();
-              }}
-              style={styles.menuItem}>
-              <Text style={styles.menuItemText}>{t('about.privacyPolicy')}</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                tapFeedback();
-                confirmReset();
-              }}
-              style={styles.menuItem}>
-              <Text style={[styles.menuItemText, styles.menuDanger]}>{t('fab.reset')}</Text>
-            </Pressable>
-            <Pressable onPress={() => setMenuOpen(false)} style={styles.menuCancel}>
-              <Text style={styles.menuCancelText}>{t('history.cancel')}</Text>
-            </Pressable>
+        <View style={styles.sheetRoot}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setMenuOpen(false)} />
+          <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, space.md) }]}>
+            <View style={styles.sheetHeader}>
+              <AppText variant="h2">{t('settings.title')}</AppText>
+              <Pressable
+                onPress={() => setMenuOpen(false)}
+                hitSlop={10}
+                style={styles.closeBtn}
+                accessibilityRole="button"
+                accessibilityLabel={t('settings.close')}>
+                <Ionicons name="close" size={20} color={colors.text.secondary} />
+              </Pressable>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.sheetBody}>
+              <SettingsGroup title={t('settings.profile')}>
+                <SettingsRow
+                  icon="person-outline"
+                  label={t('settings.name')}
+                  value={settings.userName.trim()}
+                  onPress={openEditName}
+                />
+              </SettingsGroup>
+
+              <SettingsGroup title={t('settings.preferences')}>
+                <SettingsRow
+                  icon="language-outline"
+                  label={t('language.label')}
+                  value={language === 'es' ? 'Español' : 'English'}
+                  onPress={switchLanguage}
+                />
+                <SettingsRow
+                  icon="notifications-outline"
+                  label={t('settings.notify')}
+                  hint={t('settings.notifyHint')}
+                  toggle={settings.notifyOnExpense}
+                  onPress={() => void toggleNotifyOnExpense()}
+                />
+                <SettingsRow
+                  icon="lock-closed-outline"
+                  label={t('settings.lock')}
+                  toggle={settings.appLockEnabled}
+                  onPress={() => void toggleAppLock()}
+                />
+              </SettingsGroup>
+
+              <SettingsGroup title={t('settings.data')}>
+                <SettingsRow
+                  icon="download-outline"
+                  label={t('backup.exportJson')}
+                  onPress={() => void exportBackup()}
+                />
+                <SettingsRow
+                  icon="document-text-outline"
+                  label={t('backup.exportCsv')}
+                  onPress={() => void exportCsv()}
+                />
+                <SettingsRow
+                  icon="refresh-outline"
+                  label={t('backup.restore')}
+                  onPress={confirmRestore}
+                />
+              </SettingsGroup>
+
+              <SettingsGroup title={t('settings.help')}>
+                <SettingsRow
+                  icon="chatbubble-ellipses-outline"
+                  label={t('support.report')}
+                  onPress={reportProblem}
+                />
+                <SettingsRow
+                  icon="shield-checkmark-outline"
+                  label={t('about.privacyPolicy')}
+                  onPress={openPrivacyPolicy}
+                />
+              </SettingsGroup>
+
+              <SettingsGroup title={t('settings.danger')}>
+                <SettingsRow
+                  icon="trash-outline"
+                  label={t('fab.reset')}
+                  danger
+                  onPress={confirmReset}
+                />
+              </SettingsGroup>
+            </ScrollView>
           </View>
-        </Pressable>
+        </View>
       </AppModal>
 
       <AppModal
@@ -415,66 +406,164 @@ export function ProfileMenuButton({ light = true }: Props) {
   );
 }
 
+function SettingsGroup({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <View style={styles.group}>
+      <AppText variant="overline" color="tertiary" style={styles.groupTitle}>
+        {title}
+      </AppText>
+      <View style={styles.groupCard}>{children}</View>
+    </View>
+  );
+}
+
+function SettingsRow({
+  icon,
+  label,
+  hint,
+  value,
+  toggle,
+  danger = false,
+  onPress,
+}: {
+  icon: ComponentProps<typeof Ionicons>['name'];
+  label: string;
+  hint?: string;
+  /** Current value shown on the right, with a chevron. */
+  value?: string;
+  /** On / off; draws a switch instead of a chevron. */
+  toggle?: boolean;
+  danger?: boolean;
+  onPress: () => void;
+}) {
+  const tint = danger ? colors.status.danger : colors.text.secondary;
+  return (
+    <Pressable
+      onPress={() => {
+        tapFeedback();
+        onPress();
+      }}
+      accessibilityRole={toggle === undefined ? 'button' : 'switch'}
+      accessibilityState={toggle === undefined ? undefined : { checked: toggle }}
+      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}>
+      <Ionicons name={icon} size={20} color={tint} />
+      <View style={styles.rowText}>
+        <AppText variant="bodyStrong" style={danger ? styles.dangerText : undefined}>
+          {label}
+        </AppText>
+        {hint ? (
+          <AppText variant="caption" color="tertiary">
+            {hint}
+          </AppText>
+        ) : null}
+      </View>
+      {toggle !== undefined ? (
+        <Switch
+          value={toggle}
+          onValueChange={() => {
+            tapFeedback();
+            onPress();
+          }}
+          trackColor={{ true: colors.action.secondary, false: 'rgba(15,28,36,0.16)' }}
+          thumbColor={colors.bg.surface}
+          ios_backgroundColor="rgba(15,28,36,0.16)"
+        />
+      ) : (
+        <View style={styles.rowEnd}>
+          {value ? (
+            <AppText variant="caption" color="secondary" numberOfLines={1} style={styles.rowValue}>
+              {value}
+            </AppText>
+          ) : null}
+          {danger ? null : (
+            <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
+          )}
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
-  dotsBtn: {
+  avatar: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: radius.full,
+    backgroundColor: colors.action.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(8,20,28,0.08)',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.55)',
   },
-  dotsBtnLight: {
-    backgroundColor: 'rgba(255,255,255,0.22)',
+  avatarPressed: {
+    backgroundColor: colors.action.primaryPressed,
   },
-  dots: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 22,
-    color: palette.ink,
-    marginTop: -6,
+  avatarText: {
+    fontFamily: type.h1.fontFamily,
+    fontSize: 16,
+    color: colors.text.onAction,
   },
-  dotsLight: {
-    color: palette.white,
-  },
-  menuBackdrop: {
+  sheetRoot: {
     flex: 1,
-    backgroundColor: 'rgba(8,20,28,0.35)',
-    alignItems: 'flex-end',
-    paddingHorizontal: 18,
+    justifyContent: 'flex-end',
+    backgroundColor: colors.bg.scrim,
   },
-  menuSheet: {
-    minWidth: 220,
-    backgroundColor: palette.surfaceSolid,
-    borderRadius: radii.md,
+  sheet: {
+    maxHeight: '88%',
+    backgroundColor: colors.bg.screen,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
+    paddingTop: space.lg,
+  },
+  sheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: space.gutter,
+    paddingBottom: space.sm,
+  },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(15,28,36,0.06)',
+  },
+  sheetBody: {
+    paddingHorizontal: space.gutter,
+    paddingBottom: space.md,
+    gap: space.lg,
+  },
+  group: { gap: space.xs },
+  groupTitle: { paddingHorizontal: space.xxs },
+  groupCard: {
+    backgroundColor: colors.bg.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
   },
-  menuItem: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+    minHeight: 52,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border.subtle,
   },
-  menuItemText: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 15,
-    color: palette.ink,
+  rowPressed: { backgroundColor: colors.bg.surfaceMuted },
+  rowText: { flex: 1, gap: 2 },
+  rowEnd: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.xxs,
+    maxWidth: '45%',
   },
-  menuDanger: {
-    color: palette.danger,
-  },
-  menuCancel: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: palette.border,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  menuCancelText: {
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 15,
-    color: palette.inkMuted,
-  },
+  rowValue: { flexShrink: 1 },
+  dangerText: { color: colors.status.danger },
   editBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(8,20,28,0.72)',
