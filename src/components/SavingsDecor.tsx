@@ -189,7 +189,7 @@ function TotalsGlanceBody({ maxHeight }: { maxHeight: number }) {
         <PanelStat
           label={t('home.savings')}
           value={format(savings)}
-          tone={savings >= 0 ? 'good' : 'danger'}
+          tone={income > 0 ? (savings >= 0 ? 'good' : 'danger') : undefined}
         />
       </View>
     </ScrollView>

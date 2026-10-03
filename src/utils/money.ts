@@ -100,6 +100,24 @@ export function normalizeAmountDigits(value: string): string {
   return `${left}.${right}`;
 }
 
+/**
+ * Group thousands while the user types, so 2500000 reads 2.500.000 (COP) or
+ * 2,500,000 (USD). COP stays whole; USD keeps one "." and up to two decimals.
+ * The result always parses back with parseAmountInput.
+ */
+export function formatAmountTyping(value: string, currency: Currency = 'COP'): string {
+  if (currency === 'USD') {
+    const cleaned = value.replace(/,/g, '').replace(/[^\d.]/g, '');
+    const dot = cleaned.indexOf('.');
+    const whole = (dot >= 0 ? cleaned.slice(0, dot) : cleaned).replace(/^0+(?=\d)/, '');
+    const cents = dot >= 0 ? cleaned.slice(dot + 1).replace(/\./g, '').slice(0, 2) : null;
+    const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return cents === null ? grouped : `${grouped || '0'}.${cents}`;
+  }
+  const digits = value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
 export function parseAmountInput(value: string, currency: Currency = 'COP'): number | null {
   const cleaned = normalizeAmountDigits(value);
   if (!cleaned) return null;

@@ -15,6 +15,7 @@ import { spendSubsAsCategories } from '@/src/data/spendConcepts';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useKeyboardVisible } from '@/src/hooks/useKeyboardVisible';
 import { useMoney } from '@/src/hooks/useMoney';
+import { formatAmountTyping } from '@/src/utils/money';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
@@ -182,8 +183,8 @@ export function EditTransactionModal({ transaction, visible, onClose }: Props) {
             <View style={styles.amountRow}>
               <Text style={styles.currency}>$</Text>
               <TextInput
-                value={amount}
-                onChangeText={setAmount}
+                value={formatAmountTyping(amount, currency)}
+                onChangeText={(text) => setAmount(formatAmountTyping(text, currency))}
                 keyboardType="decimal-pad"
                 style={styles.amountInput}
               />

@@ -48,6 +48,9 @@ export default function AgregarScreen() {
   useEffect(() => {
     if (params.mode === 'advanced' || prefilledCategoryId) {
       setMode('advanced');
+    } else if (params.mode === 'quick') {
+      // Home's "first expense" card goes straight to the one-screen form.
+      setMode('quick');
     }
   }, [params.mode, prefilledCategoryId]);
 

@@ -97,7 +97,15 @@ export default function HomeScreen() {
   const predictTotal = predictedThisMonth.reduce((s, p) => s + p.amount, 0);
   const predictPendingTotal = predictPending.reduce((s, p) => s + p.amount, 0);
   const worstBudgetRatio = Math.max(0, ...budgetStatus.map((b) => b.ratio));
-  const savingsTone = toneFromSavings(savings);
+  // With no income logged yet, the month result is not "in the red": it is
+  // just incomplete. Say so instead of colouring the first expense as a loss.
+  const hasIncome = income > 0;
+  const savingsTone = hasIncome ? toneFromSavings(savings) : 'neutral';
+  const expenseLogs = transactions.filter((tx) => tx.type === 'expense');
+  const showFirstExpense = !loading && expenseLogs.length === 0;
+  const firstExpenseToday =
+    expenseLogs.length === 1 &&
+    new Date(expenseLogs[0].createdAt).toDateString() === new Date().toDateString();
   const expensesTone = toneFromExpensePressure({
     expenses,
     income,
@@ -240,6 +248,30 @@ export default function HomeScreen() {
           </AppModal>
         </>
       }>
+      {showFirstExpense ? (
+        <Card style={styles.firstCard}>
+          <AppText variant="h2">{t('home.firstTitle')}</AppText>
+          <AppText color="secondary" style={styles.firstBody}>
+            {t('home.firstBody')}
+          </AppText>
+          <Button
+            fullWidth
+            label={t('home.firstCta')}
+            onPress={() => router.push({ pathname: '/agregar', params: { mode: 'quick' } })}
+            style={styles.firstCta}
+          />
+        </Card>
+      ) : null}
+
+      {firstExpenseToday ? (
+        <Card variant="tinted" tone="success">
+          <AppText variant="title">{t('home.firstDoneTitle')}</AppText>
+          <AppText color="secondary" style={styles.firstBody}>
+            {t('home.firstDoneBody')}
+          </AppText>
+        </Card>
+      ) : null}
+
       <View>
         <AppText variant="overline" color="tertiary" style={styles.sectionLabel}>
           {t('decor.monthTitle')}
@@ -266,11 +298,13 @@ export default function HomeScreen() {
             tone={savingsTone}
             hint={
               paceHint ??
-              (savingsTone === 'good'
-                ? t('home.savingsGood')
-                : savingsTone === 'danger'
-                  ? t('home.savingsBad')
-                  : undefined)
+              (!hasIncome && expenses > 0
+                ? t('home.savingsNoIncome')
+                : savingsTone === 'good'
+                  ? t('home.savingsGood')
+                  : savingsTone === 'danger'
+                    ? t('home.savingsBad')
+                    : undefined)
             }
             onPress={() => setMoneyInfo('savings')}
           />
@@ -468,6 +502,15 @@ const styles = StyleSheet.create({
     height: type.display.lineHeight,
     borderRadius: radius.sm,
     backgroundColor: 'rgba(255,255,255,0.12)',
+  },
+  firstCard: {
+    borderColor: colors.action.primarySoft,
+  },
+  firstBody: {
+    marginTop: space.xs,
+  },
+  firstCta: {
+    marginTop: space.md,
   },
   sectionLabel: {
     marginBottom: space.sm,

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import {
   Alert,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -13,28 +14,55 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppModal } from '@/src/components/AppModal';
 import { KeyboardSafeOverlay } from '@/src/components/KeyboardSafe';
 import { guessConceptIcon } from '@/src/data/conceptIcons';
-import { createSpendSub, ONBOARDING_CONCEPTS } from '@/src/data/spendConcepts';
+import {
+  createSpendSub,
+  ensureSpendConceptSub,
+  ONBOARDING_CONCEPTS,
+} from '@/src/data/spendConcepts';
+import { useAmountPrivacy } from '@/src/hooks/useAmountPrivacy';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
+import type { TranslationKey } from '@/src/i18n/translations';
 import { palette, radii } from '@/src/theme/colors';
 import type { Currency } from '@/src/types/settings';
-import { parseAmountInput } from '@/src/utils/money';
+import { formatAmountTyping, parseAmountInput } from '@/src/utils/money';
 
-/** Name, currency, today's money. Concepts, notifications and reminders
- * have sensible defaults and live in Plan / the ⋯ menu afterwards. */
-const TOTAL_STEPS = 3;
+/** Name, currency, ant spends, today's money. Notifications and reminders
+ * have sensible defaults and live in Plan / Settings afterwards. */
+const TOTAL_STEPS = 4;
+const STEP_ANT = 2;
+const STEP_BALANCE = 3;
+
+/**
+ * Ant spends offered on day one. Labels match the add-flow templates
+ * (Café, Domicilio, Snack) so a template later reuses the same subcategory.
+ */
+const ANT_CHOICES: {
+  id: string;
+  emoji: string;
+  labelKey: TranslationKey;
+  conceptId: string;
+}[] = [
+  { id: 'coffee', emoji: '☕', labelKey: 'flow.tpl.coffee', conceptId: 'concept-alimentacion' },
+  { id: 'delivery', emoji: '🛵', labelKey: 'flow.tpl.delivery', conceptId: 'concept-alimentacion' },
+  { id: 'snack', emoji: '🍪', labelKey: 'flow.tpl.snack', conceptId: 'concept-alimentacion' },
+  { id: 'rides', emoji: '🚕', labelKey: 'onboard.ant.rides', conceptId: 'concept-transporte' },
+  { id: 'subs', emoji: '📺', labelKey: 'onboard.ant.subscriptions', conceptId: 'concept-recibos' },
+];
 
 export function OnboardingOverlay() {
   const insets = useSafeAreaInsets();
   const { t } = useLanguage();
   const { settings, ready, completeOnboarding } = useSettings();
   const { setAccountBalance } = useFinance();
+  const { setAmountsVisible } = useAmountPrivacy();
   const [step, setStep] = useState(0);
   const [userName, setUserName] = useState('');
   const [currency, setCurrency] = useState<Currency>('COP');
   const [bank, setBank] = useState('');
   const [cash, setCash] = useState('');
+  const [antPicks, setAntPicks] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   const visible = ready && !settings.onboardingDone;
@@ -53,18 +81,28 @@ export function OnboardingOverlay() {
     }
     setSaving(true);
     try {
-      const spendConcepts = ONBOARDING_CONCEPTS.map((c) => ({
+      let spendConcepts = ONBOARDING_CONCEPTS.map((c) => ({
         id: c.id,
         name: t(c.nameKey),
         color: c.color,
         icon: guessConceptIcon({ id: c.id, name: t(c.nameKey) }),
         subs: [createSpendSub(c.id, t('onboard.concept.general'))],
       }));
+      for (const choice of ANT_CHOICES) {
+        if (!antPicks.includes(choice.id)) continue;
+        const parent = spendConcepts.find((c) => c.id === choice.conceptId);
+        spendConcepts = ensureSpendConceptSub(spendConcepts, {
+          conceptId: choice.conceptId,
+          conceptName: parent?.name ?? '',
+          subName: t(choice.labelKey),
+          isAnt: true,
+        }).concepts as typeof spendConcepts;
+      }
       await completeOnboarding({
         userName: trimmed,
         currency,
         spendConcepts,
-        // Asked later, in context (⋯ menu), instead of a permission prompt on day one.
+        // Asked later, in context (Settings), instead of a permission prompt on day one.
         notifyOnExpense: false,
         reminderCategoryIds: [],
       });
@@ -72,6 +110,8 @@ export function OnboardingOverlay() {
       const cashAmount = parseAmountInput(cash, currency);
       if (bankAmount) await setAccountBalance('bank-main', bankAmount);
       if (cashAmount) await setAccountBalance('cash', cashAmount);
+      // They just typed their balance: show it, not a mask, the first time.
+      setAmountsVisible(true);
     } finally {
       setSaving(false);
     }
@@ -120,6 +160,11 @@ export function OnboardingOverlay() {
           </View>
           <Text style={styles.step}>{stepLabel}</Text>
 
+          {/* Scrolls when the keyboard leaves little room; the buttons below stay put. */}
+          <ScrollView
+            style={styles.scroll}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}>
           {step === 0 ? (
             <Animated.View entering={FadeInDown.springify()} style={styles.body}>
               <Text style={styles.kicker}>{t('brand.name')}</Text>
@@ -157,30 +202,60 @@ export function OnboardingOverlay() {
             </Animated.View>
           ) : null}
 
-          {step === 2 ? (
+          {step === STEP_ANT ? (
+            <Animated.View entering={FadeInDown.springify()} style={styles.body}>
+              <Text style={styles.title}>{t('onboard.antTitle')}</Text>
+              <Text style={styles.copy}>{t('onboard.antBody')}</Text>
+              <View style={styles.antGrid}>
+                {ANT_CHOICES.map((choice) => {
+                  const on = antPicks.includes(choice.id);
+                  return (
+                    <Pressable
+                      key={choice.id}
+                      onPress={() =>
+                        setAntPicks((picks) =>
+                          on ? picks.filter((id) => id !== choice.id) : [...picks, choice.id]
+                        )
+                      }
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: on }}
+                      style={[styles.antChip, on && styles.antChipOn]}>
+                      <Text style={styles.antEmoji}>{choice.emoji}</Text>
+                      <Text style={[styles.antLabel, on && styles.antLabelOn]}>
+                        {t(choice.labelKey)}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </Animated.View>
+          ) : null}
+
+          {step === STEP_BALANCE ? (
             <Animated.View entering={FadeInDown.springify()} style={styles.body}>
               <Text style={styles.title}>{t('onboard.balanceTitle')}</Text>
               <Text style={styles.copy}>{t('onboard.balanceBody')}</Text>
               <Text style={styles.fieldLabel}>{t('account.bankMain')}</Text>
               <TextInput
                 value={bank}
-                onChangeText={setBank}
+                onChangeText={(text) => setBank(formatAmountTyping(text, currency))}
                 placeholder="0"
                 placeholderTextColor={palette.inkSoft}
-                keyboardType="decimal-pad"
+                keyboardType={currency === 'USD' ? 'decimal-pad' : 'number-pad'}
                 style={styles.amountInput}
               />
               <Text style={styles.fieldLabel}>{t('account.cash')}</Text>
               <TextInput
                 value={cash}
-                onChangeText={setCash}
+                onChangeText={(text) => setCash(formatAmountTyping(text, currency))}
                 placeholder="0"
                 placeholderTextColor={palette.inkSoft}
-                keyboardType="decimal-pad"
+                keyboardType={currency === 'USD' ? 'decimal-pad' : 'number-pad'}
                 style={styles.amountInput}
               />
             </Animated.View>
           ) : null}
+          </ScrollView>
 
           <View style={styles.actions}>
             {step > 0 ? (
@@ -286,9 +361,44 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: 10,
   },
+  scroll: {
+    flexShrink: 1,
+  },
   body: {
     gap: 12,
     marginBottom: 18,
+  },
+  antGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  antChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: palette.border,
+    backgroundColor: '#F7FAFC',
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  antChipOn: {
+    borderColor: palette.accent,
+    backgroundColor: palette.accentSoft,
+  },
+  antEmoji: {
+    fontSize: 18,
+  },
+  antLabel: {
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 15,
+    color: palette.ink,
+  },
+  antLabelOn: {
+    fontFamily: 'DMSans_600SemiBold',
+    color: palette.accentDeep,
   },
   kicker: {
     fontFamily: 'DMSans_600SemiBold',

@@ -10,6 +10,7 @@ import { findSpendSub, flattenSpendSubs, isGeneralSubName, subColor } from '@/sr
 import type { FriendlyIntent } from '@/src/data/friendlyTemplates';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
+import { formatAmountTyping } from '@/src/utils/money';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
@@ -41,7 +42,7 @@ type Props = {
  */
 export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
   const { t } = useLanguage();
-  const { formatPlain, parse } = useMoney();
+  const { formatPlain, parse, currency } = useMoney();
   const { settings, updateQuickTemplate } = useSettings();
   const { addTransaction, totalForPeriod, accounts, debts, transactions } = useFinance();
   const spendConcepts = settings.spendConcepts ?? [];
@@ -183,8 +184,8 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
         <View style={styles.amountRow}>
           <Text style={styles.currency}>$</Text>
           <TextInput
-            value={amount}
-            onChangeText={setAmount}
+            value={formatAmountTyping(amount, currency)}
+            onChangeText={(text) => setAmount(formatAmountTyping(text, currency))}
             placeholder="0"
             placeholderTextColor={palette.inkMuted}
             keyboardType="decimal-pad"

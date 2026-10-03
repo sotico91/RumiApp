@@ -30,6 +30,7 @@ import {
 } from '@/src/data/spendConcepts';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
+import { formatAmountTyping } from '@/src/utils/money';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
@@ -366,8 +367,8 @@ export function ExpenseForm({
       <View style={styles.amountBlock}>
         <Text style={styles.currencyMark}>$</Text>
         <TextInput
-          value={amount}
-          onChangeText={setAmount}
+          value={formatAmountTyping(amount, currency)}
+          onChangeText={(text) => setAmount(formatAmountTyping(text, currency))}
           keyboardType="decimal-pad"
           placeholder="0"
           placeholderTextColor={palette.inkSoft}
