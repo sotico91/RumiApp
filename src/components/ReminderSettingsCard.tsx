@@ -471,7 +471,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontFamily: 'Fraunces_600SemiBold',
     fontSize: 20,
-    color: palette.brand,
+    color: palette.ink,
   },
   searchInput: {
     borderWidth: 1,

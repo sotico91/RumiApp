@@ -7,13 +7,11 @@ import {
   InvestmentQuickAdd,
   WalletQuickAdd,
 } from '@/src/components/AccountChoiceChips';
+import { AppText, BrandScreen, ScreenHeader } from '@/src/components/ui';
+import { colors, space, type } from '@/src/theme';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
-import { FadeInBlock } from '@/src/components/FadeInBlock';
 import { HowToGuideButton } from '@/src/components/HowToGuideButton';
-import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
 import { MoneyText } from '@/src/components/MoneyText';
-import { RaisedText } from '@/src/components/RaisedText';
-import { ScreenBackground } from '@/src/components/ScreenBackground';
 import { findSpendSub } from '@/src/data/spendConcepts';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
@@ -683,321 +681,328 @@ export default function WealthScreen() {
   }
 
   return (
-    <ScreenBackground>
-      <KeyboardSafeScroll
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}>
-        <FadeInBlock>
-          <View style={styles.titleRow}>
-            <RaisedText style={styles.title}>{t('wealth.title')}</RaisedText>
-            <HowToGuideButton light variant="chip" />
+    <BrandScreen
+      gap={space.md}
+      header={
+        <>
+          <ScreenHeader
+            title={t('wealth.title')}
+            subtitle={t('wealth.subtitle')}
+            actions={<HowToGuideButton light variant="chip" />}
+          />
+          <View style={styles.net}>
+            <AppText variant="overline" color="onBrandMuted">
+              {t('wealth.net')}
+            </AppText>
+            <MoneyText
+              style={[
+                styles.netValue,
+                netWorth.net < 0 && { color: colors.text.onBrandDanger },
+              ]}>
+              {format(netWorth.net)}
+            </MoneyText>
+            <View style={styles.netSplit}>
+              <AppText variant="caption" color="onBrandMuted">
+                {t('wealth.assets')}: {format(netWorth.assets)}
+              </AppText>
+              <AppText variant="caption" color="onBrandMuted">
+                {t('wealth.liabilities')}: {format(netWorth.liabilities)}
+              </AppText>
+            </View>
           </View>
-          <Text style={styles.subtitle}>{t('wealth.subtitle')}</Text>
-          <View style={styles.netBox}>
-            <Text style={styles.netLabel}>{t('wealth.net')}</Text>
-            <MoneyText style={styles.netValue}>{format(netWorth.net)}</MoneyText>
-            <Text style={styles.meta}>
-              {t('wealth.assets')}: {format(netWorth.assets)}
-            </Text>
-            <Text style={styles.meta}>
-              {t('wealth.liabilities')}: {format(netWorth.liabilities)}
-            </Text>
-          </View>
-        </FadeInBlock>
-
-        <FadeInBlock index={1}>
-          <CollapsibleSection
-            title={t('wealth.accounts')}
-            open={accountsOpen}
-            onToggle={() => setAccountsOpen((v) => !v)}
-            summary={t('wealth.accountsCollapsed', { count: cashAccounts.length })}>
-            <Text style={styles.accountsHint}>{t('wealth.accountsHint')}</Text>
-            {groupedAccounts.map((acc, index) => {
-              const canRename =
-                acc.type === 'wallet' || acc.type === 'bank' || acc.type === 'investment';
-              const canEditBalance = isEditablePocketBalance(acc.type);
-              const canRemove =
-                isRemovableWallet(acc) || isRemovableBank(acc) || isRemovableInvestment(acc);
-              const renaming = editingWalletId === acc.id;
-              const editingBal = editingBalanceId === acc.id;
-              const label = accountDisplayName(acc, t);
-              const prevType = groupedAccounts[index - 1]?.type;
-              const showGroup = acc.type !== prevType;
-              return (
-                <View key={acc.id}>
-                  {showGroup ? (
-                    <Text
-                      style={[
-                        styles.groupLabel,
-                        index === 0 && styles.groupLabelFirst,
-                      ]}>
-                      {t(accountGroupKey(acc.type))}
-                    </Text>
-                  ) : null}
-                  <View
+        </>
+      }>
+      <View>
+        <CollapsibleSection
+          title={t('wealth.accounts')}
+          open={accountsOpen}
+          onToggle={() => setAccountsOpen((v) => !v)}
+          summary={t('wealth.accountsCollapsed', { count: cashAccounts.length })}>
+          <Text style={styles.accountsHint}>{t('wealth.accountsHint')}</Text>
+          {groupedAccounts.map((acc, index) => {
+            const canRename =
+              acc.type === 'wallet' || acc.type === 'bank' || acc.type === 'investment';
+            const canEditBalance = isEditablePocketBalance(acc.type);
+            const canRemove =
+              isRemovableWallet(acc) || isRemovableBank(acc) || isRemovableInvestment(acc);
+            const renaming = editingWalletId === acc.id;
+            const editingBal = editingBalanceId === acc.id;
+            const label = accountDisplayName(acc, t);
+            const prevType = groupedAccounts[index - 1]?.type;
+            const showGroup = acc.type !== prevType;
+            return (
+              <View key={acc.id}>
+                {showGroup ? (
+                  <Text
                     style={[
-                      styles.card,
-                      (renaming || editingBal) && styles.cardEditing,
+                      styles.groupLabel,
+                      index === 0 && styles.groupLabelFirst,
                     ]}>
-                  <View style={styles.sectionRow}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.cardTitle}>{label}</Text>
-                      {acc.type === 'investment' && !acc.name ? (
-                        <Text style={styles.cardHint}>{t('invest.whereHint')}</Text>
-                      ) : null}
-                    </View>
-                    <View style={styles.cardActions}>
-                      {canEditBalance ? (
-                        <Pressable onPress={() => startEditBalance(acc)}>
-                          <Text style={styles.editText}>{t('wealth.balanceEdit')}</Text>
-                        </Pressable>
-                      ) : null}
-                      {canRename ? (
-                        <Pressable onPress={() => startRenameWallet(acc)}>
-                          <Text style={styles.editText}>{t('wealth.walletRename')}</Text>
-                        </Pressable>
-                      ) : null}
-                      {canRemove ? (
-                        <Pressable
-                          onPress={() =>
-                            confirmRemovePocket(
-                              acc.id,
-                              label,
-                              acc.balance,
-                              acc.type === 'bank'
-                                ? 'bank'
-                                : acc.type === 'investment'
-                                  ? 'investment'
-                                  : 'wallet'
-                            )
-                          }>
-                          <Text style={styles.deleteText}>
-                            {acc.type === 'bank'
-                              ? t('wealth.bankDelete')
-                              : t('wealth.walletDelete')}
-                          </Text>
-                        </Pressable>
-                      ) : null}
+                    {t(accountGroupKey(acc.type))}
+                  </Text>
+                ) : null}
+                <View
+                  style={[
+                    styles.card,
+                    (renaming || editingBal) && styles.cardEditing,
+                  ]}>
+                <View style={styles.sectionRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.cardTitle}>{label}</Text>
+                    {acc.type === 'investment' && !acc.name ? (
+                      <Text style={styles.cardHint}>{t('invest.whereHint')}</Text>
+                    ) : null}
+                  </View>
+                  <View style={styles.cardActions}>
+                    {canEditBalance ? (
+                      <Pressable onPress={() => startEditBalance(acc)}>
+                        <Text style={styles.editText}>{t('wealth.balanceEdit')}</Text>
+                      </Pressable>
+                    ) : null}
+                    {canRename ? (
+                      <Pressable onPress={() => startRenameWallet(acc)}>
+                        <Text style={styles.editText}>{t('wealth.walletRename')}</Text>
+                      </Pressable>
+                    ) : null}
+                    {canRemove ? (
+                      <Pressable
+                        onPress={() =>
+                          confirmRemovePocket(
+                            acc.id,
+                            label,
+                            acc.balance,
+                            acc.type === 'bank'
+                              ? 'bank'
+                              : acc.type === 'investment'
+                                ? 'investment'
+                                : 'wallet'
+                          )
+                        }>
+                        <Text style={styles.deleteText}>
+                          {acc.type === 'bank'
+                            ? t('wealth.bankDelete')
+                            : t('wealth.walletDelete')}
+                        </Text>
+                      </Pressable>
+                    ) : null}
+                  </View>
+                </View>
+                <MoneyText
+                  style={[
+                    styles.amount,
+                    acc.balance < 0 ? styles.amountDebt : null,
+                  ]}>
+                  {acc.balance < 0
+                    ? t('wealth.accountOwes', { amount: format(Math.abs(acc.balance)) })
+                    : format(acc.balance)}
+                </MoneyText>
+                {editingBal ? (
+                  <View style={styles.walletRename}>
+                    <TextInput
+                      value={balanceDraft}
+                      onChangeText={setBalanceDraft}
+                      placeholder={t('wealth.balancePlaceholder')}
+                      placeholderTextColor={palette.inkSoft}
+                      style={styles.input}
+                      keyboardType="decimal-pad"
+                      autoFocus
+                      onSubmitEditing={() => void handleSaveBalance()}
+                      returnKeyType="done"
+                    />
+                    <View style={styles.formActions}>
+                      <Pressable
+                        onPress={() => {
+                          tapFeedback();
+                          setEditingBalanceId(null);
+                          setBalanceDraft('');
+                        }}
+                        style={styles.secondaryBtn}>
+                        <Text style={styles.secondaryBtnText}>
+                          {t('wealth.debtCancel')}
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => void handleSaveBalance()}
+                        disabled={savingBalance || !balanceDraft.trim()}
+                        style={[
+                          styles.saveBtn,
+                          styles.saveBtnFlex,
+                          (!balanceDraft.trim() || savingBalance) && {
+                            opacity: 0.5,
+                          },
+                        ]}>
+                        <Text style={styles.saveBtnText}>
+                          {savingBalance
+                            ? t('add.saving')
+                            : t('wealth.balanceSave')}
+                        </Text>
+                      </Pressable>
                     </View>
                   </View>
-                  <MoneyText
-                    style={[
-                      styles.amount,
-                      acc.balance < 0 ? styles.amountDebt : null,
-                    ]}>
-                    {acc.balance < 0
-                      ? t('wealth.accountOwes', { amount: format(Math.abs(acc.balance)) })
-                      : format(acc.balance)}
-                  </MoneyText>
-                  {editingBal ? (
-                    <View style={styles.walletRename}>
-                      <TextInput
-                        value={balanceDraft}
-                        onChangeText={setBalanceDraft}
-                        placeholder={t('wealth.balancePlaceholder')}
-                        placeholderTextColor={palette.inkSoft}
-                        style={styles.input}
-                        keyboardType="decimal-pad"
-                        autoFocus
-                        onSubmitEditing={() => void handleSaveBalance()}
-                        returnKeyType="done"
-                      />
-                      <View style={styles.formActions}>
-                        <Pressable
-                          onPress={() => {
-                            tapFeedback();
-                            setEditingBalanceId(null);
-                            setBalanceDraft('');
-                          }}
-                          style={styles.secondaryBtn}>
-                          <Text style={styles.secondaryBtnText}>
-                            {t('wealth.debtCancel')}
-                          </Text>
-                        </Pressable>
-                        <Pressable
-                          onPress={() => void handleSaveBalance()}
-                          disabled={savingBalance || !balanceDraft.trim()}
-                          style={[
-                            styles.saveBtn,
-                            styles.saveBtnFlex,
-                            (!balanceDraft.trim() || savingBalance) && {
-                              opacity: 0.5,
-                            },
-                          ]}>
-                          <Text style={styles.saveBtnText}>
-                            {savingBalance
-                              ? t('add.saving')
-                              : t('wealth.balanceSave')}
-                          </Text>
-                        </Pressable>
-                      </View>
+                ) : null}
+                {renaming ? (
+                  <View style={styles.walletRename}>
+                    <TextInput
+                      value={walletNameDraft}
+                      onChangeText={setWalletNameDraft}
+                      placeholder={
+                        acc.type === 'bank'
+                          ? t('flow.bankNamePlaceholder')
+                          : t('flow.walletNamePlaceholder')
+                      }
+                      placeholderTextColor={palette.inkSoft}
+                      style={styles.input}
+                      autoFocus
+                      onSubmitEditing={() => void handleSaveWalletName()}
+                      returnKeyType="done"
+                    />
+                    <View style={styles.formActions}>
+                      <Pressable
+                        onPress={() => {
+                          tapFeedback();
+                          setEditingWalletId(null);
+                          setWalletNameDraft('');
+                        }}
+                        style={styles.secondaryBtn}>
+                        <Text style={styles.secondaryBtnText}>
+                          {t('wealth.debtCancel')}
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => void handleSaveWalletName()}
+                        disabled={savingWallet || !walletNameDraft.trim()}
+                        style={[
+                          styles.saveBtn,
+                          styles.saveBtnFlex,
+                          (!walletNameDraft.trim() || savingWallet) && {
+                            opacity: 0.5,
+                          },
+                        ]}>
+                        <Text style={styles.saveBtnText}>
+                          {savingWallet
+                            ? t('add.saving')
+                            : t('wealth.walletRenameSave')}
+                        </Text>
+                      </Pressable>
                     </View>
-                  ) : null}
-                  {renaming ? (
-                    <View style={styles.walletRename}>
-                      <TextInput
-                        value={walletNameDraft}
-                        onChangeText={setWalletNameDraft}
-                        placeholder={
-                          acc.type === 'bank'
-                            ? t('flow.bankNamePlaceholder')
-                            : t('flow.walletNamePlaceholder')
-                        }
-                        placeholderTextColor={palette.inkSoft}
-                        style={styles.input}
-                        autoFocus
-                        onSubmitEditing={() => void handleSaveWalletName()}
-                        returnKeyType="done"
-                      />
-                      <View style={styles.formActions}>
-                        <Pressable
-                          onPress={() => {
-                            tapFeedback();
-                            setEditingWalletId(null);
-                            setWalletNameDraft('');
-                          }}
-                          style={styles.secondaryBtn}>
-                          <Text style={styles.secondaryBtnText}>
-                            {t('wealth.debtCancel')}
-                          </Text>
-                        </Pressable>
-                        <Pressable
-                          onPress={() => void handleSaveWalletName()}
-                          disabled={savingWallet || !walletNameDraft.trim()}
-                          style={[
-                            styles.saveBtn,
-                            styles.saveBtnFlex,
-                            (!walletNameDraft.trim() || savingWallet) && {
-                              opacity: 0.5,
-                            },
-                          ]}>
-                          <Text style={styles.saveBtnText}>
-                            {savingWallet
-                              ? t('add.saving')
-                              : t('wealth.walletRenameSave')}
-                          </Text>
-                        </Pressable>
-                      </View>
-                    </View>
-                  ) : null}
-                </View>
-                </View>
-              );
-            })}
-          </CollapsibleSection>
-          <View style={styles.addWalletCard}>
-            <WalletQuickAdd />
-            <View style={styles.addBankGap} />
-            <BankQuickAdd />
-            <View style={styles.addBankGap} />
-            <InvestmentQuickAdd />
-          </View>
-        </FadeInBlock>
-
-        <FadeInBlock index={2}>
-          <CollapsibleSection
-            title={t('wealth.cards')}
-            open={cardsOpen}
-            onToggle={() => setCardsOpen((v) => !v)}
-            summary={
-              revolvingDebts.length === 0
-                ? t('wealth.cardsEmptyShort')
-                : t('wealth.cardsCollapsed', {
-                    count: revolvingDebts.length,
-                    available: format(cardAvailableTotal),
-                  })
-            }>
-            {!(showForm && kind === 'revolving') ? (
-              <View style={styles.sectionRow}>
-                <View style={{ flex: 1 }} />
-                <Pressable onPress={() => startCreate('revolving')} style={styles.addBtn}>
-                  <Text style={styles.addBtnText}>{t('wealth.addCard')}</Text>
-                </Pressable>
-              </View>
-            ) : null}
-
-            {revolvingDebts.length > 1 ? (
-              <View style={styles.summaryCard}>
-                <Text style={styles.summaryTitle}>{t('wealth.cardsMonth')}</Text>
-                <MoneyText style={styles.amount}>{format(cardMonthDue)}</MoneyText>
-                {paidCardsThisMonth > 0 ? (
-                  <Text style={styles.meta}>
-                    {t('wealth.fixedPaid', {
-                      paid: format(paidCardsThisMonth),
-                      due: format(cardMonthDue),
-                    })}
-                  </Text>
+                  </View>
                 ) : null}
               </View>
-            ) : null}
-
-            {showForm && kind === 'revolving' ? renderDebtForm() : null}
-
-            {revolvingDebts.length === 0 && !(showForm && kind === 'revolving') ? (
-              <View style={styles.card}>
-                <Text style={styles.empty}>{t('wealth.cardsEmpty')}</Text>
               </View>
-            ) : null}
+            );
+          })}
+        </CollapsibleSection>
+        <View style={styles.addWalletCard}>
+          <WalletQuickAdd />
+          <View style={styles.addBankGap} />
+          <BankQuickAdd />
+          <View style={styles.addBankGap} />
+          <InvestmentQuickAdd />
+        </View>
+      </View>
 
-            {revolvingDebts.map((debt) => renderDebtItem(debt))}
-          </CollapsibleSection>
-        </FadeInBlock>
+      <View>
+        <CollapsibleSection
+          title={t('wealth.cards')}
+          open={cardsOpen}
+          onToggle={() => setCardsOpen((v) => !v)}
+          summary={
+            revolvingDebts.length === 0
+              ? t('wealth.cardsEmptyShort')
+              : t('wealth.cardsCollapsed', {
+                  count: revolvingDebts.length,
+                  available: format(cardAvailableTotal),
+                })
+          }>
+          {!(showForm && kind === 'revolving') ? (
+            <View style={styles.sectionRow}>
+              <View style={{ flex: 1 }} />
+              <Pressable onPress={() => startCreate('revolving')} style={styles.addBtn}>
+                <Text style={styles.addBtnText}>{t('wealth.addCard')}</Text>
+              </Pressable>
+            </View>
+          ) : null}
 
-        <FadeInBlock index={3}>
-          <CollapsibleSection
-            title={t('wealth.loans')}
-            open={loansOpen}
-            onToggle={() => setLoansOpen((v) => !v)}
-            summary={
-              installmentDebts.length === 0
-                ? t('wealth.loansEmptyShort')
-                : t('wealth.loansCollapsed', {
-                    count: installmentDebts.length,
-                    amount: format(loanMonthDue),
-                  })
-            }>
-            {!(showForm && kind === 'installment') ? (
-              <View style={styles.sectionRow}>
-                <View style={{ flex: 1 }} />
-                <Pressable onPress={() => startCreate('installment')} style={styles.addBtn}>
-                  <Text style={styles.addBtnText}>{t('wealth.addLoan')}</Text>
-                </Pressable>
-              </View>
-            ) : null}
+          {revolvingDebts.length > 1 ? (
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryTitle}>{t('wealth.cardsMonth')}</Text>
+              <MoneyText style={styles.amount}>{format(cardMonthDue)}</MoneyText>
+              {paidCardsThisMonth > 0 ? (
+                <Text style={styles.meta}>
+                  {t('wealth.fixedPaid', {
+                    paid: format(paidCardsThisMonth),
+                    due: format(cardMonthDue),
+                  })}
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
 
-            {installmentDebts.length > 1 ? (
-              <View style={styles.summaryCard}>
-                <Text style={styles.summaryTitle}>{t('wealth.fixedMonth')}</Text>
-                <MoneyText style={styles.amount}>{format(loanMonthDue)}</MoneyText>
-                {paidLoansThisMonth > 0 ? (
-                  <Text style={styles.meta}>
-                    {t('wealth.fixedPaid', {
-                      paid: format(paidLoansThisMonth),
-                      due: format(loanMonthDue),
-                    })}
-                  </Text>
-                ) : null}
-              </View>
-            ) : null}
+          {showForm && kind === 'revolving' ? renderDebtForm() : null}
 
-            {showForm && kind === 'installment' ? renderDebtForm() : null}
+          {revolvingDebts.length === 0 && !(showForm && kind === 'revolving') ? (
+            <View style={styles.card}>
+              <Text style={styles.empty}>{t('wealth.cardsEmpty')}</Text>
+            </View>
+          ) : null}
 
-            {installmentDebts.length === 0 && !(showForm && kind === 'installment') ? (
-              <View style={styles.card}>
-                <Text style={styles.empty}>{t('wealth.loansEmpty')}</Text>
-              </View>
-            ) : null}
+          {revolvingDebts.map((debt) => renderDebtItem(debt))}
+        </CollapsibleSection>
+      </View>
 
-            {installmentDebts.map((debt) => renderDebtItem(debt))}
-          </CollapsibleSection>
-        </FadeInBlock>
-      </KeyboardSafeScroll>
-    </ScreenBackground>
+      <View>
+        <CollapsibleSection
+          title={t('wealth.loans')}
+          open={loansOpen}
+          onToggle={() => setLoansOpen((v) => !v)}
+          summary={
+            installmentDebts.length === 0
+              ? t('wealth.loansEmptyShort')
+              : t('wealth.loansCollapsed', {
+                  count: installmentDebts.length,
+                  amount: format(loanMonthDue),
+                })
+          }>
+          {!(showForm && kind === 'installment') ? (
+            <View style={styles.sectionRow}>
+              <View style={{ flex: 1 }} />
+              <Pressable onPress={() => startCreate('installment')} style={styles.addBtn}>
+                <Text style={styles.addBtnText}>{t('wealth.addLoan')}</Text>
+              </Pressable>
+            </View>
+          ) : null}
+
+          {installmentDebts.length > 1 ? (
+            <View style={styles.summaryCard}>
+              <Text style={styles.summaryTitle}>{t('wealth.fixedMonth')}</Text>
+              <MoneyText style={styles.amount}>{format(loanMonthDue)}</MoneyText>
+              {paidLoansThisMonth > 0 ? (
+                <Text style={styles.meta}>
+                  {t('wealth.fixedPaid', {
+                    paid: format(paidLoansThisMonth),
+                    due: format(loanMonthDue),
+                  })}
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
+
+          {showForm && kind === 'installment' ? renderDebtForm() : null}
+
+          {installmentDebts.length === 0 && !(showForm && kind === 'installment') ? (
+            <View style={styles.card}>
+              <Text style={styles.empty}>{t('wealth.loansEmpty')}</Text>
+            </View>
+          ) : null}
+
+          {installmentDebts.map((debt) => renderDebtItem(debt))}
+        </CollapsibleSection>
+      </View>
+    </BrandScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 22, paddingBottom: 168, gap: 12 },
   addBankGap: { height: 14 },
   addWalletCard: {
     marginTop: 12,
@@ -1010,15 +1015,14 @@ const styles = StyleSheet.create({
   accountsHint: {
     fontFamily: 'DMSans_400Regular',
     fontSize: 13,
-    color: palette.brandMuted,
+    color: colors.text.secondary,
     lineHeight: 18,
     marginBottom: 10,
   },
   groupLabel: {
-    // Sits on the dark gradient, not on a card: grey was nearly invisible.
     fontFamily: 'DMSans_700Bold',
     fontSize: 12,
-    color: 'rgba(255,255,255,0.9)',
+    color: colors.text.tertiary,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
     marginTop: 8,
@@ -1027,42 +1031,18 @@ const styles = StyleSheet.create({
   groupLabelFirst: {
     marginTop: 0,
   },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  title: {
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 34,
-    color: palette.brand,
-  },
-  subtitle: {
-    marginTop: 6,
-    fontFamily: 'DMSans_400Regular',
-    fontSize: 14,
-    color: palette.brandMuted,
-    lineHeight: 20,
-  },
-  netBox: {
-    marginTop: 14,
-    backgroundColor: palette.surfaceSolid,
-    borderRadius: radii.md,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: palette.border,
-  },
-  netLabel: {
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 13,
-    color: palette.inkMuted,
+  net: {
+    gap: space.xxs,
   },
   netValue: {
-    marginTop: 4,
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 32,
-    color: palette.ink,
+    ...type.display,
+    color: colors.text.onBrand,
+  },
+  netSplit: {
+    marginTop: space.xxs,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    columnGap: space.md,
   },
   sectionRow: {
     flexDirection: 'row',
@@ -1070,13 +1050,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 10,
     marginBottom: 10,
-  },
-  copyHintFlex: {
-    flex: 1,
-    fontFamily: 'DMSans_400Regular',
-    fontSize: 13,
-    color: palette.brandMuted,
-    lineHeight: 18,
   },
   copyHint: {
     fontFamily: 'DMSans_400Regular',

@@ -1,16 +1,14 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { BrandScreen, ScreenHeader } from '@/src/components/ui';
+import { space } from '@/src/theme';
 import { AppCopyright } from '@/src/components/AppCopyright';
-import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
 import { ConceptsPlanCard } from '@/src/components/ConceptsPlanCard';
-import { FadeInBlock } from '@/src/components/FadeInBlock';
 import { HowToGuideButton } from '@/src/components/HowToGuideButton';
 import { MoneyText } from '@/src/components/MoneyText';
-import { RaisedText } from '@/src/components/RaisedText';
 import { ReminderSettingsCard } from '@/src/components/ReminderSettingsCard';
-import { ScreenBackground } from '@/src/components/ScreenBackground';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useSettings } from '@/src/hooks/useSettings';
@@ -44,175 +42,156 @@ export default function PlanScreen() {
   );
 
   return (
-    <ScreenBackground>
-      <KeyboardSafeScroll contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <FadeInBlock>
-          <View style={styles.titleRow}>
-            <RaisedText style={styles.title}>{t('plan.title')}</RaisedText>
-            <HowToGuideButton light variant="chip" />
-          </View>
-          <Text style={styles.subtitle}>{t('plan.subtitle')}</Text>
-        </FadeInBlock>
+    <BrandScreen
+      gap={space.md}
+      header={
+        <>
+          <ScreenHeader
+            title={t('plan.title')}
+            subtitle={t('plan.subtitle')}
+            actions={<HowToGuideButton light variant="chip" />}
+          />
+        </>
+      }>
+      <View>
+        <CollapsibleSection
+          title={t('plan.concepts')}
+          open={conceptsOpen}
+          onToggle={() => setConceptsOpen((v) => !v)}
+          summary={t('plan.conceptsCollapsed', { count: spendConcepts.length })}>
+          <ConceptsPlanCard />
+        </CollapsibleSection>
+      </View>
 
-        <FadeInBlock index={1}>
+      <View>
+        <CollapsibleSection
+          title={t('reminder.title')}
+          open={remindersOpen}
+          onToggle={() => setRemindersOpen((v) => !v)}
+          summary={t('reminder.collapsed', { count: reminderCount })}>
+          <ReminderSettingsCard />
+        </CollapsibleSection>
+      </View>
+
+      {activeBudgets.length > 0 ? (
+        <View>
           <CollapsibleSection
-            title={t('plan.concepts')}
-            open={conceptsOpen}
-            onToggle={() => setConceptsOpen((v) => !v)}
-            summary={t('plan.conceptsCollapsed', { count: spendConcepts.length })}>
-            <ConceptsPlanCard />
-          </CollapsibleSection>
-        </FadeInBlock>
-
-        <FadeInBlock index={2}>
-          <CollapsibleSection
-            title={t('reminder.title')}
-            open={remindersOpen}
-            onToggle={() => setRemindersOpen((v) => !v)}
-            summary={t('reminder.collapsed', { count: reminderCount })}>
-            <ReminderSettingsCard />
-          </CollapsibleSection>
-        </FadeInBlock>
-
-        {activeBudgets.length > 0 ? (
-          <FadeInBlock index={3}>
-            <CollapsibleSection
-              title={t('plan.budgets')}
-              open={budgetsOpen}
-              onToggle={() => setBudgetsOpen((v) => !v)}
-              summary={t('plan.budgetsCollapsed', { count: activeBudgets.length })}>
-              <View style={styles.listCard}>
-                {activeBudgets.map((b, index) => {
-                  const tone = toneFromBudgetRatio(b.ratio);
-                  const over = b.remaining < 0;
-                  const pct = Math.min(Math.round(b.ratio * 100), 999);
-                  return (
-                    <View
-                      key={b.categoryId}
-                      style={[
-                        styles.row,
-                        index < activeBudgets.length - 1 && styles.rowDivider,
-                      ]}>
-                      <View style={styles.rowTop}>
-                        <Text style={styles.rowTitle} numberOfLines={1}>
-                          {categoryLabel(b.categoryId, t, spendConcepts)}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.rowPct,
-                            tone === 'danger' && styles.textDanger,
-                            tone === 'warn' && styles.textWarn,
-                            tone === 'good' && styles.textGood,
-                          ]}>
-                          {pct}%
-                        </Text>
-                      </View>
-                      <View style={styles.track}>
-                        <View
-                          style={[
-                            styles.fill,
-                            {
-                              width: `${Math.min(b.ratio * 100, 100)}%`,
-                              backgroundColor:
-                                tone === 'danger'
-                                  ? palette.danger
-                                  : tone === 'warn'
-                                    ? palette.accent
-                                    : tone === 'good'
-                                      ? palette.success
-                                      : palette.teal,
-                            },
-                          ]}
-                        />
-                      </View>
-                      <Text style={styles.rowMeta}>
-                        {format(b.spent)} / {format(b.limit)}
-                        {' · '}
-                        {over
-                          ? t('plan.over', { amount: format(Math.abs(b.remaining)) })
-                          : t('plan.left', { amount: format(b.remaining) })}
+            title={t('plan.budgets')}
+            open={budgetsOpen}
+            onToggle={() => setBudgetsOpen((v) => !v)}
+            summary={t('plan.budgetsCollapsed', { count: activeBudgets.length })}>
+            <View style={styles.listCard}>
+              {activeBudgets.map((b, index) => {
+                const tone = toneFromBudgetRatio(b.ratio);
+                const over = b.remaining < 0;
+                const pct = Math.min(Math.round(b.ratio * 100), 999);
+                return (
+                  <View
+                    key={b.categoryId}
+                    style={[
+                      styles.row,
+                      index < activeBudgets.length - 1 && styles.rowDivider,
+                    ]}>
+                    <View style={styles.rowTop}>
+                      <Text style={styles.rowTitle} numberOfLines={1}>
+                        {categoryLabel(b.categoryId, t, spendConcepts)}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.rowPct,
+                          tone === 'danger' && styles.textDanger,
+                          tone === 'warn' && styles.textWarn,
+                          tone === 'good' && styles.textGood,
+                        ]}>
+                        {pct}%
                       </Text>
                     </View>
-                  );
-                })}
-              </View>
-            </CollapsibleSection>
-          </FadeInBlock>
-        ) : null}
-
-        <FadeInBlock index={4}>
-          <CollapsibleSection
-            title={t('plan.antTitle')}
-            open={antOpen}
-            onToggle={() => setAntOpen((v) => !v)}
-            summary={t('plan.antCollapsed', { amount: format(ant.total) })}>
-            <View style={styles.listCard}>
-              <Text style={styles.antHint}>{t('plan.antHint')}</Text>
-              {markedAntSubs.length === 0 ? (
-                <Text style={styles.empty}>{t('plan.antMarkNone')}</Text>
-              ) : (
-                <View style={styles.markedWrap}>
-                  <Text style={styles.markedLabel}>{t('plan.antMarked')}</Text>
-                  {markedAntSubs.map((item) => (
-                    <Text key={item.id} style={styles.markedItem}>
-                      · {item.concept} / {item.sub}
-                    </Text>
-                  ))}
-                </View>
-              )}
-              <View style={styles.antHeader}>
-                <Text style={styles.rowTitle}>{t('home.antTotal')}</Text>
-                <MoneyText style={styles.antTotal}>{format(ant.total)}</MoneyText>
-              </View>
-              {ant.items.length === 0 ? (
-                <Text style={styles.empty}>{t('plan.antEmpty')}</Text>
-              ) : (
-                ant.items.map((item, index) => (
-                  <View
-                    key={item.categoryId}
-                    style={[
-                      styles.antRow,
-                      index < ant.items.length - 1 && styles.rowDivider,
-                    ]}>
+                    <View style={styles.track}>
+                      <View
+                        style={[
+                          styles.fill,
+                          {
+                            width: `${Math.min(b.ratio * 100, 100)}%`,
+                            backgroundColor:
+                              tone === 'danger'
+                                ? palette.danger
+                                : tone === 'warn'
+                                  ? palette.accent
+                                  : tone === 'good'
+                                    ? palette.success
+                                    : palette.teal,
+                          },
+                        ]}
+                      />
+                    </View>
                     <Text style={styles.rowMeta}>
-                      {categoryLabel(item.categoryId, t, spendConcepts)}
+                      {format(b.spent)} / {format(b.limit)}
+                      {' · '}
+                      {over
+                        ? t('plan.over', { amount: format(Math.abs(b.remaining)) })
+                        : t('plan.left', { amount: format(b.remaining) })}
                     </Text>
-                    <MoneyText style={styles.antAmount}>{format(item.amount)}</MoneyText>
                   </View>
-                ))
-              )}
+                );
+              })}
             </View>
           </CollapsibleSection>
-        </FadeInBlock>
+        </View>
+      ) : null}
 
-        <FadeInBlock index={5}>
-          <AppCopyright />
-        </FadeInBlock>
-      </KeyboardSafeScroll>
-    </ScreenBackground>
+      <View>
+        <CollapsibleSection
+          title={t('plan.antTitle')}
+          open={antOpen}
+          onToggle={() => setAntOpen((v) => !v)}
+          summary={t('plan.antCollapsed', { amount: format(ant.total) })}>
+          <View style={styles.listCard}>
+            <Text style={styles.antHint}>{t('plan.antHint')}</Text>
+            {markedAntSubs.length === 0 ? (
+              <Text style={styles.empty}>{t('plan.antMarkNone')}</Text>
+            ) : (
+              <View style={styles.markedWrap}>
+                <Text style={styles.markedLabel}>{t('plan.antMarked')}</Text>
+                {markedAntSubs.map((item) => (
+                  <Text key={item.id} style={styles.markedItem}>
+                    · {item.concept} / {item.sub}
+                  </Text>
+                ))}
+              </View>
+            )}
+            <View style={styles.antHeader}>
+              <Text style={styles.rowTitle}>{t('home.antTotal')}</Text>
+              <MoneyText style={styles.antTotal}>{format(ant.total)}</MoneyText>
+            </View>
+            {ant.items.length === 0 ? (
+              <Text style={styles.empty}>{t('plan.antEmpty')}</Text>
+            ) : (
+              ant.items.map((item, index) => (
+                <View
+                  key={item.categoryId}
+                  style={[
+                    styles.antRow,
+                    index < ant.items.length - 1 && styles.rowDivider,
+                  ]}>
+                  <Text style={styles.rowMeta}>
+                    {categoryLabel(item.categoryId, t, spendConcepts)}
+                  </Text>
+                  <MoneyText style={styles.antAmount}>{format(item.amount)}</MoneyText>
+                </View>
+              ))
+            )}
+          </View>
+        </CollapsibleSection>
+      </View>
+
+      <View>
+        <AppCopyright />
+      </View>
+    </BrandScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 22, paddingBottom: 168, gap: 12 },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  title: {
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 34,
-    color: palette.brand,
-  },
-  subtitle: {
-    marginTop: 6,
-    fontFamily: 'DMSans_400Regular',
-    fontSize: 14,
-    color: palette.brandMuted,
-    lineHeight: 20,
-  },
   listCard: {
     backgroundColor: palette.surfaceSolid,
     borderRadius: radii.md,

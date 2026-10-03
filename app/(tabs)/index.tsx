@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -9,10 +8,8 @@ import { AppModal } from '@/src/components/AppModal';
 import { AntSpendTipCard } from '@/src/components/AntSpendTipCard';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
 import { ConceptGlanceSheet } from '@/src/components/ConceptGlanceSheet';
-import { FadeInBlock } from '@/src/components/FadeInBlock';
 import { HabitPilotCard } from '@/src/components/HabitPilotCard';
 import { HowToGuideButton } from '@/src/components/HowToGuideButton';
-import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
 import { MoneyText } from '@/src/components/MoneyText';
 import { PredictedSpendsCard } from '@/src/components/PredictedSpendsCard';
 import { ProfileMenuButton } from '@/src/components/ProfileMenuButton';
@@ -21,7 +18,7 @@ import { PocketFlowList } from '@/src/components/PocketFlowList';
 import { RaisedText } from '@/src/components/RaisedText';
 import { SavingsDecor } from '@/src/components/SavingsDecor';
 import { SelectPressable } from '@/src/components/SelectPressable';
-import { AppText, Button, Card } from '@/src/components/ui';
+import { AppText, BrandScreen, Button, Card } from '@/src/components/ui';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useSettings } from '@/src/hooks/useSettings';
@@ -61,8 +58,6 @@ export default function HomeScreen() {
   const [moneyInfo, setMoneyInfo] = useState<MoneyInfoKind | null>(null);
   const [attentionOpen, setAttentionOpen] = useState(false);
   const [predictOpen, setPredictOpen] = useState(false);
-  // The petrol status band only shows once the hero has scrolled under it.
-  const [scrolled, setScrolled] = useState(false);
 
   const displayName = settings.userName.trim();
   const greeting = displayName
@@ -125,256 +120,233 @@ export default function HomeScreen() {
   const antTipBodyVariant = settings.antTipLastBodyVariant ?? 0;
 
   return (
-    <View style={styles.root}>
-      <KeyboardSafeScroll
-        style={styles.screen}
-        contentContainerStyle={styles.content}
-        scrollEventThrottle={16}
-        onScroll={(e) => {
-          const next = e.nativeEvent.contentOffset.y > space.xs;
-          if (next !== scrolled) setScrolled(next);
-        }}
-        showsVerticalScrollIndicator={false}>
-        <FadeInBlock>
-          {/* Pulling down past the top (iOS bounce) shows petrol, not cream. */}
-          <View style={styles.overscroll} />
-          <View style={[styles.hero, { paddingTop: insets.top + space.xs }]}>
-            <LinearGradient
-              colors={[scale.petrol[700], scale.petrol[600]]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={StyleSheet.absoluteFill}
-            />
-            <View style={styles.heroRow}>
-              <View style={styles.heroCopy}>
-                <RaisedText style={styles.brand}>{t('brand.name')}</RaisedText>
-                <RaisedText tone="gold" style={styles.greeting}>
-                  {greeting}
-                </RaisedText>
-                <AppText variant="caption" color="onBrandMuted">
-                  {spaceLabel}
-                </AppText>
-              </View>
-              <View style={styles.heroAside}>
-                <View style={styles.avatarRow}>
-                  <HowToGuideButton light />
-                  <ProfileMenuButton />
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{initial}</Text>
-                  </View>
-                </View>
-                <SavingsDecor />
-              </View>
-            </View>
-
-            <SelectPressable
-              onPress={() => setMoneyInfo('available')}
-              accessibilityRole="button"
-              accessibilityLabel={`${t('home.available')}: ${format(availableCash)}`}
-              style={({ pressed }) => [styles.available, pressed && styles.pressed]}>
-              <View style={styles.availableLabelRow}>
-                <AppText variant="overline" color="onBrandMuted">
-                  {t('home.available')}
-                </AppText>
-                <Ionicons
-                  name="information-circle-outline"
-                  size={16}
-                  color={colors.text.onBrandMuted}
-                />
-              </View>
-              {loading ? (
-                <View style={styles.amountSkeleton} />
-              ) : (
-                <MoneyText
-                  style={[
-                    styles.availableAmount,
-                    availableCash < 0 && { color: colors.text.onBrandDanger },
-                  ]}>
-                  {format(availableCash)}
-                </MoneyText>
-              )}
+    <BrandScreen
+      header={
+        <>
+          <View style={styles.heroRow}>
+            <View style={styles.heroCopy}>
+              <RaisedText style={styles.brand}>{t('brand.name')}</RaisedText>
+              <RaisedText tone="gold" style={styles.greeting}>
+                {greeting}
+              </RaisedText>
               <AppText variant="caption" color="onBrandMuted">
-                {t('home.availableCaption')}
+                {spaceLabel}
               </AppText>
-            </SelectPressable>
-          </View>
-        </FadeInBlock>
-
-        <FadeInBlock index={1}>
-          <View style={styles.body}>
-            <View>
-              <AppText variant="overline" color="tertiary" style={styles.sectionLabel}>
-                {t('decor.monthTitle')}
-              </AppText>
-              <View style={styles.metrics}>
-                <View style={styles.metricsRow}>
-                  <MetricTile
-                    label={t('home.income')}
-                    value={format(loading ? 0 : income)}
-                    tone="good"
-                    onPress={() => setGlance('income')}
-                  />
-                  <MetricTile
-                    label={t('home.expenses')}
-                    value={format(loading ? 0 : expenses)}
-                    tone={expensesTone}
-                    onPress={() => setGlance('expense')}
-                  />
+            </View>
+            <View style={styles.heroAside}>
+              <View style={styles.avatarRow}>
+                <HowToGuideButton light />
+                <ProfileMenuButton />
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>{initial}</Text>
                 </View>
-                <MetricTile
-                  label={t('home.savings')}
-                  legend={t('home.savingsLegend')}
-                  value={format(savings)}
-                  tone={savingsTone}
-                  hint={
-                    paceHint ??
-                    (savingsTone === 'good'
-                      ? t('home.savingsGood')
-                      : savingsTone === 'danger'
-                        ? t('home.savingsBad')
-                        : undefined)
-                  }
-                  onPress={() => setMoneyInfo('savings')}
+              </View>
+              <SavingsDecor />
+            </View>
+          </View>
+
+          <SelectPressable
+            onPress={() => setMoneyInfo('available')}
+            accessibilityRole="button"
+            accessibilityLabel={`${t('home.available')}: ${format(availableCash)}`}
+            style={({ pressed }) => [styles.available, pressed && styles.pressed]}>
+            <View style={styles.availableLabelRow}>
+              <AppText variant="overline" color="onBrandMuted">
+                {t('home.available')}
+              </AppText>
+              <Ionicons
+                name="information-circle-outline"
+                size={16}
+                color={colors.text.onBrandMuted}
+              />
+            </View>
+            {loading ? (
+              <View style={styles.amountSkeleton} />
+            ) : (
+              <MoneyText
+                style={[
+                  styles.availableAmount,
+                  availableCash < 0 && { color: colors.text.onBrandDanger },
+                ]}>
+                {format(availableCash)}
+              </MoneyText>
+            )}
+            <AppText variant="caption" color="onBrandMuted">
+              {t('home.availableCaption')}
+            </AppText>
+          </SelectPressable>
+        </>
+      }
+      overlay={
+        <>
+          <ConceptGlanceSheet
+            visible={glance != null}
+            onClose={() => setGlance(null)}
+            kind={glance ?? 'expense'}
+            items={glance === 'income' ? incomeConcepts : expenseConcepts}
+            total={glance === 'income' ? income : expenses}
+          />
+
+          <AppModal
+            visible={moneyInfo != null}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setMoneyInfo(null)}>
+            <View style={styles.infoRoot}>
+              <Pressable style={StyleSheet.absoluteFill} onPress={() => setMoneyInfo(null)} />
+              <View
+                style={[
+                  styles.infoCard,
+                  { marginBottom: Math.max(insets.bottom, space.md) + space.xl },
+                ]}>
+                <AppText variant="overline" color="tertiary">
+                  {t('home.moneyInfoEyebrow')}
+                </AppText>
+                <AppText variant="h2" style={styles.infoTitle}>
+                  {t(
+                    (moneyInfo === 'available'
+                      ? 'home.available'
+                      : 'home.savings') as TranslationKey
+                  )}
+                </AppText>
+                <AppText color="secondary" style={styles.infoBody}>
+                  {t(
+                    (moneyInfo === 'available'
+                      ? 'home.availableInfoBody'
+                      : 'home.savingsInfoBody') as TranslationKey
+                  )}
+                </AppText>
+                {moneyInfo === 'available' ? (
+                  <View style={styles.availableBreakdown}>
+                    <PocketFlowList />
+                  </View>
+                ) : null}
+                <AppText variant="bodyStrong" style={styles.infoBody}>
+                  {t(
+                    (moneyInfo === 'available'
+                      ? 'home.availableInfoCompare'
+                      : 'home.savingsInfoCompare') as TranslationKey
+                  )}
+                </AppText>
+                <Button
+                  fullWidth
+                  label={t('home.moneyInfoGotIt')}
+                  onPress={() => setMoneyInfo(null)}
+                  style={styles.infoBtn}
                 />
               </View>
             </View>
+          </AppModal>
+        </>
+      }>
+      <View>
+        <AppText variant="overline" color="tertiary" style={styles.sectionLabel}>
+          {t('decor.monthTitle')}
+        </AppText>
+        <View style={styles.metrics}>
+          <View style={styles.metricsRow}>
+            <MetricTile
+              label={t('home.income')}
+              value={format(loading ? 0 : income)}
+              tone="good"
+              onPress={() => setGlance('income')}
+            />
+            <MetricTile
+              label={t('home.expenses')}
+              value={format(loading ? 0 : expenses)}
+              tone={expensesTone}
+              onPress={() => setGlance('expense')}
+            />
+          </View>
+          <MetricTile
+            label={t('home.savings')}
+            legend={t('home.savingsLegend')}
+            value={format(savings)}
+            tone={savingsTone}
+            hint={
+              paceHint ??
+              (savingsTone === 'good'
+                ? t('home.savingsGood')
+                : savingsTone === 'danger'
+                  ? t('home.savingsBad')
+                  : undefined)
+            }
+            onPress={() => setMoneyInfo('savings')}
+          />
+        </View>
+      </View>
 
-            <QuickAddBar />
+      <QuickAddBar />
 
-            <HabitPilotCard />
+      <HabitPilotCard />
 
-            {antTip ? (
-              <AntSpendTipCard
-                tip={antTip}
-                conceptLabel={categoryLabel(antTip.categoryId, t, spendConcepts)}
-                titleVariant={antTipTitleVariant}
-                bodyVariant={antTipBodyVariant}
-                onDismiss={() => {
-                  void dismissAntSpendTipWeek();
-                }}
-                onOpen={() => setGlance('expense')}
+      {antTip ? (
+        <AntSpendTipCard
+          tip={antTip}
+          conceptLabel={categoryLabel(antTip.categoryId, t, spendConcepts)}
+          titleVariant={antTipTitleVariant}
+          bodyVariant={antTipBodyVariant}
+          onDismiss={() => {
+            void dismissAntSpendTipWeek();
+          }}
+          onOpen={() => setGlance('expense')}
+        />
+      ) : null}
+
+      <CollapsibleSection
+        tone="surface"
+        title={t('home.attention')}
+        open={attentionOpen}
+        onToggle={() => setAttentionOpen((v) => !v)}
+        summary={
+          alerts.length === 0
+            ? t('home.attentionEmptyShort')
+            : t('home.attentionSummary', { count: alerts.length + alertsHidden })
+        }>
+        {alerts.length === 0 ? (
+          <Card variant="tinted" tone="success" padding="sm">
+            <AppText variant="bodyStrong">{t('home.attentionEmpty')}</AppText>
+          </Card>
+        ) : (
+          <View style={styles.alertList}>
+            {alerts.map((a) => (
+              <Card key={a.categoryId} variant="tinted" tone="danger" padding="sm">
+                <AppText variant="bodyStrong" style={styles.alertText}>
+                  {t('insights.overBudget')}:{' '}
+                  {categoryLabel(a.categoryId, t, spendConcepts)} (
+                  {Math.round(a.ratio * 100)}%)
+                </AppText>
+              </Card>
+            ))}
+            {alertsHidden > 0 ? (
+              <Button
+                variant="tertiary"
+                size="sm"
+                label={t('home.attentionMore', { count: alertsHidden })}
+                onPress={() => router.push('/(tabs)/plan')}
+                style={styles.alertMore}
               />
             ) : null}
-
-            <CollapsibleSection
-              tone="surface"
-              title={t('home.attention')}
-              open={attentionOpen}
-              onToggle={() => setAttentionOpen((v) => !v)}
-              summary={
-                alerts.length === 0
-                  ? t('home.attentionEmptyShort')
-                  : t('home.attentionSummary', { count: alerts.length + alertsHidden })
-              }>
-              {alerts.length === 0 ? (
-                <Card variant="tinted" tone="success" padding="sm">
-                  <AppText variant="bodyStrong">{t('home.attentionEmpty')}</AppText>
-                </Card>
-              ) : (
-                <View style={styles.alertList}>
-                  {alerts.map((a) => (
-                    <Card key={a.categoryId} variant="tinted" tone="danger" padding="sm">
-                      <AppText variant="bodyStrong" style={styles.alertText}>
-                        {t('insights.overBudget')}:{' '}
-                        {categoryLabel(a.categoryId, t, spendConcepts)} (
-                        {Math.round(a.ratio * 100)}%)
-                      </AppText>
-                    </Card>
-                  ))}
-                  {alertsHidden > 0 ? (
-                    <Button
-                      variant="tertiary"
-                      size="sm"
-                      label={t('home.attentionMore', { count: alertsHidden })}
-                      onPress={() => router.push('/(tabs)/plan')}
-                      style={styles.alertMore}
-                    />
-                  ) : null}
-                </View>
-              )}
-            </CollapsibleSection>
-
-            <CollapsibleSection
-              tone="surface"
-              title={t('home.predictTitle')}
-              open={predictOpen}
-              onToggle={() => setPredictOpen((v) => !v)}
-              summary={
-                predictPending.length === 0
-                  ? t('home.predictSummaryClear', { amount: format(predictTotal) })
-                  : t('home.predictSummary', {
-                      pending: predictPending.length,
-                      amount: format(predictPendingTotal),
-                    })
-              }>
-              <PredictedSpendsCard items={predictedThisMonth} />
-            </CollapsibleSection>
           </View>
-        </FadeInBlock>
-      </KeyboardSafeScroll>
+        )}
+      </CollapsibleSection>
 
-      {/* Keeps the light status bar readable once the hero scrolls away. */}
-      {scrolled ? <View style={[styles.statusBand, { height: insets.top }]} /> : null}
-
-      <ConceptGlanceSheet
-        visible={glance != null}
-        onClose={() => setGlance(null)}
-        kind={glance ?? 'expense'}
-        items={glance === 'income' ? incomeConcepts : expenseConcepts}
-        total={glance === 'income' ? income : expenses}
-      />
-
-      <AppModal
-        visible={moneyInfo != null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setMoneyInfo(null)}>
-        <View style={styles.infoRoot}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => setMoneyInfo(null)} />
-          <View
-            style={[
-              styles.infoCard,
-              { marginBottom: Math.max(insets.bottom, space.md) + space.xl },
-            ]}>
-            <AppText variant="overline" color="tertiary">
-              {t('home.moneyInfoEyebrow')}
-            </AppText>
-            <AppText variant="h2" style={styles.infoTitle}>
-              {t(
-                (moneyInfo === 'available'
-                  ? 'home.available'
-                  : 'home.savings') as TranslationKey
-              )}
-            </AppText>
-            <AppText color="secondary" style={styles.infoBody}>
-              {t(
-                (moneyInfo === 'available'
-                  ? 'home.availableInfoBody'
-                  : 'home.savingsInfoBody') as TranslationKey
-              )}
-            </AppText>
-            {moneyInfo === 'available' ? (
-              <View style={styles.availableBreakdown}>
-                <PocketFlowList />
-              </View>
-            ) : null}
-            <AppText variant="bodyStrong" style={styles.infoBody}>
-              {t(
-                (moneyInfo === 'available'
-                  ? 'home.availableInfoCompare'
-                  : 'home.savingsInfoCompare') as TranslationKey
-              )}
-            </AppText>
-            <Button
-              fullWidth
-              label={t('home.moneyInfoGotIt')}
-              onPress={() => setMoneyInfo(null)}
-              style={styles.infoBtn}
-            />
-          </View>
-        </View>
-      </AppModal>
-    </View>
+      <CollapsibleSection
+        tone="surface"
+        title={t('home.predictTitle')}
+        open={predictOpen}
+        onToggle={() => setPredictOpen((v) => !v)}
+        summary={
+          predictPending.length === 0
+            ? t('home.predictSummaryClear', { amount: format(predictTotal) })
+            : t('home.predictSummary', {
+                pending: predictPending.length,
+                amount: format(predictPendingTotal),
+              })
+        }>
+        <PredictedSpendsCard items={predictedThisMonth} />
+      </CollapsibleSection>
+    </BrandScreen>
   );
 }
 
@@ -447,35 +419,6 @@ function MetricTile({
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.bg.screen,
-  },
-  overscroll: {
-    position: 'absolute',
-    top: -1000,
-    height: 1000,
-    left: 0,
-    right: 0,
-    backgroundColor: scale.petrol[700],
-  },
-  statusBand: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: scale.petrol[700],
-  },
-  screen: { flex: 1 },
-  content: { paddingBottom: 168 },
-  hero: {
-    paddingHorizontal: space.gutter,
-    paddingBottom: space.xl,
-    borderBottomLeftRadius: radius.xl,
-    borderBottomRightRadius: radius.xl,
-    overflow: 'hidden',
-    gap: space.lg,
-  },
   heroRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -539,11 +482,6 @@ const styles = StyleSheet.create({
     height: type.display.lineHeight,
     borderRadius: radius.sm,
     backgroundColor: 'rgba(255,255,255,0.12)',
-  },
-  body: {
-    paddingHorizontal: space.gutter,
-    paddingTop: space.xl,
-    gap: space.xl,
   },
   sectionLabel: {
     marginBottom: space.sm,

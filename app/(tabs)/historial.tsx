@@ -1,15 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { BrandScreen, ScreenHeader } from '@/src/components/ui';
+import { colors, space } from '@/src/theme';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
 import { EditTransactionModal } from '@/src/components/EditTransactionModal';
 import { ExpenseRow } from '@/src/components/ExpenseRow';
-import { FadeInBlock } from '@/src/components/FadeInBlock';
-import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
 import { MoneyText } from '@/src/components/MoneyText';
 import { PeriodToggle } from '@/src/components/PeriodToggle';
-import { RaisedText } from '@/src/components/RaisedText';
-import { ScreenBackground } from '@/src/components/ScreenBackground';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useLanguage } from '@/src/i18n/LanguageContext';
@@ -131,12 +129,11 @@ export default function HistorialScreen() {
   }
 
   return (
-    <ScreenBackground>
-      <KeyboardSafeScroll
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}>
-        <FadeInBlock>
-          <RaisedText style={styles.pageTitle}>{t('history.title')}</RaisedText>
+    <BrandScreen
+      gap={space.md}
+      header={
+        <>
+          <ScreenHeader title={t('history.title')} />
           <PeriodToggle
             value={period}
             onChange={(next) => {
@@ -149,10 +146,7 @@ export default function HistorialScreen() {
               }
             }}
           />
-        </FadeInBlock>
-
-        {period === 'mes' ? (
-          <FadeInBlock index={1}>
+          {period === 'mes' ? (
             <View style={styles.monthNav}>
               <Pressable onPress={goPrevMonth} style={styles.navBtn}>
                 <Text style={styles.navText}>‹ {t('history.prevMonth')}</Text>
@@ -167,202 +161,197 @@ export default function HistorialScreen() {
                 </Text>
               </Pressable>
             </View>
-          </FadeInBlock>
-        ) : null}
+          ) : null}
+        </>
+      }
+      overlay={
+        <>
+          <EditTransactionModal
+            visible={!!editing}
+            transaction={editing}
+            onClose={() => setEditing(null)}
+          />
+        </>
+      }>
+      <View>
+        <CollapsibleSection
+          title={t('history.summaryTitle')}
+          open={summaryOpen}
+          onToggle={() => setSummaryOpen((v) => !v)}
+          summary={t('history.summaryCollapsed', {
+            amount: format(expenseTotal),
+            period: periodLabel,
+          })}>
+          <View style={styles.summary}>
+            <Text style={styles.summaryLabel}>
+              {t('history.total', { period: periodLabel })}
+            </Text>
+            <MoneyText style={styles.summaryAmount}>{format(expenseTotal)}</MoneyText>
 
-        <FadeInBlock index={2}>
-          <CollapsibleSection
-            title={t('history.summaryTitle')}
-            open={summaryOpen}
-            onToggle={() => setSummaryOpen((v) => !v)}
-            summary={t('history.summaryCollapsed', {
-              amount: format(expenseTotal),
-              period: periodLabel,
-            })}>
-            <View style={styles.summary}>
-              <Text style={styles.summaryLabel}>
-                {t('history.total', { period: periodLabel })}
-              </Text>
-              <MoneyText style={styles.summaryAmount}>{format(expenseTotal)}</MoneyText>
+            {period === 'mes' ? (
+              <View style={styles.monthStats}>
+                <View style={styles.stat}>
+                  <Text style={styles.statLabel}>{t('history.monthIncome')}</Text>
+                  <MoneyText style={[styles.statValue, styles.income]}>
+                    {format(incomeTotal)}
+                  </MoneyText>
+                </View>
+                <View style={styles.stat}>
+                  <Text style={styles.statLabel}>{t('history.monthExpenses')}</Text>
+                  <MoneyText style={[styles.statValue, styles.expense]}>
+                    {format(expenseTotal)}
+                  </MoneyText>
+                </View>
+                <View style={styles.stat}>
+                  <Text style={styles.statLabel}>{t('history.monthBalance')}</Text>
+                  <MoneyText
+                    style={[
+                      styles.statValue,
+                      monthBalance >= 0 ? styles.income : styles.expense,
+                    ]}>
+                    {format(monthBalance)}
+                  </MoneyText>
+                </View>
+              </View>
+            ) : null}
 
-              {period === 'mes' ? (
-                <View style={styles.monthStats}>
-                  <View style={styles.stat}>
-                    <Text style={styles.statLabel}>{t('history.monthIncome')}</Text>
-                    <MoneyText style={[styles.statValue, styles.income]}>
-                      {format(incomeTotal)}
-                    </MoneyText>
-                  </View>
-                  <View style={styles.stat}>
-                    <Text style={styles.statLabel}>{t('history.monthExpenses')}</Text>
-                    <MoneyText style={[styles.statValue, styles.expense]}>
-                      {format(expenseTotal)}
-                    </MoneyText>
-                  </View>
-                  <View style={styles.stat}>
-                    <Text style={styles.statLabel}>{t('history.monthBalance')}</Text>
-                    <MoneyText
+            <Text style={styles.hint}>{t('history.hintEdit')}</Text>
+          </View>
+        </CollapsibleSection>
+      </View>
+
+      <View>
+        <CollapsibleSection
+          title={t('history.listTitle')}
+          open={listOpen}
+          onToggle={() => setListOpen((v) => !v)}
+          summary={
+            items.length === 0
+              ? t('history.emptyTitle')
+              : t('history.listCollapsed', { count: items.length })
+          }>
+          {items.length === 0 ? (
+            <View style={styles.emptyWrap}>
+              <Text style={styles.emptyTitle}>{t('history.emptyTitle')}</Text>
+              <Text style={styles.empty}>{t('history.empty')}</Text>
+            </View>
+          ) : (
+            <View style={styles.listBlock}>
+              <View style={styles.list}>
+                {pageItems.map((tx, index) => {
+                  const mine = canEditTransaction(tx);
+                  return (
+                    <ExpenseRow
+                      key={tx.id}
+                      expense={tx}
+                      last={index === pageItems.length - 1}
+                      showRegistrant={false}
+                      onEdit={mine ? () => openEdit(tx) : undefined}
+                      onDelete={mine ? () => confirmDelete(tx) : undefined}
+                    />
+                  );
+                })}
+              </View>
+              {items.length > PAGE_SIZE ? (
+                <View style={styles.pager}>
+                  <Text style={styles.pagerRange}>
+                    {t('history.showingRange', {
+                      from: rangeFrom,
+                      to: rangeTo,
+                      total: items.length,
+                    })}
+                  </Text>
+                  <View style={styles.pagerRow}>
+                    <Pressable
+                      onPress={() => {
+                        if (safePage <= 0) return;
+                        tapFeedback();
+                        setPage((p) => Math.max(0, p - 1));
+                      }}
+                      disabled={safePage <= 0}
+                      style={[styles.pagerBtn, safePage <= 0 && styles.navDisabled]}>
+                      <Text
+                        style={[
+                          styles.pagerBtnText,
+                          safePage <= 0 && styles.pagerTextDisabled,
+                        ]}>
+                        ‹ {t('history.prevPage')}
+                      </Text>
+                    </Pressable>
+                    <Text style={styles.pagerPage}>
+                      {t('history.pageOf', {
+                        page: safePage + 1,
+                        pages: totalPages,
+                      })}
+                    </Text>
+                    <Pressable
+                      onPress={() => {
+                        if (safePage >= totalPages - 1) return;
+                        tapFeedback();
+                        setPage((p) => Math.min(totalPages - 1, p + 1));
+                      }}
+                      disabled={safePage >= totalPages - 1}
                       style={[
-                        styles.statValue,
-                        monthBalance >= 0 ? styles.income : styles.expense,
+                        styles.pagerBtn,
+                        safePage >= totalPages - 1 && styles.navDisabled,
                       ]}>
-                      {format(monthBalance)}
-                    </MoneyText>
+                      <Text
+                        style={[
+                          styles.pagerBtnText,
+                          safePage >= totalPages - 1 && styles.pagerTextDisabled,
+                        ]}>
+                        {t('history.nextPage')} ›
+                      </Text>
+                    </Pressable>
                   </View>
                 </View>
               ) : null}
-
-              <Text style={styles.hint}>{t('history.hintEdit')}</Text>
             </View>
-          </CollapsibleSection>
-        </FadeInBlock>
+          )}
+        </CollapsibleSection>
+      </View>
 
-        <FadeInBlock index={3}>
+      {settled.length > 0 ? (
+        <View>
           <CollapsibleSection
-            title={t('history.listTitle')}
-            open={listOpen}
-            onToggle={() => setListOpen((v) => !v)}
-            summary={
-              items.length === 0
-                ? t('history.emptyTitle')
-                : t('history.listCollapsed', { count: items.length })
-            }>
-            {items.length === 0 ? (
-              <View style={styles.emptyWrap}>
-                <Text style={styles.emptyTitle}>{t('history.emptyTitle')}</Text>
-                <Text style={styles.empty}>{t('history.empty')}</Text>
-              </View>
-            ) : (
-              <View style={styles.listBlock}>
-                <View style={styles.list}>
-                  {pageItems.map((tx, index) => {
-                    const mine = canEditTransaction(tx);
-                    return (
-                      <ExpenseRow
-                        key={tx.id}
-                        expense={tx}
-                        last={index === pageItems.length - 1}
-                        showRegistrant={false}
-                        onEdit={mine ? () => openEdit(tx) : undefined}
-                        onDelete={mine ? () => confirmDelete(tx) : undefined}
-                      />
-                    );
-                  })}
-                </View>
-                {items.length > PAGE_SIZE ? (
-                  <View style={styles.pager}>
-                    <Text style={styles.pagerRange}>
-                      {t('history.showingRange', {
-                        from: rangeFrom,
-                        to: rangeTo,
-                        total: items.length,
-                      })}
+            title={t('history.settledTitle')}
+            open={settledOpen}
+            onToggle={() => setSettledOpen((v) => !v)}
+            summary={t('history.settledCollapsed', { count: settled.length })}>
+            <Text style={styles.settledHint}>{t('history.settledHint')}</Text>
+            {settled.map((debt) => {
+              const label = debt.nameKey
+                ? t(debt.nameKey as TranslationKey)
+                : debt.name ?? t('debt.mainCard');
+              const closedDate = debt.closedAt
+                ? new Date(debt.closedAt).toLocaleDateString(
+                    language === 'es' ? 'es-CO' : 'en-US'
+                  )
+                : '';
+              return (
+                <View key={debt.id} style={styles.settledCard}>
+                  <Text style={styles.settledName}>{label}</Text>
+                  {closedDate ? (
+                    <Text style={styles.settledMeta}>
+                      {t('history.settledOn', { date: closedDate })}
                     </Text>
-                    <View style={styles.pagerRow}>
-                      <Pressable
-                        onPress={() => {
-                          if (safePage <= 0) return;
-                          tapFeedback();
-                          setPage((p) => Math.max(0, p - 1));
-                        }}
-                        disabled={safePage <= 0}
-                        style={[styles.pagerBtn, safePage <= 0 && styles.navDisabled]}>
-                        <Text
-                          style={[
-                            styles.pagerBtnText,
-                            safePage <= 0 && styles.navTextDisabled,
-                          ]}>
-                          ‹ {t('history.prevPage')}
-                        </Text>
-                      </Pressable>
-                      <Text style={styles.pagerPage}>
-                        {t('history.pageOf', {
-                          page: safePage + 1,
-                          pages: totalPages,
-                        })}
-                      </Text>
-                      <Pressable
-                        onPress={() => {
-                          if (safePage >= totalPages - 1) return;
-                          tapFeedback();
-                          setPage((p) => Math.min(totalPages - 1, p + 1));
-                        }}
-                        disabled={safePage >= totalPages - 1}
-                        style={[
-                          styles.pagerBtn,
-                          safePage >= totalPages - 1 && styles.navDisabled,
-                        ]}>
-                        <Text
-                          style={[
-                            styles.pagerBtnText,
-                            safePage >= totalPages - 1 && styles.navTextDisabled,
-                          ]}>
-                          {t('history.nextPage')} ›
-                        </Text>
-                      </Pressable>
-                    </View>
-                  </View>
-                ) : null}
-              </View>
-            )}
+                  ) : null}
+                  {debt.paidCapital > 0 ? (
+                    <Text style={styles.settledMeta}>
+                      {t('history.settledPaid', { amount: format(debt.paidCapital) })}
+                    </Text>
+                  ) : null}
+                </View>
+              );
+            })}
           </CollapsibleSection>
-        </FadeInBlock>
-
-        {settled.length > 0 ? (
-          <FadeInBlock index={4}>
-            <CollapsibleSection
-              title={t('history.settledTitle')}
-              open={settledOpen}
-              onToggle={() => setSettledOpen((v) => !v)}
-              summary={t('history.settledCollapsed', { count: settled.length })}>
-              <Text style={styles.settledHint}>{t('history.settledHint')}</Text>
-              {settled.map((debt) => {
-                const label = debt.nameKey
-                  ? t(debt.nameKey as TranslationKey)
-                  : debt.name ?? t('debt.mainCard');
-                const closedDate = debt.closedAt
-                  ? new Date(debt.closedAt).toLocaleDateString(
-                      language === 'es' ? 'es-CO' : 'en-US'
-                    )
-                  : '';
-                return (
-                  <View key={debt.id} style={styles.settledCard}>
-                    <Text style={styles.settledName}>{label}</Text>
-                    {closedDate ? (
-                      <Text style={styles.settledMeta}>
-                        {t('history.settledOn', { date: closedDate })}
-                      </Text>
-                    ) : null}
-                    {debt.paidCapital > 0 ? (
-                      <Text style={styles.settledMeta}>
-                        {t('history.settledPaid', { amount: format(debt.paidCapital) })}
-                      </Text>
-                    ) : null}
-                  </View>
-                );
-              })}
-            </CollapsibleSection>
-          </FadeInBlock>
-        ) : null}
-      </KeyboardSafeScroll>
-
-      <EditTransactionModal
-        visible={!!editing}
-        transaction={editing}
-        onClose={() => setEditing(null)}
-      />
-    </ScreenBackground>
+        </View>
+      ) : null}
+    </BrandScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 22, paddingBottom: 168, gap: 16 },
-  pageTitle: {
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 34,
-    color: palette.brand,
-    marginBottom: 12,
-  },
   monthNav: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -381,6 +370,9 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 13,
     color: palette.brand,
+  },
+  pagerTextDisabled: {
+    color: colors.text.tertiary,
   },
   navTextDisabled: {
     color: palette.brandMuted,

@@ -1,17 +1,15 @@
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { BrandScreen, ScreenHeader } from '@/src/components/ui';
+import { colors, space } from '@/src/theme';
 import { CategoryBreakdown } from '@/src/components/CategoryBreakdown';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
-import { FadeInBlock } from '@/src/components/FadeInBlock';
 import { HowToGuideButton } from '@/src/components/HowToGuideButton';
 import { MoneyText } from '@/src/components/MoneyText';
 import { PeriodToggle } from '@/src/components/PeriodToggle';
 import { PocketBreakdown } from '@/src/components/PocketBreakdown';
-import { RaisedText } from '@/src/components/RaisedText';
 import { SavingsDecor } from '@/src/components/SavingsDecor';
-import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
-import { ScreenBackground } from '@/src/components/ScreenBackground';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useSettings } from '@/src/hooks/useSettings';
@@ -106,237 +104,222 @@ export default function InsightsScreen() {
   }
 
   return (
-    <ScreenBackground>
-      <KeyboardSafeScroll
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}>
-        <FadeInBlock>
-          <View style={styles.heroRow}>
-            <View style={styles.heroCopy}>
-              <RaisedText style={styles.pageTitle}>{t('insights.title')}</RaisedText>
-              <Text style={styles.pageHint}>{t('insights.subtitle')}</Text>
-            </View>
-            <View style={styles.heroActions}>
-              <HowToGuideButton light variant="chip" />
-              <SavingsDecor size="md" />
-            </View>
-          </View>
-          <PeriodToggle value={period} onChange={setPeriod} />
-        </FadeInBlock>
-
-        <FadeInBlock index={1}>
-          <Text style={styles.searchTitle}>{t('insights.searchTitle')}</Text>
-          <Text style={styles.searchHint}>{t('insights.searchHint')}</Text>
-          <TextInput
-            value={query}
-            onChangeText={(text) => {
-              setQuery(text);
-              if (activeSuggestion && text !== activeSuggestion) {
-                setActiveSuggestion(null);
-              }
-            }}
-            placeholder={searchPlaceholder}
-            placeholderTextColor={palette.inkSoft}
-            style={styles.searchInput}
-            returnKeyType="search"
-            onSubmitEditing={() => ask()}
+    <BrandScreen
+      gap={space.md}
+      header={
+        <>
+          <ScreenHeader
+            title={t('insights.title')}
+            subtitle={t('insights.subtitle')}
+            actions={
+              <View style={styles.heroActions}>
+                <HowToGuideButton light variant="chip" />
+                <SavingsDecor size="md" />
+              </View>
+            }
           />
-          <View style={styles.searchActions}>
+          <PeriodToggle value={period} onChange={setPeriod} />
+        </>
+      }>
+      <View>
+        <Text style={styles.searchTitle}>{t('insights.searchTitle')}</Text>
+        <Text style={styles.searchHint}>{t('insights.searchHint')}</Text>
+        <TextInput
+          value={query}
+          onChangeText={(text) => {
+            setQuery(text);
+            if (activeSuggestion && text !== activeSuggestion) {
+              setActiveSuggestion(null);
+            }
+          }}
+          placeholder={searchPlaceholder}
+          placeholderTextColor={palette.inkSoft}
+          style={styles.searchInput}
+          returnKeyType="search"
+          onSubmitEditing={() => ask()}
+        />
+        <View style={styles.searchActions}>
+          <Pressable
+            style={styles.searchBtn}
+            onPress={() => {
+              tapFeedback();
+              ask();
+            }}>
+            <Text style={styles.searchBtnText}>{t('insights.searchAsk')}</Text>
+          </Pressable>
+          {query || answer ? (
             <Pressable
-              style={styles.searchBtn}
+              style={styles.clearBtn}
               onPress={() => {
                 tapFeedback();
-                ask();
+                clearAsk();
               }}>
-              <Text style={styles.searchBtnText}>{t('insights.searchAsk')}</Text>
+              <Text style={styles.clearBtnText}>{t('insights.searchClear')}</Text>
             </Pressable>
-            {query || answer ? (
+          ) : null}
+        </View>
+
+        {answer ? (
+          <View style={styles.answerCard}>
+            <Text style={styles.answerEyebrow}>{t('insights.searchAnswer')}</Text>
+            {query.trim() ? (
+              <Text style={styles.answerQuestion} numberOfLines={3}>
+                {query.trim()}
+              </Text>
+            ) : null}
+            <Text style={styles.answerBody}>{answer}</Text>
+          </View>
+        ) : null}
+
+        <Text style={[styles.suggestLabel, answer ? styles.suggestLabelDim : null]}>
+          {t('insights.searchSuggestions')}
+        </Text>
+        <View style={styles.suggestRow}>
+          {suggestions.map((prompt) => {
+            const selected = activeSuggestion === prompt;
+            return (
               <Pressable
-                style={styles.clearBtn}
+                key={prompt}
                 onPress={() => {
                   tapFeedback();
-                  clearAsk();
-                }}>
-                <Text style={styles.clearBtnText}>{t('insights.searchClear')}</Text>
-              </Pressable>
-            ) : null}
-          </View>
-
-          {answer ? (
-            <View style={styles.answerCard}>
-              <Text style={styles.answerEyebrow}>{t('insights.searchAnswer')}</Text>
-              {query.trim() ? (
-                <Text style={styles.answerQuestion} numberOfLines={3}>
-                  {query.trim()}
-                </Text>
-              ) : null}
-              <Text style={styles.answerBody}>{answer}</Text>
-            </View>
-          ) : null}
-
-          <Text style={[styles.suggestLabel, answer ? styles.suggestLabelDim : null]}>
-            {t('insights.searchSuggestions')}
-          </Text>
-          <View style={styles.suggestRow}>
-            {suggestions.map((prompt) => {
-              const selected = activeSuggestion === prompt;
-              return (
-                <Pressable
-                  key={prompt}
-                  onPress={() => {
-                    tapFeedback();
-                    ask(prompt);
-                  }}
-                  style={[
-                    styles.suggestChip,
-                    answer && !selected ? styles.suggestChipDim : null,
-                    selected ? styles.suggestChipActive : null,
-                  ]}>
-                  <Text
-                    style={[
-                      styles.suggestText,
-                      selected ? styles.suggestTextActive : null,
-                    ]}
-                    numberOfLines={2}>
-                    {prompt}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </FadeInBlock>
-
-        <FadeInBlock index={2}>
-          <CollapsibleSection
-            title={t('insights.smartTitle')}
-            open={smartOpen}
-            onToggle={() => setSmartOpen((v) => !v)}
-            summary={smart[0]?.text ?? t('insights.smartCollapsed', { count: smart.length })}>
-            <Text style={styles.smartHint}>{t('insights.smartHint')}</Text>
-            {smart.map((card) => (
-              <View
-                key={card.id}
+                  ask(prompt);
+                }}
                 style={[
-                  styles.smartCard,
-                  card.tone === 'warn' && styles.warn,
-                  card.tone === 'good' && styles.good,
-                  card.tone === 'info' && styles.info,
+                  styles.suggestChip,
+                  answer && !selected ? styles.suggestChipDim : null,
+                  selected ? styles.suggestChipActive : null,
                 ]}>
                 <Text
                   style={[
-                    styles.smartText,
-                    card.tone === 'warn' && styles.textWarn,
-                    card.tone === 'good' && styles.textGood,
-                  ]}>
-                  {card.text}
+                    styles.suggestText,
+                    selected ? styles.suggestTextActive : null,
+                  ]}
+                  numberOfLines={2}>
+                  {prompt}
                 </Text>
-              </View>
-            ))}
-          </CollapsibleSection>
-        </FadeInBlock>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
 
-        <FadeInBlock index={3}>
-          <Text style={styles.headline}>
-            {periodLabel}
-            {'\n'}
-            <MoneyText style={styles.headlineAmount}>{format(total)}</MoneyText>
-          </Text>
-          {top ? (
+      <View>
+        <CollapsibleSection
+          title={t('insights.smartTitle')}
+          open={smartOpen}
+          onToggle={() => setSmartOpen((v) => !v)}
+          summary={smart[0]?.text ?? t('insights.smartCollapsed', { count: smart.length })}>
+          <Text style={styles.smartHint}>{t('insights.smartHint')}</Text>
+          {smart.map((card) => (
             <View
+              key={card.id}
               style={[
-                styles.highlight,
-                topTone === 'danger' && styles.highlightDanger,
-                topTone === 'warn' && styles.highlightWarn,
-                topTone === 'good' && styles.highlightGood,
+                styles.smartCard,
+                card.tone === 'warn' && styles.warn,
+                card.tone === 'good' && styles.good,
+                card.tone === 'info' && styles.info,
               ]}>
               <Text
                 style={[
-                  styles.highlightLabel,
-                  topTone === 'danger' && styles.textDanger,
-                  topTone === 'good' && styles.textGood,
+                  styles.smartText,
+                  card.tone === 'warn' && styles.textWarn,
+                  card.tone === 'good' && styles.textGood,
                 ]}>
-                {t('insights.topCategory')}
-              </Text>
-              <Text
-                style={[
-                  styles.highlightText,
-                  topTone === 'danger' && styles.textDanger,
-                  topTone === 'good' && styles.textGood,
-                ]}>
-                {t('insights.topValue', {
-                  amount: format(top.total),
-                  category: categoryLabel(top.categoryId, t, spendConcepts),
-                })}
-              </Text>
-              <Text
-                style={[
-                  styles.highlightHint,
-                  topTone === 'danger' && styles.textDanger,
-                  topTone === 'good' && styles.textGood,
-                ]}>
-                {topTone === 'danger' || topTone === 'warn'
-                  ? t('insights.topAlert')
-                  : topTone === 'good'
-                    ? t('insights.topGood')
-                    : t('insights.percentOfTotal', {
-                        percent: Math.round(top.percent),
-                      })}
+                {card.text}
               </Text>
             </View>
-          ) : (
-            <Text style={styles.empty}>{t('insights.empty')}</Text>
-          )}
-        </FadeInBlock>
+          ))}
+        </CollapsibleSection>
+      </View>
 
-        <FadeInBlock index={4}>
-          <CollapsibleSection
-            title={t('insights.ranking')}
-            open={rankingOpen}
-            onToggle={() => setRankingOpen((v) => !v)}
-            summary={t('insights.rankingCollapsed', { count: insights.length })}>
-            <CategoryBreakdown insights={insights} budgetStatus={budgetStatus} />
-          </CollapsibleSection>
-        </FadeInBlock>
+      <View>
+        <Text style={styles.headline}>
+          {periodLabel}
+          {'\n'}
+          <MoneyText style={styles.headlineAmount}>{format(total)}</MoneyText>
+        </Text>
+        {top ? (
+          <View
+            style={[
+              styles.highlight,
+              topTone === 'danger' && styles.highlightDanger,
+              topTone === 'warn' && styles.highlightWarn,
+              topTone === 'good' && styles.highlightGood,
+            ]}>
+            <Text
+              style={[
+                styles.highlightLabel,
+                topTone === 'danger' && styles.textDanger,
+                topTone === 'good' && styles.textGood,
+              ]}>
+              {t('insights.topCategory')}
+            </Text>
+            <Text
+              style={[
+                styles.highlightText,
+                topTone === 'danger' && styles.textDanger,
+                topTone === 'good' && styles.textGood,
+              ]}>
+              {t('insights.topValue', {
+                amount: format(top.total),
+                category: categoryLabel(top.categoryId, t, spendConcepts),
+              })}
+            </Text>
+            <Text
+              style={[
+                styles.highlightHint,
+                topTone === 'danger' && styles.textDanger,
+                topTone === 'good' && styles.textGood,
+              ]}>
+              {topTone === 'danger' || topTone === 'warn'
+                ? t('insights.topAlert')
+                : topTone === 'good'
+                  ? t('insights.topGood')
+                  : t('insights.percentOfTotal', {
+                      percent: Math.round(top.percent),
+                    })}
+            </Text>
+          </View>
+        ) : (
+          <Text style={styles.empty}>{t('insights.empty')}</Text>
+        )}
+      </View>
 
-        <FadeInBlock index={5}>
-          <CollapsibleSection
-            title={t('insights.pocketsTitle')}
-            open={pocketsOpen}
-            onToggle={() => setPocketsOpen((v) => !v)}
-            summary={t('insights.pocketsCollapsed', { count: pocketSpend.length })}>
-            <PocketBreakdown pockets={pocketSpend} />
-          </CollapsibleSection>
-        </FadeInBlock>
-      </KeyboardSafeScroll>
-    </ScreenBackground>
+      <View>
+        <CollapsibleSection
+          title={t('insights.ranking')}
+          open={rankingOpen}
+          onToggle={() => setRankingOpen((v) => !v)}
+          summary={t('insights.rankingCollapsed', { count: insights.length })}>
+          <CategoryBreakdown insights={insights} budgetStatus={budgetStatus} />
+        </CollapsibleSection>
+      </View>
+
+      <View>
+        <CollapsibleSection
+          title={t('insights.pocketsTitle')}
+          open={pocketsOpen}
+          onToggle={() => setPocketsOpen((v) => !v)}
+          summary={t('insights.pocketsCollapsed', { count: pocketSpend.length })}>
+          <PocketBreakdown pockets={pocketSpend} />
+        </CollapsibleSection>
+      </View>
+    </BrandScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 22, paddingBottom: 168, gap: 14 },
-  heroRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
-  heroCopy: { flex: 1, paddingRight: 8 },
   heroActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  pageTitle: {
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 34,
-    color: palette.brand,
-  },
-  pageHint: {
-    fontFamily: 'DMSans_400Regular',
-    fontSize: 14,
-    color: palette.brandMuted,
-  },
   searchTitle: {
     fontFamily: 'Fraunces_600SemiBold',
     fontSize: 20,
-    color: palette.brand,
+    color: colors.text.primary,
   },
   searchHint: {
     marginTop: 4,
     fontFamily: 'DMSans_400Regular',
     fontSize: 13,
-    color: palette.brandMuted,
+    color: colors.text.secondary,
     lineHeight: 18,
   },
   searchInput: {
@@ -374,7 +357,7 @@ const styles = StyleSheet.create({
   clearBtnText: {
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 13,
-    color: palette.brandMuted,
+    color: colors.text.secondary,
   },
   answerCard: {
     marginTop: 14,
@@ -414,7 +397,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 12,
-    color: palette.brandMuted,
+    color: colors.text.tertiary,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
@@ -429,10 +412,10 @@ const styles = StyleSheet.create({
   },
   suggestChip: {
     maxWidth: '100%',
-    backgroundColor: 'rgba(255,255,255,0.16)',
+    backgroundColor: colors.bg.surface,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.22)',
+    borderColor: colors.border.subtle,
     paddingHorizontal: 12,
     paddingVertical: 9,
   },
@@ -448,7 +431,7 @@ const styles = StyleSheet.create({
   suggestText: {
     fontFamily: 'DMSans_500Medium',
     fontSize: 13,
-    color: palette.brand,
+    color: colors.text.primary,
   },
   suggestTextActive: {
     color: palette.accentDeep,
@@ -458,7 +441,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     fontFamily: 'DMSans_400Regular',
     fontSize: 13,
-    color: palette.brandMuted,
+    color: colors.text.secondary,
     lineHeight: 18,
   },
   smartCard: {
@@ -490,12 +473,12 @@ const styles = StyleSheet.create({
   headline: {
     fontFamily: 'DMSans_500Medium',
     fontSize: 15,
-    color: palette.brandMuted,
+    color: colors.text.secondary,
   },
   headlineAmount: {
     fontFamily: 'Fraunces_700Bold',
     fontSize: 36,
-    color: palette.brand,
+    color: colors.text.primary,
   },
   highlight: {
     marginTop: 10,
@@ -537,7 +520,7 @@ const styles = StyleSheet.create({
   },
   empty: {
     fontFamily: 'DMSans_400Regular',
-    color: palette.brandMuted,
+    color: colors.text.secondary,
   },
   textDanger: { color: palette.danger },
   textGood: { color: palette.success },

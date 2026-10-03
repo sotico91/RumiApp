@@ -3,7 +3,7 @@ import Constants from 'expo-constants';
 import { router } from 'expo-router';
 
 import { useLanguage } from '@/src/i18n/LanguageContext';
-import { palette } from '@/src/theme/colors';
+import { colors } from '@/src/theme';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 
 const COPYRIGHT_YEAR = 2026;
@@ -48,26 +48,26 @@ const styles = StyleSheet.create({
   developed: {
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 13,
-    color: palette.brand,
+    color: colors.text.secondary,
     textAlign: 'center',
   },
   copy: {
     fontFamily: 'DMSans_400Regular',
     fontSize: 12,
-    color: palette.brandMuted,
+    color: colors.text.tertiary,
     textAlign: 'center',
   },
   rights: {
     fontFamily: 'DMSans_400Regular',
-    fontSize: 11,
-    color: palette.brandMuted,
+    fontSize: 12,
+    color: colors.text.tertiary,
     textAlign: 'center',
     opacity: 0.85,
   },
   version: {
     fontFamily: 'DMSans_400Regular',
-    fontSize: 10,
-    color: palette.brandMuted,
+    fontSize: 12,
+    color: colors.text.tertiary,
     textAlign: 'center',
     opacity: 0.6,
     letterSpacing: 0.4,
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   privacy: {
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 13,
-    color: palette.accent,
+    color: colors.action.primary,
     textAlign: 'center',
   },
 });

@@ -14,7 +14,7 @@ type Props = {
   children: ReactNode;
   /** Optional index for spacing consistency with FadeInBlock sections. */
   style?: object;
-  /** `brand` for petrol backgrounds (default), `surface` for cream ones. */
+  /** `surface` for the cream body (default), `brand` for petrol backgrounds. */
   tone?: 'brand' | 'surface';
 };
 
@@ -25,7 +25,7 @@ export function CollapsibleSection({
   onToggle,
   children,
   style,
-  tone = 'brand',
+  tone = 'surface',
 }: Props) {
   const surface = tone === 'surface';
   return (
