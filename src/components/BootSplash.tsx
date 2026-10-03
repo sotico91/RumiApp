@@ -21,7 +21,9 @@ const PX = LOGO / 1024;
 const EYE = 26;
 const LEFT_EYE = { left: 270.2 * PX - EYE / 2, top: 650.9 * PX - EYE / 2 };
 const RIGHT_EYE = { left: 728.1 * PX - EYE / 2, top: 367.9 * PX - EYE / 2 };
-const SMILE = { width: 52, height: 26 };
+/** The smile is the bottom arc of this circle. */
+const SMILE = 58;
+const SMILE_STROKE = 4.5;
 /** Visible hold before fading into the app. */
 export const BOOT_HOLD_MS = 2200;
 
@@ -203,19 +205,20 @@ const styles = StyleSheet.create({
   smileWrap: {
     position: 'absolute',
     bottom: LOGO * 0.14,
-    width: SMILE.width,
-    height: SMILE.height,
+    width: SMILE,
+    height: SMILE,
     alignItems: 'center',
     justifyContent: 'flex-end',
   },
+  // Only the bottom border is coloured: a round arc whose ends taper to a
+  // point, with no top edge left to draw (the old open box showed a line there).
   smile: {
-    width: SMILE.width,
-    height: SMILE.height,
-    borderBottomLeftRadius: SMILE.width / 2,
-    borderBottomRightRadius: SMILE.width / 2,
-    borderWidth: 3.5,
-    borderTopWidth: 0,
-    borderColor: '#1B3A4B',
+    width: SMILE,
+    height: SMILE,
+    borderRadius: SMILE / 2,
+    borderWidth: SMILE_STROKE,
+    borderColor: 'transparent',
+    borderBottomColor: '#1B3A4B',
     backgroundColor: 'transparent',
   },
 });
