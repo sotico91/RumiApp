@@ -137,8 +137,13 @@ export function ConceptsPlanCard() {
         </SelectPressable>
       </View>
 
-      <Text style={styles.colorLabel}>{t('plan.conceptIcon')}</Text>
-      <IconPicker selected={newConceptIcon} color={newConceptColor} onSelect={setPickedIcon} />
+      {/* Only while creating a category, so the grid does not bury the list. */}
+      {conceptDraft.trim() ? (
+        <>
+          <Text style={styles.colorLabel}>{t('plan.conceptIcon')}</Text>
+          <IconPicker selected={newConceptIcon} color={newConceptColor} onSelect={setPickedIcon} />
+        </>
+      ) : null}
 
       {concepts.length === 0 ? (
         <Text style={styles.copy}>{t('plan.conceptsEmpty')}</Text>
