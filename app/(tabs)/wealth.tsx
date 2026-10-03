@@ -9,7 +9,7 @@ import {
   WalletQuickAdd,
 } from '@/src/components/AccountChoiceChips';
 import { AppText, BrandScreen, ScreenHeader } from '@/src/components/ui';
-import { colors, space, type } from '@/src/theme';
+import { colors, radius, space, type } from '@/src/theme';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
 import { HowToGuideButton } from '@/src/components/HowToGuideButton';
 import { MoneyText } from '@/src/components/MoneyText';
@@ -20,7 +20,8 @@ import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
 import { palette, radii } from '@/src/theme/colors';
-import type { Debt, DebtKind, RevolvingProduct } from '@/src/types/finance';
+import type { Account, Debt, DebtKind, RevolvingProduct } from '@/src/types/finance';
+import { accountColors } from '@/src/utils/accountColors';
 import { categoryLabel } from '@/src/utils/categoryLabel';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import {
@@ -41,6 +42,12 @@ import {
   productLabelKey,
   revolvingProduct,
 } from '@/src/utils/debts';
+
+const ADD_KIND_LABEL = {
+  wallet: 'wealth.addWallet',
+  bank: 'wealth.addBank',
+  investment: 'wealth.addInvestment',
+} as const;
 
 function clampPayDay(raw: number): number | null {
   if (!Number.isFinite(raw)) return null;
@@ -112,6 +119,8 @@ export default function WealthScreen() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [accountsOpen, setAccountsOpen] = useState(true);
+  const [addKind, setAddKind] = useState<'wallet' | 'bank' | 'investment' | null>(null);
+  const [openAccountId, setOpenAccountId] = useState<string | null>(null);
   const [cardsOpen, setCardsOpen] = useState(true);
   const [loansOpen, setLoansOpen] = useState(true);
   const [name, setName] = useState('');
@@ -134,6 +143,27 @@ export default function WealthScreen() {
 
   const cashAccounts = useMemo(() => moneyPockets(accounts), [accounts]);
   const groupedAccounts = useMemo(() => sortAccountsByKind(cashAccounts), [cashAccounts]);
+  /** One card per kind (cash, banks, wallets…), in sortAccountsByKind order. */
+  const accountGroups = useMemo(() => {
+    const groups: { type: Account['type']; items: Account[] }[] = [];
+    for (const acc of groupedAccounts) {
+      const last = groups[groups.length - 1];
+      if (last && last.type === acc.type) last.items.push(acc);
+      else groups.push({ type: acc.type, items: [acc] });
+    }
+    return groups;
+  }, [groupedAccounts]);
+  const accountTints = useMemo(
+    () =>
+      accountColors(
+        groupedAccounts.map((acc) => ({
+          id: acc.id,
+          type: acc.type,
+          label: accountDisplayName(acc, t),
+        }))
+      ),
+    [groupedAccounts, t]
+  );
   const revolvingDebts = useMemo(
     () => liveDebts.filter((d) => debtKind(d) === 'revolving'),
     [liveDebts]
@@ -725,186 +755,230 @@ export default function WealthScreen() {
           onToggle={() => setAccountsOpen((v) => !v)}
           summary={t('wealth.accountsCollapsed', { count: cashAccounts.length })}>
           <Text style={styles.accountsHint}>{t('wealth.accountsHint')}</Text>
-          {groupedAccounts.map((acc, index) => {
-            const canRename =
-              acc.type === 'wallet' || acc.type === 'bank' || acc.type === 'investment';
-            const canEditBalance = isEditablePocketBalance(acc.type);
-            const canRemove =
-              isRemovableWallet(acc) || isRemovableBank(acc) || isRemovableInvestment(acc);
-            const renaming = editingWalletId === acc.id;
-            const editingBal = editingBalanceId === acc.id;
-            const label = accountDisplayName(acc, t);
-            const prevType = groupedAccounts[index - 1]?.type;
-            const showGroup = acc.type !== prevType;
-            return (
-              <View key={acc.id}>
-                {showGroup ? (
-                  <Text
-                    style={[
-                      styles.groupLabel,
-                      index === 0 && styles.groupLabelFirst,
-                    ]}>
-                    {t(accountGroupKey(acc.type))}
+
+          {/* Create first, then the list of what exists. */}
+          <AppText variant="overline" color="tertiary" style={styles.groupLabelFirst}>
+            {t('wealth.addTitle')}
+          </AppText>
+          <View style={styles.addKinds}>
+            {(['wallet', 'bank', 'investment'] as const).map((kind) => {
+              const on = addKind === kind;
+              return (
+                <Pressable
+                  key={kind}
+                  onPress={() => {
+                    tapFeedback();
+                    setAddKind(on ? null : kind);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: on }}
+                  style={[styles.addKind, on && styles.addKindOn]}>
+                  <Text style={[styles.addKindText, on && styles.addKindTextOn]}>
+                    {t(ADD_KIND_LABEL[kind])}
                   </Text>
-                ) : null}
-                <View
-                  style={[
-                    styles.card,
-                    (renaming || editingBal) && styles.cardEditing,
-                  ]}>
-                <View style={styles.sectionRow}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.cardTitle}>{label}</Text>
-                    {acc.type === 'investment' && !acc.name ? (
-                      <Text style={styles.cardHint}>{t('invest.whereHint')}</Text>
-                    ) : null}
-                  </View>
-                  <View style={styles.cardActions}>
-                    {canEditBalance ? (
-                      <Pressable onPress={() => startEditBalance(acc)}>
-                        <Text style={styles.editText}>{t('wealth.balanceEdit')}</Text>
-                      </Pressable>
-                    ) : null}
-                    {canRename ? (
-                      <Pressable onPress={() => startRenameWallet(acc)}>
-                        <Text style={styles.editText}>{t('wealth.walletRename')}</Text>
-                      </Pressable>
-                    ) : null}
-                    {canRemove ? (
-                      <Pressable
-                        onPress={() =>
-                          confirmRemovePocket(
-                            acc.id,
-                            label,
-                            acc.balance,
-                            acc.type === 'bank'
-                              ? 'bank'
-                              : acc.type === 'investment'
-                                ? 'investment'
-                                : 'wallet'
-                          )
-                        }>
-                        <Text style={styles.deleteText}>
-                          {acc.type === 'bank'
-                            ? t('wealth.bankDelete')
-                            : t('wealth.walletDelete')}
-                        </Text>
-                      </Pressable>
-                    ) : null}
-                  </View>
-                </View>
-                <MoneyText
-                  style={[
-                    styles.amount,
-                    acc.balance < 0 ? styles.amountDebt : null,
-                  ]}>
-                  {acc.balance < 0
-                    ? t('wealth.accountOwes', { amount: format(Math.abs(acc.balance)) })
-                    : format(acc.balance)}
-                </MoneyText>
-                {editingBal ? (
-                  <View style={styles.walletRename}>
-                    <TextInput
-                      value={balanceDraft}
-                      onChangeText={setBalanceDraft}
-                      placeholder={t('wealth.balancePlaceholder')}
-                      placeholderTextColor={palette.inkSoft}
-                      style={styles.input}
-                      keyboardType="decimal-pad"
-                      autoFocus
-                      onSubmitEditing={() => void handleSaveBalance()}
-                      returnKeyType="done"
-                    />
-                    <View style={styles.formActions}>
+                </Pressable>
+              );
+            })}
+          </View>
+          {addKind ? (
+            <View style={styles.addPanel}>
+              {addKind === 'wallet' ? <WalletQuickAdd onAdded={() => setAddKind(null)} /> : null}
+              {addKind === 'bank' ? <BankQuickAdd onAdded={() => setAddKind(null)} /> : null}
+              {addKind === 'investment' ? (
+                <InvestmentQuickAdd onAdded={() => setAddKind(null)} />
+              ) : null}
+            </View>
+          ) : null}
+
+          {accountGroups.map((group) => (
+            <View key={group.type}>
+              <AppText variant="overline" color="tertiary" style={styles.groupLabel}>
+                {t(accountGroupKey(group.type))}
+              </AppText>
+              <View style={styles.groupCard}>
+                {group.items.map((acc, index) => {
+                  const canRename =
+                    acc.type === 'wallet' || acc.type === 'bank' || acc.type === 'investment';
+                  const canEditBalance = isEditablePocketBalance(acc.type);
+                  const canRemove =
+                    isRemovableWallet(acc) || isRemovableBank(acc) || isRemovableInvestment(acc);
+                  const renaming = editingWalletId === acc.id;
+                  const editingBal = editingBalanceId === acc.id;
+                  const label = accountDisplayName(acc, t);
+                  const tint = accountTints.get(acc.id)!;
+                  const open = openAccountId === acc.id || renaming || editingBal;
+                  const hasActions = canEditBalance || canRename || canRemove;
+                  return (
+                    <View
+                      key={acc.id}
+                      style={[
+                        styles.accRow,
+                        index < group.items.length - 1 && styles.accRowDivider,
+                      ]}>
                       <Pressable
                         onPress={() => {
+                          if (!hasActions) return;
                           tapFeedback();
-                          setEditingBalanceId(null);
-                          setBalanceDraft('');
+                          setOpenAccountId(open ? null : acc.id);
                         }}
-                        style={styles.secondaryBtn}>
-                        <Text style={styles.secondaryBtnText}>
-                          {t('wealth.debtCancel')}
-                        </Text>
+                        accessibilityRole={hasActions ? 'button' : undefined}
+                        accessibilityState={hasActions ? { expanded: open } : undefined}
+                        style={styles.accMain}>
+                        <View style={[styles.accBadge, { backgroundColor: tint.color }]}>
+                          <Text style={[styles.accBadgeText, { color: tint.onColor }]}>
+                            {label.trim().charAt(0).toUpperCase()}
+                          </Text>
+                        </View>
+                        <View style={styles.accText}>
+                          <Text style={[styles.accTitle, { color: tint.text }]} numberOfLines={1}>
+                            {label}
+                          </Text>
+                          {acc.type === 'investment' && !acc.name ? (
+                            <Text style={styles.cardHint}>{t('invest.whereHint')}</Text>
+                          ) : null}
+                        </View>
+                        <MoneyText
+                          style={[styles.accBalance, acc.balance < 0 ? styles.amountDebt : null]}>
+                          {acc.balance < 0
+                            ? t('wealth.accountOwes', { amount: format(Math.abs(acc.balance)) })
+                            : format(acc.balance)}
+                        </MoneyText>
                       </Pressable>
-                      <Pressable
-                        onPress={() => void handleSaveBalance()}
-                        disabled={savingBalance || !balanceDraft.trim()}
-                        style={[
-                          styles.saveBtn,
-                          styles.saveBtnFlex,
-                          (!balanceDraft.trim() || savingBalance) && {
-                            opacity: 0.5,
-                          },
-                        ]}>
-                        <Text style={styles.saveBtnText}>
-                          {savingBalance
-                            ? t('add.saving')
-                            : t('wealth.balanceSave')}
-                        </Text>
-                      </Pressable>
+
+                      {open && !renaming && !editingBal ? (
+                        <View style={styles.accActions}>
+                          {canEditBalance ? (
+                            <Pressable onPress={() => startEditBalance(acc)} hitSlop={6}>
+                              <Text style={styles.editText}>{t('wealth.balanceEdit')}</Text>
+                            </Pressable>
+                          ) : null}
+                          {canRename ? (
+                            <Pressable onPress={() => startRenameWallet(acc)} hitSlop={6}>
+                              <Text style={styles.editText}>{t('wealth.walletRename')}</Text>
+                            </Pressable>
+                          ) : null}
+                          {canRemove ? (
+                            <Pressable
+                              hitSlop={6}
+                              onPress={() =>
+                                confirmRemovePocket(
+                                  acc.id,
+                                  label,
+                                  acc.balance,
+                                  acc.type === 'bank'
+                                    ? 'bank'
+                                    : acc.type === 'investment'
+                                      ? 'investment'
+                                      : 'wallet'
+                                )
+                              }>
+                              <Text style={styles.deleteText}>
+                                {acc.type === 'bank'
+                                  ? t('wealth.bankDelete')
+                                  : t('wealth.walletDelete')}
+                              </Text>
+                            </Pressable>
+                          ) : null}
+                        </View>
+                      ) : null}
+                      {editingBal ? (
+                        <View style={styles.walletRename}>
+                          <TextInput
+                            value={balanceDraft}
+                            onChangeText={setBalanceDraft}
+                            placeholder={t('wealth.balancePlaceholder')}
+                            placeholderTextColor={palette.inkSoft}
+                            style={styles.input}
+                            keyboardType="decimal-pad"
+                            autoFocus
+                            onSubmitEditing={() => void handleSaveBalance()}
+                            returnKeyType="done"
+                          />
+                          <View style={styles.formActions}>
+                            <Pressable
+                              onPress={() => {
+                                tapFeedback();
+                                setEditingBalanceId(null);
+                                setBalanceDraft('');
+                              }}
+                              style={styles.secondaryBtn}>
+                              <Text style={styles.secondaryBtnText}>
+                                {t('wealth.debtCancel')}
+                              </Text>
+                            </Pressable>
+                            <Pressable
+                              onPress={() => void handleSaveBalance()}
+                              disabled={savingBalance || !balanceDraft.trim()}
+                              style={[
+                                styles.saveBtn,
+                                styles.saveBtnFlex,
+                                (!balanceDraft.trim() || savingBalance) && {
+                                  opacity: 0.5,
+                                },
+                              ]}>
+                              <Text style={styles.saveBtnText}>
+                                {savingBalance
+                                  ? t('add.saving')
+                                  : t('wealth.balanceSave')}
+                              </Text>
+                            </Pressable>
+                          </View>
+                        </View>
+                      ) : null}
+                      {renaming ? (
+                        <View style={styles.walletRename}>
+                          <TextInput
+                            value={walletNameDraft}
+                            onChangeText={setWalletNameDraft}
+                            placeholder={
+                              acc.type === 'bank'
+                                ? t('flow.bankNamePlaceholder')
+                                : t('flow.walletNamePlaceholder')
+                            }
+                            placeholderTextColor={palette.inkSoft}
+                            style={styles.input}
+                            autoFocus
+                            onSubmitEditing={() => void handleSaveWalletName()}
+                            returnKeyType="done"
+                          />
+                          <View style={styles.formActions}>
+                            <Pressable
+                              onPress={() => {
+                                tapFeedback();
+                                setEditingWalletId(null);
+                                setWalletNameDraft('');
+                              }}
+                              style={styles.secondaryBtn}>
+                              <Text style={styles.secondaryBtnText}>
+                                {t('wealth.debtCancel')}
+                              </Text>
+                            </Pressable>
+                            <Pressable
+                              onPress={() => void handleSaveWalletName()}
+                              disabled={savingWallet || !walletNameDraft.trim()}
+                              style={[
+                                styles.saveBtn,
+                                styles.saveBtnFlex,
+                                (!walletNameDraft.trim() || savingWallet) && {
+                                  opacity: 0.5,
+                                },
+                              ]}>
+                              <Text style={styles.saveBtnText}>
+                                {savingWallet
+                                  ? t('add.saving')
+                                  : t('wealth.walletRenameSave')}
+                              </Text>
+                            </Pressable>
+                          </View>
+                        </View>
+                      ) : null}
                     </View>
-                  </View>
-                ) : null}
-                {renaming ? (
-                  <View style={styles.walletRename}>
-                    <TextInput
-                      value={walletNameDraft}
-                      onChangeText={setWalletNameDraft}
-                      placeholder={
-                        acc.type === 'bank'
-                          ? t('flow.bankNamePlaceholder')
-                          : t('flow.walletNamePlaceholder')
-                      }
-                      placeholderTextColor={palette.inkSoft}
-                      style={styles.input}
-                      autoFocus
-                      onSubmitEditing={() => void handleSaveWalletName()}
-                      returnKeyType="done"
-                    />
-                    <View style={styles.formActions}>
-                      <Pressable
-                        onPress={() => {
-                          tapFeedback();
-                          setEditingWalletId(null);
-                          setWalletNameDraft('');
-                        }}
-                        style={styles.secondaryBtn}>
-                        <Text style={styles.secondaryBtnText}>
-                          {t('wealth.debtCancel')}
-                        </Text>
-                      </Pressable>
-                      <Pressable
-                        onPress={() => void handleSaveWalletName()}
-                        disabled={savingWallet || !walletNameDraft.trim()}
-                        style={[
-                          styles.saveBtn,
-                          styles.saveBtnFlex,
-                          (!walletNameDraft.trim() || savingWallet) && {
-                            opacity: 0.5,
-                          },
-                        ]}>
-                        <Text style={styles.saveBtnText}>
-                          {savingWallet
-                            ? t('add.saving')
-                            : t('wealth.walletRenameSave')}
-                        </Text>
-                      </Pressable>
-                    </View>
-                  </View>
-                ) : null}
+                  );
+                })}
               </View>
-              </View>
-            );
-          })}
+            </View>
+          ))}
         </CollapsibleSection>
-        <View style={styles.addWalletCard}>
-          <WalletQuickAdd />
-          <View style={styles.addBankGap} />
-          <BankQuickAdd />
-          <View style={styles.addBankGap} />
-          <InvestmentQuickAdd />
-        </View>
       </View>
 
       <View>
@@ -1009,14 +1083,91 @@ export default function WealthScreen() {
 }
 
 const styles = StyleSheet.create({
-  addBankGap: { height: 14 },
-  addWalletCard: {
-    marginTop: 12,
-    backgroundColor: palette.surfaceSolid,
-    borderRadius: radii.md,
-    padding: 14,
+  addKinds: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: space.xs,
+    marginTop: space.xs,
+  },
+  addKind: {
     borderWidth: 1,
-    borderColor: palette.border,
+    borderColor: colors.border.strong,
+    borderStyle: 'dashed',
+    borderRadius: radius.full,
+    paddingHorizontal: space.md,
+    paddingVertical: space.xs,
+    backgroundColor: colors.bg.surface,
+  },
+  addKindOn: {
+    borderStyle: 'solid',
+    borderColor: colors.action.secondary,
+    backgroundColor: 'rgba(27,58,75,0.08)',
+  },
+  addKindText: {
+    fontFamily: type.label.fontFamily,
+    fontSize: 14,
+    color: colors.action.secondary,
+  },
+  addKindTextOn: {
+    color: colors.text.primary,
+  },
+  addPanel: {
+    marginTop: space.sm,
+    backgroundColor: colors.bg.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
+    padding: space.md,
+  },
+  groupCard: {
+    backgroundColor: colors.bg.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border.subtle,
+    overflow: 'hidden',
+  },
+  accRow: {
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+  },
+  accRowDivider: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border.strong,
+  },
+  accMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.sm,
+    minHeight: 40,
+  },
+  accBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  accBadgeText: {
+    fontFamily: type.title.fontFamily,
+    fontSize: 15,
+  },
+  accText: { flex: 1, gap: 2 },
+  accTitle: {
+    fontFamily: type.title.fontFamily,
+    fontSize: 16,
+  },
+  accBalance: {
+    ...type.amount,
+    color: colors.text.primary,
+    maxWidth: '45%',
+    textAlign: 'right',
+  },
+  accActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: space.lg,
+    marginTop: space.sm,
+    marginLeft: 32 + space.sm,
   },
   accountsHint: {
     fontFamily: 'DMSans_400Regular',

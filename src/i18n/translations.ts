@@ -329,6 +329,8 @@ export const translations = {
     'plan.budgetsTapHint': 'Tap a subcategory above to set or edit its monthly limit.',
     'plan.budgetsCollapsed': '{count} active {count|limit|limits} — tap to expand',
     'plan.antTitle': 'Small spends',
+    'plan.wholeCategory': 'Whole category',
+    'plan.otherGroup': 'Other',
     'plan.antEmpty': 'No expenses on marked small-spend subcategories this month.',
     'plan.antHint':
       'Mark small, frequent spends (coffee, snacks…) to keep an eye on them.',
@@ -380,6 +382,10 @@ export const translations = {
     'wealth.accountsHint':
       'Cash, banks, savings and wallets. Cards are further down.',
     'wealth.groupInvestments': 'Investments',
+    'wealth.addTitle': 'Add',
+    'wealth.addWallet': '+ Wallet',
+    'wealth.addBank': '+ Bank',
+    'wealth.addInvestment': '+ Investment',
     'wealth.groupCredit': 'Credit',
     'wealth.accountsCollapsed': '{count} {count|account|accounts} — tap to open',
     'wealth.assets': 'Assets',
@@ -1341,6 +1347,8 @@ export const translations = {
     'plan.budgetsTapHint': 'Toca una subcategoría arriba para poner o editar su tope mensual.',
     'plan.budgetsCollapsed': '{count} {count|tope activo|topes activos} — toca para ver',
     'plan.antTitle': 'Gastos hormiga',
+    'plan.wholeCategory': 'Toda la categoría',
+    'plan.otherGroup': 'Otras',
     'plan.antEmpty': 'Este mes no hay gastos en subcategorías marcadas como hormiga.',
     'plan.antHint':
       'Marca gastos chicos y frecuentes (café, mecato…) para vigilarlos.',
@@ -1392,6 +1400,10 @@ export const translations = {
     'wealth.accountsHint':
       'Efectivo, bancos, ahorros y billeteras. Las tarjetas van más abajo.',
     'wealth.groupInvestments': 'Inversiones',
+    'wealth.addTitle': 'Agregar',
+    'wealth.addWallet': '+ Billetera',
+    'wealth.addBank': '+ Banco',
+    'wealth.addInvestment': '+ Inversión',
     'wealth.groupCredit': 'Créditos',
     'wealth.accountsCollapsed': '{count} {count|bolsillo|bolsillos} — toca para abrir',
     'wealth.assets': 'Activos',
