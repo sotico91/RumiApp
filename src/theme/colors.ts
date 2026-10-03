@@ -1,3 +1,7 @@
+/**
+ * Legacy tokens the current screens still read. New code uses `@/src/theme`
+ * (tokens.ts / typography.ts); screens move over one at a time.
+ */
 export const palette = {
   bg: '#1B3A4B',
   bgMid: '#245D6B',

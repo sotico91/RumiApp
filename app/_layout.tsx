@@ -2,6 +2,7 @@ import {
   DMSans_400Regular,
   DMSans_500Medium,
   DMSans_600SemiBold,
+  DMSans_700Bold,
 } from '@expo-google-fonts/dm-sans';
 import {
   Fraunces_600SemiBold,
@@ -48,6 +49,7 @@ export default function RootLayout() {
     DMSans_400Regular,
     DMSans_500Medium,
     DMSans_600SemiBold,
+    DMSans_700Bold,
     Fraunces_600SemiBold,
     Fraunces_700Bold,
   });
