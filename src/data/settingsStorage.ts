@@ -1,5 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 import { CATEGORIES } from '@/src/data/financeDefaults';
 import {
   loadBudgets,
@@ -11,6 +9,7 @@ import {
   saveSubscriptions,
   saveTransactions,
 } from '@/src/data/financeStorage';
+import { readSecureJson, writeSecureJson } from '@/src/data/secureStorage';
 import {
   applyCategoryIdRemaps,
   ensureConceptColors,
@@ -140,11 +139,11 @@ async function applyFinanceCategoryRemaps(remaps: Record<string, string>): Promi
 }
 
 export async function loadSettings(): Promise<UserSettings> {
-  const raw = await AsyncStorage.getItem(SETTINGS_KEY);
+  const stored = await readSecureJson<UserSettings>(SETTINGS_KEY);
   let settings: UserSettings;
   let remaps: Record<string, string> = {};
 
-  if (!raw) {
+  if (!stored) {
     settings = { ...DEFAULT_SETTINGS, personId: createPersonId() };
     await saveSettings(settings);
     return settings;
@@ -152,7 +151,7 @@ export async function loadSettings(): Promise<UserSettings> {
   try {
     const migrated = migrateSettings({
       ...DEFAULT_SETTINGS,
-      ...(JSON.parse(raw) as UserSettings),
+      ...stored,
     });
     settings = migrated.settings;
     remaps = migrated.remaps;
@@ -171,21 +170,16 @@ export async function loadSettings(): Promise<UserSettings> {
   return settings;
 }
 
+/** Settings hold the name and categories, so they are stored encrypted too. */
 export async function saveSettings(settings: UserSettings): Promise<void> {
-  await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  await writeSecureJson(SETTINGS_KEY, settings);
 }
 
 export async function loadQuickTemplates(): Promise<QuickTemplate[]> {
-  const raw = await AsyncStorage.getItem(QUICK_KEY);
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw) as QuickTemplate[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+  const parsed = await readSecureJson<QuickTemplate[]>(QUICK_KEY);
+  return Array.isArray(parsed) ? parsed : [];
 }
 
 export async function saveQuickTemplates(templates: QuickTemplate[]): Promise<void> {
-  await AsyncStorage.setItem(QUICK_KEY, JSON.stringify(templates));
+  await writeSecureJson(QUICK_KEY, templates);
 }

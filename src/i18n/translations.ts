@@ -709,6 +709,9 @@ export const translations = {
     'settings.data': 'Your data',
     'settings.help': 'Help',
     'settings.danger': 'Danger zone',
+    'storage.unreadableTitle': 'Some data could not be opened',
+    'storage.unreadableBody':
+      'It was encrypted with another phone’s key, so this phone cannot read it. Nothing was deleted. To bring it back, restore a backup from Settings → Your data.',
 
     'notFound.title': 'This screen doesn’t exist',
     'notFound.back': 'Back to Rumi',
@@ -1729,6 +1732,9 @@ export const translations = {
     'settings.data': 'Tus datos',
     'settings.help': 'Ayuda',
     'settings.danger': 'Zona de peligro',
+    'storage.unreadableTitle': 'No se pudieron abrir algunos datos',
+    'storage.unreadableBody':
+      'Están cifrados con la llave de otro teléfono, así que este no los puede leer. No se borró nada. Para recuperarlos, restaura un respaldo desde Ajustes → Tus datos.',
 
     'notFound.title': 'Esta pantalla no existe',
     'notFound.back': 'Volver a Rumi',

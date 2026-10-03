@@ -70,8 +70,9 @@ export default function PrivacyPolicyScreen() {
             <Text style={styles.p}>
               Si tienes activadas las copias de seguridad del sistema (iCloud en iPhone o la
               copia de Google en Android), el sistema puede incluir los datos de Rumi en esa
-              copia, guardada en tu cuenta de Apple o Google. Rumi no tiene acceso a ella. Al
-              cambiar de teléfono o reinstalar, el sistema puede restaurar esos datos.
+              copia, siempre cifrados. En iPhone, una copia cifrada también guarda la llave y
+              los restaura en el teléfono nuevo. En Android la llave no sale del teléfono: para
+              pasar tus datos a otro equipo usa “Exportar respaldo” en Ajustes.
             </Text>
             <Text style={styles.h}>6. Servicios de terceros</Text>
             <Text style={styles.p}>
@@ -94,8 +95,11 @@ export default function PrivacyPolicyScreen() {
             </Text>
             <Text style={styles.h}>9. Seguridad</Text>
             <Text style={styles.p}>
-              Recomendamos el bloqueo de la App en dispositivos compartidos. Protege los
-              respaldos que exportes como información sensible: no van cifrados.
+              Tus movimientos, cuentas, deudas, topes, categorías y nombre se guardan cifrados
+              (AES-256) con una llave que vive en el almacén seguro del teléfono (Llavero de
+              iOS / Keystore de Android), separada de los datos. Recomendamos el bloqueo de la
+              App en dispositivos compartidos. Los respaldos que exportes no van cifrados:
+              protégelos como información sensible.
             </Text>
             <Text style={styles.h}>10. Contacto</Text>
             <Text style={styles.p}>edavidvelascop@gmail.com</Text>
@@ -139,9 +143,9 @@ export default function PrivacyPolicyScreen() {
             <Text style={styles.h}>5. Phone backups</Text>
             <Text style={styles.p}>
               If system backups are on (iCloud on iPhone, Google backup on Android), the system
-              may include Rumi’s data in that backup, stored in your Apple or Google account.
-              Rumi has no access to it. When you switch phones or reinstall, the system may
-              restore that data.
+              may include Rumi’s data in that backup, always encrypted. On iPhone an encrypted
+              backup also carries the key and restores the data on a new phone. On Android the
+              key never leaves the phone: to move your data, use “Export backup” in Settings.
             </Text>
             <Text style={styles.h}>6. Third parties</Text>
             <Text style={styles.p}>
@@ -162,8 +166,10 @@ export default function PrivacyPolicyScreen() {
             </Text>
             <Text style={styles.h}>9. Security</Text>
             <Text style={styles.p}>
-              We recommend enabling App Lock on shared devices. Treat exported backups as
-              sensitive information: they are not encrypted.
+              Your movements, accounts, debts, limits, categories and name are stored encrypted
+              (AES-256) with a key kept in the phone’s secure store (iOS Keychain / Android
+              Keystore), apart from the data. We recommend enabling App Lock on shared devices.
+              Exported backups are not encrypted: treat them as sensitive information.
             </Text>
             <Text style={styles.h}>10. Contact</Text>
             <Text style={styles.p}>edavidvelascop@gmail.com</Text>

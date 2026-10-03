@@ -93,9 +93,10 @@
       <h2>5. Copias de seguridad del teléfono</h2>
       <p>
         Si tienes activadas las copias de seguridad del sistema (iCloud en iPhone o la copia de
-        Google en Android), el sistema puede incluir los datos de Rumi en esa copia, guardada en
-        tu cuenta de Apple o Google. Rumi no tiene acceso a ella. Al cambiar de teléfono o
-        reinstalar, el sistema puede restaurar esos datos.
+        Google en Android), el sistema puede incluir los datos de Rumi en esa copia, siempre
+        cifrados. En iPhone, una copia cifrada también guarda la llave y los restaura en el
+        teléfono nuevo. En Android la llave no sale del teléfono: para pasar tus datos a otro
+        equipo usa “Exportar respaldo” en Ajustes.
       </p>
 
       <h2>6. Servicios de terceros</h2>
@@ -121,8 +122,11 @@
 
       <h2>9. Seguridad</h2>
       <p>
-        Recomendamos activar el bloqueo de la App (Face ID / código) en dispositivos compartidos.
-        Los respaldos que exportes quedan bajo tu control y no van cifrados; protégelos como
+        Tus movimientos, cuentas, deudas, topes, categorías y nombre se guardan
+        <strong>cifrados (AES-256)</strong> con una llave que vive en el almacén seguro del
+        teléfono (Llavero de iOS / Keystore de Android), separada de los datos. Recomendamos
+        activar el bloqueo de la App (Face ID / código) en dispositivos compartidos. Los
+        respaldos que exportes quedan bajo tu control y no van cifrados; protégelos como
         información sensible.
       </p>
 
@@ -134,12 +138,13 @@
 
       <h2>11. English summary</h2>
       <p>
-        Rumi stores your personal finance data on-device. It has no server or account, does not
+        Rumi stores your personal finance data on-device, encrypted with AES-256 and a key kept in the
+        phone's secure store. It has no server or account, does not
         send your data over the internet, and does not sell or share it. Optional permissions
         cover notifications, device lock (Face ID / fingerprint / passcode) and file sharing for
         backups you start. Alerts when you log a movement are off by default; if turned on,
         they show the amount on the lock screen. If iCloud or Google backup is on, the system may include Rumi's
-        data in your own backup. Exported backups are not encrypted. Contact:
+        encrypted data in your own backup; on Android it can only be moved with Export backup. Exported backups are not encrypted. Contact:
         <a href="mailto:edavidvelascop@gmail.com">edavidvelascop@gmail.com</a>.
       </p>
     </article>

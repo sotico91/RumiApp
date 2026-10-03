@@ -35,6 +35,8 @@ PODS:
     - ExpoModulesCore
   - ExpoBlur (57.0.2):
     - ExpoModulesCore
+  - ExpoCrypto (57.0.3):
+    - ExpoModulesCore
   - ExpoDomWebView (57.0.1):
     - ExpoModulesCore
   - ExpoFileSystem (57.0.2):
@@ -95,6 +97,8 @@ PODS:
   - ExpoRouter (57.0.11):
     - ExpoModulesCore
     - RNScreens
+  - ExpoSecureStore (57.0.4):
+    - ExpoModulesCore
   - ExpoSharing (57.0.11):
     - ExpoModulesCore
   - ExpoSplashScreen (57.0.5):
@@ -2292,6 +2296,7 @@ DEPENDENCIES:
   - ExpoAsset (from `../node_modules/expo-asset/ios`)
   - ExpoAudio (from `../node_modules/expo-audio/ios`)
   - ExpoBlur (from `../node_modules/expo-blur/ios`)
+  - ExpoCrypto (from `../node_modules/expo-crypto/ios`)
   - "ExpoDomWebView (from `../node_modules/@expo/dom-webview/ios`)"
   - ExpoFileSystem (from `../node_modules/expo-file-system/ios/ExpoFileSystem.podspec`)
   - ExpoFont (from `../node_modules/expo-font/ios/ExpoFont.podspec`)
@@ -2308,6 +2313,7 @@ DEPENDENCIES:
   - ExpoModulesWorkletsAdapter (from `../node_modules/expo-modules-core`)
   - ExpoNotifications (from `../node_modules/expo-notifications/ios`)
   - ExpoRouter (from `../node_modules/expo-router/ios`)
+  - ExpoSecureStore (from `../node_modules/expo-secure-store/ios`)
   - ExpoSharing (from `../node_modules/expo-sharing/ios`)
   - ExpoSplashScreen (from `../node_modules/expo-splash-screen/ios`)
   - ExpoSymbols (from `../node_modules/expo-symbols/ios`)
@@ -2410,6 +2416,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-audio/ios"
   ExpoBlur:
     :path: "../node_modules/expo-blur/ios"
+  ExpoCrypto:
+    :path: "../node_modules/expo-crypto/ios"
   ExpoDomWebView:
     :path: "../node_modules/@expo/dom-webview/ios"
   ExpoFileSystem:
@@ -2442,6 +2450,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-notifications/ios"
   ExpoRouter:
     :path: "../node_modules/expo-router/ios"
+  ExpoSecureStore:
+    :path: "../node_modules/expo-secure-store/ios"
   ExpoSharing:
     :path: "../node_modules/expo-sharing/ios"
   ExpoSplashScreen:
@@ -2625,6 +2635,7 @@ SPEC CHECKSUMS:
   ExpoAsset: 21e4a9006373f2ede718ec1f440bbe40f95f6376
   ExpoAudio: a275c6d3473cbccc7cfd27c3f24b572c0b1701d8
   ExpoBlur: 0f2c616d5422a2b1a31e622d2add98784eed1ceb
+  ExpoCrypto: db33a5a35bf1216d9622356b2d5badf0b2f2960c
   ExpoDomWebView: fa9c72fe29dd4649197a7ecb07ddd870d55c4eda
   ExpoFileSystem: 5f22d602c86c37460df3b954cf1ceb00a5e5ca75
   ExpoFont: 17668fb7b4e06edf35e015183eb7bc09d83be637
@@ -2641,6 +2652,7 @@ SPEC CHECKSUMS:
   ExpoModulesWorkletsAdapter: 07038279717b8486147e54b6f125339d6e6f1d87
   ExpoNotifications: 3948364bd6c403e13efffa81df5422703262c895
   ExpoRouter: 497452c09d02aef7a583aa2feb6373ed06e938f7
+  ExpoSecureStore: c704911d323d1d62ecf6b81bf3afa58eecedd80c
   ExpoSharing: 16c9e7d4704b96f64494e6d232d6ca8b6b0a4c48
   ExpoSplashScreen: 57dc730cbc8782e8b662e452a2379120b675b004
   ExpoSymbols: 546737c564b51716b0d6d6db867e1191a9b6943f

@@ -5,6 +5,8 @@ import {
   DEFAULT_DEBTS,
   DEFAULT_SUBSCRIPTIONS,
 } from '@/src/data/financeDefaults';
+import { encryptJson, readSecureJson, writeSecureJson } from '@/src/data/secureStorage';
+import { loadShardedTransactions, planShardWrites } from '@/src/data/transactionShards';
 import { mergeDefaultAccounts, settleLiquidOverdrafts } from '@/src/utils/accounts';
 import type {
   Account,
@@ -16,21 +18,26 @@ import type {
 } from '@/src/types/finance';
 import { isPocketMove } from '@/src/types/finance';
 
-const TX_KEY = 'rumi:transactions:v2';
 const ACCOUNTS_KEY = 'rumi:accounts:v2';
 const BUDGETS_KEY = 'rumi:budgets:v2';
 const DEBTS_KEY = 'rumi:debts:v2';
 const SUBS_KEY = 'rumi:subscriptions:v2';
 const LEGACY_EXPENSES = 'gastos-hormiga:expenses:v1';
 
+/**
+ * Everything here is stored encrypted (see secureStorage); movements as one
+ * entry per month (see transactionShards).
+ */
 async function loadJson<T>(key: string, fallback: T): Promise<T> {
-  const raw = await AsyncStorage.getItem(key);
-  if (!raw) return fallback;
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
+  return (await readSecureJson<T>(key)) ?? fallback;
+}
+
+/** One write at a time, so a slower earlier save never lands after a newer one. */
+let writeQueue: Promise<unknown> = Promise.resolve();
+function serial(task: () => Promise<void>): Promise<void> {
+  const run = writeQueue.then(task, task);
+  writeQueue = run.catch(() => undefined);
+  return run;
 }
 
 /** Records without these fields would crash sorting on every launch. */
@@ -41,8 +48,8 @@ function isLoadableTransaction(tx: unknown): tx is Transaction {
 }
 
 export async function loadTransactions(): Promise<Transaction[]> {
-  const existing = await loadJson<Transaction[] | null>(TX_KEY, null);
-  if (existing && Array.isArray(existing)) {
+  const existing = await loadShardedTransactions();
+  if (existing) {
     const loadable = existing.filter(isLoadableTransaction);
     let changed = loadable.length !== existing.length;
     const cleaned = loadable.map((tx) => {
@@ -75,12 +82,18 @@ export async function loadTransactions(): Promise<Transaction[]> {
     note: e.note,
     createdAt: e.createdAt,
   }));
-  await AsyncStorage.setItem(TX_KEY, JSON.stringify(migrated));
+  if (migrated.length > 0) await saveTransactions(migrated);
+  await AsyncStorage.removeItem(LEGACY_EXPENSES);
   return migrated;
 }
 
-export async function saveTransactions(items: Transaction[]): Promise<void> {
-  await AsyncStorage.setItem(TX_KEY, JSON.stringify(items));
+export function saveTransactions(items: Transaction[]): Promise<void> {
+  return serial(async () => {
+    const plan = await planShardWrites(items);
+    if (plan.set.length > 0) await AsyncStorage.multiSet(plan.set);
+    if (plan.remove.length > 0) await AsyncStorage.multiRemove(plan.remove);
+    plan.commit();
+  });
 }
 
 export async function loadAccounts(): Promise<Account[]> {
@@ -93,8 +106,8 @@ export async function loadAccounts(): Promise<Account[]> {
   return settled.accounts;
 }
 
-export async function saveAccounts(items: Account[]): Promise<void> {
-  await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify(items));
+export function saveAccounts(items: Account[]): Promise<void> {
+  return serial(() => writeSecureJson(ACCOUNTS_KEY, items));
 }
 
 export async function loadBudgets(): Promise<Budget[]> {
@@ -103,8 +116,8 @@ export async function loadBudgets(): Promise<Budget[]> {
   return stored;
 }
 
-export async function saveBudgets(items: Budget[]): Promise<void> {
-  await AsyncStorage.setItem(BUDGETS_KEY, JSON.stringify(items));
+export function saveBudgets(items: Budget[]): Promise<void> {
+  return serial(() => writeSecureJson(BUDGETS_KEY, items));
 }
 
 export async function loadDebts(): Promise<Debt[]> {
@@ -117,8 +130,8 @@ export async function loadDebts(): Promise<Debt[]> {
   });
 }
 
-export async function saveDebts(items: Debt[]): Promise<void> {
-  await AsyncStorage.setItem(DEBTS_KEY, JSON.stringify(items));
+export function saveDebts(items: Debt[]): Promise<void> {
+  return serial(() => writeSecureJson(DEBTS_KEY, items));
 }
 
 export async function loadSubscriptions(): Promise<Subscription[]> {
@@ -132,8 +145,8 @@ export async function loadSubscriptions(): Promise<Subscription[]> {
   });
 }
 
-export async function saveSubscriptions(items: Subscription[]): Promise<void> {
-  await AsyncStorage.setItem(SUBS_KEY, JSON.stringify(items));
+export function saveSubscriptions(items: Subscription[]): Promise<void> {
+  return serial(() => writeSecureJson(SUBS_KEY, items));
 }
 
 export type FinanceSnapshot = {
@@ -148,13 +161,19 @@ export type FinanceSnapshot = {
  * Persist related lists in one multiSet so a crash mid-save cannot leave
  * balances out of sync with the transaction history.
  */
-export async function saveFinanceState(snapshot: FinanceSnapshot): Promise<void> {
-  const pairs: [string, string][] = [];
-  if (snapshot.transactions) pairs.push([TX_KEY, JSON.stringify(snapshot.transactions)]);
-  if (snapshot.accounts) pairs.push([ACCOUNTS_KEY, JSON.stringify(snapshot.accounts)]);
-  if (snapshot.budgets) pairs.push([BUDGETS_KEY, JSON.stringify(snapshot.budgets)]);
-  if (snapshot.debts) pairs.push([DEBTS_KEY, JSON.stringify(snapshot.debts)]);
-  if (snapshot.subscriptions) pairs.push([SUBS_KEY, JSON.stringify(snapshot.subscriptions)]);
-  if (pairs.length === 0) return;
-  await AsyncStorage.multiSet(pairs);
+export function saveFinanceState(snapshot: FinanceSnapshot): Promise<void> {
+  return serial(async () => {
+    const pairs: [string, string][] = [];
+    const plan = snapshot.transactions ? await planShardWrites(snapshot.transactions) : null;
+    if (plan) pairs.push(...plan.set);
+    if (snapshot.accounts) pairs.push([ACCOUNTS_KEY, await encryptJson(snapshot.accounts)]);
+    if (snapshot.budgets) pairs.push([BUDGETS_KEY, await encryptJson(snapshot.budgets)]);
+    if (snapshot.debts) pairs.push([DEBTS_KEY, await encryptJson(snapshot.debts)]);
+    if (snapshot.subscriptions) {
+      pairs.push([SUBS_KEY, await encryptJson(snapshot.subscriptions)]);
+    }
+    if (pairs.length > 0) await AsyncStorage.multiSet(pairs);
+    if (plan && plan.remove.length > 0) await AsyncStorage.multiRemove(plan.remove);
+    plan?.commit();
+  });
 }
