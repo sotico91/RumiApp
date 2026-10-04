@@ -15,6 +15,7 @@ El detalle de cada cambio está en `git log`.
 - **Confirmación al guardar:** la alerta nativa ("Listo / OK") se cambió por una tarjeta animada (`SaveToast`).
   Muestra el icono y el color de la categoría, el monto guardado y el total del día, tiene una barra de cierre y vibra al aparecer.
   Se cierra sola o al tocarla.
+  Aparece abajo, sobre la barra de pestañas, para que el banner de la notificación del sistema (arriba) no la tape.
 - **Editar movimiento:** las categorías se eligen en dos pasos, como en Agregar.
   Primero una fila horizontal de categorías y luego solo sus subcategorías, con buscador cuando hay más de 10.
 - **Datos cifrados:** los datos de dinero se guardan cifrados y los movimientos se separan por mes.

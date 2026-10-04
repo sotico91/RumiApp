@@ -22,6 +22,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ConceptIcon } from '@/src/components/ConceptIcon';
+import { tabBarHeight } from '@/src/components/RumiTabBar';
 import { colors, motion, radius, shadow, space, type } from '@/src/theme';
 
 export type SaveToastTone = 'expense' | 'income' | 'other';
@@ -47,8 +48,10 @@ const SaveToastContext = createContext<Api | null>(null);
 const VISIBLE_MS = 3600;
 
 /**
- * Confirmation card that drops in from the top after a save. Lives at the
- * app root so it survives the add screen closing underneath it.
+ * Confirmation card that rises just above the tab bar after a save. Kept at
+ * the bottom so the system banner of the save notification, which drops in
+ * from the top, never covers it. Lives at the app root so it survives the
+ * add screen closing underneath it.
  */
 export function SaveToastProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<(SaveToastInput & { key: number }) | null>(null);
@@ -111,7 +114,7 @@ function ToastCard({ toast, onDone }: { toast: SaveToastInput; onDone: () => voi
   const cardStyle = useAnimatedStyle(() => ({
     opacity: enter.value,
     transform: [
-      { translateY: (1 - enter.value) * -24 },
+      { translateY: (1 - enter.value) * 24 },
       { scale: 0.96 + enter.value * 0.04 },
     ],
   }));
@@ -121,7 +124,7 @@ function ToastCard({ toast, onDone }: { toast: SaveToastInput; onDone: () => voi
   }));
 
   return (
-    <View pointerEvents="box-none" style={[styles.layer, { top: insets.top + space.xs }]}>
+    <View pointerEvents="box-none" style={[styles.layer, { bottom: tabBarHeight(insets.bottom) + space.sm }]}>
       <Animated.View style={[styles.card, cardStyle]}>
         <Pressable
           onPress={dismiss}
