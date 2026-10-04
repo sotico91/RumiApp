@@ -3,6 +3,13 @@
 Resumen de lo que se ha hecho en la app, del más reciente al más antiguo, para tener el contexto a mano.
 El detalle de cada cambio está en `git log`.
 
+## Reglas generales
+
+- **Sin coautores de IA en git:** ningún commit ni PR lleva `Co-Authored-By` de Claude ni de otra IA, ni líneas como "Generated with…".
+  El autor es siempre la persona del repo.
+- **Comentarios de código en inglés:** todos los comentarios del código van en inglés.
+  Los textos que ve el usuario van en `src/i18n/translations.ts` (es/en).
+
 ## 2026-10-03
 
 - **Confirmación al guardar:** la alerta nativa ("Listo / OK") se cambió por una tarjeta animada (`SaveToast`).
