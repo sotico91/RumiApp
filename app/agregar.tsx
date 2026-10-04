@@ -1,19 +1,25 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ExpenseForm, type SavedMovement } from '@/src/components/ExpenseForm';
 import { FriendlyAddFlow } from '@/src/components/FriendlyAddFlow';
 import { QuickSpendForm } from '@/src/components/QuickSpendForm';
 import type { FriendlyIntent } from '@/src/data/friendlyTemplates';
 import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
+import { useSaveToast } from '@/src/components/SaveToast';
+import { categoryVisual } from '@/src/data/spendConcepts';
 import { useMoney } from '@/src/hooks/useMoney';
+import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { colors, radius, shadow, space, type } from '@/src/theme';
+import { categoryLabel } from '@/src/utils/categoryLabel';
 
 export default function AgregarScreen() {
   const { t } = useLanguage();
   const { format } = useMoney();
+  const { settings } = useSettings();
+  const toast = useSaveToast();
   const params = useLocalSearchParams<{
     categoryId?: string;
     amount?: string;
@@ -55,31 +61,38 @@ export default function AgregarScreen() {
   }, [params.mode, prefilledCategoryId]);
 
   function handleSaved(result: SavedMovement) {
-    const messageKey =
+    const spendConcepts = settings.spendConcepts ?? [];
+    const visual = result.categoryId
+      ? categoryVisual(result.categoryId, spendConcepts)
+      : undefined;
+    const label = result.categoryId
+      ? categoryLabel(result.categoryId, t, spendConcepts)
+      : '';
+    const added = result.added ?? result.amount;
+
+    const kicker =
       result.kind === 'income'
-        ? 'add.savedIncome'
+        ? t('add.toastIncome')
         : result.kind === 'expense'
-          ? 'add.savedExpense'
-          : 'add.savedOther';
-    const title = t('add.savedTitle');
-    const message = t(messageKey, { amount: format(result.amount) });
+          ? t('add.toastExpense')
+          : t('add.toastOther');
+    const footer =
+      result.kind === 'expense'
+        ? t('add.savedExpense', { amount: format(result.amount) })
+        : result.kind === 'income'
+          ? t('add.toastTodayIncome', { amount: format(result.amount) })
+          : undefined;
 
-    // Android often fails to show Alert while a RN Modal is still open.
-    // Leave the modal first, then confirm (or just go back on failure to alert).
-    if (Platform.OS === 'android') {
-      router.back();
-      setTimeout(() => {
-        Alert.alert(title, message);
-      }, 350);
-      return;
-    }
-
-    Alert.alert(title, message, [
-      {
-        text: t('add.ok'),
-        onPress: () => router.back(),
-      },
-    ]);
+    router.back();
+    toast.show({
+      tone: result.kind,
+      kicker,
+      title: label || kicker,
+      amount: `${result.kind === 'expense' ? '−' : result.kind === 'income' ? '+' : ''}${format(added)}`,
+      footer,
+      icon: result.kind === 'expense' ? visual?.icon : undefined,
+      color: result.kind === 'expense' ? visual?.color : undefined,
+    });
   }
 
   return (

@@ -63,7 +63,11 @@ import {
 
 export type SavedMovement = {
   kind: 'expense' | 'income' | 'other';
+  /** Today's running total for expense/income; the saved amount otherwise. */
   amount: number;
+  /** The amount of this one movement. */
+  added?: number;
+  categoryId?: string;
 };
 
 type Props = {
@@ -340,11 +344,21 @@ export function ExpenseForm({
       setAmount('');
       setNote('');
       if (type === 'expense') {
-        onSaved?.({ kind: 'expense', amount: beforeTodayExpense + parsed });
+        onSaved?.({
+          kind: 'expense',
+          amount: beforeTodayExpense + parsed,
+          added: parsed,
+          categoryId: resolvedCategoryId,
+        });
       } else if (type === 'income') {
-        onSaved?.({ kind: 'income', amount: beforeTodayIncome + parsed });
+        onSaved?.({
+          kind: 'income',
+          amount: beforeTodayIncome + parsed,
+          added: parsed,
+          categoryId: resolvedCategoryId,
+        });
       } else {
-        onSaved?.({ kind: 'other', amount: parsed });
+        onSaved?.({ kind: 'other', amount: parsed, added: parsed });
       }
     } catch (err) {
       const moveFail =

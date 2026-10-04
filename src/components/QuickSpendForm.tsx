@@ -156,7 +156,7 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
         });
         void notifyExpenseRegistered(copy.title, copy.body).catch(() => undefined);
       }
-      onSaved?.({ kind: 'expense', amount: beforeExpense + parsed });
+      onSaved?.({ kind: 'expense', amount: beforeExpense + parsed, added: parsed, categoryId });
     } catch {
       Alert.alert(t('add.invalidTitle'), t('add.saveError'));
     } finally {

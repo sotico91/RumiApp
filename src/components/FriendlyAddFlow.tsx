@@ -500,11 +500,21 @@ export function FriendlyAddFlow({
       }
 
       if (type === 'expense') {
-        onSaved?.({ kind: 'expense', amount: beforeExpense + parsed });
+        onSaved?.({
+          kind: 'expense',
+          amount: beforeExpense + parsed,
+          added: parsed,
+          categoryId: resolvedCategoryId,
+        });
       } else if (type === 'income') {
-        onSaved?.({ kind: 'income', amount: beforeIncome + parsed });
+        onSaved?.({
+          kind: 'income',
+          amount: beforeIncome + parsed,
+          added: parsed,
+          categoryId: resolvedCategoryId,
+        });
       } else {
-        onSaved?.({ kind: 'other', amount: parsed });
+        onSaved?.({ kind: 'other', amount: parsed, added: parsed });
       }
     } catch (err) {
       const moveFail =

@@ -21,6 +21,7 @@ import { ModalHost } from '@/src/components/AppModal';
 import { BootSplash } from '@/src/components/BootSplash';
 import { CoachMarksOverlay } from '@/src/components/CoachMarksOverlay';
 import { NamePromptOverlay } from '@/src/components/NamePromptOverlay';
+import { SaveToastProvider } from '@/src/components/SaveToast';
 import { OnboardingOverlay } from '@/src/components/OnboardingOverlay';
 import { HabitPilotHygiene } from '@/src/components/HabitPilotHygiene';
 import { AntSpendTipHygiene } from '@/src/components/AntSpendTipHygiene';
@@ -86,21 +87,23 @@ export default function RootLayout() {
         <SettingsProvider>
           <AmountPrivacyProvider>
             <ExpensesProvider>
-              <ModalHost>
-                <HowToGuideProvider>
-                  <StatusBar style="light" />
-                  <RootNavigator />
-                  <ReminderHygiene />
-                  <StorageNotice />
-                  <HabitPilotHygiene />
-                  <AntSpendTipHygiene />
-                  <ReminderDeepLink />
-                  <OnboardingOverlay />
-                  <NamePromptOverlay />
-                  <CoachMarksOverlay />
-                  <AppLockOverlay />
-                </HowToGuideProvider>
-              </ModalHost>
+              <SaveToastProvider>
+                <ModalHost>
+                  <HowToGuideProvider>
+                    <StatusBar style="light" />
+                    <RootNavigator />
+                    <ReminderHygiene />
+                    <StorageNotice />
+                    <HabitPilotHygiene />
+                    <AntSpendTipHygiene />
+                    <ReminderDeepLink />
+                    <OnboardingOverlay />
+                    <NamePromptOverlay />
+                    <CoachMarksOverlay />
+                    <AppLockOverlay />
+                  </HowToGuideProvider>
+                </ModalHost>
+              </SaveToastProvider>
             </ExpensesProvider>
           </AmountPrivacyProvider>
         </SettingsProvider>

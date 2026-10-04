@@ -2,16 +2,21 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
-  type ScrollView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { categoriesForKind } from '@/src/data/categories';
-import { spendSubsAsCategories } from '@/src/data/spendConcepts';
+import {
+  findSpendSub,
+  flattenSpendSubs,
+  isGeneralSubName,
+  spendSubsAsCategories,
+} from '@/src/data/spendConcepts';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useKeyboardVisible } from '@/src/hooks/useKeyboardVisible';
 import { useMoney } from '@/src/hooks/useMoney';
@@ -26,6 +31,9 @@ import { categoryLabel } from '@/src/utils/categoryLabel';
 import { incomeDestinationAccounts } from '@/src/utils/netWorth';
 import { AppModal } from '@/src/components/AppModal';
 import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
+import { CategoryChip } from '@/src/components/CategoryChip';
+import { CategorySearch, CATEGORY_SEARCH_MIN_SUBS } from '@/src/components/CategorySearch';
+import { ConceptIcon } from '@/src/components/ConceptIcon';
 import { KeyboardSafeOverlay, KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
 import { SpendSourcePicker, spendSourceFromMethod } from '@/src/components/SpendSourcePicker';
 import {
@@ -64,6 +72,7 @@ export function EditTransactionModal({ transaction, visible, onClose }: Props) {
 
   const [amount, setAmount] = useState('');
   const [type, setType] = useState<TransactionType>('expense');
+  const [conceptId, setConceptId] = useState('');
   const [categoryId, setCategoryId] = useState('otros');
   const [method, setMethod] = useState<PaymentMethod>('cash');
   const [accountId, setAccountId] = useState('cash');
@@ -72,12 +81,24 @@ export function EditTransactionModal({ transaction, visible, onClose }: Props) {
   const [saving, setSaving] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
+  const spendConcepts = useMemo(() => settings.spendConcepts ?? [], [settings.spendConcepts]);
+  const showConcepts = type !== 'income' && spendConcepts.length > 0;
+
+  // Spends pick a category first, then only that category's subs show.
   const categoryChoices = useMemo(() => {
     if (type === 'income') {
       return categoriesForKind('income', settings.enabledCategoryIds);
     }
-    return spendSubsAsCategories(settings.spendConcepts ?? []);
-  }, [type, settings.enabledCategoryIds, settings.spendConcepts]);
+    const concept = spendConcepts.find((c) => c.id === conceptId) ?? spendConcepts[0];
+    return spendSubsAsCategories(concept ? [concept] : spendConcepts);
+  }, [type, settings.enabledCategoryIds, spendConcepts, conceptId]);
+
+  // The concept is already picked above, so a sub chip only needs its own name.
+  const subChipLabel = (id: string) => {
+    const hit = findSpendSub(spendConcepts, id);
+    if (!hit) return categoryLabel(id, t, spendConcepts);
+    return isGeneralSubName(hit.sub.name) ? hit.concept.name : hit.sub.name;
+  };
 
   const accountChoices = useMemo(() => {
     if (type === 'income') return incomeDestinationAccounts(accounts);
@@ -101,9 +122,13 @@ export function EditTransactionModal({ transaction, visible, onClose }: Props) {
     if (!transaction) return;
     setAmount(String(transaction.amount));
     setType(transaction.type);
-    setCategoryId(
-      transaction.categoryId ??
-        (settings.spendConcepts?.[0]?.subs[0]?.id ?? 'otros')
+    const nextCategoryId =
+      transaction.categoryId ?? (settings.spendConcepts?.[0]?.subs[0]?.id ?? 'otros');
+    setCategoryId(nextCategoryId);
+    setConceptId(
+      findSpendSub(settings.spendConcepts ?? [], nextCategoryId)?.concept.id ??
+        settings.spendConcepts?.[0]?.id ??
+        ''
     );
     const nextMethod = transaction.paymentMethod ?? 'cash';
     setMethod(nextMethod);
@@ -125,7 +150,9 @@ export function EditTransactionModal({ transaction, visible, onClose }: Props) {
     if (next === 'income') {
       setCategoryId('salario');
     } else if (next === 'expense') {
-      setCategoryId(settings.spendConcepts?.[0]?.subs[0]?.id ?? 'otros');
+      const first = spendConcepts.find((c) => c.id === conceptId) ?? spendConcepts[0];
+      setConceptId(first?.id ?? '');
+      setCategoryId(first?.subs[0]?.id ?? 'otros');
     } else if (isPocketMove(next)) {
       setCategoryId('');
     }
@@ -208,25 +235,69 @@ export function EditTransactionModal({ transaction, visible, onClose }: Props) {
 
             {isPocketMove(type) ? null : (
               <>
-                <Text style={styles.label}>{t('flow.chooseCategory')}</Text>
-                <View style={styles.wrap}>
-                  {categoryChoices.map((cat) => {
-                    const selected = cat.id === categoryId;
-                    return (
-                      <Pressable
-                        key={cat.id}
-                        onPress={() => setCategoryId(cat.id)}
-                        style={[
-                          styles.chip,
-                          selected && { backgroundColor: cat.color, borderColor: cat.color },
-                        ]}>
-                        <Text style={[styles.chipText, selected && styles.chipTextOn]}>
-                          {categoryLabel(cat.id, t, settings.spendConcepts ?? [])}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
+                {showConcepts ? (
+                  <>
+                    <Text style={styles.label}>{t('flow.chooseConcept')}</Text>
+                    {flattenSpendSubs(spendConcepts).length > CATEGORY_SEARCH_MIN_SUBS ? (
+                      <CategorySearch
+                        concepts={spendConcepts}
+                        onPick={(pickedConceptId, subId) => {
+                          setConceptId(pickedConceptId);
+                          setCategoryId(subId);
+                        }}
+                      />
+                    ) : null}
+                    {/* One swipeable row, so many categories do not flood the sheet. */}
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      keyboardShouldPersistTaps="handled"
+                      contentContainerStyle={styles.conceptRow}>
+                      {spendConcepts.map((concept) => {
+                        const on = concept.id === conceptId;
+                        return (
+                          <Pressable
+                            key={concept.id}
+                            onPress={() => {
+                              setConceptId(concept.id);
+                              if (!concept.subs.some((sub) => sub.id === categoryId)) {
+                                setCategoryId(concept.subs[0]?.id ?? categoryId);
+                              }
+                            }}
+                            style={[styles.chip, styles.chipWithIcon, on && styles.chipOn]}>
+                            <ConceptIcon
+                              icon={concept.icon}
+                              color={on ? palette.white : concept.color}
+                              size={16}
+                            />
+                            <Text style={[styles.chipText, on && styles.chipTextOn]}>
+                              {concept.name}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </ScrollView>
+                  </>
+                ) : null}
+
+                {showConcepts && categoryChoices.length <= 1 ? null : (
+                  <>
+                    <Text style={styles.label}>
+                      {showConcepts ? t('flow.chooseSub') : t('flow.chooseCategory')}
+                    </Text>
+                    <View style={styles.wrap}>
+                      {categoryChoices.map((cat) => (
+                        <CategoryChip
+                          key={cat.id}
+                          category={cat}
+                          label={showConcepts ? subChipLabel(cat.id) : undefined}
+                          selected={cat.id === categoryId}
+                          onPress={() => setCategoryId(cat.id)}
+                        />
+                      ))}
+                    </View>
+                  </>
+                )}
               </>
             )}
 
@@ -425,6 +496,8 @@ const styles = StyleSheet.create({
     color: palette.inkSoft,
   },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  conceptRow: { flexDirection: 'row', gap: 8, paddingRight: 8 },
+  chipWithIcon: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   chip: {
     borderWidth: 1,
     borderColor: palette.border,
