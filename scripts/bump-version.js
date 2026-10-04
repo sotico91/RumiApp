@@ -33,7 +33,12 @@ if (fs.existsSync(plistPath)) {
       /(<key>CFBundleShortVersionString<\/key>\s*<string>)[^<]*(<\/string>)/,
       `$1${version}$2`
     )
-    .replace(/(<key>CFBundleVersion<\/key>\s*<string>)[^<]*(<\/string>)/, `$1${build}$2`);
+    // The build number comes from CURRENT_PROJECT_VERSION (set below), so
+    // ios:testflight can override it per upload.
+    .replace(
+      /(<key>CFBundleVersion<\/key>\s*<string>)[^<]*(<\/string>)/,
+      '$1$(CURRENT_PROJECT_VERSION)$2'
+    );
   fs.writeFileSync(plistPath, plist);
 }
 

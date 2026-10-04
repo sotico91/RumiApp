@@ -139,10 +139,14 @@
     ],
     "extra": {
       "privacyPolicyUrl": "https://sotico91.github.io/RumiApp/privacy-policy.html",
-      "supportEmail": "edavidvelascop@gmail.com"
+      "supportEmail": "edavidvelascop@gmail.com",
+      "eas": {
+        "projectId": "6d17d661-8fb0-4f3f-b86d-e04d27efac13"
+      }
     },
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "owner": "sotico91"
   }
 }
