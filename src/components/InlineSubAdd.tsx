@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   StyleSheet,
   Text,
@@ -13,6 +12,7 @@ import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { palette, radii } from '@/src/theme/colors';
 import { tapFeedback } from '@/src/utils/selectFeedback';
+import { appAlert } from '@/src/components/AppAlert';
 
 type Props = {
   conceptId: string;
@@ -32,7 +32,7 @@ export function InlineSubAdd({ conceptId, onAdded }: Props) {
     try {
       const id = await addSpendSub(conceptId, trimmed);
       if (!id) {
-        Alert.alert(t('plan.subDuplicateTitle'), t('plan.subDuplicateBody'));
+        appAlert(t('plan.subDuplicateTitle'), t('plan.subDuplicateBody'), undefined, { tone: 'warning' });
         return;
       }
       tapFeedback();

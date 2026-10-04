@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { Alert } from 'react-native';
 
 import { takeUnreadableNotice } from '@/src/data/secureStorage';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useLanguage } from '@/src/i18n/LanguageContext';
+import { appAlert } from '@/src/components/AppAlert';
 
 /**
  * Data encrypted with another phone's key (e.g. a system backup restored on
@@ -16,7 +16,7 @@ export function StorageNotice() {
   useEffect(() => {
     if (loading) return;
     if (takeUnreadableNotice()) {
-      Alert.alert(t('storage.unreadableTitle'), t('storage.unreadableBody'));
+      appAlert(t('storage.unreadableTitle'), t('storage.unreadableBody'), undefined, { tone: 'warning' });
     }
   }, [loading, t]);
 

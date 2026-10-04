@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -27,6 +26,7 @@ import type { TranslationKey } from '@/src/i18n/translations';
 import { palette, radii } from '@/src/theme/colors';
 import type { Currency } from '@/src/types/settings';
 import { formatAmountTyping, parseAmountInput } from '@/src/utils/money';
+import { appAlert } from '@/src/components/AppAlert';
 
 /** Name, currency, ant spends, today's money. Notifications and reminders
  * have sensible defaults and live in Plan / Settings afterwards. */
@@ -75,7 +75,7 @@ export function OnboardingOverlay() {
   async function finish() {
     const trimmed = userName.trim();
     if (!trimmed) {
-      Alert.alert(t('onboard.nameTitle'), t('onboard.nameNeed'));
+      appAlert(t('onboard.nameTitle'), t('onboard.nameNeed'));
       setStep(0);
       return;
     }
@@ -119,7 +119,7 @@ export function OnboardingOverlay() {
 
   function goNext() {
     if (step === 0 && !userName.trim()) {
-      Alert.alert(t('onboard.nameTitle'), t('onboard.nameNeed'));
+      appAlert(t('onboard.nameTitle'), t('onboard.nameNeed'));
       return;
     }
     if (step >= TOTAL_STEPS - 1) {

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 
 import { AmountPrivacyToggle } from '@/src/components/AmountPrivacyToggle';
@@ -42,6 +42,7 @@ import {
   productLabelKey,
   revolvingProduct,
 } from '@/src/utils/debts';
+import { appAlert } from '@/src/components/AppAlert';
 
 const ADD_KIND_LABEL = {
   wallet: 'wealth.addWallet',
@@ -256,7 +257,7 @@ export default function WealthScreen() {
       ? parseNonNegativeAmount(installment, parse)
       : parse(installment);
     if (!name.trim()) {
-      Alert.alert(
+      appAlert(
         revolving ? t('wealth.addCard') : t('wealth.addLoan'),
         revolving ? t('wealth.debtNeedRevolving') : t('wealth.debtNeed')
       );
@@ -264,20 +265,20 @@ export default function WealthScreen() {
     }
     if (revolving) {
       if (!parsedLimit) {
-        Alert.alert(t('wealth.addCard'), t('wealth.debtNeedLimit'));
+        appAlert(t('wealth.addCard'), t('wealth.debtNeedLimit'));
         return;
       }
       if (parsedBalance == null || parsedInstallment == null) {
-        Alert.alert(t('wealth.addCard'), t('wealth.debtNeedRevolving'));
+        appAlert(t('wealth.addCard'), t('wealth.debtNeedRevolving'));
         return;
       }
     } else if (!parsedBalance || !parsedInstallment) {
-      Alert.alert(t('wealth.addLoan'), t('wealth.debtNeed'));
+      appAlert(t('wealth.addLoan'), t('wealth.debtNeed'));
       return;
     }
     const day = clampPayDay(Number(payDay.replace(',', '.')));
     if (!day) {
-      Alert.alert(
+      appAlert(
         revolving ? t('wealth.addCard') : t('wealth.addLoan'),
         t('wealth.debtPayDayNeed')
       );
@@ -315,7 +316,7 @@ export default function WealthScreen() {
   }
 
   function confirmRemove(id: string, label: string) {
-    Alert.alert(t('wealth.debtDelete'), label, [
+    appAlert(t('wealth.debtDelete'), label, [
       { text: t('history.cancel'), style: 'cancel' },
       {
         text: t('wealth.debtDelete'),
@@ -615,14 +616,14 @@ export default function WealthScreen() {
     if (!editingBalanceId || savingBalance) return;
     const parsed = parseNonNegativeAmount(balanceDraft, parse);
     if (parsed == null) {
-      Alert.alert(t('wealth.balanceEdit'), t('wealth.balanceNeed'));
+      appAlert(t('wealth.balanceEdit'), t('wealth.balanceNeed'));
       return;
     }
     setSavingBalance(true);
     try {
       const result = await setAccountBalance(editingBalanceId, parsed);
       if ('error' in result) {
-        Alert.alert(t('wealth.balanceEdit'), t('wealth.balanceNeed'));
+        appAlert(t('wealth.balanceEdit'), t('wealth.balanceNeed'));
         return;
       }
       setEditingBalanceId(null);
@@ -646,7 +647,7 @@ export default function WealthScreen() {
             : await renameWallet(editingWalletId, walletNameDraft);
       if ('error' in result) {
         const duplicate = result.error === 'duplicate';
-        Alert.alert(
+        appAlert(
           t('wealth.walletRename'),
           kind === 'bank'
             ? t(duplicate ? 'wealth.bankNameTaken' : 'wealth.bankNameNeed')
@@ -676,10 +677,10 @@ export default function WealthScreen() {
           ? t('invest.delete')
           : t('wealth.walletDelete');
     if (Math.abs(balance) >= 0.01) {
-      Alert.alert(deleteTitle, t('wealth.walletDeleteNeedEmpty'));
+      appAlert(deleteTitle, t('wealth.walletDeleteNeedEmpty'));
       return;
     }
-    Alert.alert(deleteTitle, label, [
+    appAlert(deleteTitle, label, [
       { text: t('history.cancel'), style: 'cancel' },
       {
         text: deleteTitle,
@@ -693,7 +694,7 @@ export default function WealthScreen() {
                   ? await removeInvestment(id)
                   : await removeWallet(id);
             if ('error' in result) {
-              Alert.alert(
+              appAlert(
                 deleteTitle,
                 result.error === 'hasBalance'
                   ? t('wealth.walletDeleteNeedEmpty')

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -44,6 +43,7 @@ import {
   pocketMoveAccounts,
 } from '@/src/utils/accounts';
 import { payAccountIdForDebt } from '@/src/utils/debts';
+import { appAlert } from '@/src/components/AppAlert';
 
 type Props = {
   transaction: Transaction | null;
@@ -164,7 +164,7 @@ export function EditTransactionModal({ transaction, visible, onClose }: Props) {
     if (!transaction) return;
     const parsed = parse(amount);
     if (!parsed) {
-      Alert.alert(t('add.invalidTitle'), t('add.invalidMessage'));
+      appAlert(t('add.invalidTitle'), t('add.invalidMessage'), undefined, { tone: 'warning' });
       return;
     }
 

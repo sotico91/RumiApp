@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { Alert, Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
 import { CategorySearch, CATEGORY_SEARCH_MIN_SUBS } from '@/src/components/CategorySearch';
@@ -24,6 +24,7 @@ import { debtIdFromPayAccountId, openDebts, payAccountIdForDebt } from '@/src/ut
 import { movementNotifyCopy } from '@/src/utils/movementNotify';
 import { notifyExpenseRegistered } from '@/src/utils/notifications';
 import { tapFeedback } from '@/src/utils/selectFeedback';
+import { appAlert } from '@/src/components/AppAlert';
 
 const MAX_CHIPS = 8;
 
@@ -158,7 +159,7 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
       }
       onSaved?.({ kind: 'expense', amount: beforeExpense + parsed, added: parsed, categoryId });
     } catch {
-      Alert.alert(t('add.invalidTitle'), t('add.saveError'));
+      appAlert(t('add.invalidTitle'), t('add.saveError'), undefined, { tone: 'warning' });
     } finally {
       savingLock.current = false;
       setSaving(false);

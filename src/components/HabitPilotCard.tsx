@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, Pressable, Share, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
 import { useFinance } from '@/src/hooks/useFinance';
 import { useSettings } from '@/src/hooks/useSettings';
@@ -17,6 +17,7 @@ import {
   pickDefaultReminderSubId,
 } from '@/src/utils/habitPilot';
 import { tapFeedback } from '@/src/utils/selectFeedback';
+import { appAlert } from '@/src/components/AppAlert';
 
 export function HabitPilotCard() {
   const { t } = useLanguage();
@@ -73,7 +74,7 @@ export function HabitPilotCard() {
         reminderHour: 20,
         reminderMinute: 0,
       });
-      Alert.alert(t('reminder.savedTitle'), t('habit.reminderOn'));
+      appAlert(t('reminder.savedTitle'), t('habit.reminderOn'), undefined, { tone: 'success' });
     } finally {
       setBusy(false);
     }
@@ -97,7 +98,7 @@ export function HabitPilotCard() {
   }
 
   function confirmRestart() {
-    Alert.alert(t('habit.restartTitle'), t('habit.restartBody'), [
+    appAlert(t('habit.restartTitle'), t('habit.restartBody'), [
       { text: t('history.cancel'), style: 'cancel' },
       {
         text: t('habit.restartConfirm'),

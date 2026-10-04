@@ -1,7 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert,
   Pressable,
   StyleSheet,
   Text,
@@ -62,6 +61,7 @@ import {
   suggestedDebtPayAmount,
   type InstallmentPayScope,
 } from '@/src/utils/debts';
+import { appAlert } from '@/src/components/AppAlert';
 
 type Props = {
   onSaved?: (result: SavedMovement) => void;
@@ -306,7 +306,7 @@ export function FriendlyAddFlow({
           isAnt: tpl.spend.isAnt,
         });
         if (!path) {
-          Alert.alert(t('flow.chooseConcept'), t('flow.noConceptsBody'));
+          appAlert(t('flow.chooseConcept'), t('flow.noConceptsBody'));
           return;
         }
         setConceptId(path.conceptId);
@@ -327,7 +327,7 @@ export function FriendlyAddFlow({
     if (step === 1) {
       const parsed = parse(amount);
       if (!parsed) {
-        Alert.alert(t('add.invalidTitle'), t('add.invalidMessage'));
+        appAlert(t('add.invalidTitle'), t('add.invalidMessage'), undefined, { tone: 'warning' });
         return;
       }
       if (
@@ -347,7 +347,7 @@ export function FriendlyAddFlow({
     if (step === 2 && intent === 'debt') {
       if (liveDebts.length === 0) return;
       if (!debtId) {
-        Alert.alert(t('flow.chooseDebt'), t('wealth.debtNeed'));
+        appAlert(t('flow.chooseDebt'), t('wealth.debtNeed'));
         return;
       }
       const choices = installmentPayChoices(liveDebts.find((d) => d.id === debtId));
@@ -355,16 +355,16 @@ export function FriendlyAddFlow({
         const parsed = parse(amount);
         const inferred = inferInstallmentPayScope(choices, parsed);
         if (!payScope) {
-          Alert.alert(t('flow.payScopeTitle'), t('flow.payScopeNeed'));
+          appAlert(t('flow.payScopeTitle'), t('flow.payScopeNeed'));
           return;
         }
         if (payScope === 'cuota' && inferred !== 'cuota') {
-          Alert.alert(t('flow.payScopeTitle'), t('flow.payScopeNeed'));
+          appAlert(t('flow.payScopeTitle'), t('flow.payScopeNeed'));
           setPayScope(inferred);
           return;
         }
         if (payScope === 'other' && !parsed) {
-          Alert.alert(t('add.invalidTitle'), t('add.invalidMessage'));
+          appAlert(t('add.invalidTitle'), t('add.invalidMessage'), undefined, { tone: 'warning' });
           return;
         }
       }
@@ -372,7 +372,7 @@ export function FriendlyAddFlow({
     if (step === 2 && intent === 'spend') {
       if (spendConcepts.length === 0) return;
       if (!conceptId) {
-        Alert.alert(t('flow.chooseConcept'), t('flow.noConceptsBody'));
+        appAlert(t('flow.chooseConcept'), t('flow.noConceptsBody'));
         return;
       }
       const concept = findConceptById(spendConcepts, conceptId);
@@ -387,13 +387,13 @@ export function FriendlyAddFlow({
     if (step === 3 && intent === 'spend') {
       const concept = conceptId ? findConceptById(spendConcepts, conceptId) : undefined;
       if (!concept || !concept.subs.some((s) => s.id === categoryId)) {
-        Alert.alert(t('flow.chooseSub'), t('flow.noConceptsBody'));
+        appAlert(t('flow.chooseSub'), t('flow.noConceptsBody'));
         return;
       }
     }
     if (step === paymentStep && intent === 'spend' && method === 'credit') {
       if (!accountChoices.some((a) => a.id === accountId)) {
-        Alert.alert(t('flow.whichCard'), t('flow.noCardsBody'));
+        appAlert(t('flow.whichCard'), t('flow.noCardsBody'));
         return;
       }
     }
@@ -404,13 +404,13 @@ export function FriendlyAddFlow({
     if (savingLock.current) return;
     const parsed = parse(amount);
     if (!parsed) {
-      Alert.alert(t('add.invalidTitle'), t('add.invalidMessage'));
+      appAlert(t('add.invalidTitle'), t('add.invalidMessage'), undefined, { tone: 'warning' });
       return;
     }
     if (intent === 'debt' && payChoices) {
       const inferred = inferInstallmentPayScope(payChoices, parsed);
       if (!payScope || (payScope === 'cuota' && inferred !== 'cuota')) {
-        Alert.alert(t('flow.payScopeTitle'), t('flow.payScopeNeed'));
+        appAlert(t('flow.payScopeTitle'), t('flow.payScopeNeed'));
         setPayScope(inferred);
         setStep(2);
         return;
@@ -419,14 +419,14 @@ export function FriendlyAddFlow({
 
     if (intent === 'move') {
       if (!accountId || !toAccountId || accountId === toAccountId) {
-        Alert.alert(t('add.invalidTitle'), t('flow.moveNeedDistinct'));
+        appAlert(t('add.invalidTitle'), t('flow.moveNeedDistinct'), undefined, { tone: 'warning' });
         return;
       }
     }
 
     if (intent === 'spend' && method === 'credit') {
       if (!accountChoices.some((a) => a.id === accountId)) {
-        Alert.alert(t('flow.whichCard'), t('flow.noCardsBody'));
+        appAlert(t('flow.whichCard'), t('flow.noCardsBody'));
         setStep(paymentStep);
         return;
       }
@@ -519,9 +519,11 @@ export function FriendlyAddFlow({
     } catch (err) {
       const moveFail =
         err instanceof Error && err.message === 'pocket_move_accounts';
-      Alert.alert(
+      appAlert(
         t('add.invalidTitle'),
-        moveFail ? t('flow.moveNeedDistinct') : t('add.saveError')
+        moveFail ? t('flow.moveNeedDistinct') : t('add.saveError'),
+        undefined,
+        { tone: 'warning' }
       );
     } finally {
       savingLock.current = false;

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AmountPrivacyToggle } from '@/src/components/AmountPrivacyToggle';
 import { BrandScreen, ScreenHeader } from '@/src/components/ui';
@@ -9,21 +9,28 @@ import { EditTransactionModal } from '@/src/components/EditTransactionModal';
 import { ExpenseRow } from '@/src/components/ExpenseRow';
 import { MoneyText } from '@/src/components/MoneyText';
 import { PeriodToggle } from '@/src/components/PeriodToggle';
+import { categoryVisual } from '@/src/data/spendConcepts';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
+import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
 import { palette, radii } from '@/src/theme/colors';
 import type { Period, Transaction } from '@/src/types/finance';
+import { isPocketMove } from '@/src/types/finance';
+import { categoryLabel } from '@/src/utils/categoryLabel';
+import { formatExpenseDate } from '@/src/utils/dates';
 import { closedDebts } from '@/src/utils/debts';
 import { shiftMonth, sumByType, sumSpendOut } from '@/src/utils/financeMath';
 import { tapFeedback } from '@/src/utils/selectFeedback';
+import { appAlert } from '@/src/components/AppAlert';
 
 const PAGE_SIZE = 20;
 
 export default function HistorialScreen() {
   const { t, language } = useLanguage();
   const { format } = useMoney();
+  const { settings } = useSettings();
   const {
     transactionsForPeriod,
     transactionsForMonth,
@@ -97,24 +104,49 @@ export default function HistorialScreen() {
 
   function confirmDelete(tx: Transaction) {
     if (!canEditTransaction(tx)) {
-      Alert.alert(t('history.deleteTitle'), t('history.onlyOwn'));
+      appAlert(t('history.deleteTitle'), t('history.onlyOwn'));
       return;
     }
-    Alert.alert(t('history.deleteTitle'), t('history.deleteMessage'), [
-      { text: t('history.cancel'), style: 'cancel' },
-      {
-        text: t('history.delete'),
-        style: 'destructive',
-        onPress: () => {
-          void removeTransaction(tx.id);
+    const spendConcepts = settings.spendConcepts ?? [];
+    const pocketMove = isPocketMove(tx.type);
+    const visual =
+      !pocketMove && tx.categoryId ? categoryVisual(tx.categoryId, spendConcepts) : null;
+    const typeLabel = t(`type.${tx.type}` as TranslationKey);
+    const note = tx.note?.trim();
+    appAlert(
+      t('history.deleteTitle'),
+      t('history.deleteMessage'),
+      [
+        { text: t('history.cancel'), style: 'cancel' },
+        {
+          text: t('history.delete'),
+          style: 'destructive',
+          onPress: () => {
+            void removeTransaction(tx.id);
+          },
         },
-      },
-    ]);
+      ],
+      {
+        icon: 'trash-can-outline',
+        detail: {
+          title:
+            !pocketMove && tx.categoryId
+              ? categoryLabel(tx.categoryId, t, spendConcepts)
+              : typeLabel,
+          subtitle: [note || typeLabel, formatExpenseDate(tx.createdAt, language)]
+            .filter(Boolean)
+            .join(' · '),
+          amount: format(tx.amount),
+          icon: visual?.icon,
+          color: pocketMove ? colors.accent.teal : visual?.color,
+        },
+      }
+    );
   }
 
   function openEdit(tx: Transaction) {
     if (!canEditTransaction(tx)) {
-      Alert.alert(t('history.editTitle'), t('history.onlyOwn'));
+      appAlert(t('history.editTitle'), t('history.onlyOwn'));
       return;
     }
     setEditing(tx);

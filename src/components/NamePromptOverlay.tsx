@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  Alert,
   Pressable,
   StyleSheet,
   Text,
@@ -16,6 +15,7 @@ import { KeyboardSafeOverlay } from '@/src/components/KeyboardSafe';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { palette, radii } from '@/src/theme/colors';
+import { appAlert } from '@/src/components/AppAlert';
 
 /** Soft prompt for users who finished onboarding before names existed. */
 export function NamePromptOverlay() {
@@ -31,7 +31,7 @@ export function NamePromptOverlay() {
   async function save() {
     const trimmed = name.trim();
     if (!trimmed) {
-      Alert.alert(t('onboard.nameTitle'), t('onboard.nameNeed'));
+      appAlert(t('onboard.nameTitle'), t('onboard.nameNeed'));
       return;
     }
     setSaving(true);

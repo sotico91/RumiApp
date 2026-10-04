@@ -12,6 +12,10 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-03
 
+- **Diálogos propios (`appAlert`):** todos los `Alert.alert` nativos se cambiaron por un diálogo con el estilo de Rumi.
+  Tiene un icono con tono (peligro, aviso, éxito, info), título en Fraunces y botones de la app (rojo para acciones destructivas).
+  Un host vive en la raíz y otro dentro de la pantalla Agregar, porque en iOS esa pantalla es un modal nativo.
+- **Borrar movimiento:** el diálogo muestra el movimiento (icono, categoría, nota/tipo, fecha y monto) y explica que el saldo se ajusta y no se puede deshacer.
 - **Confirmación al guardar:** la alerta nativa ("Listo / OK") se cambió por una tarjeta animada (`SaveToast`).
   Muestra el icono y el color de la categoría, el monto guardado y el total del día, tiene una barra de cierre y vibra al aparecer.
   Se cierra sola o al tocarla.

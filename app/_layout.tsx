@@ -16,6 +16,7 @@ import { StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
+import { AppAlertHost } from '@/src/components/AppAlert';
 import { AppLockOverlay } from '@/src/components/AppLockOverlay';
 import { ModalHost } from '@/src/components/AppModal';
 import { BootSplash } from '@/src/components/BootSplash';
@@ -101,6 +102,7 @@ export default function RootLayout() {
                     <NamePromptOverlay />
                     <CoachMarksOverlay />
                     <AppLockOverlay />
+                    <AppAlertHost />
                   </HowToGuideProvider>
                 </ModalHost>
               </SaveToastProvider>

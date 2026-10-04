@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { AppAlertHost } from '@/src/components/AppAlert';
 import { ExpenseForm, type SavedMovement } from '@/src/components/ExpenseForm';
 import { FriendlyAddFlow } from '@/src/components/FriendlyAddFlow';
 import { QuickSpendForm } from '@/src/components/QuickSpendForm';
@@ -153,6 +154,8 @@ export default function AgregarScreen() {
           </>
         )}
       </View>
+      {/* On iOS this screen is a native modal, so its alerts must render inside it. */}
+      <AppAlertHost inline />
     </View>
   );
 }

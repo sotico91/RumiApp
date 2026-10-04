@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import type { ComponentProps, ReactNode } from 'react';
 import {
-  Alert,
   Linking,
   Pressable,
   ScrollView,
@@ -31,6 +30,7 @@ import {
 } from '@/src/utils/backup';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import { authenticateAppLock, getAppLockKind } from '@/src/utils/appLock';
+import { appAlert } from '@/src/components/AppAlert';
 
 /**
  * The avatar in Home's header. Opens Settings: profile, preferences, your
@@ -75,7 +75,7 @@ export function ProfileMenuButton() {
   async function saveName() {
     const trimmed = name.trim();
     if (!trimmed) {
-      Alert.alert(t('onboard.nameTitle'), t('onboard.nameNeed'));
+      appAlert(t('onboard.nameTitle'), t('onboard.nameNeed'));
       return;
     }
     setSaving(true);
@@ -91,12 +91,12 @@ export function ProfileMenuButton() {
     setMenuOpen(false);
     if (settings.appLockEnabled) {
       await updateAppLock(false);
-      Alert.alert(t('lock.disabledTitle'), t('lock.disabledBody'));
+      appAlert(t('lock.disabledTitle'), t('lock.disabledBody'));
       return;
     }
     const kind = await getAppLockKind();
     if (kind === 'none') {
-      Alert.alert(t('lock.unavailableTitle'), t('lock.unavailableBody'));
+      appAlert(t('lock.unavailableTitle'), t('lock.unavailableBody'), undefined, { tone: 'warning' });
       return;
     }
     // Let the ⋯ menu finish closing so Face ID is not replaced by the
@@ -109,12 +109,12 @@ export function ProfileMenuButton() {
     );
     if (!result.ok) {
       if (result.reason === 'denied') {
-        Alert.alert(t('lock.unavailableTitle'), t('lock.unavailableBody'));
+        appAlert(t('lock.unavailableTitle'), t('lock.unavailableBody'), undefined, { tone: 'warning' });
       }
       return;
     }
     await updateAppLock(true);
-    Alert.alert(t('lock.enabledTitle'), t('lock.enabledBody'));
+    appAlert(t('lock.enabledTitle'), t('lock.enabledBody'), undefined, { tone: 'success' });
   }
 
   async function exportBackup() {
@@ -131,7 +131,7 @@ export function ProfileMenuButton() {
         quickTemplates,
       });
     } catch {
-      Alert.alert(t('backup.errorTitle'), t('backup.exportError'));
+      appAlert(t('backup.errorTitle'), t('backup.exportError'), undefined, { tone: 'warning' });
     } finally {
       setBusy(false);
     }
@@ -149,7 +149,7 @@ export function ProfileMenuButton() {
         spendConcepts: settings.spendConcepts ?? [],
       });
     } catch {
-      Alert.alert(t('backup.errorTitle'), t('backup.exportError'));
+      appAlert(t('backup.errorTitle'), t('backup.exportError'), undefined, { tone: 'warning' });
     } finally {
       setBusy(false);
     }
@@ -157,7 +157,7 @@ export function ProfileMenuButton() {
 
   function confirmRestore() {
     setMenuOpen(false);
-    Alert.alert(t('backup.restoreTitle'), t('backup.restoreMessage'), [
+    appAlert(t('backup.restoreTitle'), t('backup.restoreMessage'), [
       { text: t('history.cancel'), style: 'cancel' },
       {
         text: t('backup.restoreConfirm'),
@@ -178,11 +178,11 @@ export function ProfileMenuButton() {
                 debts: backup.debts,
                 subscriptions: backup.subscriptions,
               });
-              Alert.alert(t('backup.restoreDoneTitle'), t('backup.restoreDoneBody'));
+              appAlert(t('backup.restoreDoneTitle'), t('backup.restoreDoneBody'), undefined, { tone: 'success' });
             } catch (err) {
               const code = err instanceof Error ? err.message : '';
               if (code === 'CANCELLED') return;
-              Alert.alert(t('backup.errorTitle'), t('backup.restoreError'));
+              appAlert(t('backup.errorTitle'), t('backup.restoreError'), undefined, { tone: 'warning' });
             } finally {
               setBusy(false);
             }
@@ -194,7 +194,7 @@ export function ProfileMenuButton() {
 
   async function toggleNotifyOnExpense() {
     const ok = await updateNotifyOnExpense(!settings.notifyOnExpense);
-    if (!ok) Alert.alert(t('notify.permissionTitle'), t('notify.permissionBody'));
+    if (!ok) appAlert(t('notify.permissionTitle'), t('notify.permissionBody'));
   }
 
   function switchLanguage() {
@@ -204,13 +204,13 @@ export function ProfileMenuButton() {
   /** Destructive: lives here, away from the everyday Add button. Two confirmations. */
   function confirmReset() {
     setMenuOpen(false);
-    Alert.alert(t('fab.resetTitle'), t('fab.resetMessage'), [
+    appAlert(t('fab.resetTitle'), t('fab.resetMessage'), [
       { text: t('history.cancel'), style: 'cancel' },
       {
         text: t('fab.resetConfirm'),
         style: 'destructive',
         onPress: () => {
-          Alert.alert(t('fab.resetTitle2'), t('fab.resetMessage2'), [
+          appAlert(t('fab.resetTitle2'), t('fab.resetMessage2'), [
             { text: t('history.cancel'), style: 'cancel' },
             {
               text: t('fab.resetConfirm2'),
@@ -243,7 +243,7 @@ export function ProfileMenuButton() {
     const body = encodeURIComponent(t('support.reportBody'));
     const url = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
     void Linking.openURL(url).catch(() => {
-      Alert.alert(t('support.report'), t('support.reportError'));
+      appAlert(t('support.report'), t('support.reportError'));
     });
   }
 

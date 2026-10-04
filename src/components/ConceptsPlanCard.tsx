@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Alert,
   Pressable,
   StyleSheet,
   Text,
@@ -21,6 +20,7 @@ import { SelectPressable } from '@/src/components/SelectPressable';
 import { palette, radii } from '@/src/theme/colors';
 import { categoryLabel } from '@/src/utils/categoryLabel';
 import { tapFeedback } from '@/src/utils/selectFeedback';
+import { appAlert } from '@/src/components/AppAlert';
 
 export function ConceptsPlanCard() {
   const { t } = useLanguage();
@@ -88,7 +88,7 @@ export function ConceptsPlanCard() {
     try {
       const id = await addSpendSub(conceptId, name);
       if (!id) {
-        Alert.alert(t('plan.subDuplicateTitle'), t('plan.subDuplicateBody'));
+        appAlert(t('plan.subDuplicateTitle'), t('plan.subDuplicateBody'), undefined, { tone: 'warning' });
         return;
       }
       setSubDrafts((prev) => ({ ...prev, [conceptId]: '' }));
@@ -267,7 +267,7 @@ export function ConceptsPlanCard() {
                           </Pressable>
                           <Pressable
                             onPress={() =>
-                              Alert.alert(sub.name, undefined, [
+                              appAlert(sub.name, undefined, [
                                 { text: t('plan.setLimitCancel'), style: 'cancel' },
                                 {
                                   text: t('plan.deleteSub'),
@@ -328,7 +328,7 @@ export function ConceptsPlanCard() {
 
                   <Pressable
                     onPress={() =>
-                      Alert.alert(concept.name, t('plan.deleteConcept'), [
+                      appAlert(concept.name, t('plan.deleteConcept'), [
                         { text: t('plan.setLimitCancel'), style: 'cancel' },
                         {
                           text: t('plan.deleteConcept'),

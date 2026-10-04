@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -60,6 +59,7 @@ import {
   suggestedDebtPayAmount,
   type InstallmentPayScope,
 } from '@/src/utils/debts';
+import { appAlert } from '@/src/components/AppAlert';
 
 export type SavedMovement = {
   kind: 'expense' | 'income' | 'other';
@@ -245,20 +245,20 @@ export function ExpenseForm({
     if (savingLock.current) return;
     const parsed = parse(amount);
     if (!parsed) {
-      Alert.alert(t('add.invalidTitle'), t('add.invalidMessage'));
+      appAlert(t('add.invalidTitle'), t('add.invalidMessage'), undefined, { tone: 'warning' });
       return;
     }
     if (type === 'debt_payment' && payChoices) {
       const inferred = inferInstallmentPayScope(payChoices, parsed);
       if (!payScope || (payScope === 'cuota' && inferred !== 'cuota')) {
-        Alert.alert(t('flow.payScopeTitle'), t('flow.payScopeNeed'));
+        appAlert(t('flow.payScopeTitle'), t('flow.payScopeNeed'));
         setPayScope(inferred);
         return;
       }
     }
     if (type === 'expense' && method === 'credit') {
       if (!accountChoices.some((a) => a.id === accountId)) {
-        Alert.alert(t('flow.whichCard'), t('flow.noCardsBody'));
+        appAlert(t('flow.whichCard'), t('flow.noCardsBody'));
         return;
       }
     }
@@ -267,7 +267,7 @@ export function ExpenseForm({
       (type === 'transfer' || type === 'investment') &&
       (!accountId || !toAccountId || accountId === toAccountId)
     ) {
-      Alert.alert(t('add.invalidTitle'), t('flow.moveNeedDistinct'));
+      appAlert(t('add.invalidTitle'), t('flow.moveNeedDistinct'), undefined, { tone: 'warning' });
       return;
     }
 
@@ -363,9 +363,11 @@ export function ExpenseForm({
     } catch (err) {
       const moveFail =
         err instanceof Error && err.message === 'pocket_move_accounts';
-      Alert.alert(
+      appAlert(
         t('add.invalidTitle'),
-        moveFail ? t('flow.moveNeedDistinct') : t('add.saveError')
+        moveFail ? t('flow.moveNeedDistinct') : t('add.saveError'),
+        undefined,
+        { tone: 'warning' }
       );
     } finally {
       savingLock.current = false;

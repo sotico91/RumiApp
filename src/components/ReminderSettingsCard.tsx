@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Alert,
   FlatList,
   Pressable,
   StyleSheet,
@@ -19,6 +18,7 @@ import type { ReminderRule } from '@/src/types/settings';
 import { categoryLabel } from '@/src/utils/categoryLabel';
 import { reminderPushCopy } from '@/src/utils/reminderCopy';
 import { tapFeedback } from '@/src/utils/selectFeedback';
+import { appAlert } from '@/src/components/AppAlert';
 
 const HOURS = [7, 8, 9, 12, 18, 19, 20, 21];
 const MINUTES = [0, 15, 30, 45];
@@ -90,7 +90,7 @@ export function ReminderSettingsCard() {
         reminderHour: rules[0]?.hour ?? settings.reminderHour,
         reminderMinute: rules[0]?.minute ?? settings.reminderMinute ?? 0,
       });
-      Alert.alert(t('reminder.savedTitle'), t('reminder.savedBody'));
+      appAlert(t('reminder.savedTitle'), t('reminder.savedBody'), undefined, { tone: 'success' });
     } finally {
       setSaving(false);
     }
