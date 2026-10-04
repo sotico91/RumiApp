@@ -1,10 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Dimensions,
   Keyboard,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -27,6 +25,7 @@ import { isDebtPayAccountId, revolvingAsPayAccounts } from '@/src/utils/debts';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import { AppModal } from '@/src/components/AppModal';
 import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
+import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
 import {
   SpendSourcePicker,
   type SpendSource,
@@ -63,9 +62,6 @@ export function QuickRepeatSheet({
   const insets = useSafeAreaInsets();
   const { t } = useLanguage();
   const keyboardHeight = useKeyboardHeight();
-  const scrollRef = useRef<ScrollView>(null);
-  const noteOffsetY = useRef(0);
-  const focusedField = useRef<'amount' | 'note' | null>(null);
   const [editing, setEditing] = useState(false);
   const [amountText, setAmountText] = useState('');
   const [noteText, setNoteText] = useState('');
@@ -101,7 +97,6 @@ export function QuickRepeatSheet({
         })
       );
     }
-    focusedField.current = null;
   }, [
     visible,
     habit?.categoryId,
@@ -112,21 +107,6 @@ export function QuickRepeatSheet({
     accounts,
     cardAccounts,
   ]);
-
-  useEffect(() => {
-    if (keyboardHeight <= 0) return;
-    const id = setTimeout(() => {
-      if (focusedField.current === 'amount') {
-        scrollRef.current?.scrollTo({ y: 0, animated: true });
-        return;
-      }
-      scrollRef.current?.scrollTo({
-        y: Math.max(0, noteOffsetY.current - 12),
-        animated: true,
-      });
-    }, Platform.OS === 'android' ? 50 : 0);
-    return () => clearTimeout(id);
-  }, [keyboardHeight]);
 
   if (!habit) return null;
 
@@ -187,10 +167,9 @@ export function QuickRepeatSheet({
           <View
             style={[styles.sheet, { maxHeight: sheetMaxHeight }]}
             onStartShouldSetResponder={() => true}>
-            <ScrollView
-              ref={scrollRef}
-              keyboardShouldPersistTaps="handled"
-              keyboardDismissMode="interactive"
+            {/* Lifts whichever field has focus, including the inline new-wallet one. */}
+            <KeyboardSafeScroll
+              avoidKeyboard={false}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.sheetInner}>
               <View style={styles.headerRow}>
@@ -255,19 +234,13 @@ export function QuickRepeatSheet({
                     placeholder="0"
                     placeholderTextColor={palette.inkSoft}
                     style={styles.input}
-                    onFocus={() => {
-                      focusedField.current = 'amount';
-                    }}
                   />
                 </>
               ) : (
                 <Text style={styles.amount}>{format(habit.amount)}</Text>
               )}
 
-              <View
-                onLayout={(e) => {
-                  noteOffsetY.current = e.nativeEvent.layout.y;
-                }}>
+              <View>
                 <Text style={styles.fieldLabel}>{t('home.quickConfirmNote')}</Text>
                 <TextInput
                   value={noteText}
@@ -278,9 +251,6 @@ export function QuickRepeatSheet({
                   multiline
                   returnKeyType="done"
                   blurOnSubmit
-                  onFocus={() => {
-                    focusedField.current = 'note';
-                  }}
                 />
               </View>
 
@@ -342,7 +312,7 @@ export function QuickRepeatSheet({
                   <Text style={styles.cancelText}>{t('home.quickConfirmClose')}</Text>
                 </Pressable>
               </View>
-            </ScrollView>
+            </KeyboardSafeScroll>
           </View>
         </View>
       </View>

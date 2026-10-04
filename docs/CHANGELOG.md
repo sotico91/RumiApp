@@ -10,6 +10,13 @@ El detalle de cada cambio está en `git log`.
 - **Comentarios de código en inglés:** todos los comentarios del código van en inglés.
   Los textos que ve el usuario van en `src/i18n/translations.ts` (es/en).
 
+## 2026-10-04
+
+- **Teclado sobre las cajas de texto:** el campo con foco siempre sube por encima del teclado.
+  Ahora se tiene en cuenta el borde de la hoja o modal (no solo el teclado), se vuelve a revisar al pasar de un campo a otro con el teclado abierto, y los campos de varias líneas muestran su parte de arriba.
+  El onboarding y la hoja de repetir gasto usan el mismo scroll seguro (antes la hoja subía a la nota aunque el foco estuviera en "nueva billetera").
+  En iOS ya no queda una altura de teclado fantasma al cerrarlo.
+
 ## 2026-10-03
 
 - **Diálogos propios (`appAlert`):** todos los `Alert.alert` nativos se cambiaron por un diálogo con el estilo de Rumi.

@@ -19,6 +19,21 @@ import { useKeyboardHeight } from '@/src/hooks/useKeyboardVisible';
 
 const GAP = 28;
 
+type Measurable = {
+  measureInWindow?: (cb: (x: number, y: number, w: number, h: number) => void) => void;
+};
+
+function scrollHost(scroll: ScrollView): Measurable {
+  const native = (scroll as unknown as { getNativeScrollRef?: () => Measurable | null })
+    .getNativeScrollRef?.();
+  return native ?? (scroll as unknown as Measurable);
+}
+
+/**
+ * Scrolls so the focused input sits above the keyboard and inside the scroll's
+ * own frame. The frame matters for scrolls inside sheets or above a footer: a
+ * field can clear the keyboard and still be clipped by the sheet's bottom edge.
+ */
 function liftFocusedInput(
   scroll: ScrollView | null,
   scrollY: number,
@@ -27,17 +42,28 @@ function liftFocusedInput(
   if (!scroll || keyboardHeight <= 0) return;
   const focused = TextInput.State.currentlyFocusedInput?.();
   if (!focused || typeof focused.measureInWindow !== 'function') return;
-  focused.measureInWindow((_x, y, _w, h) => {
-    const winH = Dimensions.get('window').height;
-    const limit = winH - keyboardHeight - GAP;
-    if (y + h <= limit) return;
-    scroll.scrollTo({
-      y: Math.max(0, scrollY + (y + h - limit)),
-      animated: true,
-    });
-  });
-}
+  const host = scrollHost(scroll);
+  const winH = Dimensions.get('window').height;
 
+  const place = (frameTop: number, frameBottom: number) => {
+    focused.measureInWindow((_x, y, _w, h) => {
+      const top = frameTop + GAP / 2;
+      const bottom = Math.min(frameBottom, winH - keyboardHeight) - GAP;
+      let delta = 0;
+      // Tall inputs (multiline) keep their top in view instead of their bottom.
+      if (y + h > bottom) delta = Math.min(y + h - bottom, y - top);
+      else if (y < top) delta = y - top;
+      if (Math.abs(delta) < 1) return;
+      scroll.scrollTo({ y: Math.max(0, scrollY + delta), animated: true });
+    });
+  };
+
+  if (typeof host.measureInWindow !== 'function') {
+    place(0, winH);
+    return;
+  }
+  host.measureInWindow((_x, y, _w, h) => place(y, h > 0 ? y + h : winH));
+}
 type SafeScrollProps = ScrollViewProps & {
   /** When false, a parent overlay already lifts the keyboard. Still scrolls the focused field. */
   avoidKeyboard?: boolean;
@@ -87,6 +113,13 @@ export const KeyboardSafeScroll = forwardRef<ScrollView, SafeScrollProps>(
       return () => show.remove();
     }, [lift]);
 
+    // Moving to another field while the keyboard stays up fires no keyboard
+    // event (always on Android), so a tap inside the scroll re-checks the focus.
+    const liftAfterTap = useCallback(() => {
+      if (keyboardHeight <= 0) return;
+      setTimeout(lift, 120);
+    }, [keyboardHeight, lift]);
+
     const androidPad =
       avoidKeyboard && Platform.OS === 'android' && keyboardHeight > 0
         ? keyboardHeight
@@ -113,7 +146,11 @@ export const KeyboardSafeScroll = forwardRef<ScrollView, SafeScrollProps>(
           onScroll?.(e);
         }}
         scrollEventThrottle={16}
-        {...rest}>
+        {...rest}
+        onTouchEnd={(e) => {
+          liftAfterTap();
+          rest.onTouchEnd?.(e);
+        }}>
         {children}
       </ScrollView>
     );

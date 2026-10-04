@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -11,7 +10,7 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppModal } from '@/src/components/AppModal';
-import { KeyboardSafeOverlay } from '@/src/components/KeyboardSafe';
+import { KeyboardSafeOverlay, KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
 import { guessConceptIcon } from '@/src/data/conceptIcons';
 import {
   createSpendSub,
@@ -161,9 +160,9 @@ export function OnboardingOverlay() {
           <Text style={styles.step}>{stepLabel}</Text>
 
           {/* Scrolls when the keyboard leaves little room; the buttons below stay put. */}
-          <ScrollView
+          <KeyboardSafeScroll
+            avoidKeyboard={false}
             style={styles.scroll}
-            keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}>
           {step === 0 ? (
             <Animated.View entering={FadeInDown.springify()} style={styles.body}>
@@ -255,7 +254,7 @@ export function OnboardingOverlay() {
               />
             </Animated.View>
           ) : null}
-          </ScrollView>
+          </KeyboardSafeScroll>
 
           <View style={styles.actions}>
             {step > 0 ? (
