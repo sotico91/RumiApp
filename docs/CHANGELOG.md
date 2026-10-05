@@ -12,6 +12,9 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-05
 
+- **Ícono con la R de Rumi:** el sello del billete coral lleva una "R" en Fraunces, como el monograma de un billete; la carita sale del ícono porque se veía genérica.
+  La cara vive solo en la animación de inicio: la R se desvanece y en el mismo sello aparecen los ojos, el guiño y la sonrisa.
+  El generador escribe `splash-blank.png` (billete sin sello) y `splash-monogram.png` (solo la R) para esa transición, y `splash-icon.png` con la R para el splash nativo.
 - **Borrar con Deshacer:** borrar un movimiento ya no pide confirmación; se borra al momento y la tarjeta inferior muestra "Movimiento borrado" con un botón **Deshacer** durante 6 segundos.
   Deshacer devuelve el movimiento con su mismo id y fecha, y reaplica su efecto en saldos y deudas (`restoreTransaction`).
 - **Inicio más simple:** sin el cerdito animado en la cabecera (sigue en Análisis) ni la línea "Espacio de gastos de…".

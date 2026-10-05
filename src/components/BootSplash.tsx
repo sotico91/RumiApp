@@ -18,8 +18,9 @@ const SPLASH_BG = '#F3E6D8';
 const LOGO = 220;
 const PX = LOGO / 1024;
 /**
- * Rumi's face on the coral bill's seal, in splash-icon.png pixels (1024²).
- * Matches the face on the app icon (scripts/generate-papel-icon.swift).
+ * Rumi's face on the coral bill's seal, in splash image pixels (1024²).
+ * The icon shows an "R" there; the face only lives in this animation
+ * (scripts/generate-papel-icon.swift draws both images).
  */
 const SEAL = { x: 551.7, y: 595.8 };
 const EYE = 30 * PX;
@@ -50,6 +51,7 @@ export function BootSplash({ onDone }: Props) {
   const started = useRef(false);
   const screen = useSharedValue(1);
   const pop = useSharedValue(0.88);
+  const monogram = useSharedValue(1);
   const eyes = useSharedValue(0);
   const wink = useSharedValue(1);
   const smile = useSharedValue(0);
@@ -67,7 +69,9 @@ export function BootSplash({ onDone }: Props) {
     void SplashScreen.hideAsync();
 
     pop.value = withSpring(1, { damping: 11, stiffness: 150 });
-    eyes.value = withDelay(120, withTiming(1, { duration: 200 }));
+    // The icon's "R" gives way to Rumi's face.
+    monogram.value = withDelay(80, withTiming(0, { duration: 220 }));
+    eyes.value = withDelay(220, withTiming(1, { duration: 200 }));
     // Right eye winks
     wink.value = withDelay(
       420,
@@ -94,7 +98,7 @@ export function BootSplash({ onDone }: Props) {
         if (ok) runOnJS(finish)();
       })
     );
-  }, [eyes, finish, pop, screen, smile, wink]);
+  }, [eyes, finish, monogram, pop, screen, smile, wink]);
 
   useEffect(() => {
     let cancelled = false;
@@ -122,6 +126,10 @@ export function BootSplash({ onDone }: Props) {
     transform: [{ scale: pop.value }],
   }));
 
+  const monogramStyle = useAnimatedStyle(() => ({
+    opacity: monogram.value,
+    transform: [{ scale: 0.9 + monogram.value * 0.1 }],
+  }));
   const eyesStyle = useAnimatedStyle(() => ({
     opacity: eyes.value,
   }));
@@ -144,8 +152,13 @@ export function BootSplash({ onDone }: Props) {
       <StatusBar style="dark" />
       <Animated.View style={[styles.mark, markStyle]}>
         <Image
-          source={require('../../assets/images/splash-icon.png')}
+          source={require('../../assets/images/splash-blank.png')}
           style={styles.logo}
+          resizeMode="contain"
+        />
+        <Animated.Image
+          source={require('../../assets/images/splash-monogram.png')}
+          style={[StyleSheet.absoluteFill, styles.logo, monogramStyle]}
           resizeMode="contain"
         />
         <Animated.View style={[StyleSheet.absoluteFill, eyesStyle]} pointerEvents="none">

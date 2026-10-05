@@ -1,10 +1,34 @@
 import AppKit
+import CoreText
 import Foundation
 import UniformTypeIdentifiers
 
 // Rumi mark: two bills fanned out (petrol behind, coral in front). The coral
-// bill's seal carries Rumi's face, the way a banknote carries a portrait.
-// Geometry lives in a 100×100 box, y pointing down.
+// bill's seal carries a mark the way a banknote carries a portrait. The app
+// icon keeps it sober; the launch animation (BootSplash) draws Rumi's face on
+// the seal. Geometry lives in a 100×100 box, y pointing down.
+
+enum SealMark {
+  case face
+  case ring
+  case monogram
+}
+
+/// What the icons show on the seal.
+var iconSeal: SealMark = .monogram
+
+let root = FileManager.default.currentDirectoryPath
+let monogramFont: CTFont = {
+  let url = URL(fileURLWithPath: "\(root)/node_modules/@expo-google-fonts/fraunces/700Bold/Fraunces_700Bold.ttf")
+  guard
+    let descriptors = CTFontManagerCreateFontDescriptorsFromURL(url as CFURL) as? [CTFontDescriptor],
+    let first = descriptors.first
+  else {
+    fputs("Fraunces not found; run npm install first\n", stderr)
+    exit(1)
+  }
+  return CTFontCreateWithFontDescriptor(first, 11, nil)
+}()
 
 func rgb(_ hex: UInt32, _ alpha: CGFloat = 1) -> CGColor {
   CGColor(
@@ -109,6 +133,22 @@ func strokeRounded(_ ctx: CGContext, _ rect: CGRect, _ radius: CGFloat, _ color:
   ctx.strokePath()
 }
 
+/// "R" in Fraunces, upright and optically centred on the origin.
+func drawMonogram(_ ctx: CGContext, _ color: CGColor) {
+  let attrs: [NSAttributedString.Key: Any] = [
+    NSAttributedString.Key(kCTFontAttributeName as String): monogramFont,
+    NSAttributedString.Key(kCTForegroundColorAttributeName as String): color,
+  ]
+  let line = CTLineCreateWithAttributedString(NSAttributedString(string: "R", attributes: attrs))
+  let bounds = CTLineGetBoundsWithOptions(line, .useGlyphPathBounds)
+  ctx.saveGState()
+  // The canvas is y-down; text wants y-up.
+  ctx.scaleBy(x: 1, y: -1)
+  ctx.textPosition = CGPoint(x: -bounds.midX, y: -bounds.midY)
+  CTLineDraw(line, ctx)
+  ctx.restoreGState()
+}
+
 /// Eyes and smile, upright, around the origin (the seal centre).
 func drawFace(_ ctx: CGContext, _ color: CGColor) {
   ctx.setFillColor(color)
@@ -122,7 +162,8 @@ func drawFace(_ ctx: CGContext, _ color: CGColor) {
   ctx.strokePath()
 }
 
-func drawMark(_ ctx: CGContext, style: Style, face: Bool) {
+/// `sealOnly` draws just the seal's mark (no bills), for layers BootSplash fades.
+func drawMark(_ ctx: CGContext, style: Style, seal sealMark: SealMark?, sealOnly: Bool = false) {
   let clear = rgb(0xFFFFFF)
   let white = rgb(0xFFFFFF)
   let silhouette: Bool
@@ -147,6 +188,7 @@ func drawMark(_ ctx: CGContext, style: Style, face: Bool) {
     }
   }
 
+  if !sealOnly {
   withBill(ctx, center: backCenter, angle: backAngle) {
     fillRounded(ctx, billRect(), billR, silhouette ? rgb(0xFFFFFF, 0.55) : p.back)
     paint(silhouette ? clear : p.backLine, punch: true) {
@@ -160,7 +202,10 @@ func drawMark(_ ctx: CGContext, style: Style, face: Bool) {
     }
   }
 
+  }
+
   withBill(ctx, center: frontCenter, angle: frontAngle) {
+    if !sealOnly {
     let outer = billRect(inset: -outlineWidth)
     paint(p.outline, punch: true) {
       fillRounded(ctx, outer, 6.84, silhouette ? clear : p.outline)
@@ -181,10 +226,23 @@ func drawMark(_ ctx: CGContext, style: Style, face: Bool) {
       ctx.setFillColor(p.seal)
       ctx.fillEllipse(in: seal)
     }
-    if face {
+    }
+    if let sealMark {
       ctx.saveGState()
       ctx.rotate(by: -frontAngle * .pi / 180)
-      paint(p.face, punch: true) { drawFace(ctx, silhouette ? clear : p.face) }
+      let ink = silhouette ? clear : p.face
+      paint(p.face, punch: true) {
+        switch sealMark {
+        case .face:
+          drawFace(ctx, ink)
+        case .monogram:
+          drawMonogram(ctx, ink)
+        case .ring:
+          ctx.setStrokeColor(ink)
+          ctx.setLineWidth(1.0)
+          ctx.strokeEllipse(in: CGRect(x: -4.6, y: -4.6, width: 9.2, height: 9.2))
+        }
+      }
       ctx.restoreGState()
     }
   }
@@ -196,7 +254,8 @@ func writePNG(
   style: Style,
   background: Bool,
   markScale: CGFloat,
-  face: Bool = true
+  seal: SealMark? = iconSeal,
+  sealOnly: Bool = false
 ) {
   let px = CGFloat(size)
   guard let ctx = CGContext(
@@ -228,7 +287,7 @@ func writePNG(
     ctx.translateBy(x: 50, y: 50)
     ctx.scaleBy(x: markScale, y: markScale)
     ctx.translateBy(x: -markCenter.x, y: -markCenter.y)
-    drawMark(ctx, style: style, face: face)
+    drawMark(ctx, style: style, seal: seal, sealOnly: sealOnly)
     ctx.endTransparencyLayer()
   }
 
@@ -251,7 +310,15 @@ func writePNG(
 }
 
 // Run from the repo root: swift scripts/generate-papel-icon.swift
-let root = FileManager.default.currentDirectoryPath
+// RUMI_ICON_PREVIEW=<dir> only writes one icon per seal mark there, to compare.
+if let previewDir = ProcessInfo.processInfo.environment["RUMI_ICON_PREVIEW"] {
+  for (name, mark) in [("face", SealMark.face), ("ring", .ring), ("monogram", .monogram)] {
+    writePNG(size: 1024, path: "\(previewDir)/seal-\(name).png", style: .color(light), background: true, markScale: 1, seal: mark)
+    writePNG(size: 1024, path: "\(previewDir)/seal-\(name)-dark.png", style: .color(dark), background: true, markScale: 1, seal: mark)
+  }
+  exit(0)
+}
+
 let images = "\(root)/assets/images"
 let iosIcons = "\(root)/ios/Rumi/Images.xcassets/AppIcon.appiconset"
 let iosSplash = "\(root)/ios/Rumi/Images.xcassets/SplashScreenLogo.imageset"
@@ -259,8 +326,18 @@ let iosSplash = "\(root)/ios/Rumi/Images.xcassets/SplashScreenLogo.imageset"
 writePNG(size: 1024, path: "\(images)/icon.png", style: .color(light), background: true, markScale: 1)
 writePNG(size: 1024, path: "\(images)/icon-dark.png", style: .color(dark), background: true, markScale: 1)
 writePNG(size: 1024, path: "\(images)/icon-tinted.png", style: .color(tinted), background: true, markScale: 1)
-// The splash animates the face in (BootSplash), so its bill starts blank.
-writePNG(size: 1024, path: "\(images)/splash-icon.png", style: .color(light), background: false, markScale: 1.25, face: false)
+// Native splash shows the icon's seal. BootSplash then draws a blank bill with
+// the monogram on its own layer, fades the monogram out and Rumi's face in.
+writePNG(size: 1024, path: "\(images)/splash-icon.png", style: .color(light), background: false, markScale: 1.25)
+writePNG(size: 1024, path: "\(images)/splash-blank.png", style: .color(light), background: false, markScale: 1.25, seal: nil)
+writePNG(
+  size: 1024,
+  path: "\(images)/splash-monogram.png",
+  style: .color(light),
+  background: false,
+  markScale: 1.25,
+  sealOnly: true
+)
 // Android adaptive icons crop to a circle of ~61% of the canvas.
 writePNG(size: 1024, path: "\(images)/android-icon-foreground.png", style: .color(light), background: false, markScale: 0.74)
 writePNG(size: 512, path: "\(images)/android-icon-background.png", style: .color(light), background: true, markScale: 0)
@@ -277,7 +354,6 @@ for (scale, suffix) in [(1, ""), (2, "@2x"), (3, "@3x")] {
     path: "\(iosSplash)/image\(suffix).png",
     style: .color(light),
     background: false,
-    markScale: 1.25,
-    face: false
+    markScale: 1.25
   )
 }
