@@ -12,6 +12,7 @@ import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { formatAmountTyping } from '@/src/utils/money';
 import { useSettings } from '@/src/hooks/useSettings';
+import { usePickableSpendConcepts } from '@/src/hooks/useSpendConcepts';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
 import { palette, radii } from '@/src/theme/colors';
@@ -46,7 +47,7 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
   const { formatPlain, parse, currency } = useMoney();
   const { settings, updateQuickTemplate } = useSettings();
   const { addTransaction, totalForPeriod, accounts, debts, transactions } = useFinance();
-  const spendConcepts = settings.spendConcepts ?? [];
+  const spendConcepts = usePickableSpendConcepts();
 
   // Recent subcategories first, then the rest of the tree.
   const { categoryChips, hasRecent } = useMemo(() => {

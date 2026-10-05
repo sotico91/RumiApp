@@ -1,4 +1,8 @@
-import { CREDITS_CONCEPT_ID, localizeDefaultConcepts } from '@/src/data/spendConcepts';
+import {
+  CREDITS_CONCEPT_ID,
+  hideUnusedGeneralSubs,
+  localizeDefaultConcepts,
+} from '@/src/data/spendConcepts';
 import type { SpendConcept } from '@/src/types/settings';
 
 const concept = (id: string, name: string): SpendConcept => ({ id, name, color: '#000', subs: [] });
@@ -76,5 +80,33 @@ describe('localizeDefaultConcepts', () => {
     const { concepts, changed } = localizeDefaultConcepts(own, 'en');
     expect(changed).toBe(false);
     expect(concepts).toBe(own);
+  });
+});
+
+describe('hideUnusedGeneralSubs', () => {
+  const food: SpendConcept = {
+    id: 'concept-alimentacion',
+    name: 'Alimentación',
+    color: '#000',
+    subs: [
+      { id: 'sub-general', name: 'General' },
+      { id: 'sub-cafe', name: 'Café' },
+    ],
+  };
+
+  it('hides General once the category has other subs and no use', () => {
+    const [out] = hideUnusedGeneralSubs([food], new Set());
+    expect(out.subs.map((s) => s.id)).toEqual(['sub-cafe']);
+  });
+
+  it('keeps General when something points at it', () => {
+    const list = [food];
+    expect(hideUnusedGeneralSubs(list, new Set(['sub-general']))).toBe(list);
+  });
+
+  it('keeps General when it is the only sub', () => {
+    const only: SpendConcept = { ...food, subs: [food.subs[0]] };
+    const list = [only];
+    expect(hideUnusedGeneralSubs(list, new Set())).toBe(list);
   });
 });

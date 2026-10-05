@@ -11,6 +11,7 @@ import { router } from 'expo-router';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useSettings } from '@/src/hooks/useSettings';
+import { usePickableSpendConcepts } from '@/src/hooks/useSpendConcepts';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { ConceptIcon } from '@/src/components/ConceptIcon';
 import { IconPicker } from '@/src/components/IconPicker';
@@ -31,7 +32,6 @@ export function ConceptsPlanCard() {
   const { t } = useLanguage();
   const { format, parse, currency } = useMoney();
   const {
-    settings,
     addSpendConcept,
     updateSpendConceptColor,
     updateSpendConceptIcon,
@@ -56,7 +56,7 @@ export function ConceptsPlanCard() {
   const [saving, setSaving] = useState(false);
   const [budgetsOpen, setBudgetsOpen] = useState(false);
 
-  const concepts = settings.spendConcepts ?? [];
+  const concepts = usePickableSpendConcepts();
   const newConceptColor = nextConceptColor(concepts);
   const newConceptIcon =
     pickedIcon ?? guessConceptIcon({ id: '', name: conceptDraft || '' });

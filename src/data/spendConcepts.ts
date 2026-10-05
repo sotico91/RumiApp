@@ -309,6 +309,27 @@ export function isGeneralSubName(name: string): boolean {
   return name.trim().toLowerCase() === 'general';
 }
 
+/**
+ * Drop the placeholder "General" sub from pickers once the category has its own
+ * subs and nothing (movement, budget, reminder) points at it. Never hides the last sub.
+ */
+export function hideUnusedGeneralSubs(
+  concepts: SpendConcept[],
+  usedSubIds: ReadonlySet<string>
+): SpendConcept[] {
+  let changed = false;
+  const next = concepts.map((concept) => {
+    if (concept.subs.length < 2) return concept;
+    const subs = concept.subs.filter(
+      (sub) => !isGeneralSubName(sub.name) || usedSubIds.has(sub.id)
+    );
+    if (subs.length === concept.subs.length || subs.length === 0) return concept;
+    changed = true;
+    return { ...concept, subs };
+  });
+  return changed ? next : concepts;
+}
+
 /** Display label for a subcategory id (Concepto/Sub). */
 export function spendSubLabel(
   subId: string,

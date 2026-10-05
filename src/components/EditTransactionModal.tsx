@@ -21,6 +21,7 @@ import { useKeyboardVisible } from '@/src/hooks/useKeyboardVisible';
 import { useMoney } from '@/src/hooks/useMoney';
 import { formatAmountTyping } from '@/src/utils/money';
 import { useSettings } from '@/src/hooks/useSettings';
+import { usePickableSpendConcepts } from '@/src/hooks/useSpendConcepts';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
 import { palette, radii } from '@/src/theme/colors';
@@ -81,7 +82,7 @@ export function EditTransactionModal({ transaction, visible, onClose }: Props) {
   const [saving, setSaving] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
-  const spendConcepts = useMemo(() => settings.spendConcepts ?? [], [settings.spendConcepts]);
+  const spendConcepts = usePickableSpendConcepts();
   const showConcepts = type !== 'income' && spendConcepts.length > 0;
 
   // Spends pick a category first, then only that category's subs show.

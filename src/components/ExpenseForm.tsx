@@ -31,6 +31,7 @@ import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { formatAmountTyping } from '@/src/utils/money';
 import { useSettings } from '@/src/hooks/useSettings';
+import { usePickableSpendConcepts } from '@/src/hooks/useSpendConcepts';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
 import { palette, radii } from '@/src/theme/colors';
@@ -100,7 +101,7 @@ export function ExpenseForm({
   const { format, formatPlain, parse, currency } = useMoney();
   const { settings, updateQuickTemplate } = useSettings();
   const { addTransaction, totalForPeriod, accounts, debts, transactions } = useFinance();
-  const spendConcepts = settings.spendConcepts ?? [];
+  const spendConcepts = usePickableSpendConcepts();
   // The concept is already picked above, so a sub chip only needs its own name.
   const subChipLabel = (id: string) => {
     const hit = findSpendSub(spendConcepts, id);

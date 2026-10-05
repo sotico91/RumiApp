@@ -22,6 +22,7 @@ import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { formatAmountTyping } from '@/src/utils/money';
 import { useSettings } from '@/src/hooks/useSettings';
+import { usePickableSpendConcepts } from '@/src/hooks/useSpendConcepts';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
 import { palette, radii } from '@/src/theme/colors';
@@ -85,7 +86,7 @@ export function FriendlyAddFlow({
   const { addTransaction, totalForPeriod, accounts, debts, transactions } = useFinance();
   const keyboardVisible = useKeyboardVisible();
 
-  const spendConcepts = settings.spendConcepts ?? [];
+  const spendConcepts = usePickableSpendConcepts();
   const liveDebts = useMemo(() => openDebts(debts), [debts]);
   const incomeAccounts = useMemo(() => incomeDestinationAccounts(accounts), [accounts]);
 
