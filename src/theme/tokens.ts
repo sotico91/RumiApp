@@ -1,7 +1,7 @@
 /**
- * Rumi design tokens. New UI reads these (through `@/src/theme`) instead of
- * hex values or loose numbers; `palette` / `spacing` / `radii` in ./colors are
- * the legacy set the existing screens still use while they migrate.
+ * Rumi design tokens: the one source of every color. UI reads these through
+ * `@/src/theme`; the legacy `palette` in ./colors is built from them, so older
+ * screens can never drift to a different shade.
  */
 
 /** Raw scales. Components should prefer the semantic `colors` below. */
@@ -23,6 +23,8 @@ export const scale = {
     100: '#FDF3D6',
   },
   teal: {
+    /** Teal for text on light surfaces (AA); 400 is for fills and icons. */
+    700: '#1E7F75',
     400: '#2EC4B6',
     100: '#D8F5F1',
   },
@@ -92,8 +94,11 @@ export const colors = {
     gold: scale.gold[400],
     goldSoft: scale.gold[100],
     teal: scale.teal[400],
+    tealText: scale.teal[700],
     tealSoft: scale.teal[100],
   },
+  /** Base color for native shadows (shadowColor). */
+  shadowColor: '#061018',
 } as const;
 
 export type StatusTone = 'success' | 'warning' | 'danger' | 'info';

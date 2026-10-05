@@ -1,39 +1,37 @@
+import { colors, scale } from './tokens';
+
 /**
- * Legacy tokens the current screens still read. New code uses `@/src/theme`
- * (tokens.ts / typography.ts); screens move over one at a time.
+ * Legacy names the older screens still read. Every value comes from
+ * ./tokens, so there is one source of truth; new code uses `@/src/theme`.
  */
 export const palette = {
-  bg: '#1B3A4B',
-  bgMid: '#245D6B',
-  bgDeep: '#0F2A36',
-  mist: '#2A6F7A',
-  surface: 'rgba(255,255,255,0.92)',
-  surfaceSolid: '#FFFFFF',
-  ink: '#0F1C24',
+  bg: colors.bg.brand,
+  bgMid: scale.petrol[600],
+  mist: scale.petrol[500],
+  surfaceSolid: colors.bg.surface,
+  ink: colors.text.primary,
   /** Body secondary — readable at mid/low brightness. */
-  inkMuted: '#3A4D57',
-  /** Captions / hints — darker than before so greys stay legible. */
-  inkSoft: '#5A6E79',
-  accent: '#CF3E1E',
-  accentDeep: '#B33418',
-  accentSoft: '#FFE3DB',
-  accentGlow: 'rgba(207,62,30,0.28)',
-  teal: '#2EC4B6',
+  inkMuted: colors.text.secondary,
+  /** Captions / hints. */
+  inkSoft: colors.text.tertiary,
+  accent: colors.action.primary,
+  accentDeep: colors.action.primaryPressed,
+  accentSoft: colors.action.primarySoft,
+  teal: colors.accent.teal,
   /** Teal for text on light surfaces; the bright teal is for fills and icons only. */
-  tealText: '#1E7F75',
-  tealSoft: '#D8F5F1',
-  gold: '#F4C95D',
-  coral: '#CF3E1E',
-  danger: '#B3263F',
-  dangerSoft: '#FDE8E8',
-  success: '#1A8158',
-  successSoft: '#E3F7EE',
-  warnSoft: '#FFF1E6',
-  border: 'rgba(15,28,36,0.08)',
-  white: '#FFFFFF',
-  shadow: '#061018',
-  brand: '#FFFFFF',
-  brandMuted: 'rgba(255,255,255,0.78)',
+  tealText: colors.accent.tealText,
+  tealSoft: colors.accent.tealSoft,
+  gold: colors.accent.gold,
+  danger: colors.status.danger,
+  dangerSoft: colors.status.dangerSoft,
+  success: colors.status.success,
+  successSoft: colors.status.successSoft,
+  warnSoft: colors.status.warningSoft,
+  border: colors.border.subtle,
+  white: scale.neutral[0],
+  shadow: colors.shadowColor,
+  brand: colors.text.onBrand,
+  brandMuted: colors.text.onBrandMuted,
 };
 
 export const spacing = {

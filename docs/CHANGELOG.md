@@ -12,6 +12,11 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-05
 
+- **Una sola fuente de colores:** `palette` (nombres antiguos) se construye ahora desde `src/theme/tokens.ts`, así que las pantallas viejas ya no pueden quedar con otro tono.
+  Se quitaron colores sin uso (`bgDeep`, `surface`, `accentGlow`, `coral`), y el teal para texto y el color de sombra pasan a ser tokens.
+- **Patrimonio dividido:** `wealth.tsx` pasa de 1 472 a 218 líneas, sin cambios de comportamiento.
+  Las piezas están en `src/components/wealth/`: `PocketsSection` (cuentas), `DebtCard`, `DebtForm` con `useDebtForm`, `OptionChips` y `styles`.
+  Los cálculos del día de pago están en `src/utils/payDay.ts`, con tests.
 - **Estados vacíos con un siguiente paso:** nuevo componente `EmptyState` (ícono, título, texto y una acción).
   Historial sin movimientos ofrece "Registrar un gasto"; en un mes pasado sin movimientos solo lo dice.
   Análisis sin datos explica qué va a mostrar y ofrece la misma acción.
