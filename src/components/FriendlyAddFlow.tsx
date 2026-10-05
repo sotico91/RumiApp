@@ -66,7 +66,6 @@ import { appAlert } from '@/src/components/AppAlert';
 
 type Props = {
   onSaved?: (result: SavedMovement) => void;
-  onSwitchAdvanced?: () => void;
   initialIntent?: FriendlyIntent;
   initialDebtId?: string;
   /** When set, tapping "I spent" opens the one-screen quick form instead. */
@@ -75,7 +74,6 @@ type Props = {
 
 export function FriendlyAddFlow({
   onSaved,
-  onSwitchAdvanced,
   initialIntent,
   initialDebtId,
   onPickSpend,
@@ -1051,7 +1049,7 @@ export function FriendlyAddFlow({
         ) : null}
       </KeyboardSafeScroll>
 
-      {keyboardVisible ? null : (
+      {keyboardVisible || step === 0 ? null : (
       <View style={styles.footer}>
         {step > 0 ? (
           <Pressable
@@ -1074,13 +1072,9 @@ export function FriendlyAddFlow({
             style={styles.secondary}>
             <Text style={styles.secondaryText}>{t('flow.back')}</Text>
           </Pressable>
-        ) : (
-          <Pressable onPress={onSwitchAdvanced} style={styles.secondary}>
-            <Text style={styles.secondaryText}>{t('flow.advanced')}</Text>
-          </Pressable>
-        )}
+        ) : null}
 
-        {step === 0 ? null : step < totalSteps - 1 ? (
+        {step < totalSteps - 1 ? (
           hideNext ? null : (
             <Pressable onPress={goNext} style={styles.primary}>
               <Text style={styles.primaryText}>{t('flow.next')}</Text>

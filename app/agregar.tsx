@@ -134,7 +134,6 @@ export default function AgregarScreen() {
             <FriendlyAddFlow
               key={guidedIntent ?? 'pick'}
               onSaved={handleSaved}
-              onSwitchAdvanced={() => setMode('advanced')}
               initialIntent={guidedIntent ?? payIntent}
               initialDebtId={payDebtId}
               onPickSpend={guidedIntent || payIntent ? undefined : () => setMode('quick')}

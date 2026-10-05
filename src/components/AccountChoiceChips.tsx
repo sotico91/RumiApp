@@ -45,6 +45,8 @@ export function AccountChoiceChips({
   const { format } = useMoney();
   const card = variant === 'card';
   const ordered = sortAccountsByKind(accounts);
+  // Adding a wallet is rare while registering: one chip opens the form.
+  const [addingWallet, setAddingWallet] = useState(false);
 
   return (
     <View style={styles.block}>
@@ -77,9 +79,27 @@ export function AccountChoiceChips({
             </Pressable>
           );
         })}
+        {allowAddWallet && !addingWallet ? (
+          <Pressable
+            onPress={() => {
+              tapFeedback();
+              setAddingWallet(true);
+            }}
+            accessibilityRole="button"
+            style={[card ? styles.card : styles.chip, styles.addChip]}>
+            <Text style={styles.presetText}>{t('flow.walletAddChip')}</Text>
+          </Pressable>
+        ) : null}
       </View>
 
-      {allowAddWallet ? <WalletQuickAdd onAdded={onSelect} /> : null}
+      {allowAddWallet && addingWallet ? (
+        <WalletQuickAdd
+          onAdded={(id) => {
+            setAddingWallet(false);
+            onSelect(id);
+          }}
+        />
+      ) : null}
     </View>
   );
 }
@@ -365,6 +385,11 @@ const styles = StyleSheet.create({
   },
   onText: {
     color: palette.white,
+  },
+  addChip: {
+    borderStyle: 'dashed',
+    backgroundColor: '#fff',
+    justifyContent: 'center',
   },
   addBlock: { gap: 8 },
   addLabel: {

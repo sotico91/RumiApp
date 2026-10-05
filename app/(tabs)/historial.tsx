@@ -203,6 +203,10 @@ export default function HistorialScreen() {
             visible={!!editing}
             transaction={editing}
             onClose={() => setEditing(null)}
+            onDelete={(tx) => {
+              setEditing(null);
+              confirmDelete(tx);
+            }}
           />
         </>
       }>
@@ -270,6 +274,7 @@ export default function HistorialScreen() {
             </View>
           ) : (
             <View style={styles.listBlock}>
+              <Text style={styles.listHint}>{t('history.rowHint')}</Text>
               <View style={styles.list}>
                 {pageItems.map((tx, index) => {
                   const mine = canEditTransaction(tx);
@@ -462,6 +467,12 @@ const styles = StyleSheet.create({
   },
   income: { color: palette.success },
   expense: { color: palette.danger },
+  listHint: {
+    marginBottom: 8,
+    fontFamily: 'DMSans_400Regular',
+    fontSize: 12,
+    color: palette.inkSoft,
+  },
   hint: {
     marginTop: 12,
     fontFamily: 'DMSans_400Regular',

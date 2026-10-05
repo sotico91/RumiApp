@@ -178,8 +178,10 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
           onBack();
         }}
         hitSlop={8}
+        accessibilityRole="button"
         style={styles.back}>
-        <Text style={styles.backText}>← {t('flow.back')}</Text>
+        {/* The header arrow closes the screen; this one switches to the other movement kinds. */}
+        <Text style={styles.backText}>{t('quick.otherKind')}</Text>
       </Pressable>
 
       <View style={styles.card}>

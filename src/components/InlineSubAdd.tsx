@@ -17,13 +17,16 @@ import { appAlert } from '@/src/components/AppAlert';
 type Props = {
   conceptId: string;
   onAdded: (subId: string) => void;
+  /** Start as a "+ New subcategory" link; the field opens on tap. */
+  collapsed?: boolean;
 };
 
-export function InlineSubAdd({ conceptId, onAdded }: Props) {
+export function InlineSubAdd({ conceptId, onAdded, collapsed = false }: Props) {
   const { t } = useLanguage();
   const { addSpendSub } = useSettings();
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(!collapsed);
 
   async function handleAdd() {
     const trimmed = name.trim();
@@ -37,10 +40,23 @@ export function InlineSubAdd({ conceptId, onAdded }: Props) {
       }
       tapFeedback();
       setName('');
+      if (collapsed) setOpen(false);
       onAdded(id);
     } finally {
       setBusy(false);
     }
+  }
+
+  if (!open) {
+    return (
+      <Pressable
+        onPress={() => setOpen(true)}
+        hitSlop={8}
+        accessibilityRole="button"
+        style={styles.openLink}>
+        <Text style={styles.openLinkText}>{t('flow.addSubLink')}</Text>
+      </Pressable>
+    );
   }
 
   return (
@@ -54,6 +70,7 @@ export function InlineSubAdd({ conceptId, onAdded }: Props) {
           placeholderTextColor={palette.inkSoft}
           style={styles.input}
           editable={!busy}
+          autoFocus={collapsed}
           onSubmitEditing={() => void handleAdd()}
           returnKeyType="done"
         />
@@ -76,6 +93,12 @@ const styles = StyleSheet.create({
   wrap: {
     gap: 8,
     marginTop: 4,
+  },
+  openLink: { alignSelf: 'flex-start', paddingVertical: 4 },
+  openLinkText: {
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 13,
+    color: palette.accentDeep,
   },
   label: {
     fontFamily: 'DMSans_500Medium',

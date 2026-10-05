@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -512,11 +511,8 @@ export function ExpenseForm({
               }}
             />
           ) : null}
-          {/* One swipeable row, so many concepts do not push the form down. */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.conceptRow}>
+          {/* Wrapped, so no concept hides off-screen; long lists also get the search above. */}
+          <View style={styles.chips}>
             {spendConcepts.map((concept) => (
               <Pressable
                 key={concept.id}
@@ -536,7 +532,7 @@ export function ExpenseForm({
                 </Text>
               </Pressable>
             ))}
-          </ScrollView>
+          </View>
         </>
       ) : null}
 
@@ -585,6 +581,7 @@ export function ExpenseForm({
 
       {type === 'expense' && conceptId ? (
         <InlineSubAdd
+          collapsed
           conceptId={conceptId}
           onAdded={(subId) => setCategoryId(subId)}
         />
@@ -678,11 +675,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   pillWithIcon: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  conceptRow: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingRight: 8,
-  },
   pill: {
     borderWidth: 1,
     borderColor: palette.border,

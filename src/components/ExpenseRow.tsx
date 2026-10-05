@@ -1,8 +1,9 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { MoneyText } from '@/src/components/MoneyText';
 import { ConceptIcon } from '@/src/components/ConceptIcon';
-import { categoryVisual } from '@/src/data/spendConcepts';
+import { categoryVisual, findSpendSub, isGeneralSubName } from '@/src/data/spendConcepts';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useSettings } from '@/src/hooks/useSettings';
@@ -49,62 +50,107 @@ export function ExpenseRow({
     t
   );
   const visual = expense.categoryId ? categoryVisual(expense.categoryId, spendConcepts) : null;
-  const color = pocketMove ? palette.teal : visual ? visual.color : palette.inkSoft;
+  const income = expense.type === 'income';
+  const color = pocketMove
+    ? palette.teal
+    : income
+      ? palette.success
+      : visual
+        ? visual.color
+        : palette.inkSoft;
+
+  // Spends lead with the subcategory ("Domicilio"); its category moves to the meta line.
+  const hit =
+    expense.type === 'expense' && expense.categoryId
+      ? findSpendSub(spendConcepts, expense.categoryId)
+      : null;
+  const subIsConcept =
+    !!hit && (isGeneralSubName(hit.sub.name) || hit.sub.name === hit.concept.name);
+  const typeLabel = t(`type.${expense.type}` as TranslationKey);
+  let title: string;
+  if (hit) title = subIsConcept ? hit.concept.name : hit.sub.name;
+  else if (pocketMove)
+    title = expense.toAccountId
+      ? `${typeLabel} · ${t('history.moveRoute', { from: fromName, to: toName })}`
+      : typeLabel;
+  else if (expense.categoryId) {
+    const label = categoryLabel(expense.categoryId, t, spendConcepts);
+    title = income || expense.type === 'expense' ? label : `${typeLabel} · ${label}`;
+  } else title = typeLabel;
+
+  const metaParts: string[] = [];
+  if (hit && !subIsConcept) metaParts.push(hit.concept.name);
+  metaParts.push(formatExpenseDate(expense.createdAt, language));
+  if (!pocketMove && expense.accountId) {
+    metaParts.push(
+      t(income ? 'history.toPocket' : 'history.fromPocket', { pocket: fromName })
+    );
+  }
+  // Cash and debit just repeat the pocket; card and transfer add information.
+  if (
+    !pocketMove &&
+    expense.paymentMethod &&
+    expense.paymentMethod !== 'cash' &&
+    expense.paymentMethod !== 'debit'
+  ) {
+    metaParts.push(t(`method.${expense.paymentMethod}` as TranslationKey));
+  }
+  if (showRegistrant && expense.registeredByName) {
+    metaParts.push(t('history.byPerson', { name: expense.registeredByName }));
+  }
+  if (expense.note) metaParts.push(expense.note);
+
+  const amountText = income ? `+${format(expense.amount)}` : format(expense.amount);
+  const interactive = !!onEdit || !!onDelete;
 
   return (
-    <View style={[styles.row, last && styles.rowLast]}>
+    <Pressable
+      onPress={onEdit}
+      onLongPress={onDelete}
+      disabled={!interactive}
+      accessibilityRole={onEdit ? 'button' : undefined}
+      accessibilityLabel={`${title}, ${amountText}`}
+      accessibilityHint={onEdit ? t('history.rowHint') : undefined}
+      accessibilityActions={[
+        ...(onEdit ? [{ name: 'activate', label: t('history.edit') }] : []),
+        ...(onDelete ? [{ name: 'delete', label: t('history.delete') }] : []),
+      ]}
+      onAccessibilityAction={(event) => {
+        if (event.nativeEvent.actionName === 'activate') onEdit?.();
+        if (event.nativeEvent.actionName === 'delete') onDelete?.();
+      }}
+      style={({ pressed }) => [
+        styles.row,
+        last && styles.rowLast,
+        pressed && interactive && styles.rowPressed,
+      ]}>
       <View
         style={[
           styles.icon,
           { backgroundColor: `${color}22` },
         ]}>
-        {!pocketMove && visual?.icon ? (
+        {income ? (
+          <MaterialCommunityIcons name="arrow-bottom-left" size={18} color={color} />
+        ) : !pocketMove && visual?.icon ? (
           <ConceptIcon icon={visual.icon} color={color} size={18} />
         ) : (
           <View style={[styles.dot, { backgroundColor: color }]} />
         )}
       </View>
-      <Pressable style={styles.content} onPress={onEdit} disabled={!onEdit}>
+      <View style={styles.content}>
         <View style={styles.top}>
-          <Text style={styles.category}>
-            {t(`type.${expense.type}` as TranslationKey)}
-            {pocketMove
-              ? expense.toAccountId
-                ? ` · ${t('history.moveRoute', { from: fromName, to: toName })}`
-                : ''
-              : expense.categoryId
-                ? ` · ${categoryLabel(expense.categoryId, t, spendConcepts)}`
-                : ''}
+          <Text style={styles.category} numberOfLines={2}>
+            {title}
           </Text>
-          <MoneyText style={styles.amount}>{format(expense.amount)}</MoneyText>
+          <MoneyText style={[styles.amount, income && styles.amountIncome]} fit={false}>
+            {amountText}
+          </MoneyText>
         </View>
         <Text style={styles.meta} numberOfLines={2}>
-          {formatExpenseDate(expense.createdAt, language)}
-          {!pocketMove && expense.accountId
-            ? ` · ${t('history.fromPocket', { pocket: fromName })}`
-            : ''}
-          {!pocketMove && expense.paymentMethod
-            ? ` · ${t(`method.${expense.paymentMethod}` as TranslationKey)}`
-            : ''}
-          {showRegistrant && expense.registeredByName
-            ? ` · ${t('history.byPerson', { name: expense.registeredByName })}`
-            : ''}
-          {expense.note ? ` · ${expense.note}` : ''}
+          {metaParts.join(' · ')}
         </Text>
-      </Pressable>
-      <View style={styles.actions}>
-        {onEdit ? (
-          <Pressable onPress={onEdit} hitSlop={10} style={styles.actionBtn}>
-            <Text style={styles.editText}>{t('history.edit')}</Text>
-          </Pressable>
-        ) : null}
-        {onDelete ? (
-          <Pressable onPress={onDelete} hitSlop={10} style={styles.actionBtn}>
-            <Text style={styles.deleteText}>{t('history.delete')}</Text>
-          </Pressable>
-        ) : null}
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -119,6 +165,9 @@ const styles = StyleSheet.create({
   },
   rowLast: {
     borderBottomWidth: 0,
+  },
+  rowPressed: {
+    opacity: 0.6,
   },
   icon: {
     width: 40,
@@ -147,32 +196,19 @@ const styles = StyleSheet.create({
     color: palette.ink,
   },
   amount: {
+    // The amount is the key fact: it never shrinks; the title wraps instead.
+    flexShrink: 0,
     fontFamily: 'Fraunces_600SemiBold',
     fontSize: 16,
     color: palette.ink,
+  },
+  amountIncome: {
+    color: palette.success,
   },
   meta: {
     marginTop: 4,
     fontFamily: 'DMSans_400Regular',
     fontSize: 12,
     color: palette.inkSoft,
-  },
-  actions: {
-    gap: 4,
-    alignItems: 'flex-end',
-  },
-  actionBtn: {
-    paddingHorizontal: 4,
-    paddingVertical: 4,
-  },
-  editText: {
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 13,
-    color: palette.accentDeep,
-  },
-  deleteText: {
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 13,
-    color: palette.danger,
   },
 });

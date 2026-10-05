@@ -50,6 +50,8 @@ type Props = {
   transaction: Transaction | null;
   visible: boolean;
   onClose: () => void;
+  /** Hands the transaction back so the screen runs its usual delete confirmation. */
+  onDelete?: (transaction: Transaction) => void;
 };
 
 const TYPES: TransactionType[] = [
@@ -63,7 +65,7 @@ const TYPES: TransactionType[] = [
 
 const METHODS: PaymentMethod[] = ['cash', 'debit', 'credit', 'transfer'];
 
-export function EditTransactionModal({ transaction, visible, onClose }: Props) {
+export function EditTransactionModal({ transaction, visible, onClose, onDelete }: Props) {
   const insets = useSafeAreaInsets();
   const { t } = useLanguage();
   const { format, parse, currency } = useMoney();
@@ -430,6 +432,15 @@ export function EditTransactionModal({ transaction, visible, onClose }: Props) {
             </Pressable>
           </View>
           )}
+          {!keyboardVisible && onDelete && transaction ? (
+            <Pressable
+              onPress={() => onDelete(transaction)}
+              hitSlop={8}
+              accessibilityRole="button"
+              style={styles.deleteBtn}>
+              <Text style={styles.deleteText}>{t('history.deleteTitle')}</Text>
+            </Pressable>
+          ) : null}
         </View>
         </View>
       </KeyboardSafeOverlay>
@@ -548,5 +559,11 @@ const styles = StyleSheet.create({
   primaryText: {
     fontFamily: 'DMSans_600SemiBold',
     color: palette.white,
+  },
+  deleteBtn: { alignSelf: 'center', marginTop: 14, paddingVertical: 6 },
+  deleteText: {
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 14,
+    color: palette.danger,
   },
 });
