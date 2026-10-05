@@ -29,9 +29,17 @@ import { appAlert } from '@/src/components/AppAlert';
 
 const MAX_CHIPS = 8;
 
+/** Expense is this form; the other kinds open the guided flow at their first question. */
+const KINDS: { id: FriendlyIntent; labelKey: TranslationKey }[] = [
+  { id: 'spend', labelKey: 'quick.kind.spend' },
+  { id: 'earn', labelKey: 'quick.kind.earn' },
+  { id: 'move', labelKey: 'quick.kind.move' },
+  { id: 'debt', labelKey: 'quick.kind.debt' },
+];
+
 type Props = {
   onSaved?: (result: SavedMovement) => void;
-  /** Back to the "What happened?" cards. */
+  /** Templates and the full guided flow ("What happened?" cards). */
   onBack: () => void;
   /** Open the guided flow for anything the quick form does not cover. */
   onOpenGuided: (intent: FriendlyIntent) => void;
@@ -172,17 +180,29 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.body}>
-      <Pressable
-        onPress={() => {
-          tapFeedback();
-          onBack();
-        }}
-        hitSlop={8}
-        accessibilityRole="button"
-        style={styles.back}>
-        {/* The header arrow closes the screen; this one switches to the other movement kinds. */}
-        <Text style={styles.backText}>{t('quick.otherKind')}</Text>
-      </Pressable>
+      <View style={styles.kindRow} accessibilityRole="tablist">
+        {KINDS.map((kind) => {
+          const on = kind.id === 'spend';
+          return (
+            <Pressable
+              key={kind.id}
+              onPress={() => {
+                if (on) return;
+                tapFeedback();
+                onOpenGuided(kind.id);
+              }}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: on }}
+              style={[styles.kindBtn, on && styles.kindOn]}>
+              <Text
+                numberOfLines={1}
+                style={[styles.kindText, on && styles.kindTextOn]}>
+                {t(kind.labelKey)}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
 
       <View style={styles.card}>
         <View style={styles.amountRow}>
@@ -271,13 +291,56 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
           </Text>
         </Pressable>
       </View>
+
+      <Pressable
+        onPress={() => {
+          tapFeedback();
+          onBack();
+        }}
+        hitSlop={8}
+        accessibilityRole="button"
+        style={styles.more}>
+        <Text style={styles.moreText}>{t('quick.moreOptions')}</Text>
+      </Pressable>
     </KeyboardSafeScroll>
   );
 }
 
 const styles = StyleSheet.create({
-  back: { alignSelf: 'flex-start', paddingVertical: 4 },
-  backText: {
+  kindRow: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(15,28,36,0.06)',
+    borderRadius: radii.md,
+    padding: 3,
+    gap: 3,
+  },
+  kindBtn: {
+    flex: 1,
+    minHeight: 40,
+    borderRadius: radii.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  kindOn: {
+    backgroundColor: palette.surfaceSolid,
+    shadowColor: palette.shadow,
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    elevation: 1,
+  },
+  kindText: {
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 14,
+    color: palette.inkMuted,
+  },
+  kindTextOn: {
+    fontFamily: 'DMSans_700Bold',
+    color: palette.ink,
+  },
+  more: { alignSelf: 'center', paddingVertical: 8 },
+  moreText: {
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 14,
     color: palette.bg,

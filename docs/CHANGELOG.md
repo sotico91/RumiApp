@@ -12,6 +12,10 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-05
 
+- **Agregar abre directo el gasto rápido:** el "+" abre el formulario de una pantalla (monto, en qué, de dónde, guardar) en lugar de las tarjetas "¿Qué pasó?".
+  Arriba hay un selector Gasto | Ingreso | Mover | Deuda: los otros tipos abren el modo guiado en su primera pregunta, y "Atrás" vuelve al gasto rápido.
+  Las plantillas y el modo guiado quedan en un enlace bajo el botón de guardar.
+  Pagar una deuda desde Patrimonio y los recordatorios siguen entrando directo a su flujo.
 - **Contraste (WCAG AA):** el coral de acción pasa de `#FF6B4A` a `#CF3E1E`, con un contraste de 4.8:1 con texto blanco (antes 2.8:1).
   El rojo de error pasa a un carmesí (`#B3263F`) para que no se confunda con el coral.
   El verde de éxito pasa a `#1A8158`, y el texto teal usa `palette.tealText` (`#1E7F75`); el teal claro queda solo para fondos e íconos.

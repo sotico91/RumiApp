@@ -70,6 +70,8 @@ type Props = {
   initialDebtId?: string;
   /** When set, tapping "I spent" opens the one-screen quick form instead. */
   onPickSpend?: () => void;
+  /** Back from the first step returns here (the quick form) instead of "What happened?". */
+  onBackFromStart?: () => void;
 };
 
 export function FriendlyAddFlow({
@@ -77,6 +79,7 @@ export function FriendlyAddFlow({
   initialIntent,
   initialDebtId,
   onPickSpend,
+  onBackFromStart,
 }: Props) {
   const { t } = useLanguage();
   const { format, formatPlain, parse, currency } = useMoney();
@@ -1066,6 +1069,10 @@ export function FriendlyAddFlow({
           <Pressable
             accessibilityRole="button"
             onPress={() => {
+              if (step === 1 && onBackFromStart) {
+                onBackFromStart();
+                return;
+              }
               if (intent === 'spend' && step === paymentStep) {
                 if (fromTemplate) {
                   setStep(1);

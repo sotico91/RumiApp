@@ -29,9 +29,6 @@ export default function AgregarScreen() {
     intent?: string;
     debtId?: string;
   }>();
-  // "Add" opens the "What happened?" cards; "I spent" goes to the one-screen form.
-  const [mode, setMode] = useState<'quick' | 'friendly' | 'advanced'>('friendly');
-  const [guidedIntent, setGuidedIntent] = useState<FriendlyIntent | undefined>(undefined);
   const prefilledCategoryId =
     typeof params.categoryId === 'string' ? params.categoryId : undefined;
   const prefilledAmount =
@@ -52,11 +49,21 @@ export default function AgregarScreen() {
         ? ('spend' as const)
         : undefined;
 
+  // Spending is the most common entry, so "Add" opens the one-screen expense
+  // form. Links that already know what they want (pay a debt, a reminder) skip it.
+  const [mode, setMode] = useState<'quick' | 'friendly' | 'advanced'>(() =>
+    params.mode === 'advanced' || prefilledCategoryId
+      ? 'advanced'
+      : payIntent || params.mode === 'friendly'
+        ? 'friendly'
+        : 'quick'
+  );
+  const [guidedIntent, setGuidedIntent] = useState<FriendlyIntent | undefined>(undefined);
+
   useEffect(() => {
     if (params.mode === 'advanced' || prefilledCategoryId) {
       setMode('advanced');
     } else if (params.mode === 'quick') {
-      // Home's "first expense" card goes straight to the one-screen form.
       setMode('quick');
     }
   }, [params.mode, prefilledCategoryId]);
@@ -140,7 +147,22 @@ export default function AgregarScreen() {
               onSaved={handleSaved}
               initialIntent={guidedIntent ?? payIntent}
               initialDebtId={payDebtId}
-              onPickSpend={guidedIntent || payIntent ? undefined : () => setMode('quick')}
+              onBackFromStart={
+                guidedIntent
+                  ? () => {
+                      setGuidedIntent(undefined);
+                      setMode('quick');
+                    }
+                  : undefined
+              }
+              onPickSpend={
+                payIntent
+                  ? undefined
+                  : () => {
+                      setGuidedIntent(undefined);
+                      setMode('quick');
+                    }
+              }
             />
           ) : (
             <KeyboardSafeScroll
