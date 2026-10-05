@@ -118,6 +118,50 @@ export const CONCEPT_COLOR_OPTIONS = [
 
 export type ConceptColor = (typeof CONCEPT_COLOR_OPTIONS)[number];
 
+/** Short, clearly distinct set shown in the picker; auto-assignment still uses the full palette. */
+export const CONCEPT_COLOR_PICKS = [
+  '#2EC4B6',
+  '#06D6A0',
+  '#6A994E',
+  '#00BBF9',
+  '#4361EE',
+  '#9B5DE5',
+  '#F15BB5',
+  '#E63946',
+  '#FF6B4A',
+  '#F18F01',
+  '#F4C95D',
+  '#7A8790',
+] as const;
+
+/** Picker colors, keeping the current one visible when it comes from the full palette. */
+export function conceptColorChoices(current?: string): string[] {
+  const picks: string[] = [...CONCEPT_COLOR_PICKS];
+  return current && !picks.includes(current) ? [current, ...picks] : picks;
+}
+
+function mixHex(hex: string, target: number, amount: number): string {
+  const n = parseInt(hex.replace('#', ''), 16);
+  const channel = (shift: number) => {
+    const c = (n >> shift) & 0xff;
+    return Math.round(c + (target - c) * amount)
+      .toString(16)
+      .padStart(2, '0');
+  };
+  return `#${channel(16)}${channel(8)}${channel(0)}`.toUpperCase();
+}
+
+/** Tones of the parent color for subcategories, so they still read as part of it. */
+export function subColorShades(base: string): string[] {
+  if (!/^#[0-9a-f]{6}$/i.test(base)) return [];
+  return [
+    mixHex(base, 0, 0.45),
+    mixHex(base, 0, 0.25),
+    mixHex(base, 255, 0.3),
+    mixHex(base, 255, 0.55),
+  ];
+}
+
 /** Prefer an unused palette color when creating; repeats only if the palette is exhausted. */
 export function nextConceptColor(existing: SpendConcept[]): string {
   const used = new Set(existing.map((c) => c.color).filter(Boolean));

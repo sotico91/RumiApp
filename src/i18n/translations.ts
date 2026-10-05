@@ -353,6 +353,9 @@ export const translations = {
     'plan.subColor': 'Subcategory color',
     'plan.subColorReset': 'Same as its category',
     'plan.conceptColorEdit': 'Chart color',
+    'plan.conceptStyleEdit': 'Change icon and color',
+    'plan.iconMore': 'More icons',
+    'plan.iconLess': 'Fewer icons',
     'plan.subDuplicateTitle': 'Subcategory already exists',
     'plan.subDuplicateBody':
       'This category already has that subcategory name. Use a different name (e.g. Car loan).',
@@ -1378,6 +1381,9 @@ export const translations = {
     'plan.subColor': 'Color de la subcategoría',
     'plan.subColorReset': 'Igual a su categoría',
     'plan.conceptColorEdit': 'Color en gráficos',
+    'plan.conceptStyleEdit': 'Cambiar ícono y color',
+    'plan.iconMore': 'Más íconos',
+    'plan.iconLess': 'Menos íconos',
     'plan.subDuplicateTitle': 'Subcategoría ya existe',
     'plan.subDuplicateBody':
       'Ese concepto ya tiene una subcategoría con ese nombre. Usa otro (ej. Carro crédito).',
