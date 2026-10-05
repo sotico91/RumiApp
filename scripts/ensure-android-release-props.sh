@@ -23,5 +23,7 @@ patch_prop expo.useLegacyPackaging true
 patch_prop android.enableMinifyInReleaseBuilds true
 patch_prop android.enableShrinkResourcesInReleaseBuilds true
 patch_prop android.enableBundleCompression true
+# expo-updates pushed the release build past the default 512m Metaspace.
+patch_prop org.gradle.jvmargs "-Xmx4096m -XX:MaxMetaspaceSize=1024m"
 
 echo "Android release size settings applied in gradle.properties"
