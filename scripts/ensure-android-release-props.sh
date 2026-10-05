@@ -26,4 +26,8 @@ patch_prop android.enableBundleCompression true
 # expo-updates pushed the release build past the default 512m Metaspace.
 patch_prop org.gradle.jvmargs "-Xmx4096m -XX:MaxMetaspaceSize=1024m"
 
+# Gradle keeps every JS asset (fonts, images) it ever bundled in these folders
+# and packs them all into the APK. Start clean so only what the bundle uses ships.
+rm -rf "$ROOT/android/app/build/generated/res/react" "$ROOT/android/app/build/generated/assets/react"
+
 echo "Android release size settings applied in gradle.properties"

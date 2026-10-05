@@ -1,4 +1,4 @@
-import { SymbolView } from 'expo-symbols';
+import { AppSymbol } from '@/src/components/AppSymbol';
 import { Tabs } from 'expo-router';
 
 import { RumiTabBar } from '@/src/components/RumiTabBar';
@@ -28,11 +28,7 @@ export default function TabLayout() {
         options={{
           title: t('tabs.home'),
           tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{ ios: 'house.fill', android: 'home', web: 'home' }}
-              tintColor={color}
-              size={22}
-            />
+            <AppSymbol ios="house.fill" android="home-outline" web="home" color={color} size={22} />
           ),
         }}
       />
@@ -41,11 +37,7 @@ export default function TabLayout() {
         options={{
           title: t('tabs.history'),
           tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{ ios: 'list.bullet', android: 'list', web: 'list' }}
-              tintColor={color}
-              size={22}
-            />
+            <AppSymbol ios="list.bullet" android="format-list-bulleted" web="list" color={color} size={22} />
           ),
         }}
       />
@@ -54,11 +46,7 @@ export default function TabLayout() {
         options={{
           title: t('tabs.plan'),
           tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{ ios: 'target', android: 'flag', web: 'flag' }}
-              tintColor={color}
-              size={22}
-            />
+            <AppSymbol ios="target" android="flag-outline" web="flag" color={color} size={22} />
           ),
         }}
       />
@@ -67,13 +55,11 @@ export default function TabLayout() {
         options={{
           title: t('tabs.wealth'),
           tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'building.columns.fill',
-                android: 'account_balance',
-                web: 'account_balance',
-              }}
-              tintColor={color}
+            <AppSymbol
+              ios="building.columns.fill"
+              android="bank-outline"
+              web="account_balance"
+              color={color}
               size={22}
             />
           ),
@@ -84,13 +70,11 @@ export default function TabLayout() {
         options={{
           title: t('tabs.insights'),
           tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'chart.bar.fill',
-                android: 'bar_chart',
-                web: 'bar_chart',
-              }}
-              tintColor={color}
+            <AppSymbol
+              ios="chart.bar.fill"
+              android="chart-bar"
+              web="bar_chart"
+              color={color}
               size={22}
             />
           ),

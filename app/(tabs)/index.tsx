@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -155,8 +155,8 @@ export default function HomeScreen() {
               <AppText variant="overline" color="onBrandMuted">
                 {t('home.available')}
               </AppText>
-              <Ionicons
-                name="information-circle-outline"
+              <MaterialCommunityIcons
+                name="information-outline"
                 size={16}
                 color={colors.text.onBrandMuted}
               />
@@ -435,8 +435,8 @@ function MetricTile({
         </View>
         {legend ? (
           <View style={styles.metricLegend}>
-            <Ionicons
-              name="information-circle-outline"
+            <MaterialCommunityIcons
+              name="information-outline"
               size={18}
               color={colors.text.tertiary}
             />

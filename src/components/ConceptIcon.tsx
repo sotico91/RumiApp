@@ -1,4 +1,4 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { StyleSheet, View } from 'react-native';
 
 import { DEFAULT_CONCEPT_ICON, isConceptIcon } from '@/src/data/conceptIcons';

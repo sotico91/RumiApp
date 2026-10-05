@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Ionicons } from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import type { ComponentProps, ReactNode } from 'react';
 import {
   Linking,
@@ -278,14 +278,14 @@ export function ProfileMenuButton() {
                 style={styles.closeBtn}
                 accessibilityRole="button"
                 accessibilityLabel={t('settings.close')}>
-                <Ionicons name="close" size={20} color={colors.text.secondary} />
+                <MaterialCommunityIcons name="close" size={20} color={colors.text.secondary} />
               </Pressable>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.sheetBody}>
               <SettingsGroup title={t('settings.profile')}>
                 <SettingsRow
-                  icon="person-outline"
+                  icon="account-outline"
                   label={t('settings.name')}
                   value={settings.userName.trim()}
                   onPress={openEditName}
@@ -294,20 +294,20 @@ export function ProfileMenuButton() {
 
               <SettingsGroup title={t('settings.preferences')}>
                 <SettingsRow
-                  icon="language-outline"
+                  icon="web"
                   label={t('language.label')}
                   value={language === 'es' ? 'Español' : 'English'}
                   onPress={switchLanguage}
                 />
                 <SettingsRow
-                  icon="notifications-outline"
+                  icon="bell-outline"
                   label={t('settings.notify')}
                   hint={t('settings.notifyHint')}
                   toggle={settings.notifyOnExpense}
                   onPress={() => void toggleNotifyOnExpense()}
                 />
                 <SettingsRow
-                  icon="lock-closed-outline"
+                  icon="lock-outline"
                   label={t('settings.lock')}
                   toggle={settings.appLockEnabled}
                   onPress={() => void toggleAppLock()}
@@ -321,12 +321,12 @@ export function ProfileMenuButton() {
                   onPress={() => void exportBackup()}
                 />
                 <SettingsRow
-                  icon="document-text-outline"
+                  icon="file-document-outline"
                   label={t('backup.exportCsv')}
                   onPress={() => void exportCsv()}
                 />
                 <SettingsRow
-                  icon="refresh-outline"
+                  icon="refresh"
                   label={t('backup.restore')}
                   onPress={confirmRestore}
                 />
@@ -334,12 +334,12 @@ export function ProfileMenuButton() {
 
               <SettingsGroup title={t('settings.help')}>
                 <SettingsRow
-                  icon="chatbubble-ellipses-outline"
+                  icon="chat-processing-outline"
                   label={t('support.report')}
                   onPress={reportProblem}
                 />
                 <SettingsRow
-                  icon="shield-checkmark-outline"
+                  icon="shield-check-outline"
                   label={t('about.privacyPolicy')}
                   onPress={openPrivacyPolicy}
                 />
@@ -347,7 +347,7 @@ export function ProfileMenuButton() {
 
               <SettingsGroup title={t('settings.danger')}>
                 <SettingsRow
-                  icon="trash-outline"
+                  icon="trash-can-outline"
                   label={t('fab.reset')}
                   danger
                   onPress={confirmReset}
@@ -426,7 +426,7 @@ function SettingsRow({
   danger = false,
   onPress,
 }: {
-  icon: ComponentProps<typeof Ionicons>['name'];
+  icon: ComponentProps<typeof MaterialCommunityIcons>['name'];
   label: string;
   hint?: string;
   /** Current value shown on the right, with a chevron. */
@@ -446,7 +446,7 @@ function SettingsRow({
       accessibilityRole={toggle === undefined ? 'button' : 'switch'}
       accessibilityState={toggle === undefined ? undefined : { checked: toggle }}
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}>
-      <Ionicons name={icon} size={20} color={tint} />
+      <MaterialCommunityIcons name={icon} size={20} color={tint} />
       <View style={styles.rowText}>
         <AppText variant="bodyStrong" style={danger ? styles.dangerText : undefined}>
           {label}
@@ -476,7 +476,7 @@ function SettingsRow({
             </AppText>
           ) : null}
           {danger ? null : (
-            <Ionicons name="chevron-forward" size={18} color={colors.text.tertiary} />
+            <MaterialCommunityIcons name="chevron-right" size={18} color={colors.text.tertiary} />
           )}
         </View>
       )}

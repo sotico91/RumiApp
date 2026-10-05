@@ -1,8 +1,8 @@
 import { router } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
 import { Pressable, StyleSheet } from 'react-native';
 import Animated, { ZoomIn } from 'react-native-reanimated';
 
+import { AppSymbol } from '@/src/components/AppSymbol';
 import { useKeyboardVisible } from '@/src/hooks/useKeyboardVisible';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { colors, radius, shadow, space } from '@/src/theme';
@@ -29,9 +29,11 @@ export function AddFab() {
         accessibilityRole="button"
         accessibilityLabel={t('fab.add')}
         style={({ pressed }) => [styles.fab, pressed && styles.pressed]}>
-        <SymbolView
-          name={{ ios: 'plus', android: 'add', web: 'add' }}
-          tintColor={colors.text.onAction}
+        <AppSymbol
+          ios="plus"
+          android="plus"
+          web="add"
+          color={colors.text.onAction}
           size={30}
           weight="semibold"
         />

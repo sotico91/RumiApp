@@ -12,6 +12,11 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-05
 
+- **APK más liviano: de 24.6 MB a 21.9 MB.** El APK llevaba 57 fuentes y ahora lleva 8.
+  Las fuentes se importan por peso (`@expo-google-fonts/dm-sans/400Regular`…) y los íconos por familia (`@expo/vector-icons/MaterialCommunityIcons`), porque el índice del paquete metía las 18 variantes y las 19 familias.
+  Ionicons se cambió por MaterialCommunityIcons, y el nuevo `AppSymbol` usa SF Symbols en iOS y MaterialCommunityIcons en Android.
+  `ensure-android-release-props.sh` limpia los recursos generados por Gradle antes de cada APK, que arrastraban fuentes de builds viejos.
+- **Código sin uso eliminado:** `LanguageSwitcher`, `SummaryCard`, `src/data/storage.ts` (la migración vive en `financeStorage`) y los restos de la plantilla de Expo (`components/`, `constants/`, `SpaceMono`).
 - **Pagos a vigilar aprende tus pagos mensuales:** busca en los últimos 6 meses los conceptos que pagas una o dos veces al mes (administración, recibos, seguro de la moto…), en al menos 2 meses y con un pago reciente.
   Deja fuera los gastos de todos los días (más de 2 pagos al mes) y los marcados como hormiga.
   Cuando pagas uno este mes pasa a "Ya pagados" con lo que realmente pagaste; varios pagos al mismo concepto se suman ("2 pagos").

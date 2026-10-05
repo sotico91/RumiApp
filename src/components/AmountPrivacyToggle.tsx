@@ -1,4 +1,4 @@
-import { SymbolView } from 'expo-symbols';
+import { AppSymbol } from '@/src/components/AppSymbol';
 import { Pressable, StyleSheet } from 'react-native';
 
 import { useAmountPrivacy } from '@/src/hooks/useAmountPrivacy';
@@ -27,13 +27,11 @@ export function AmountPrivacyToggle() {
       accessibilityLabel={
         amountsVisible ? t('privacy.hideAmounts') : t('privacy.showAmounts')
       }>
-      <SymbolView
-        name={{
-          ios: amountsVisible ? 'eye.fill' : 'eye.slash.fill',
-          android: amountsVisible ? 'visibility' : 'visibility_off',
-          web: amountsVisible ? 'visibility' : 'visibility_off',
-        }}
-        tintColor={colors.text.onBrand}
+      <AppSymbol
+        ios={amountsVisible ? 'eye.fill' : 'eye.slash.fill'}
+        android={amountsVisible ? 'eye' : 'eye-off'}
+        web={amountsVisible ? 'visibility' : 'visibility_off'}
+        color={colors.text.onBrand}
         size={18}
       />
     </Pressable>

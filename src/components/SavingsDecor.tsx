@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useEffect, useState } from 'react';
 import {
   Pressable,
@@ -102,7 +102,7 @@ export function SavingsDecor({
           <View style={styles.glow} />
           <View style={[styles.card, { width: cardSize, height: cardSize }]}>
             <View style={styles.piggy}>
-              <Ionicons
+              <MaterialCommunityIcons
                 name="wallet"
                 size={size === 'lg' ? 34 : 28}
                 color={palette.white}
@@ -145,7 +145,7 @@ export function SavingsDecor({
             <View style={styles.panelHeader}>
               <View style={styles.panelHeaderLeft}>
                 <View style={styles.miniIcon}>
-                  <Ionicons name="wallet" size={16} color={palette.white} />
+                  <MaterialCommunityIcons name="wallet" size={16} color={palette.white} />
                 </View>
                 <Text style={styles.panelTitle}>{t('decor.totalsTitle')}</Text>
               </View>
