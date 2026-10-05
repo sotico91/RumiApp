@@ -98,7 +98,12 @@ export function PredictedSpendsCard({ items }: Props) {
                     {r.title}
                   </Text>
                   <Text style={styles.meta} numberOfLines={1}>
-                    {r.detail}
+                    {r.item.paidAmount > 0
+                      ? t('home.predictPartial', {
+                          paid: format(r.item.paidAmount),
+                          due: format(r.item.expectedAmount),
+                        })
+                      : r.detail}
                   </Text>
                 </View>
                 <View style={styles.right}>
@@ -135,7 +140,12 @@ export function PredictedSpendsCard({ items }: Props) {
                 <MoneyText style={[styles.amount, styles.amountPaid]}>
                   {format(r.item.amount)}
                 </MoneyText>
-                <Text style={styles.due}>✓ {t('home.predictPaid')}</Text>
+                <Text style={styles.due}>
+                  ✓{' '}
+                  {r.item.payments > 1
+                    ? t('home.predictPaidTimes', { count: r.item.payments })
+                    : t('home.predictPaid')}
+                </Text>
               </View>
             </View>
           ))}

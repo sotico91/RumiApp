@@ -299,7 +299,14 @@ export type PredictedSpendSource = 'history' | 'debt';
 export type PredictedSpend = {
   id: string;
   categoryId: string;
+  /** Pending: what is still to pay. Paid: what was actually paid this month. */
   amount: number;
+  /** Usual monthly amount (installment, or typical month total of the bill). */
+  expectedAmount: number;
+  /** Sum of this month's payments toward it (several payments add up). */
+  paidAmount: number;
+  /** How many payments this month. */
+  payments: number;
   typicalDay: number;
   status: PredictedSpendStatus;
   source: PredictedSpendSource;
@@ -320,9 +327,21 @@ function median(values: number[]): number {
   return Math.round((sorted[mid - 1] + sorted[mid]) / 2);
 }
 
+/** Months of history used to spot monthly bills. */
+const BILL_LOOKBACK_MONTHS = 6;
+/** A bill paid in a few parts still counts; more payments a month is everyday spending. */
+const BILL_MAX_PAYMENTS_PER_MONTH = 2;
+/** A bill not seen for longer than this has stopped (moved, cancelled). */
+const BILL_MAX_GAP_MONTHS = 2;
+
+type MonthSpend = { count: number; total: number; firstDay: number };
+
 /**
- * Simple monthly prediction from history + fixed installments.
- * Pattern window: prior 3 calendar months; current month only for paid/pending.
+ * Monthly payments to watch: installments of open debts, plus bills found in
+ * the history — concepts paid once or twice a month (rent, utilities,
+ * insurance…) in at least two months, and recently. Everyday spends (several
+ * times a month) and ant spends are left out. This month's payments mark an
+ * item as paid and add up to what was actually paid.
  */
 export function predictMonthlySpends(
   transactions: Transaction[],
@@ -337,57 +356,35 @@ export function predictMonthlySpends(
   const year = now.getFullYear();
   const monthIndex = now.getMonth();
 
-  const lookback: Array<{ year: number; monthIndex: number }> = [];
-  for (let i = 1; i <= 3; i += 1) {
-    lookback.push(shiftMonth(year, monthIndex, -i));
-  }
-
-  type Agg = {
-    amounts: number[];
-    days: number[];
-    monthsPresent: Set<string>;
-  };
-  const byCategory = new Map<string, Agg>();
-
-  for (const m of lookback) {
-    const monthKey = `${m.year}-${m.monthIndex}`;
-    const monthTxs = filterByCalendarMonth(transactions, m.year, m.monthIndex).filter(
-      (t) => isSpendOut(t) && !!t.categoryId
-    );
-    const seen = new Set<string>();
-    for (const t of monthTxs) {
-      const categoryId = t.categoryId!;
-      seen.add(categoryId);
-      const agg = byCategory.get(categoryId) ?? {
-        amounts: [],
-        days: [],
-        monthsPresent: new Set<string>(),
-      };
-      agg.amounts.push(t.amount);
-      agg.days.push(new Date(t.createdAt).getDate());
-      byCategory.set(categoryId, agg);
-    }
-    for (const categoryId of seen) {
-      byCategory.get(categoryId)?.monthsPresent.add(monthKey);
+  // Per category, per month back (1 = last month): payments count, total and first day.
+  const history = new Map<string, Map<number, MonthSpend>>();
+  for (let back = 1; back <= BILL_LOOKBACK_MONTHS; back += 1) {
+    const m = shiftMonth(year, monthIndex, -back);
+    for (const t of filterByCalendarMonth(transactions, m.year, m.monthIndex)) {
+      if (!isSpendOut(t) || !t.categoryId) continue;
+      const months = history.get(t.categoryId) ?? new Map<number, MonthSpend>();
+      const day = new Date(t.createdAt).getDate();
+      const spend = months.get(back) ?? { count: 0, total: 0, firstDay: day };
+      spend.count += 1;
+      spend.total += t.amount;
+      spend.firstDay = Math.min(spend.firstDay, day);
+      months.set(back, spend);
+      history.set(t.categoryId, months);
     }
   }
 
   const thisMonth = filterByCalendarMonth(transactions, year, monthIndex).filter(isSpendOut);
-  const paidCategoryIds = new Set(
-    thisMonth.map((t) => t.categoryId).filter((id): id is string => !!id)
-  );
-  const paidByDebtId = new Map<string, number>();
-  const paidAmountByCategory = new Map<string, number>();
+  const paidByDebtId = new Map<string, { total: number; count: number }>();
+  const paidByCategory = new Map<string, { total: number; count: number }>();
+  const add = (map: Map<string, { total: number; count: number }>, key: string, amount: number) => {
+    const cur = map.get(key) ?? { total: 0, count: 0 };
+    cur.total += amount;
+    cur.count += 1;
+    map.set(key, cur);
+  };
   for (const t of thisMonth) {
-    if (t.type === 'debt_payment' && t.debtId) {
-      paidByDebtId.set(t.debtId, (paidByDebtId.get(t.debtId) ?? 0) + t.amount);
-    }
-    if (t.categoryId) {
-      paidAmountByCategory.set(
-        t.categoryId,
-        (paidAmountByCategory.get(t.categoryId) ?? 0) + t.amount
-      );
-    }
+    if (t.type === 'debt_payment' && t.debtId) add(paidByDebtId, t.debtId, t.amount);
+    if (t.categoryId) add(paidByCategory, t.categoryId, t.amount);
   }
 
   const results: PredictedSpend[] = [];
@@ -403,17 +400,18 @@ export function predictMonthlySpends(
       if (!Number.isNaN(d)) typicalDay = d;
     }
     const due = Math.min(debt.installment, Math.max(debt.balance, 0) || debt.installment);
-    const paidDirect = paidByDebtId.get(debt.id) ?? 0;
-    const paidCat = debt.categoryId
-      ? paidAmountByCategory.get(debt.categoryId) ?? 0
-      : 0;
-    // Prefer explicit debt_payment; otherwise any spend on the linked concept.
-    const paid = paidDirect > 0 ? paidDirect : paidCat;
-    const isPaid = due <= 0 || paid >= due;
+    // Prefer explicit debt payments; otherwise any spend on the linked concept.
+    const direct = paidByDebtId.get(debt.id);
+    const byCategory = debt.categoryId ? paidByCategory.get(debt.categoryId) : undefined;
+    const paid = direct && direct.total > 0 ? direct : byCategory ?? { total: 0, count: 0 };
+    const isPaid = due <= 0 || paid.total >= due;
     results.push({
       id: `debt-${debt.id}`,
       categoryId,
-      amount: debt.installment,
+      amount: isPaid ? paid.total : Math.max(due - paid.total, 0),
+      expectedAmount: debt.installment,
+      paidAmount: paid.total,
+      payments: paid.count,
       typicalDay,
       status: isPaid ? 'paid' : 'pending',
       source: 'debt',
@@ -423,17 +421,31 @@ export function predictMonthlySpends(
     if (debt.categoryId) coveredCategories.add(debt.categoryId);
   }
 
-  for (const [categoryId, agg] of byCategory) {
-    if (agg.monthsPresent.size < 2) continue;
+  for (const [categoryId, months] of history) {
     if (coveredCategories.has(categoryId)) continue;
     // Deleted or renamed-away subcategories should not keep showing up as "to pay".
     if (liveSubIds && !liveSubIds.has(categoryId)) continue;
+    if (isAntCategoryId(categoryId, spendConcepts ?? [])) continue;
+    const paidNow = paidByCategory.get(categoryId);
+    const monthsPresent = months.size + (paidNow ? 1 : 0);
+    if (monthsPresent < 2) continue;
+    const lastSeenBack = paidNow ? 0 : Math.min(...months.keys());
+    if (lastSeenBack > BILL_MAX_GAP_MONTHS) continue;
+    const spends = [...months.values()];
+    const perMonth = median([...spends.map((m) => m.count), ...(paidNow ? [paidNow.count] : [])]);
+    if (perMonth > BILL_MAX_PAYMENTS_PER_MONTH) continue;
+
+    const expected = median(spends.map((m) => m.total));
+    const typicalDay = Math.min(28, Math.max(1, median(spends.map((m) => m.firstDay))));
     results.push({
       id: `hist-${categoryId}`,
       categoryId,
-      amount: median(agg.amounts),
-      typicalDay: Math.min(28, Math.max(1, median(agg.days))),
-      status: paidCategoryIds.has(categoryId) ? 'paid' : 'pending',
+      amount: paidNow ? paidNow.total : expected,
+      expectedAmount: expected,
+      paidAmount: paidNow?.total ?? 0,
+      payments: paidNow?.count ?? 0,
+      typicalDay,
+      status: paidNow ? 'paid' : 'pending',
       source: 'history',
     });
   }

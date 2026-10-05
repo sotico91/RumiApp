@@ -109,6 +109,8 @@ export const translations = {
     'home.predictEmpty':
       'Debt installments and repeating monthly expenses appear here so you can watch them — they are not counted as spend until you log the payment.',
     'home.predictPaid': 'Paid',
+    'home.predictPaidTimes': '{count} payments',
+    'home.predictPartial': 'Paid {paid} of {due}',
     'home.predictPendingHeader': 'To pay',
     'home.predictPaidHeader': 'Already paid ({count})',
     'home.predictOverdue': 'Was due day {day}',
@@ -1144,6 +1146,8 @@ export const translations = {
     'home.predictEmpty':
       'Aquí salen cuotas de deudas y gastos que se repiten mes a mes, para prestarles atención. No cuentan como gasto hasta que registres el pago.',
     'home.predictPaid': 'Ya pagado',
+    'home.predictPaidTimes': '{count} pagos',
+    'home.predictPartial': 'Llevas {paid} de {due}',
     'home.predictPendingHeader': 'Por pagar',
     'home.predictPaidHeader': 'Ya pagados ({count})',
     'home.predictOverdue': 'Venció el día {day}',

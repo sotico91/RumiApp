@@ -12,6 +12,11 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-05
 
+- **Pagos a vigilar aprende tus pagos mensuales:** busca en los últimos 6 meses los conceptos que pagas una o dos veces al mes (administración, recibos, seguro de la moto…), en al menos 2 meses y con un pago reciente.
+  Deja fuera los gastos de todos los días (más de 2 pagos al mes) y los marcados como hormiga.
+  Cuando pagas uno este mes pasa a "Ya pagados" con lo que realmente pagaste; varios pagos al mismo concepto se suman ("2 pagos").
+  Lo pendiente muestra el total típico del mes, y una cuota con abono parcial dice "Llevas $X de $Y" y cuánto falta.
+  La proyección del mes ahora suma solo lo que falta por pagar.
 - **Una sola fuente de colores:** `palette` (nombres antiguos) se construye ahora desde `src/theme/tokens.ts`, así que las pantallas viejas ya no pueden quedar con otro tono.
   Se quitaron colores sin uso (`bgDeep`, `surface`, `accentGlow`, `coral`), y el teal para texto y el color de sombra pasan a ser tokens.
 - **Patrimonio dividido:** `wealth.tsx` pasa de 1 472 a 218 líneas, sin cambios de comportamiento.
