@@ -18,6 +18,7 @@ import { ProfileMenuButton } from '@/src/components/ProfileMenuButton';
 import { QuickAddBar } from '@/src/components/QuickAddBar';
 import { PocketFlowList } from '@/src/components/PocketFlowList';
 import { RaisedText } from '@/src/components/RaisedText';
+import { SavingsDecor } from '@/src/components/SavingsDecor';
 import { SelectPressable } from '@/src/components/SelectPressable';
 import { AppText, BrandScreen, Button, Card } from '@/src/components/ui';
 import { useFinance } from '@/src/hooks/useFinance';
@@ -134,10 +135,14 @@ export default function HomeScreen() {
                 {greeting}
               </RaisedText>
             </View>
-            <View style={styles.avatarRow}>
-              <HowToGuideButton light />
-              <AmountPrivacyToggle />
-              <ProfileMenuButton />
+            <View style={styles.heroAside}>
+              <View style={styles.avatarRow}>
+                <HowToGuideButton light />
+                <AmountPrivacyToggle />
+                <ProfileMenuButton />
+              </View>
+              {/* The floating wallet opens the cash / banks / wallets glance. */}
+              <SavingsDecor />
             </View>
           </View>
 
@@ -466,6 +471,10 @@ const styles = StyleSheet.create({
     lineHeight: 30,
     marginTop: space.xxs,
     color: colors.text.highlight,
+  },
+  heroAside: {
+    alignItems: 'center',
+    gap: space.sm,
   },
   avatarRow: {
     flexDirection: 'row',

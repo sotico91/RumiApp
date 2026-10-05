@@ -27,7 +27,8 @@ El detalle de cada cambio está en `git log`.
   El generador escribe `splash-blank.png` (billete sin sello) y `splash-monogram.png` (solo la R) para esa transición, y `splash-icon.png` con la R para el splash nativo.
 - **Borrar con Deshacer:** borrar un movimiento ya no pide confirmación; se borra al momento y la tarjeta inferior muestra "Movimiento borrado" con un botón **Deshacer** durante 6 segundos.
   Deshacer devuelve el movimiento con su mismo id y fecha, y reaplica su efecto en saldos y deudas (`restoreTransaction`).
-- **Inicio más simple:** sin el cerdito animado en la cabecera (sigue en Análisis) ni la línea "Espacio de gastos de…".
+- **Inicio más simple:** sin la línea "Espacio de gastos de…".
+  La billetera flotante de la cabecera se mantiene: abre el desglose de efectivo, bancos y billeteras.
   "Merece atención" solo aparece cuando hay topes superados, y abierta.
   "Pagos a vigilar" se oculta si no hay pagos previstos.
   Orden: el mes, el registro rápido, las alertas, los pagos y al final los consejos.
