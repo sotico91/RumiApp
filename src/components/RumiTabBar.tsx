@@ -99,8 +99,8 @@ const styles = StyleSheet.create({
   label: {
     ...type.caption,
     fontFamily: type.overline.fontFamily,
-    fontSize: 11,
-    lineHeight: 14,
+    fontSize: 12,
+    lineHeight: 16,
   },
   labelOn: {
     fontFamily: type.title.fontFamily,

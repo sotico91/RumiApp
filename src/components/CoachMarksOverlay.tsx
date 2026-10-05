@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
   cardCenter: { alignSelf: 'center', maxWidth: 340 },
   kicker: {
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 11,
+    fontSize: 12,
     color: palette.inkSoft,
     letterSpacing: 0.7,
     textTransform: 'uppercase',

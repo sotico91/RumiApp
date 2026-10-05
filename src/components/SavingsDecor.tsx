@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   caption: {
     marginTop: 4,
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 9,
+    fontSize: 11,
     color: palette.brand,
     letterSpacing: 0.3,
     textTransform: 'uppercase',
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
   },
   section: {
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 11,
+    fontSize: 12,
     color: 'rgba(255,255,255,0.55)',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontFamily: 'DMSans_500Medium',
-    fontSize: 11,
+    fontSize: 12,
     color: 'rgba(255,255,255,0.7)',
   },
   statValue: {
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
   panelHint: {
     marginTop: 12,
     fontFamily: 'DMSans_400Regular',
-    fontSize: 11,
+    fontSize: 12,
     color: 'rgba(255,255,255,0.55)',
   },
 });

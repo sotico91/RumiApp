@@ -80,6 +80,8 @@ function OptionChips<T extends string>({
         const on = opt.id === value;
         return (
           <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ selected: !!on }}
             key={opt.id}
             onPress={() => {
               tapFeedback();
@@ -409,6 +411,7 @@ export default function WealthScreen() {
         <Text style={styles.copyHint}>{t('wealth.debtPayDayHint')}</Text>
         <View style={styles.formActions}>
           <Pressable
+            accessibilityRole="button"
             onPress={() => {
               tapFeedback();
               resetForm();
@@ -417,6 +420,7 @@ export default function WealthScreen() {
             <Text style={styles.secondaryBtnText}>{t('wealth.debtCancel')}</Text>
           </Pressable>
           <Pressable
+            accessibilityRole="button"
             onPress={() => void handleSaveDebt()}
             disabled={saving}
             style={[styles.saveBtn, styles.saveBtnFlex]}>
@@ -475,10 +479,10 @@ export default function WealthScreen() {
             ) : null}
           </View>
           <View style={styles.cardActions}>
-            <Pressable onPress={() => startEdit(debt)}>
+            <Pressable accessibilityRole="button" onPress={() => startEdit(debt)}>
               <Text style={styles.editText}>{t('wealth.debtEdit')}</Text>
             </Pressable>
-            <Pressable onPress={() => confirmRemove(debt.id, label)}>
+            <Pressable accessibilityRole="button" onPress={() => confirmRemove(debt.id, label)}>
               <Text style={styles.deleteText}>{t('wealth.debtDelete')}</Text>
             </Pressable>
           </View>
@@ -560,6 +564,7 @@ export default function WealthScreen() {
         <View style={styles.debtActions}>
           {revolving ? (
             <Pressable
+              accessibilityRole="button"
               onPress={() => {
                 tapFeedback();
                 router.push({
@@ -572,6 +577,7 @@ export default function WealthScreen() {
             </Pressable>
           ) : null}
           <Pressable
+            accessibilityRole="button"
             onPress={() => {
               tapFeedback();
               router.push({
@@ -849,17 +855,18 @@ export default function WealthScreen() {
                       {open && !renaming && !editingBal ? (
                         <View style={styles.accActions}>
                           {canEditBalance ? (
-                            <Pressable onPress={() => startEditBalance(acc)} hitSlop={6}>
+                            <Pressable accessibilityRole="button" onPress={() => startEditBalance(acc)} hitSlop={6}>
                               <Text style={styles.editText}>{t('wealth.balanceEdit')}</Text>
                             </Pressable>
                           ) : null}
                           {canRename ? (
-                            <Pressable onPress={() => startRenameWallet(acc)} hitSlop={6}>
+                            <Pressable accessibilityRole="button" onPress={() => startRenameWallet(acc)} hitSlop={6}>
                               <Text style={styles.editText}>{t('wealth.walletRename')}</Text>
                             </Pressable>
                           ) : null}
                           {canRemove ? (
                             <Pressable
+                              accessibilityRole="button"
                               hitSlop={6}
                               onPress={() =>
                                 confirmRemovePocket(
@@ -897,6 +904,7 @@ export default function WealthScreen() {
                           />
                           <View style={styles.formActions}>
                             <Pressable
+                              accessibilityRole="button"
                               onPress={() => {
                                 tapFeedback();
                                 setEditingBalanceId(null);
@@ -908,6 +916,7 @@ export default function WealthScreen() {
                               </Text>
                             </Pressable>
                             <Pressable
+                              accessibilityRole="button"
                               onPress={() => void handleSaveBalance()}
                               disabled={savingBalance || !balanceDraft.trim()}
                               style={[
@@ -944,6 +953,7 @@ export default function WealthScreen() {
                           />
                           <View style={styles.formActions}>
                             <Pressable
+                              accessibilityRole="button"
                               onPress={() => {
                                 tapFeedback();
                                 setEditingWalletId(null);
@@ -955,6 +965,7 @@ export default function WealthScreen() {
                               </Text>
                             </Pressable>
                             <Pressable
+                              accessibilityRole="button"
                               onPress={() => void handleSaveWalletName()}
                               disabled={savingWallet || !walletNameDraft.trim()}
                               style={[
@@ -998,7 +1009,7 @@ export default function WealthScreen() {
           {!(showForm && kind === 'revolving') ? (
             <View style={styles.sectionRow}>
               <View style={{ flex: 1 }} />
-              <Pressable onPress={() => startCreate('revolving')} style={styles.addBtn}>
+              <Pressable accessibilityRole="button" onPress={() => startCreate('revolving')} style={styles.addBtn}>
                 <Text style={styles.addBtnText}>{t('wealth.addCard')}</Text>
               </Pressable>
             </View>
@@ -1047,7 +1058,7 @@ export default function WealthScreen() {
           {!(showForm && kind === 'installment') ? (
             <View style={styles.sectionRow}>
               <View style={{ flex: 1 }} />
-              <Pressable onPress={() => startCreate('installment')} style={styles.addBtn}>
+              <Pressable accessibilityRole="button" onPress={() => startCreate('installment')} style={styles.addBtn}>
                 <Text style={styles.addBtnText}>{t('wealth.addLoan')}</Text>
               </Pressable>
             </View>
@@ -1443,7 +1454,7 @@ const styles = StyleSheet.create({
   editText: {
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 13,
-    color: palette.teal,
+    color: palette.tealText,
   },
   deleteText: {
     fontFamily: 'DMSans_500Medium',
@@ -1454,7 +1465,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 13,
-    color: palette.teal,
+    color: palette.tealText,
   },
   empty: {
     fontFamily: 'DMSans_400Regular',

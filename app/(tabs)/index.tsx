@@ -280,13 +280,15 @@ export default function HomeScreen() {
           <View style={styles.metricsRow}>
             <MetricTile
               label={t('home.income')}
-              value={format(loading ? 0 : income)}
+              value={format(income)}
+              loading={loading}
               tone="good"
               onPress={() => setGlance('income')}
             />
             <MetricTile
               label={t('home.expenses')}
-              value={format(loading ? 0 : expenses)}
+              value={format(expenses)}
+              loading={loading}
               tone={expensesTone}
               onPress={() => setGlance('expense')}
             />
@@ -295,6 +297,7 @@ export default function HomeScreen() {
             label={t('home.savings')}
             legend={t('home.savingsLegend')}
             value={format(savings)}
+            loading={loading}
             tone={savingsTone}
             hint={
               paceHint ??
@@ -399,9 +402,12 @@ function MetricTile({
   hint,
   onPress,
   legend,
+  loading = false,
 }: {
   label: string;
   value: string;
+  /** Show a placeholder bar instead of a zero that reads like real data. */
+  loading?: boolean;
   tone?: SignalTone;
   hint?: string;
   onPress?: () => void;
@@ -412,7 +418,7 @@ function MetricTile({
   return (
     <Card
       onPress={onPress}
-      accessibilityLabel={`${label}: ${value}`}
+      accessibilityLabel={loading ? label : `${label}: ${value}`}
       style={legend ? styles.metricWide : styles.metric}>
       <View style={legend ? styles.metricRow : undefined}>
         <View style={legend ? styles.metricMain : undefined}>
@@ -427,8 +433,12 @@ function MetricTile({
               {label}
             </AppText>
           </View>
-          <MoneyText style={[styles.metricValue, { color: toneColor }]}>{value}</MoneyText>
-          {hint ? (
+          {loading ? (
+            <View style={styles.metricSkeleton} />
+          ) : (
+            <MoneyText style={[styles.metricValue, { color: toneColor }]}>{value}</MoneyText>
+          )}
+          {hint && !loading ? (
             <AppText
               variant="caption"
               style={[styles.metricHint, tone !== 'neutral' && { color: toneColor }]}>
@@ -542,6 +552,13 @@ const styles = StyleSheet.create({
     ...type.h2,
     marginTop: space.xs,
     fontVariant: ['tabular-nums'],
+  },
+  metricSkeleton: {
+    width: '70%',
+    height: type.h2.lineHeight,
+    marginTop: space.xs,
+    borderRadius: radius.sm,
+    backgroundColor: colors.bg.surfaceMuted,
   },
   metricHint: {
     marginTop: space.xxs,

@@ -137,6 +137,7 @@ export function ConceptGlanceSheet({ visible, onClose, kind, items, total }: Pro
               </Text>
             </View>
             <Pressable
+              accessibilityRole="button"
               onPress={() => {
                 tapFeedback();
                 onClose();
@@ -178,6 +179,7 @@ export function ConceptGlanceSheet({ visible, onClose, kind, items, total }: Pro
                 return (
                   <View key={group.key} style={styles.group}>
                     <Pressable
+                      accessibilityRole="button"
                       onPress={() => {
                         if (!expandable) return;
                         tapFeedback();
@@ -294,7 +296,7 @@ const styles = StyleSheet.create({
   },
   panelEyebrow: {
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 11,
+    fontSize: 12,
     color: palette.inkSoft,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
@@ -326,7 +328,7 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontFamily: 'DMSans_500Medium',
-    fontSize: 11,
+    fontSize: 12,
     color: palette.inkSoft,
     textTransform: 'uppercase',
   },
@@ -393,7 +395,7 @@ const styles = StyleSheet.create({
   },
   conceptMeta: {
     fontFamily: 'DMSans_400Regular',
-    fontSize: 11,
+    fontSize: 12,
     color: palette.inkSoft,
     marginTop: 2,
   },
@@ -428,7 +430,7 @@ const styles = StyleSheet.create({
   },
   subMeta: {
     fontFamily: 'DMSans_400Regular',
-    fontSize: 11,
+    fontSize: 12,
     color: palette.inkSoft,
     marginTop: 2,
   },

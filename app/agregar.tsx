@@ -113,9 +113,11 @@ export default function AgregarScreen() {
           />
         ) : (
           <>
-          <View style={styles.modeSwitch}>
+          <View style={styles.modeSwitch} accessibilityRole="tablist">
             <Pressable
               onPress={() => setMode('friendly')}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: mode === 'friendly' }}
               style={[styles.modeBtn, mode === 'friendly' && styles.modeOn]}>
               <Text style={[styles.modeText, mode === 'friendly' && styles.modeTextOn]}>
                 {t('flow.friendly')}
@@ -123,6 +125,8 @@ export default function AgregarScreen() {
             </Pressable>
             <Pressable
               onPress={() => setMode('advanced')}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: mode === 'advanced' }}
               style={[styles.modeBtn, mode === 'advanced' && styles.modeOn]}>
               <Text style={[styles.modeText, mode === 'advanced' && styles.modeTextOn]}>
                 {t('flow.advanced')}

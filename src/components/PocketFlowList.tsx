@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   group: { gap: 4 },
   groupTitle: {
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 11,
+    fontSize: 12,
     letterSpacing: 0.6,
     textTransform: 'uppercase',
     color: palette.inkSoft,

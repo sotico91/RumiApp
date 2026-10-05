@@ -14,8 +14,8 @@ export const scale = {
     500: '#2A6F7A',
   },
   coral: {
-    600: '#E85536',
-    500: '#FF6B4A',
+    600: '#B33418',
+    500: '#CF3E1E',
     100: '#FFE6DE',
   },
   gold: {
@@ -79,11 +79,11 @@ export const colors = {
   },
   /** Coral is the action color, so warning has its own amber. */
   status: {
-    success: '#1F9D6C',
+    success: '#1A8158',
     successSoft: '#E3F7EE',
     warning: '#C27C0E',
     warningSoft: '#FFF4E0',
-    danger: '#D64545',
+    danger: '#B3263F',
     dangerSoft: '#FDE8E8',
     info: scale.petrol[500],
     infoSoft: scale.teal[100],

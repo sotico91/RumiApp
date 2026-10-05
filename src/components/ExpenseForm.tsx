@@ -397,6 +397,7 @@ export function ExpenseForm({
       <View style={styles.chips}>
         {TYPES.map((item) => (
           <Pressable
+            accessibilityRole="button"
             key={item}
             onPress={() => selectType(item)}
             style={[styles.pill, type === item && styles.pillOn]}>
@@ -439,6 +440,7 @@ export function ExpenseForm({
           <View style={styles.chips}>
             {METHODS.filter((item) => item !== 'credit').map((item) => (
               <Pressable
+                accessibilityRole="button"
                 key={item}
                 onPress={() => setMethod(item)}
                 style={[styles.pill, method === item && styles.pillOn]}>
@@ -515,6 +517,7 @@ export function ExpenseForm({
           <View style={styles.chips}>
             {spendConcepts.map((concept) => (
               <Pressable
+                accessibilityRole="button"
                 key={concept.id}
                 onPress={() => {
                   setConceptId(concept.id);
@@ -542,6 +545,7 @@ export function ExpenseForm({
           <View style={styles.chips}>
             {liveDebts.map((debt) => (
               <Pressable
+                accessibilityRole="button"
                 key={debt.id}
                 onPress={() => pickDebt(debt)}
                 style={[styles.pill, debtId === debt.id && styles.pillOn]}>
@@ -664,7 +668,7 @@ const styles = StyleSheet.create({
   label: {
     marginTop: 8,
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 11,
+    fontSize: 12,
     color: palette.inkMuted,
     textTransform: 'uppercase',
     letterSpacing: 1.1,

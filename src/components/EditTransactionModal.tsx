@@ -226,6 +226,7 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
             <View style={styles.wrap}>
               {TYPES.map((item) => (
                 <Pressable
+                  accessibilityRole="button"
                   key={item}
                   onPress={() => selectType(item)}
                   style={[styles.chip, type === item && styles.chipOn]}>
@@ -260,6 +261,8 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
                         const on = concept.id === conceptId;
                         return (
                           <Pressable
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: !!on }}
                             key={concept.id}
                             onPress={() => {
                               setConceptId(concept.id);
@@ -339,6 +342,7 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
                 <View style={styles.wrap}>
                   {METHODS.filter((m) => m !== 'credit').map((m) => (
                     <Pressable
+                      accessibilityRole="button"
                       key={m}
                       onPress={() => setMethod(m)}
                       style={[styles.chip, method === m && styles.chipOn]}>
@@ -419,10 +423,11 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
 
           {keyboardVisible ? null : (
           <View style={styles.actions}>
-            <Pressable onPress={onClose} style={styles.secondary}>
+            <Pressable accessibilityRole="button" onPress={onClose} style={styles.secondary}>
               <Text style={styles.secondaryText}>{t('history.cancel')}</Text>
             </Pressable>
             <Pressable
+              accessibilityRole="button"
               onPress={() => void handleSave()}
               disabled={saving}
               style={[styles.primary, saving && { opacity: 0.7 }]}>

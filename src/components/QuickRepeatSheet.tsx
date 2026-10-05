@@ -262,12 +262,14 @@ export function QuickRepeatSheet({
                 {!editing ? (
                   <>
                     <Pressable
+                      accessibilityRole="button"
                       onPress={handleConfirm}
                       disabled={!canConfirm}
                       style={[styles.primaryBtn, !canConfirm && styles.btnDisabled]}>
                       <Text style={styles.primaryText}>{t('home.quickConfirmYes')}</Text>
                     </Pressable>
                     <Pressable
+                      accessibilityRole="button"
                       onPress={() => {
                         tapFeedback();
                         setEditing(true);
@@ -281,12 +283,14 @@ export function QuickRepeatSheet({
                 ) : (
                   <>
                     <Pressable
+                      accessibilityRole="button"
                       onPress={handleConfirm}
                       disabled={!canConfirm}
                       style={[styles.primaryBtn, !canConfirm && styles.btnDisabled]}>
                       <Text style={styles.primaryText}>{t('home.quickConfirmSave')}</Text>
                     </Pressable>
                     <Pressable
+                      accessibilityRole="button"
                       onPress={() => {
                         tapFeedback();
                         setEditing(false);
@@ -298,6 +302,7 @@ export function QuickRepeatSheet({
                   </>
                 )}
                 <Pressable
+                  accessibilityRole="button"
                   onPress={() => {
                     tapFeedback();
                     onEditFull(currentAmount(), resolvedNote);
@@ -306,6 +311,7 @@ export function QuickRepeatSheet({
                   <Text style={styles.linkText}>{t('home.quickConfirmFull')}</Text>
                 </Pressable>
                 <Pressable
+                  accessibilityRole="button"
                   onPress={handleClose}
                   disabled={busy}
                   style={styles.cancelBtn}>

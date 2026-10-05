@@ -108,6 +108,7 @@ export function ReminderSettingsCard() {
             tapFeedback();
             setPickerOpen(true);
           }}
+          accessibilityRole="button"
           style={styles.pickerBtn}>
           <Text style={styles.pickerBtnText}>{t('reminder.addSub')}</Text>
           <Text style={styles.chevron}>▾</Text>
@@ -127,6 +128,8 @@ export function ReminderSettingsCard() {
                   tapFeedback();
                   setEditingSubId(open ? null : rule.subId);
                 }}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: open }}
                 style={styles.ruleHeader}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.ruleTitle}>{label}</Text>
@@ -150,6 +153,8 @@ export function ReminderSettingsCard() {
                   <View style={styles.row}>
                     <Pressable
                       onPress={() => patchRule(rule.subId, { dayOfMonth: undefined })}
+                      accessibilityRole="radio"
+                      accessibilityState={{ checked: rule.dayOfMonth == null }}
                       style={[styles.chip, rule.dayOfMonth == null && styles.chipOn]}>
                       <Text
                         style={[
@@ -165,6 +170,8 @@ export function ReminderSettingsCard() {
                           dayOfMonth: rule.dayOfMonth ?? 5,
                         })
                       }
+                      accessibilityRole="radio"
+                      accessibilityState={{ checked: rule.dayOfMonth != null }}
                       style={[styles.chip, rule.dayOfMonth != null && styles.chipOn]}>
                       <Text
                         style={[
@@ -184,6 +191,8 @@ export function ReminderSettingsCard() {
                           <Pressable
                             key={d}
                             onPress={() => patchRule(rule.subId, { dayOfMonth: d })}
+                            accessibilityRole="radio"
+                            accessibilityState={{ checked: rule.dayOfMonth === d }}
                             style={[
                               styles.hourChip,
                               rule.dayOfMonth === d && styles.hourOn,
@@ -206,6 +215,7 @@ export function ReminderSettingsCard() {
                         }}
                         keyboardType="number-pad"
                         style={styles.dayInput}
+                        accessibilityLabel={t('reminder.pickDay')}
                         placeholder="1-28"
                         placeholderTextColor={palette.inkSoft}
                       />
@@ -218,6 +228,8 @@ export function ReminderSettingsCard() {
                       <Pressable
                         key={h}
                         onPress={() => patchRule(rule.subId, { hour: h })}
+                        accessibilityRole="radio"
+                        accessibilityState={{ checked: rule.hour === h }}
                         style={[styles.hourChip, rule.hour === h && styles.hourOn]}>
                         <Text
                           style={[
@@ -236,6 +248,8 @@ export function ReminderSettingsCard() {
                       <Pressable
                         key={m}
                         onPress={() => patchRule(rule.subId, { minute: m })}
+                        accessibilityRole="radio"
+                        accessibilityState={{ checked: rule.minute === m }}
                         style={[
                           styles.hourChip,
                           rule.minute === m && styles.hourOn,
@@ -253,6 +267,7 @@ export function ReminderSettingsCard() {
 
                   <Pressable
                     onPress={() => removeSub(rule.subId)}
+                    accessibilityRole="button"
                     style={styles.removeBtn}>
                     <Text style={styles.removeText}>{t('reminder.remove')}</Text>
                   </Pressable>
@@ -266,6 +281,8 @@ export function ReminderSettingsCard() {
       <Pressable
         onPress={() => void save()}
         disabled={saving}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: saving, busy: saving }}
         style={[styles.saveBtn, saving && { opacity: 0.7 }]}>
         <Text style={styles.saveText}>
           {saving ? t('add.saving') : t('reminder.save')}
@@ -278,8 +295,16 @@ export function ReminderSettingsCard() {
         transparent
         onRequestClose={() => setPickerOpen(false)}>
         <KeyboardSafeOverlay>
-        <Pressable style={styles.modalBackdrop} onPress={() => setPickerOpen(false)}>
-          <Pressable style={styles.modalSheet} onPress={(e) => e.stopPropagation()}>
+        {/* Wrappers stay out of the accessibility tree, or VoiceOver reads the
+            whole sheet as one element and cannot reach the rows inside. */}
+        <Pressable
+          accessible={false}
+          style={styles.modalBackdrop}
+          onPress={() => setPickerOpen(false)}>
+          <Pressable
+            accessible={false}
+            style={styles.modalSheet}
+            onPress={(e) => e.stopPropagation()}>
             <Text style={styles.modalTitle}>{t('reminder.pickSubs')}</Text>
             <TextInput
               value={pickerQuery}
@@ -300,6 +325,7 @@ export function ReminderSettingsCard() {
                 renderItem={({ item }) => (
                   <Pressable
                     onPress={() => addSub(item.id)}
+                    accessibilityRole="button"
                     style={styles.pickerRow}>
                     <Text style={styles.pickerRowText}>
                       {categoryLabel(item.id, t, spendConcepts)}
@@ -310,6 +336,7 @@ export function ReminderSettingsCard() {
             )}
             <Pressable
               onPress={() => setPickerOpen(false)}
+              accessibilityRole="button"
               style={styles.modalClose}>
               <Text style={styles.modalCloseText}>{t('plan.setLimitCancel')}</Text>
             </Pressable>

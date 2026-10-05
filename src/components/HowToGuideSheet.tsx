@@ -69,6 +69,7 @@ export function HowToGuideSheet({ visible, onClose }: Props) {
             <Text style={styles.hint}>{t('guide.hint')}</Text>
           </ScrollView>
           <Pressable
+            accessibilityRole="button"
             onPress={() => {
               tapFeedback();
               onClose();
@@ -109,7 +110,7 @@ const styles = StyleSheet.create({
   },
   kicker: {
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 11,
+    fontSize: 12,
     color: palette.inkSoft,
     letterSpacing: 0.7,
     textTransform: 'uppercase',

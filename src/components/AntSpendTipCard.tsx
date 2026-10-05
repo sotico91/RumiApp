@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   },
   kicker: {
     fontFamily: 'DMSans_500Medium',
-    fontSize: 11,
+    fontSize: 12,
     letterSpacing: 0.6,
     textTransform: 'uppercase',
     color: palette.inkMuted,

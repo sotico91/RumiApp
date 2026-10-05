@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "rumi",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "primaryColor": "#1B3A4B",
     "description": "Personal finance tracker. Log expenses, budgets, debts and insights — data stays on your device.",
     "githubUrl": "https://github.com/sotico91/RumiApp",

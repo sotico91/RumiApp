@@ -10,6 +10,20 @@ El detalle de cada cambio está en `git log`.
 - **Comentarios de código en inglés:** todos los comentarios del código van en inglés.
   Los textos que ve el usuario van en `src/i18n/translations.ts` (es/en).
 
+## 2026-10-05
+
+- **Contraste (WCAG AA):** el coral de acción pasa de `#FF6B4A` a `#CF3E1E`, con un contraste de 4.8:1 con texto blanco (antes 2.8:1).
+  El rojo de error pasa a un carmesí (`#B3263F`) para que no se confunda con el coral.
+  El verde de éxito pasa a `#1A8158`, y el texto teal usa `palette.tealText` (`#1E7F75`); el teal claro queda solo para fondos e íconos.
+  Los colores de las categorías no cambian.
+- **Texto mínimo de 12px:** etiquetas de pestañas, insignias y encabezados pequeños suben de 9–11px a 12px.
+- **Modo claro fijo:** `userInterfaceStyle: light` (`app.json`, `Info.plist`, Android `strings.xml`).
+  Así el teclado y las cabeceras nativas ya no salen oscuros sobre pantallas claras.
+- **Inicio:** mientras carga, Ingresos, Gastos y Ahorro muestran una barra en lugar de "$0".
+- **Lectores de pantalla:** los botones tienen rol de botón, y los chips y opciones anuncian si están seleccionados.
+  Guiado/Avanzado se anuncia como pestañas y los recordatorios como opciones de radio.
+  En la hoja para elegir subcategoría de recordatorios, VoiceOver ya puede llegar a cada fila (antes leía toda la hoja como un solo elemento).
+
 ## 2026-10-04
 
 - **Teclado sobre las cajas de texto:** el campo con foco siempre sube por encima del teclado.

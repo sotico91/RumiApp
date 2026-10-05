@@ -181,11 +181,12 @@ export default function HistorialScreen() {
           />
           {period === 'mes' ? (
             <View style={styles.monthNav}>
-              <Pressable onPress={goPrevMonth} style={styles.navBtn}>
+              <Pressable accessibilityRole="button" onPress={goPrevMonth} style={styles.navBtn}>
                 <Text style={styles.navText}>‹ {t('history.prevMonth')}</Text>
               </Pressable>
               <Text style={styles.monthLabel}>{periodLabel}</Text>
               <Pressable
+                accessibilityRole="button"
                 onPress={goNextMonth}
                 disabled={isCurrentMonth}
                 style={[styles.navBtn, isCurrentMonth && styles.navDisabled]}>
@@ -301,6 +302,7 @@ export default function HistorialScreen() {
                   </Text>
                   <View style={styles.pagerRow}>
                     <Pressable
+                      accessibilityRole="button"
                       onPress={() => {
                         if (safePage <= 0) return;
                         tapFeedback();
@@ -323,6 +325,7 @@ export default function HistorialScreen() {
                       })}
                     </Text>
                     <Pressable
+                      accessibilityRole="button"
                       onPress={() => {
                         if (safePage >= totalPages - 1) return;
                         tapFeedback();
@@ -432,7 +435,7 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 11,
+    fontSize: 12,
     color: palette.inkMuted,
     textTransform: 'uppercase',
   },
@@ -457,7 +460,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontFamily: 'DMSans_500Medium',
-    fontSize: 11,
+    fontSize: 12,
     color: palette.inkSoft,
   },
   statValue: {

@@ -55,6 +55,7 @@ export function AccountChoiceChips({
           const on = acc.id === selectedId;
           return (
             <Pressable
+              accessibilityRole="button"
               key={acc.id}
               onPress={() => {
                 tapFeedback();
@@ -143,6 +144,7 @@ export function WalletQuickAdd({
         <View style={styles.wrap}>
           {unusedPresets.map((name) => (
             <Pressable
+              accessibilityRole="button"
               key={name}
               onPress={() => void createWallet(name)}
               disabled={busy}
@@ -168,6 +170,7 @@ export function WalletQuickAdd({
           returnKeyType="done"
         />
         <Pressable
+          accessibilityRole="button"
           onPress={() => void createWallet(custom)}
           disabled={busy || !custom.trim()}
           style={[
@@ -218,6 +221,7 @@ export function BankQuickAdd({
         <View style={styles.wrap}>
           {unusedPresets.map((name) => (
             <Pressable
+              accessibilityRole="button"
               key={name}
               onPress={() => void createBank(name)}
               disabled={busy}
@@ -241,6 +245,7 @@ export function BankQuickAdd({
           returnKeyType="done"
         />
         <Pressable
+          accessibilityRole="button"
           onPress={() => void createBank(custom)}
           disabled={busy || !custom.trim()}
           style={[
@@ -297,6 +302,7 @@ export function InvestmentQuickAdd({ onAdded }: { onAdded?: (id: string) => void
         <View style={styles.wrap}>
           {unusedPresets.map((name) => (
             <Pressable
+              accessibilityRole="button"
               key={name}
               onPress={() => void create(name)}
               disabled={busy}
@@ -320,6 +326,7 @@ export function InvestmentQuickAdd({ onAdded }: { onAdded?: (id: string) => void
           returnKeyType="done"
         />
         <Pressable
+          accessibilityRole="button"
           onPress={() => void create(custom)}
           disabled={busy || !custom.trim()}
           style={[styles.addBtn, (!custom.trim() || busy) && styles.addBtnDisabled]}>
@@ -380,7 +387,7 @@ const styles = StyleSheet.create({
   meta: {
     marginTop: 2,
     fontFamily: 'DMSans_500Medium',
-    fontSize: 11,
+    fontSize: 12,
     color: palette.inkMuted,
   },
   onText: {

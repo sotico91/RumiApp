@@ -142,6 +142,7 @@ export default function InsightsScreen() {
         />
         <View style={styles.searchActions}>
           <Pressable
+            accessibilityRole="button"
             style={styles.searchBtn}
             onPress={() => {
               tapFeedback();
@@ -151,6 +152,7 @@ export default function InsightsScreen() {
           </Pressable>
           {query || answer ? (
             <Pressable
+              accessibilityRole="button"
               style={styles.clearBtn}
               onPress={() => {
                 tapFeedback();
@@ -181,6 +183,7 @@ export default function InsightsScreen() {
             const selected = activeSuggestion === prompt;
             return (
               <Pressable
+                accessibilityRole="button"
                 key={prompt}
                 onPress={() => {
                   tapFeedback();
@@ -376,7 +379,7 @@ const styles = StyleSheet.create({
   },
   answerEyebrow: {
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 11,
+    fontSize: 12,
     letterSpacing: 0.6,
     textTransform: 'uppercase',
     color: palette.accentDeep,
@@ -504,7 +507,7 @@ const styles = StyleSheet.create({
   },
   highlightLabel: {
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 11,
+    fontSize: 12,
     color: palette.accentDeep,
     textTransform: 'uppercase',
   },

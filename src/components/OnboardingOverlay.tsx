@@ -258,13 +258,14 @@ export function OnboardingOverlay() {
 
           <View style={styles.actions}>
             {step > 0 ? (
-              <Pressable onPress={() => setStep((s) => s - 1)} style={styles.secondaryBtn}>
+              <Pressable accessibilityRole="button" onPress={() => setStep((s) => s - 1)} style={styles.secondaryBtn}>
                 <Text style={styles.secondaryText}>{t('onboard.back')}</Text>
               </Pressable>
             ) : (
               <View style={{ flex: 1 }} />
             )}
             <Pressable
+              accessibilityRole="button"
               onPress={goNext}
               disabled={saving}
               style={[styles.primaryBtn, saving && { opacity: 0.7 }]}>
@@ -295,6 +296,8 @@ function OptionCard({
 }) {
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected: !!selected }}
       onPress={onPress}
       style={[styles.option, selected && styles.optionSelected]}>
       <View style={[styles.radio, selected && styles.radioSelected]} />

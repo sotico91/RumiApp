@@ -553,6 +553,7 @@ export function FriendlyAddFlow({
             <View style={styles.intentGrid}>
               {FRIENDLY_INTENTS.map((item) => (
                 <Pressable
+                  accessibilityRole="button"
                   key={item.id}
                   onPress={() => {
                     tapFeedback();
@@ -617,6 +618,7 @@ export function FriendlyAddFlow({
             <View style={styles.tplGrid}>
               {templates.map((tpl) => (
                 <Pressable
+                  accessibilityRole="button"
                   key={tpl.id}
                   onPress={() => void applyTemplate(tpl.id)}
                   disabled={applyingTemplate}
@@ -672,6 +674,7 @@ export function FriendlyAddFlow({
                     <Text style={styles.emptyDebtTitle}>{t('flow.noDebtsTitle')}</Text>
                     <Text style={styles.emptyDebtBody}>{t('flow.noDebtsBody')}</Text>
                     <Pressable
+                      accessibilityRole="button"
                       onPress={() => router.replace('/(tabs)/wealth')}
                       style={styles.wealthBtn}>
                       <Text style={styles.wealthBtnText}>{t('flow.goToWealth')}</Text>
@@ -686,6 +689,8 @@ export function FriendlyAddFlow({
                       const selected = debt.id === debtId;
                       return (
                         <Pressable
+                          accessibilityRole="button"
+                          accessibilityState={{ selected: !!selected }}
                           key={debt.id}
                           onPress={() => {
                             tapFeedback();
@@ -737,6 +742,7 @@ export function FriendlyAddFlow({
                     <Text style={styles.emptyDebtTitle}>{t('flow.noConceptsTitle')}</Text>
                     <Text style={styles.emptyDebtBody}>{t('flow.noConceptsBody')}</Text>
                     <Pressable
+                      accessibilityRole="button"
                       onPress={() => router.replace('/(tabs)/plan')}
                       style={styles.wealthBtn}>
                       <Text style={styles.wealthBtnText}>{t('flow.goToPlan')}</Text>
@@ -759,6 +765,8 @@ export function FriendlyAddFlow({
                       const selected = concept.id === conceptId;
                       return (
                         <Pressable
+                          accessibilityRole="button"
+                          accessibilityState={{ selected: !!selected }}
                           key={concept.id}
                           onPress={() => {
                             setConceptId(concept.id);
@@ -790,6 +798,7 @@ export function FriendlyAddFlow({
                     const selected = cat.id === categoryId;
                     return (
                       <Pressable
+                        accessibilityRole="button"
                         key={cat.id}
                         onPress={() => {
                           tapFeedback();
@@ -827,6 +836,8 @@ export function FriendlyAddFlow({
                 const selected = sub.id === categoryId;
                 return (
                   <Pressable
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: !!selected }}
                     key={sub.id}
                     onPress={() => {
                       tapFeedback();
@@ -1053,6 +1064,7 @@ export function FriendlyAddFlow({
       <View style={styles.footer}>
         {step > 0 ? (
           <Pressable
+            accessibilityRole="button"
             onPress={() => {
               if (intent === 'spend' && step === paymentStep) {
                 if (fromTemplate) {
@@ -1076,12 +1088,13 @@ export function FriendlyAddFlow({
 
         {step < totalSteps - 1 ? (
           hideNext ? null : (
-            <Pressable onPress={goNext} style={styles.primary}>
+            <Pressable accessibilityRole="button" onPress={goNext} style={styles.primary}>
               <Text style={styles.primaryText}>{t('flow.next')}</Text>
             </Pressable>
           )
         ) : (
           <Pressable
+            accessibilityRole="button"
             onPress={() => void save()}
             disabled={saving || (intent === 'debt' && !debtId)}
             style={[styles.primary, saving && { opacity: 0.7 }]}>

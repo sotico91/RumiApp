@@ -134,6 +134,7 @@ export function HabitPilotCard() {
         <>
           <View style={styles.row}>
             <Pressable
+              accessibilityRole="button"
               onPress={() => {
                 tapFeedback();
                 void updateHabitCue('afterPay');
@@ -144,6 +145,7 @@ export function HabitPilotCard() {
               </Text>
             </Pressable>
             <Pressable
+              accessibilityRole="button"
               onPress={() => {
                 tapFeedback();
                 void updateHabitCue('evening');
@@ -163,6 +165,7 @@ export function HabitPilotCard() {
           </Text>
           {reminderCount === 0 ? (
             <Pressable
+              accessibilityRole="button"
               onPress={() => {
                 tapFeedback();
                 void enableReminder();
@@ -184,6 +187,7 @@ export function HabitPilotCard() {
           </Text>
           <View style={styles.row}>
             <Pressable
+              accessibilityRole="button"
               onPress={() => {
                 tapFeedback();
                 void dismissHabitPilot();
@@ -192,6 +196,7 @@ export function HabitPilotCard() {
               <Text style={styles.secondaryText}>{t('habit.gotIt')}</Text>
             </Pressable>
             <Pressable
+              accessibilityRole="button"
               onPress={confirmRestart}
               style={styles.cta}>
               <Text style={styles.ctaText}>{t('habit.restart')}</Text>
@@ -200,7 +205,7 @@ export function HabitPilotCard() {
         </>
       )}
 
-      <Pressable onPress={() => void shareSummary()} style={styles.share}>
+      <Pressable accessibilityRole="button" onPress={() => void shareSummary()} style={styles.share}>
         <Text style={styles.shareText}>{t('habit.share')}</Text>
       </Pressable>
     </View>
@@ -218,7 +223,7 @@ const styles = StyleSheet.create({
   },
   kicker: {
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 11,
+    fontSize: 12,
     color: palette.inkSoft,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
@@ -310,6 +315,6 @@ const styles = StyleSheet.create({
   shareText: {
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 13,
-    color: palette.teal,
+    color: palette.tealText,
   },
 });

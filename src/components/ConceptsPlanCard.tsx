@@ -184,6 +184,7 @@ export function ConceptsPlanCard() {
                   />
                 </SelectPressable>
                 <Pressable
+                  accessibilityRole="button"
                   onPress={() => {
                     tapFeedback();
                     setExpanded(open ? null : concept.id);
@@ -252,6 +253,7 @@ export function ConceptsPlanCard() {
                             ]}
                           />
                           <Pressable
+                            accessibilityRole="button"
                             style={{ flex: 1 }}
                             onPress={() => openLimit(sub.id)}>
                             <View style={styles.subTitleRow}>
@@ -267,6 +269,7 @@ export function ConceptsPlanCard() {
                             </Text>
                           </Pressable>
                           <Pressable
+                            accessibilityRole="button"
                             onPress={() =>
                               void updateSpendSubAnt(concept.id, sub.id, !antOn)
                             }
@@ -280,6 +283,7 @@ export function ConceptsPlanCard() {
                             </Text>
                           </Pressable>
                           <Pressable
+                            accessibilityRole="button"
                             onPress={() =>
                               appAlert(sub.name, undefined, [
                                 { text: t('plan.setLimitCancel'), style: 'cancel' },
@@ -338,6 +342,7 @@ export function ConceptsPlanCard() {
                       style={styles.input}
                     />
                     <Pressable
+                      accessibilityRole="button"
                       onPress={() => void handleAddSub(concept.id)}
                       style={styles.addBtn}>
                       <Text style={styles.addBtnText}>{t('plan.subAdd')}</Text>
@@ -345,6 +350,7 @@ export function ConceptsPlanCard() {
                   </View>
 
                   <Pressable
+                    accessibilityRole="button"
                     onPress={() =>
                       setColorEditingId((prev) => (prev === concept.id ? null : concept.id))
                     }
@@ -353,6 +359,7 @@ export function ConceptsPlanCard() {
                   </Pressable>
 
                   <Pressable
+                    accessibilityRole="button"
                     onPress={() =>
                       appAlert(concept.name, t('plan.deleteConcept'), [
                         { text: t('plan.setLimitCancel'), style: 'cancel' },
@@ -374,6 +381,7 @@ export function ConceptsPlanCard() {
       )}
 
       <Pressable
+        accessibilityRole="button"
         onPress={() => {
           tapFeedback();
           setBudgetsOpen((v) => !v);
@@ -402,6 +410,7 @@ export function ConceptsPlanCard() {
               />
               <View style={styles.addRow}>
                 <Pressable
+                  accessibilityRole="button"
                   onPress={() => {
                     setEditingId(null);
                     setLimitDraft('');
@@ -410,6 +419,7 @@ export function ConceptsPlanCard() {
                   <Text style={styles.secondaryText}>{t('plan.setLimitCancel')}</Text>
                 </Pressable>
                 <Pressable
+                  accessibilityRole="button"
                   onPress={() =>
                     void removeBudget(editingId).then(() => {
                       setEditingId(null);
@@ -421,7 +431,7 @@ export function ConceptsPlanCard() {
                     {t('plan.setLimitClear')}
                   </Text>
                 </Pressable>
-                <Pressable onPress={() => void saveLimit()} style={styles.addBtn}>
+                <Pressable accessibilityRole="button" onPress={() => void saveLimit()} style={styles.addBtn}>
                   <Text style={styles.addBtnText}>{t('plan.setLimitSave')}</Text>
                 </Pressable>
               </View>
@@ -433,6 +443,7 @@ export function ConceptsPlanCard() {
       ) : null}
 
       <Pressable
+        accessibilityRole="button"
         onPress={() => router.push('/(tabs)/wealth')}
         style={styles.debtLink}>
         <Text style={styles.debtLinkText}>{t('plan.goDebts')}</Text>
@@ -602,7 +613,7 @@ const styles = StyleSheet.create({
   },
   antBadge: {
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 10,
+    fontSize: 12,
     color: palette.accentDeep,
     backgroundColor: '#FFF3EB',
     overflow: 'hidden',
@@ -624,7 +635,7 @@ const styles = StyleSheet.create({
   },
   antToggleText: {
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 11,
+    fontSize: 12,
     color: palette.inkMuted,
   },
   antToggleTextOn: {
@@ -668,6 +679,6 @@ const styles = StyleSheet.create({
   debtLinkText: {
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 13,
-    color: palette.teal,
+    color: palette.tealText,
   },
 });
