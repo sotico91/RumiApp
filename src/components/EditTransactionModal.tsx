@@ -211,12 +211,15 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
               contentContainerStyle={styles.body}>
               <Text style={styles.label}>{t('flow.summaryAmount')}</Text>
             <View style={styles.amountRow}>
-              <Text style={styles.currency}>$</Text>
+              <Text style={styles.currency} maxFontSizeMultiplier={1.2}>
+                $
+              </Text>
               <TextInput
                 value={formatAmountTyping(amount, currency)}
                 onChangeText={(text) => setAmount(formatAmountTyping(text, currency))}
                 keyboardType="decimal-pad"
                 style={styles.amountInput}
+                maxFontSizeMultiplier={1.2}
               />
             </View>
             <Text style={styles.hint}>{format(parse(amount) ?? 0, { reveal: true })}</Text>

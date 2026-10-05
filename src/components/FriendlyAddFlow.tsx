@@ -650,7 +650,9 @@ export function FriendlyAddFlow({
           <Animated.View entering={FadeInDown.springify()} style={styles.block}>
             <Text style={styles.title}>{t('flow.howMuch')}</Text>
             <View style={styles.amountRow}>
-              <Text style={styles.currency}>$</Text>
+              <Text style={styles.currency} maxFontSizeMultiplier={1.2}>
+                $
+              </Text>
               <TextInput
                 value={formatAmountTyping(amount, currency)}
                 onChangeText={(text) => setAmount(formatAmountTyping(text, currency))}
@@ -658,6 +660,7 @@ export function FriendlyAddFlow({
                 placeholder="0"
                 placeholderTextColor={palette.inkSoft}
                 style={styles.amountInput}
+                maxFontSizeMultiplier={1.2}
                 autoFocus
               />
             </View>
@@ -723,7 +726,9 @@ export function FriendlyAddFlow({
                     />
                     {payScope === 'other' ? (
                       <View style={[styles.amountRow, { marginTop: 12 }]}>
-                        <Text style={styles.currency}>$</Text>
+                        <Text style={styles.currency} maxFontSizeMultiplier={1.2}>
+                          $
+                        </Text>
                         <TextInput
                           value={formatAmountTyping(amount, currency)}
                           onChangeText={(text) => setAmount(formatAmountTyping(text, currency))}
@@ -731,6 +736,7 @@ export function FriendlyAddFlow({
                           placeholder="0"
                           placeholderTextColor={palette.inkSoft}
                           style={styles.amountInput}
+                          maxFontSizeMultiplier={1.2}
                         />
                       </View>
                     ) : null}

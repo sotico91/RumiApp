@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -5,6 +6,7 @@ import { AmountPrivacyToggle } from '@/src/components/AmountPrivacyToggle';
 import { BrandScreen, ScreenHeader } from '@/src/components/ui';
 import { colors, space } from '@/src/theme';
 import { CategoryBreakdown } from '@/src/components/CategoryBreakdown';
+import { EmptyState } from '@/src/components/EmptyState';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
 import { HowToGuideButton } from '@/src/components/HowToGuideButton';
 import { MoneyText } from '@/src/components/MoneyText';
@@ -286,7 +288,12 @@ export default function InsightsScreen() {
             </Text>
           </View>
         ) : (
-          <Text style={styles.empty}>{t('insights.empty')}</Text>
+          <EmptyState
+            icon="chart-donut"
+            title={t('insights.emptyTitle')}
+            body={t('insights.empty')}
+            action={{ label: t('history.emptyCta'), onPress: () => router.push('/agregar') }}
+          />
         )}
       </View>
 
@@ -522,10 +529,6 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_500Medium',
     fontSize: 13,
     color: palette.inkMuted,
-  },
-  empty: {
-    fontFamily: 'DMSans_400Regular',
-    color: colors.text.secondary,
   },
   textDanger: { color: palette.danger },
   textGood: { color: palette.success },

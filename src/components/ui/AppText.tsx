@@ -11,16 +11,23 @@ type Props = TextProps & {
   align?: 'left' | 'center' | 'right';
 };
 
+/** Big type would push layouts apart at accessibility sizes; body text keeps scaling further. */
+const LARGE_VARIANTS: TypeVariant[] = ['display', 'h1', 'h2', 'amount'];
+
 /** Text on the type scale. */
 export function AppText({
   variant = 'body',
   color = 'primary',
   align,
   style,
+  maxFontSizeMultiplier,
   ...rest
 }: Props) {
   return (
     <Text
+      maxFontSizeMultiplier={
+        maxFontSizeMultiplier ?? (LARGE_VARIANTS.includes(variant) ? 1.3 : 1.8)
+      }
       {...rest}
       style={[
         type[variant],

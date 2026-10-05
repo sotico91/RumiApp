@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -6,6 +7,7 @@ import { BrandScreen, ScreenHeader } from '@/src/components/ui';
 import { colors, space } from '@/src/theme';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
 import { EditTransactionModal } from '@/src/components/EditTransactionModal';
+import { EmptyState } from '@/src/components/EmptyState';
 import { ExpenseRow } from '@/src/components/ExpenseRow';
 import { MoneyText } from '@/src/components/MoneyText';
 import { PeriodToggle } from '@/src/components/PeriodToggle';
@@ -259,10 +261,21 @@ export default function HistorialScreen() {
               : t('history.listCollapsed', { count: items.length })
           }>
           {items.length === 0 ? (
-            <View style={styles.emptyWrap}>
-              <Text style={styles.emptyTitle}>{t('history.emptyTitle')}</Text>
-              <Text style={styles.empty}>{t('history.empty')}</Text>
-            </View>
+            <EmptyState
+              icon="receipt-text-outline"
+              title={t('history.emptyTitle')}
+              body={
+                period === 'mes' && !isCurrentMonth ? t('history.emptyPast') : t('history.empty')
+              }
+              action={
+                period === 'mes' && !isCurrentMonth
+                  ? undefined
+                  : {
+                      label: t('history.emptyCta'),
+                      onPress: () => router.push('/agregar'),
+                    }
+              }
+            />
           ) : (
             <View style={styles.listBlock}>
               <Text style={styles.listHint}>{t('history.rowHint')}</Text>
@@ -519,21 +532,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 13,
-    color: palette.inkMuted,
-  },
-  emptyWrap: {
-    backgroundColor: palette.surfaceSolid,
-    borderRadius: radii.lg,
-    padding: 22,
-  },
-  emptyTitle: {
-    fontFamily: 'Fraunces_600SemiBold',
-    fontSize: 22,
-    color: palette.ink,
-  },
-  empty: {
-    marginTop: 6,
-    fontFamily: 'DMSans_400Regular',
     color: palette.inkMuted,
   },
   settledHint: {

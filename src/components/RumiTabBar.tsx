@@ -61,7 +61,10 @@ export function RumiTabBar({ state, descriptors, navigation }: TabBarProps) {
               style={[styles.iconPill, focused && styles.iconPillOn]}>
               {options.tabBarIcon?.({ focused, color, size: 22 })}
             </View>
-            <Text numberOfLines={1} style={[styles.label, { color }, focused && styles.labelOn]}>
+            <Text
+              numberOfLines={1}
+              maxFontSizeMultiplier={1.3}
+              style={[styles.label, { color }, focused && styles.labelOn]}>
               {label}
             </Text>
           </Pressable>

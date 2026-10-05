@@ -206,7 +206,9 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
 
       <View style={styles.card}>
         <View style={styles.amountRow}>
-          <Text style={styles.currency}>$</Text>
+          <Text style={styles.currency} maxFontSizeMultiplier={1.2}>
+            $
+          </Text>
           <TextInput
             value={formatAmountTyping(amount, currency)}
             onChangeText={(text) => setAmount(formatAmountTyping(text, currency))}
@@ -215,6 +217,7 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
             keyboardType="decimal-pad"
             autoFocus
             style={styles.amountInput}
+            maxFontSizeMultiplier={1.2}
             accessibilityLabel={t('add.kicker')}
           />
         </View>

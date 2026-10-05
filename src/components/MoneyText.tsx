@@ -16,6 +16,7 @@ export function MoneyText({ children, style, fit = true }: Props) {
       numberOfLines={1}
       adjustsFontSizeToFit={fit}
       minimumFontScale={0.7}
+      maxFontSizeMultiplier={1.4}
       style={[styles.base, style]}>
       {children}
     </Text>

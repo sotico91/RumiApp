@@ -242,6 +242,7 @@ export function OnboardingOverlay() {
                 placeholderTextColor={palette.inkSoft}
                 keyboardType={currency === 'USD' ? 'decimal-pad' : 'number-pad'}
                 style={styles.amountInput}
+                maxFontSizeMultiplier={1.2}
               />
               <Text style={styles.fieldLabel}>{t('account.cash')}</Text>
               <TextInput
@@ -251,6 +252,7 @@ export function OnboardingOverlay() {
                 placeholderTextColor={palette.inkSoft}
                 keyboardType={currency === 'USD' ? 'decimal-pad' : 'number-pad'}
                 style={styles.amountInput}
+                maxFontSizeMultiplier={1.2}
               />
             </Animated.View>
           ) : null}

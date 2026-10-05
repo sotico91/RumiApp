@@ -381,7 +381,7 @@ export function ExpenseForm({
     <View style={styles.form}>
       <Text style={styles.kicker}>{t('add.kicker')}</Text>
       <View style={styles.amountBlock}>
-        <Text style={styles.currencyMark}>$</Text>
+        <Text style={styles.currencyMark} maxFontSizeMultiplier={1.2}>$</Text>
         <TextInput
           value={formatAmountTyping(amount, currency)}
           onChangeText={(text) => setAmount(formatAmountTyping(text, currency))}
@@ -389,6 +389,7 @@ export function ExpenseForm({
           placeholder="0"
           placeholderTextColor={palette.inkSoft}
           style={styles.amountInput}
+          maxFontSizeMultiplier={1.2}
           autoFocus
         />
       </View>

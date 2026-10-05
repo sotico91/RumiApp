@@ -12,6 +12,11 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-05
 
+- **Estados vacíos con un siguiente paso:** nuevo componente `EmptyState` (ícono, título, texto y una acción).
+  Historial sin movimientos ofrece "Registrar un gasto"; en un mes pasado sin movimientos solo lo dice.
+  Análisis sin datos explica qué va a mostrar y ofrece la misma acción.
+- **Texto grande del sistema:** el texto normal crece hasta 1.8×; los títulos, montos y etiquetas de pestañas hasta 1.3×, y los montos que se escriben hasta 1.2×.
+  Así con tamaños de accesibilidad nada se sale de la pantalla (`maxFontSizeMultiplier`, validado con la documentación de React Native en Context7).
 - **Ícono con la R de Rumi:** el sello del billete coral lleva una "R" en Fraunces, como el monograma de un billete; la carita sale del ícono porque se veía genérica.
   La cara vive solo en la animación de inicio: la R se desvanece y en el mismo sello aparecen los ojos, el guiño y la sonrisa.
   El generador escribe `splash-blank.png` (billete sin sello) y `splash-monogram.png` (solo la R) para esa transición, y `splash-icon.png` con la R para el splash nativo.
