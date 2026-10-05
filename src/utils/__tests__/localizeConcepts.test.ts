@@ -39,6 +39,38 @@ describe('localizeDefaultConcepts', () => {
     expect(concepts[0].subs[0].id).toBe('sub-a');
   });
 
+  it('translates subcategories picked during onboarding', () => {
+    const transport: SpendConcept = {
+      id: 'concept-transporte',
+      name: 'Transport',
+      color: '#000',
+      subs: [
+        { id: 'sub-a', name: 'General' },
+        { id: 'sub-b', name: 'Rides & taxis' },
+      ],
+    };
+    const bills: SpendConcept = {
+      id: 'concept-recibos',
+      name: 'Bills',
+      color: '#000',
+      subs: [{ id: 'sub-c', name: 'Subscriptions' }],
+    };
+    const { concepts } = localizeDefaultConcepts([transport, bills], 'es');
+    expect(concepts[0].subs.map((s) => s.name)).toEqual(['General', 'Taxi y apps']);
+    expect(concepts[1].subs[0].name).toBe('Suscripciones');
+  });
+
+  it('leaves subs of user-made concepts alone', () => {
+    const own: SpendConcept = {
+      id: 'concept-mascotas',
+      name: 'Mascotas',
+      color: '#000',
+      subs: [{ id: 'sub-a', name: 'Subscriptions' }],
+    };
+    const { changed } = localizeDefaultConcepts([own], 'es');
+    expect(changed).toBe(false);
+  });
+
   it('never touches concepts the user named', () => {
     const own = [concept('concept-recibos', 'Servicios de casa'), concept('custom-x', 'Mascotas')];
     const { concepts, changed } = localizeDefaultConcepts(own, 'en');

@@ -26,6 +26,13 @@ export const ONBOARDING_CONCEPTS: {
   { id: 'concept-vivienda', color: '#3E6B8A', nameKey: 'onboard.concept.vivienda' },
 ];
 
+/** Sub names onboarding can create under the default concepts (besides template titles). */
+const BUILT_IN_SUB_KEYS = [
+  'onboard.concept.general',
+  'onboard.ant.rides',
+  'onboard.ant.subscriptions',
+] as const;
+
 /**
  * Default concepts (Bills, Credit, Transport…) follow the app language.
  * Only names still equal to a built-in translation are switched, so a
@@ -50,10 +57,16 @@ export function localizeDefaultConcepts(
       if (builtIn.has(concept.name) && concept.name !== name) out = { ...out, name };
     }
 
-    // Subcategories created from a guided-flow template ("Coffee" / "Café").
-    const subKeys = FRIENDLY_TEMPLATES.filter((tpl) => tpl.spend?.conceptId === concept.id).map(
-      (tpl) => tpl.titleKey
-    );
+    // Subcategories the app created itself: guided-flow templates ("Coffee" / "Café")
+    // and the onboarding picks ("Rides & taxis" / "Taxi y apps", "General").
+    const subKeys = def
+      ? [
+          ...FRIENDLY_TEMPLATES.filter((tpl) => tpl.spend?.conceptId === concept.id).map(
+            (tpl) => tpl.titleKey
+          ),
+          ...BUILT_IN_SUB_KEYS,
+        ]
+      : [];
     if (subKeys.length > 0) {
       let subsChanged = false;
       const subs = out.subs.map((sub) => {
