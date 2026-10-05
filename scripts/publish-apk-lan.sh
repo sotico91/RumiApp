@@ -6,12 +6,22 @@
 # finds an older "Rumi-v1.0.apk" in Downloads and saves "Rumi-v1.0 (1).apk".
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-APK="$HOME/Library/Caches/rumi-android-build/outputs/apk/release/app-release.apk"
+# Gradle writes either to the cache folder (when android/build.gradle redirects
+# the build dir) or to the default path after a fresh `expo prebuild`. Serve
+# whichever is newer, so a regenerated android/ never republishes an old APK.
+APK=""
+for candidate in \
+  "$HOME/Library/Caches/rumi-android-build/outputs/apk/release/app-release.apk" \
+  "$ROOT/android/app/build/outputs/apk/release/app-release.apk"; do
+  if [[ -f "$candidate" && ( -z "$APK" || "$candidate" -nt "$APK" ) ]]; then
+    APK="$candidate"
+  fi
+done
 SERVE_DIR="$HOME/Library/Caches/rumi-apk-server"
 PORT=8080
 
-if [[ ! -f "$APK" ]]; then
-  echo "No APK at $APK — run: npm run android:apk" >&2
+if [[ -z "$APK" ]]; then
+  echo "No release APK found — run: npm run android:apk" >&2
   exit 1
 fi
 

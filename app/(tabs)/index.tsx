@@ -18,7 +18,6 @@ import { ProfileMenuButton } from '@/src/components/ProfileMenuButton';
 import { QuickAddBar } from '@/src/components/QuickAddBar';
 import { PocketFlowList } from '@/src/components/PocketFlowList';
 import { RaisedText } from '@/src/components/RaisedText';
-import { SavingsDecor } from '@/src/components/SavingsDecor';
 import { SelectPressable } from '@/src/components/SelectPressable';
 import { AppText, BrandScreen, Button, Card } from '@/src/components/ui';
 import { useFinance } from '@/src/hooks/useFinance';
@@ -58,16 +57,12 @@ export default function HomeScreen() {
   } = useFinance();
   const [glance, setGlance] = useState<'expense' | 'income' | null>(null);
   const [moneyInfo, setMoneyInfo] = useState<MoneyInfoKind | null>(null);
-  const [attentionOpen, setAttentionOpen] = useState(false);
   const [predictOpen, setPredictOpen] = useState(false);
 
   const displayName = settings.userName.trim();
   const greeting = displayName
     ? t('home.greeting', { name: displayName })
     : t('home.greetingFallback');
-  const spaceLabel = displayName
-    ? t('home.spaceLabel', { name: displayName })
-    : t('home.yours');
 
   const income = totalForPeriod('mes', 'income');
   const expenses = totalForPeriod('mes', 'expense');
@@ -138,17 +133,11 @@ export default function HomeScreen() {
               <RaisedText tone="gold" style={styles.greeting}>
                 {greeting}
               </RaisedText>
-              <AppText variant="caption" color="onBrandMuted">
-                {spaceLabel}
-              </AppText>
             </View>
-            <View style={styles.heroAside}>
-              <View style={styles.avatarRow}>
-                <HowToGuideButton light />
-                <AmountPrivacyToggle />
-                <ProfileMenuButton />
-              </View>
-              <SavingsDecor />
+            <View style={styles.avatarRow}>
+              <HowToGuideButton light />
+              <AmountPrivacyToggle />
+              <ProfileMenuButton />
             </View>
           </View>
 
@@ -316,36 +305,12 @@ export default function HomeScreen() {
 
       <QuickAddBar />
 
-      <HabitPilotCard />
-
-      {antTip ? (
-        <AntSpendTipCard
-          tip={antTip}
-          conceptLabel={categoryLabel(antTip.categoryId, t, spendConcepts)}
-          titleVariant={antTipTitleVariant}
-          bodyVariant={antTipBodyVariant}
-          onDismiss={() => {
-            void dismissAntSpendTipWeek();
-          }}
-          onOpen={() => setGlance('expense')}
-        />
-      ) : null}
-
-      <CollapsibleSection
-        tone="surface"
-        title={t('home.attention')}
-        open={attentionOpen}
-        onToggle={() => setAttentionOpen((v) => !v)}
-        summary={
-          alerts.length === 0
-            ? t('home.attentionEmptyShort')
-            : t('home.attentionSummary', { count: alerts.length + alertsHidden })
-        }>
-        {alerts.length === 0 ? (
-          <Card variant="tinted" tone="success" padding="sm">
-            <AppText variant="bodyStrong">{t('home.attentionEmpty')}</AppText>
-          </Card>
-        ) : (
+      {/* Only shown when something is over its limit: it needs action, so it starts open. */}
+      {alerts.length > 0 ? (
+        <View>
+          <AppText variant="overline" color="tertiary" style={styles.sectionLabel}>
+            {t('home.attention')}
+          </AppText>
           <View style={styles.alertList}>
             {alerts.map((a) => (
               <Card key={a.categoryId} variant="tinted" tone="danger" padding="sm">
@@ -366,24 +331,41 @@ export default function HomeScreen() {
               />
             ) : null}
           </View>
-        )}
-      </CollapsibleSection>
+        </View>
+      ) : null}
 
-      <CollapsibleSection
-        tone="surface"
-        title={t('home.predictTitle')}
-        open={predictOpen}
-        onToggle={() => setPredictOpen((v) => !v)}
-        summary={
-          predictPending.length === 0
-            ? t('home.predictSummaryClear', { amount: format(predictTotal) })
-            : t('home.predictSummary', {
-                pending: predictPending.length,
-                amount: format(predictPendingTotal),
-              })
-        }>
-        <PredictedSpendsCard items={predictedThisMonth} />
-      </CollapsibleSection>
+      {predictedThisMonth.length > 0 ? (
+        <CollapsibleSection
+          tone="surface"
+          title={t('home.predictTitle')}
+          open={predictOpen}
+          onToggle={() => setPredictOpen((v) => !v)}
+          summary={
+            predictPending.length === 0
+              ? t('home.predictSummaryClear', { amount: format(predictTotal) })
+              : t('home.predictSummary', {
+                  pending: predictPending.length,
+                  amount: format(predictPendingTotal),
+                })
+          }>
+          <PredictedSpendsCard items={predictedThisMonth} />
+        </CollapsibleSection>
+      ) : null}
+
+      <HabitPilotCard />
+
+      {antTip ? (
+        <AntSpendTipCard
+          tip={antTip}
+          conceptLabel={categoryLabel(antTip.categoryId, t, spendConcepts)}
+          titleVariant={antTipTitleVariant}
+          bodyVariant={antTipBodyVariant}
+          onDismiss={() => {
+            void dismissAntSpendTipWeek();
+          }}
+          onOpen={() => setGlance('expense')}
+        />
+      ) : null}
     </BrandScreen>
   );
 }
@@ -484,10 +466,6 @@ const styles = StyleSheet.create({
     lineHeight: 30,
     marginTop: space.xxs,
     color: colors.text.highlight,
-  },
-  heroAside: {
-    alignItems: 'center',
-    gap: space.sm,
   },
   avatarRow: {
     flexDirection: 'row',

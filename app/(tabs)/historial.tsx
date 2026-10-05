@@ -19,11 +19,11 @@ import { palette, radii } from '@/src/theme/colors';
 import type { Period, Transaction } from '@/src/types/finance';
 import { isPocketMove } from '@/src/types/finance';
 import { categoryLabel } from '@/src/utils/categoryLabel';
-import { formatExpenseDate } from '@/src/utils/dates';
 import { closedDebts } from '@/src/utils/debts';
 import { shiftMonth, sumByType, sumSpendOut } from '@/src/utils/financeMath';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import { appAlert } from '@/src/components/AppAlert';
+import { useSaveToast } from '@/src/components/SaveToast';
 
 const PAGE_SIZE = 20;
 
@@ -31,11 +31,13 @@ export default function HistorialScreen() {
   const { t, language } = useLanguage();
   const { format } = useMoney();
   const { settings } = useSettings();
+  const toast = useSaveToast();
   const {
     transactionsForPeriod,
     transactionsForMonth,
     totalForPeriod,
     removeTransaction,
+    restoreTransaction,
     canEditTransaction,
     debts,
   } = useFinance();
@@ -102,7 +104,8 @@ export default function HistorialScreen() {
         )
       : t(`period.${period}` as TranslationKey);
 
-  function confirmDelete(tx: Transaction) {
+  /** Deletes at once and offers Undo on the toast, instead of asking first. */
+  function deleteWithUndo(tx: Transaction) {
     if (!canEditTransaction(tx)) {
       appAlert(t('history.deleteTitle'), t('history.onlyOwn'));
       return;
@@ -111,38 +114,25 @@ export default function HistorialScreen() {
     const pocketMove = isPocketMove(tx.type);
     const visual =
       !pocketMove && tx.categoryId ? categoryVisual(tx.categoryId, spendConcepts) : null;
-    const typeLabel = t(`type.${tx.type}` as TranslationKey);
-    const note = tx.note?.trim();
-    appAlert(
-      t('history.deleteTitle'),
-      t('history.deleteMessage'),
-      [
-        { text: t('history.cancel'), style: 'cancel' },
-        {
-          text: t('history.delete'),
-          style: 'destructive',
-          onPress: () => {
-            void removeTransaction(tx.id);
-          },
+    void removeTransaction(tx.id).then(() => {
+      toast.show({
+        tone: 'removed',
+        kicker: t('history.deletedKicker'),
+        title:
+          !pocketMove && tx.categoryId
+            ? categoryLabel(tx.categoryId, t, spendConcepts)
+            : t(`type.${tx.type}` as TranslationKey),
+        amount: format(tx.amount),
+        icon: visual?.icon,
+        color: pocketMove ? colors.accent.teal : visual?.color,
+        action: {
+          label: t('history.undo'),
+          onPress: () => void restoreTransaction(tx),
         },
-      ],
-      {
-        icon: 'trash-can-outline',
-        detail: {
-          title:
-            !pocketMove && tx.categoryId
-              ? categoryLabel(tx.categoryId, t, spendConcepts)
-              : typeLabel,
-          subtitle: [note || typeLabel, formatExpenseDate(tx.createdAt, language)]
-            .filter(Boolean)
-            .join(' · '),
-          amount: format(tx.amount),
-          icon: visual?.icon,
-          color: pocketMove ? colors.accent.teal : visual?.color,
-        },
-      }
-    );
+      });
+    });
   }
+
 
   function openEdit(tx: Transaction) {
     if (!canEditTransaction(tx)) {
@@ -206,7 +196,7 @@ export default function HistorialScreen() {
             onClose={() => setEditing(null)}
             onDelete={(tx) => {
               setEditing(null);
-              confirmDelete(tx);
+              deleteWithUndo(tx);
             }}
           />
         </>
@@ -286,7 +276,7 @@ export default function HistorialScreen() {
                       last={index === pageItems.length - 1}
                       showRegistrant={false}
                       onEdit={mine ? () => openEdit(tx) : undefined}
-                      onDelete={mine ? () => confirmDelete(tx) : undefined}
+                      onDelete={mine ? () => deleteWithUndo(tx) : undefined}
                     />
                   );
                 })}

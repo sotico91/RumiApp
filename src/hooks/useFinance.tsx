@@ -153,6 +153,8 @@ type FinanceContextValue = {
     >
   ) => Promise<Transaction | null>;
   removeTransaction: (id: string) => Promise<void>;
+  /** Puts a just-deleted transaction back (Undo), with its balances. */
+  restoreTransaction: (tx: Transaction) => Promise<void>;
   canEditTransaction: (tx: Transaction) => boolean;
   resetFinance: () => Promise<void>;
   restoreFromBackup: (backup: {
@@ -666,6 +668,27 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     [settings.personId, pruneQuickTemplatesToExistingExpenses]
   );
 
+  const restoreTransaction = useCallback(async (tx: Transaction) => {
+    if (transactionsRef.current.some((t) => t.id === tx.id)) return;
+    // Exact inverse of removeTransaction: same id and date, deltas re-applied.
+    const nextTx = [tx, ...transactionsRef.current].sort((a, b) =>
+      b.createdAt.localeCompare(a.createdAt)
+    );
+    const nextAccounts = applyAccountDelta(accountsRef.current, tx, 1);
+    const nextDebts = applyTxDebts(debtsRef.current, tx, 1);
+    transactionsRef.current = nextTx;
+    accountsRef.current = nextAccounts;
+    debtsRef.current = nextDebts;
+    setTransactions(nextTx);
+    setAccounts(nextAccounts);
+    setDebts(nextDebts);
+    await saveFinanceState({
+      transactions: nextTx,
+      accounts: nextAccounts,
+      debts: nextDebts,
+    });
+  }, []);
+
   const updateTransaction = useCallback(
     async (
       id: string,
@@ -1033,6 +1056,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       setAccountBalance,
       updateTransaction,
       removeTransaction,
+      restoreTransaction,
       canEditTransaction,
       resetFinance,
       restoreFromBackup,
@@ -1080,6 +1104,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       setAccountBalance,
       updateTransaction,
       removeTransaction,
+      restoreTransaction,
       canEditTransaction,
       resetFinance,
       restoreFromBackup,

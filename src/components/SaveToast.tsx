@@ -25,7 +25,7 @@ import { ConceptIcon } from '@/src/components/ConceptIcon';
 import { tabBarHeight } from '@/src/components/RumiTabBar';
 import { colors, motion, radius, shadow, space, type } from '@/src/theme';
 
-export type SaveToastTone = 'expense' | 'income' | 'other';
+export type SaveToastTone = 'expense' | 'income' | 'other' | 'removed';
 
 export type SaveToastInput = {
   tone: SaveToastTone;
@@ -39,6 +39,8 @@ export type SaveToastInput = {
   footer?: string;
   icon?: string;
   color?: string;
+  /** One button on the card, e.g. "Undo". Keeps the card up a little longer. */
+  action?: { label: string; onPress: () => void };
 };
 
 type Api = { show: (toast: SaveToastInput) => void };
@@ -46,6 +48,8 @@ type Api = { show: (toast: SaveToastInput) => void };
 const SaveToastContext = createContext<Api | null>(null);
 
 const VISIBLE_MS = 3600;
+/** Long enough to notice the card and reach its button. */
+const VISIBLE_WITH_ACTION_MS = 6000;
 
 /**
  * Confirmation card that rises just above the tab bar after a save. Kept at
@@ -82,6 +86,7 @@ const TONE_ACCENT: Record<SaveToastTone, string> = {
   expense: colors.action.primary,
   income: colors.text.onBrandSuccess,
   other: colors.accent.teal,
+  removed: colors.text.onBrandDanger,
 };
 
 function ToastCard({ toast, onDone }: { toast: SaveToastInput; onDone: () => void }) {
@@ -90,6 +95,8 @@ function ToastCard({ toast, onDone }: { toast: SaveToastInput; onDone: () => voi
   const progress = useSharedValue(1);
   const leaving = useRef(false);
   const accent = TONE_ACCENT[toast.tone];
+  const removed = toast.tone === 'removed';
+  const visibleMs = toast.action ? VISIBLE_WITH_ACTION_MS : VISIBLE_MS;
 
   const dismiss = useCallback(() => {
     if (leaving.current) return;
@@ -101,15 +108,16 @@ function ToastCard({ toast, onDone }: { toast: SaveToastInput; onDone: () => voi
 
   useEffect(() => {
     if (Platform.OS !== 'web') {
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
-        () => undefined
-      );
+      const haptic = removed
+        ? Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+        : Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      void haptic.catch(() => undefined);
     }
     enter.value = withSpring(1, motion.spring.snappy);
-    progress.value = withTiming(0, { duration: VISIBLE_MS, easing: Easing.linear });
-    const timer = setTimeout(dismiss, VISIBLE_MS);
+    progress.value = withTiming(0, { duration: visibleMs, easing: Easing.linear });
+    const timer = setTimeout(dismiss, visibleMs);
     return () => clearTimeout(timer);
-  }, [dismiss, enter, progress]);
+  }, [dismiss, enter, progress, removed, visibleMs]);
 
   const cardStyle = useAnimatedStyle(() => ({
     opacity: enter.value,
@@ -140,8 +148,12 @@ function ToastCard({ toast, onDone }: { toast: SaveToastInput; onDone: () => voi
               ) : (
                 <MaterialCommunityIcons name="check" size={22} color={colors.bg.brandDeep} />
               )}
-              <View style={styles.badge}>
-                <MaterialCommunityIcons name="check" size={11} color={colors.bg.brandDeep} />
+              <View style={[styles.badge, removed && styles.badgeRemoved]}>
+                <MaterialCommunityIcons
+                  name={removed ? 'trash-can-outline' : 'check'}
+                  size={11}
+                  color={colors.bg.brandDeep}
+                />
               </View>
             </View>
 
@@ -174,6 +186,20 @@ function ToastCard({ toast, onDone }: { toast: SaveToastInput; onDone: () => voi
             </View>
           ) : null}
         </Pressable>
+
+        {toast.action ? (
+          <Pressable
+            onPress={() => {
+              toast.action?.onPress();
+              dismiss();
+            }}
+            hitSlop={6}
+            accessibilityRole="button"
+            style={({ pressed }) => [styles.action, pressed && styles.actionPressed]}>
+            <MaterialCommunityIcons name="undo-variant" size={18} color={colors.text.highlight} />
+            <Text style={styles.actionText}>{toast.action.label}</Text>
+          </Pressable>
+        ) : null}
 
         <View style={styles.track}>
           <Animated.View style={[styles.bar, { backgroundColor: accent }, barStyle]} />
@@ -230,6 +256,20 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.bg.brandDeep,
   },
+  badgeRemoved: { backgroundColor: colors.text.onBrandDanger },
+  action: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space.xs,
+    minHeight: 44,
+    marginHorizontal: space.md,
+    marginBottom: space.sm,
+    borderRadius: radius.md,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  actionPressed: { backgroundColor: 'rgba(255,255,255,0.18)' },
+  actionText: { ...type.label, color: colors.text.highlight },
   texts: { flex: 1, gap: 2 },
   kicker: { ...type.overline },
   title: { ...type.label, color: colors.text.onBrand },

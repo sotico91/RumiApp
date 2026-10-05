@@ -12,6 +12,15 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-05
 
+- **Borrar con Deshacer:** borrar un movimiento ya no pide confirmación; se borra al momento y la tarjeta inferior muestra "Movimiento borrado" con un botón **Deshacer** durante 6 segundos.
+  Deshacer devuelve el movimiento con su mismo id y fecha, y reaplica su efecto en saldos y deudas (`restoreTransaction`).
+- **Inicio más simple:** sin el cerdito animado en la cabecera (sigue en Análisis) ni la línea "Espacio de gastos de…".
+  "Merece atención" solo aparece cuando hay topes superados, y abierta.
+  "Pagos a vigilar" se oculta si no hay pagos previstos.
+  Orden: el mes, el registro rápido, las alertas, los pagos y al final los consejos.
+- **Topes en 0 %:** en Plan solo se listan con barra los topes que ya tienen gasto; los que no, van en una línea ("3 topes sin gastos aún: …").
+- **APK por LAN:** `publish-apk-lan.sh` publica el APK más reciente entre la carpeta de caché y `android/app/build`.
+  Después de un `expo prebuild` se estaba publicando el APK anterior, y por eso en Android no se veía el logo nuevo.
 - **Logo nuevo, billetes en abanico:** el billete petróleo va detrás y el coral delante, los dos con borde y sello como un billete real.
   El sello del billete coral lleva la cara de Rumi, como el retrato de un billete.
   Los billetes cruzados en X se leían como "cancelar" o como una curita.

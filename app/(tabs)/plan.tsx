@@ -44,7 +44,10 @@ export default function PlanScreen() {
   const markedAntSubs = spendConcepts.flatMap((c) =>
     c.subs.filter((s) => s.isAnt).map((s) => ({ concept: c.name, sub: s.name, id: s.id }))
   );
-  const budgetGroups = groupBySpendConcept(activeBudgets, (b) => b.categoryId, spendConcepts);
+  // A limit with nothing spent yet says nothing: list it by name on one line instead of a 0% bar.
+  const usedBudgets = activeBudgets.filter((b) => b.spent > 0);
+  const unusedBudgets = activeBudgets.filter((b) => b.spent <= 0);
+  const budgetGroups = groupBySpendConcept(usedBudgets, (b) => b.categoryId, spendConcepts);
   // Every marked small spend, with this month's amount (0 when nothing logged yet).
   const antAmounts = new Map(ant.items.map((item) => [item.categoryId, item.amount]));
   const antIds = [
@@ -170,6 +173,16 @@ export default function PlanScreen() {
                   </View>
                 );
               })}
+              {unusedBudgets.length > 0 ? (
+                <Text style={styles.unusedLine}>
+                  {t('plan.budgetsUnused', {
+                    count: unusedBudgets.length,
+                    names: unusedBudgets
+                      .map((b) => categoryLabel(b.categoryId, t, spendConcepts))
+                      .join(', '),
+                  })}
+                </Text>
+              ) : null}
             </View>
           </CollapsibleSection>
         </View>
@@ -330,6 +343,13 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   fill: { height: '100%', borderRadius: 999 },
+  unusedLine: {
+    fontFamily: 'DMSans_400Regular',
+    fontSize: 13,
+    lineHeight: 18,
+    color: palette.inkMuted,
+    paddingHorizontal: space.xxs,
+  },
   rowMeta: {
     marginTop: 6,
     fontFamily: 'DMSans_400Regular',
