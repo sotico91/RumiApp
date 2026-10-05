@@ -15,7 +15,8 @@
       "bundleIdentifier": "com.sotico91.rumi",
       "icon": {
         "light": "./assets/images/icon.png",
-        "dark": "./assets/images/icon.png"
+        "dark": "./assets/images/icon-dark.png",
+        "tinted": "./assets/images/icon-tinted.png"
       },
       "buildNumber": "1",
       "infoPlist": {

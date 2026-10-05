@@ -12,6 +12,11 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-05
 
+- **Logo nuevo, billetes en abanico:** el billete petróleo va detrás y el coral delante, los dos con borde y sello como un billete real.
+  El sello del billete coral lleva la cara de Rumi, como el retrato de un billete.
+  Los billetes cruzados en X se leían como "cancelar" o como una curita.
+  Todo sale de `scripts/generate-papel-icon.swift`: ícono de iOS (claro, oscuro y tintado), ícono adaptativo de Android (frente, fondo y monocromo), ícono de notificación, favicon y splash.
+  El splash animado dibuja los ojos, el guiño y la sonrisa sobre el sello del billete.
 - **Agregar abre directo el gasto rápido:** el "+" abre el formulario de una pantalla (monto, en qué, de dónde, guardar) en lugar de las tarjetas "¿Qué pasó?".
   Arriba hay un selector Gasto | Ingreso | Mover | Deuda: los otros tipos abren el modo guiado en su primera pregunta, y "Atrás" vuelve al gasto rápido.
   Las plantillas y el modo guiado quedan en un enlace bajo el botón de guardar.

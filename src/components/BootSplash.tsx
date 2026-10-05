@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { Image, Platform, StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import Animated, {
@@ -15,15 +15,25 @@ import Animated, {
 
 /** Same cream as the native Expo splash (app.json) — iOS + Android. */
 const SPLASH_BG = '#F3E6D8';
-const LOGO = 188;
+const LOGO = 220;
 const PX = LOGO / 1024;
-/** splash-icon.png navy peeks (centroids measured on 1024²). */
-const EYE = 26;
-const LEFT_EYE = { left: 270.2 * PX - EYE / 2, top: 650.9 * PX - EYE / 2 };
-const RIGHT_EYE = { left: 728.1 * PX - EYE / 2, top: 367.9 * PX - EYE / 2 };
+/**
+ * Rumi's face on the coral bill's seal, in splash-icon.png pixels (1024²).
+ * Matches the face on the app icon (scripts/generate-papel-icon.swift).
+ */
+const SEAL = { x: 551.7, y: 595.8 };
+const EYE = 30 * PX;
+const LEFT_EYE = { left: (SEAL.x - 33.8) * PX - EYE / 2, top: (SEAL.y - 17.5) * PX - EYE / 2 };
+const RIGHT_EYE = { left: (SEAL.x + 33.8) * PX - EYE / 2, top: (SEAL.y - 17.5) * PX - EYE / 2 };
 /** The smile is the bottom arc of this circle. */
-const SMILE = 58;
-const SMILE_STROKE = 4.5;
+const SMILE_RADIUS = 60;
+const SMILE = SMILE_RADIUS * 2 * PX;
+const SMILE_STROKE = 15 * PX;
+const SMILE_BOX = {
+  left: (SEAL.x - SMILE_RADIUS) * PX,
+  top: (SEAL.y + 42.5 - SMILE_RADIUS * 2) * PX,
+};
+const FACE = '#1D3A4C';
 /** Visible hold before fading into the app. */
 export const BOOT_HOLD_MS = 2200;
 
@@ -58,7 +68,7 @@ export function BootSplash({ onDone }: Props) {
 
     pop.value = withSpring(1, { damping: 11, stiffness: 150 });
     eyes.value = withDelay(120, withTiming(1, { duration: 200 }));
-    // Right eye winks (upper navy peek)
+    // Right eye winks
     wink.value = withDelay(
       420,
       withSequence(
@@ -69,7 +79,7 @@ export function BootSplash({ onDone }: Props) {
         withTiming(1, { duration: 150, easing: Easing.out(Easing.cubic) })
       )
     );
-    // Smile grows under the mark
+    // Smile grows on the seal
     smile.value = withDelay(
       700,
       withSequence(
@@ -125,7 +135,7 @@ export function BootSplash({ onDone }: Props) {
     transform: [
       { scaleX: 0.4 + smile.value * 0.6 },
       { scaleY: smile.value },
-      { translateY: (1 - smile.value) * 8 },
+      { translateY: (1 - smile.value) * 3 },
     ],
   }));
 
@@ -139,12 +149,8 @@ export function BootSplash({ onDone }: Props) {
           resizeMode="contain"
         />
         <Animated.View style={[StyleSheet.absoluteFill, eyesStyle]} pointerEvents="none">
-          <View style={[styles.eye, LEFT_EYE]}>
-            <View style={[styles.pupil, styles.pupilLeft]} />
-          </View>
-          <Animated.View style={[styles.eye, RIGHT_EYE, winkStyle]}>
-            <View style={[styles.pupil, styles.pupilRight]} />
-          </Animated.View>
+          <View style={[styles.eye, LEFT_EYE]} />
+          <Animated.View style={[styles.eye, RIGHT_EYE, winkStyle]} />
         </Animated.View>
         <Animated.View style={[styles.smileWrap, smileStyle]} pointerEvents="none">
           <View style={styles.smile} />
@@ -175,40 +181,13 @@ const styles = StyleSheet.create({
     width: EYE,
     height: EYE,
     borderRadius: EYE / 2,
-    backgroundColor: '#FFFDF8',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#061018',
-        shadowOpacity: 0.18,
-        shadowRadius: 2,
-        shadowOffset: { width: 0, height: 1 },
-      },
-      android: { elevation: 2 },
-      default: {},
-    }),
-  },
-  pupil: {
-    width: EYE * 0.48,
-    height: EYE * 0.48,
-    borderRadius: EYE,
-    backgroundColor: '#1B3A4B',
-  },
-  pupilLeft: {
-    transform: [{ translateX: 1.5 }, { translateY: -1 }],
-  },
-  pupilRight: {
-    transform: [{ translateX: -1.5 }, { translateY: 1 }],
+    backgroundColor: FACE,
   },
   smileWrap: {
     position: 'absolute',
-    bottom: LOGO * 0.14,
+    ...SMILE_BOX,
     width: SMILE,
     height: SMILE,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
   },
   // Only the bottom border is coloured: a round arc whose ends taper to a
   // point, with no top edge left to draw (the old open box showed a line there).
@@ -218,7 +197,7 @@ const styles = StyleSheet.create({
     borderRadius: SMILE / 2,
     borderWidth: SMILE_STROKE,
     borderColor: 'transparent',
-    borderBottomColor: '#1B3A4B',
+    borderBottomColor: FACE,
     backgroundColor: 'transparent',
   },
 });
