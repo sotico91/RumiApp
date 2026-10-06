@@ -28,9 +28,13 @@ export type ReminderRule = {
   minute: number;
   /**
    * If set (1–28), fires every month on that day.
-   * If omitted, fires every day at hour:minute.
+   * If omitted (and no weekday / lastDay), fires every day at hour:minute.
    */
   dayOfMonth?: number;
+  /** Fires on the last day of every month (28–31). Takes precedence over dayOfMonth. */
+  lastDay?: boolean;
+  /** 0 = Sunday … 6 = Saturday: fires once a week on that day. */
+  weekday?: number;
 };
 
 /** @deprecated Flat custom concepts — migrated into spendConcepts. */

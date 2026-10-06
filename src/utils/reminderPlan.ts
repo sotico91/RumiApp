@@ -4,6 +4,8 @@ import { filterByCalendarMonth, predictMonthlySpends } from '@/src/utils/finance
 
 /** Days ahead a daily reminder is planned; refreshed whenever the app opens or a movement is saved. */
 const DAILY_HORIZON_DAYS = 7;
+/** Weeks ahead a weekly reminder is planned. */
+const WEEKLY_HORIZON = 4;
 /** Months ahead a monthly reminder is planned. */
 const MONTHLY_HORIZON = 3;
 /** iOS keeps at most 64 pending local notifications per app; leave room for the others. */
@@ -13,6 +15,17 @@ const PAID_RATIO = 0.9;
 const TYPICAL_LOOKBACK_DAYS = 90;
 const TYPICAL_MIN_SAMPLES = 3;
 const TYPICAL_MONTHS = 6;
+
+export type ReminderFrequency = 'daily' | 'weekly' | 'monthly';
+
+/** How often a rule fires; monthly covers both a fixed day and the last day of the month. */
+export function reminderFrequency(rule: ReminderRule): ReminderFrequency {
+  if (rule.lastDay || (rule.dayOfMonth != null && rule.dayOfMonth >= 1 && rule.dayOfMonth <= 28)) {
+    return 'monthly';
+  }
+  if (rule.weekday != null && rule.weekday >= 0 && rule.weekday <= 6) return 'weekly';
+  return 'daily';
+}
 
 export type ReminderOccurrence = {
   /** Stable per rule + fire time, so unchanged occurrences are not rescheduled. */
@@ -70,6 +83,14 @@ function paidDebtIn(debtId: string, transactions: Transaction[], month: Date): b
   );
 }
 
+/** Logged within the `days` days before `date` (from the start of that day). */
+function paidSince(subId: string, transactions: Transaction[], date: Date, days: number): boolean {
+  const from = new Date(date.getFullYear(), date.getMonth(), date.getDate() - days).getTime();
+  return transactions.some(
+    (t) => isSpend(t) && t.categoryId === subId && new Date(t.createdAt).getTime() >= from
+  );
+}
+
 function paidOn(subId: string, transactions: Transaction[], day: Date): boolean {
   return transactions.some((t) => {
     if (!isSpend(t) || t.categoryId !== subId) return false;
@@ -103,11 +124,16 @@ export function planReminders(
     const at = (base: Date) =>
       new Date(base.getFullYear(), base.getMonth(), base.getDate(), rule.hour, rule.minute);
 
-    if (rule.dayOfMonth != null && rule.dayOfMonth >= 1 && rule.dayOfMonth <= 28) {
+    const frequency = reminderFrequency(rule);
+    if (frequency === 'monthly') {
       const bill = bills.get(rule.subId);
       const usual = bill?.expectedAmount ?? typicalMonth(rule.subId, transactions, now);
       for (let i = 0; i <= MONTHLY_HORIZON; i += 1) {
-        const date = at(new Date(now.getFullYear(), now.getMonth() + i, rule.dayOfMonth));
+        // Day 0 of the next month is the last day of this one.
+        const day = rule.lastDay
+          ? new Date(now.getFullYear(), now.getMonth() + i + 1, 0)
+          : new Date(now.getFullYear(), now.getMonth() + i, rule.dayOfMonth);
+        const date = at(day);
         if (date <= now) continue;
         const paid = paidIn(rule.subId, transactions, date.getFullYear(), date.getMonth());
         let amount = usual;
@@ -123,6 +149,20 @@ export function planReminders(
     }
 
     const usual = typicalPayment(rule.subId, transactions, now);
+    if (frequency === 'weekly') {
+      const ahead = ((rule.weekday as number) - now.getDay() + 7) % 7;
+      let planned = 0;
+      for (let i = 0; i <= WEEKLY_HORIZON && planned < WEEKLY_HORIZON; i += 1) {
+        const date = at(new Date(now.getFullYear(), now.getMonth(), now.getDate() + ahead + 7 * i));
+        if (date <= now) continue;
+        // Bought it in the days since last week's reminder: this week is covered.
+        if (planned === 0 && paidSince(rule.subId, transactions, date, 6)) continue;
+        out.push({ id: `${rule.subId}@${stamp(date)}`, subId: rule.subId, date, amount: usual });
+        planned += 1;
+      }
+      continue;
+    }
+
     for (let i = 0; i < DAILY_HORIZON_DAYS; i += 1) {
       const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
       const date = at(day);

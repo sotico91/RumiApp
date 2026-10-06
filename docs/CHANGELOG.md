@@ -12,6 +12,11 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-06
 
+- **Recordatorios semanales y el último día del mes:**
+  - La frecuencia ahora es diaria, semanal (eliges el día de la semana) o mensual. En la mensual se puede elegir "Último día", que cae el 28, 29, 30 o 31 según el mes.
+  - El semanal no avisa si ese concepto ya se registró en los 6 días anteriores, por ejemplo si hiciste el mercado el jueves.
+  - Nuevos campos en `ReminderRule`: `weekday` y `lastDay`. La frecuencia se lee con `reminderFrequency`.
+
 - **Recordatorios sugeridos en Plan:**
   - Los pagos que haces cada mes y aún no tienen recordatorio aparecen en "Te sugerimos", con el día habitual y el monto. Salen de "Pagos a vigilar" y nunca incluyen hormigas.
   - "Recordármelo" crea un recordatorio mensual el día anterior, a las 9:00. "Ahora no" lo descarta para siempre (`reminderSuggestionsDismissed`).

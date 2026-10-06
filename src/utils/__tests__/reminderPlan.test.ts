@@ -5,6 +5,7 @@ import {
   MAX_PLANNED_REMINDERS,
   planDebtReminders,
   planReminders,
+  reminderFrequency,
   suggestReminders,
 } from '@/src/utils/reminderPlan';
 import type { SpendConcept } from '@/src/types/settings';
@@ -193,5 +194,38 @@ describe('suggestReminders', () => {
 
   it('skips concepts that already have a reminder or were turned down', () => {
     expect(suggest([monthly], ['internet'])).toEqual([]);
+  });
+});
+
+describe('planReminders — weekly and last day', () => {
+  // now = Saturday 10 Oct 2026, 12:00.
+  const saturday: ReminderRule = { subId: 'mercado', hour: 9, minute: 0, weekday: 6 };
+  const sunday: ReminderRule = { ...saturday, weekday: 0 };
+
+  it('plans the next four weeks on that weekday', () => {
+    const out = plan([sunday], []);
+    expect(out.map((o) => o.date.getDate())).toEqual([11, 18, 25, 1]);
+    expect(out.every((o) => o.date.getDay() === 0 && o.date.getHours() === 9)).toBe(true);
+  });
+
+  it('starts next week when today’s time already passed', () => {
+    expect(plan([saturday], [])[0].date.getDate()).toBe(17);
+  });
+
+  it('skips this week once it was bought since last week', () => {
+    const out = plan([sunday], [tx(150_000, '2026-10-08T18:00', 'mercado')]);
+    expect(out[0].date.getDate()).toBe(18);
+  });
+
+  it('reminds on the last day of each month', () => {
+    const out = plan([{ subId: 'admin', hour: 9, minute: 0, lastDay: true }], adminHistory);
+    expect(out.map((o) => o.date.getDate())).toEqual([31, 30, 31]);
+  });
+
+  it('reads the frequency of a rule', () => {
+    expect(reminderFrequency(daily)).toBe('daily');
+    expect(reminderFrequency(sunday)).toBe('weekly');
+    expect(reminderFrequency(monthly)).toBe('monthly');
+    expect(reminderFrequency({ ...daily, lastDay: true })).toBe('monthly');
   });
 });

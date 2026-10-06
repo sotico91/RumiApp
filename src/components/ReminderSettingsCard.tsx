@@ -22,16 +22,39 @@ import { palette, radii } from '@/src/theme/colors';
 import type { ReminderRule } from '@/src/types/settings';
 import { categoryLabel } from '@/src/utils/categoryLabel';
 import { predictMonthlySpends } from '@/src/utils/financeMath';
-import { remindableDebts, suggestReminders, type ReminderSuggestion } from '@/src/utils/reminderPlan';
+import {
+  reminderFrequency,
+  remindableDebts,
+  suggestReminders,
+  type ReminderFrequency,
+  type ReminderSuggestion,
+} from '@/src/utils/reminderPlan';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import { appAlert } from '@/src/components/AppAlert';
 
 const HOURS = [7, 8, 9, 12, 18, 19, 20, 21];
 const MINUTES = [0, 15, 30, 45];
 const MONTH_DAYS = [1, 5, 10, 15, 20, 25, 28];
+const FREQUENCIES: ReminderFrequency[] = ['daily', 'weekly', 'monthly'];
+const FREQUENCY_LABEL = {
+  daily: 'reminder.daily',
+  weekly: 'reminder.weekly',
+  monthly: 'reminder.monthly',
+} as const satisfies Record<ReminderFrequency, TranslationKey>;
+/** Monday first. */
+const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
+
+/** Weekday name from the device's locale data; 4 Oct 2026 is a Sunday. */
+function weekdayName(dow: number, language: string, style: 'long' | 'short'): string {
+  const name = new Date(2026, 9, 4 + dow).toLocaleDateString(language === 'es' ? 'es-CO' : 'en-US', {
+    weekday: style,
+  });
+  // Chips read "Lun", "Mar"…; summaries keep the sentence form ("cada lunes").
+  return style === 'short' ? name.charAt(0).toUpperCase() + name.slice(1).replace('.', '') : name;
+}
 
 export function ReminderSettingsCard() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { settings, updateReminders, setDebtReminder, dismissReminderSuggestion } = useSettings();
   const { transactions, debts } = useFinance();
   const { format } = useMoney();
@@ -120,6 +143,32 @@ export function ReminderSettingsCard() {
   function removeSub(subId: string) {
     setRules((prev) => prev.filter((r) => r.subId !== subId));
     if (editingSubId === subId) setEditingSubId(null);
+  }
+
+  /** Switching frequency clears the other schedules so only one applies. */
+  function setFrequency(rule: ReminderRule, frequency: ReminderFrequency) {
+    const cleared = { dayOfMonth: undefined, lastDay: undefined, weekday: undefined };
+    if (frequency === 'daily') patchRule(rule.subId, cleared);
+    if (frequency === 'weekly') {
+      patchRule(rule.subId, { ...cleared, weekday: rule.weekday ?? new Date().getDay() });
+    }
+    if (frequency === 'monthly') {
+      patchRule(rule.subId, { ...cleared, dayOfMonth: rule.dayOfMonth ?? 5 });
+    }
+  }
+
+  function ruleSummary(rule: ReminderRule): string {
+    const time = `${String(rule.hour).padStart(2, '0')}:${String(rule.minute).padStart(2, '0')}`;
+    switch (reminderFrequency(rule)) {
+      case 'monthly':
+        return rule.lastDay
+          ? t('reminder.lastDayAt', { time })
+          : t('reminder.monthlyAt', { day: rule.dayOfMonth ?? 1, time });
+      case 'weekly':
+        return t('reminder.weeklyAt', { weekday: weekdayName(rule.weekday ?? 1, language, 'long'), time });
+      default:
+        return t('reminder.dailyAt', { time });
+    }
   }
 
   function patchRule(subId: string, patch: Partial<ReminderRule>) {
@@ -252,14 +301,7 @@ export function ReminderSettingsCard() {
                 <View style={{ flex: 1 }}>
                   <Text style={styles.ruleTitle}>{label}</Text>
                   <Text style={styles.ruleMeta}>
-                    {rule.dayOfMonth
-                      ? t('reminder.monthlyAt', {
-                          day: rule.dayOfMonth,
-                          time: `${String(rule.hour).padStart(2, '0')}:${String(rule.minute).padStart(2, '0')}`,
-                        })
-                      : t('reminder.dailyAt', {
-                          time: `${String(rule.hour).padStart(2, '0')}:${String(rule.minute).padStart(2, '0')}`,
-                        })}
+                    {ruleSummary(rule)}
                   </Text>
                 </View>
                 <Text style={styles.chevron}>{open ? '▾' : '▸'}</Text>
@@ -269,67 +311,81 @@ export function ReminderSettingsCard() {
                 <View style={styles.ruleBody}>
                   <Text style={styles.miniLabel}>{t('reminder.frequency')}</Text>
                   <View style={styles.row}>
-                    <Pressable
-                      onPress={() => patchRule(rule.subId, { dayOfMonth: undefined })}
-                      accessibilityRole="radio"
-                      accessibilityState={{ checked: rule.dayOfMonth == null }}
-                      style={[styles.chip, rule.dayOfMonth == null && styles.chipOn]}>
-                      <Text
-                        style={[
-                          styles.chipText,
-                          rule.dayOfMonth == null && styles.chipTextOn,
-                        ]}>
-                        {t('reminder.daily')}
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() =>
-                        patchRule(rule.subId, {
-                          dayOfMonth: rule.dayOfMonth ?? 5,
-                        })
-                      }
-                      accessibilityRole="radio"
-                      accessibilityState={{ checked: rule.dayOfMonth != null }}
-                      style={[styles.chip, rule.dayOfMonth != null && styles.chipOn]}>
-                      <Text
-                        style={[
-                          styles.chipText,
-                          rule.dayOfMonth != null && styles.chipTextOn,
-                        ]}>
-                        {t('reminder.monthly')}
-                      </Text>
-                    </Pressable>
+                    {FREQUENCIES.map((f) => {
+                      const on = reminderFrequency(rule) === f;
+                      return (
+                        <Pressable
+                          key={f}
+                          onPress={() => setFrequency(rule, f)}
+                          accessibilityRole="radio"
+                          accessibilityState={{ checked: on }}
+                          style={[styles.chip, on && styles.chipOn]}>
+                          <Text style={[styles.chipText, on && styles.chipTextOn]}>
+                            {t(FREQUENCY_LABEL[f])}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
                   </View>
 
-                  {rule.dayOfMonth != null ? (
+                  {reminderFrequency(rule) === 'weekly' ? (
+                    <>
+                      <Text style={styles.miniLabel}>{t('reminder.pickWeekday')}</Text>
+                      <View style={styles.row}>
+                        {WEEK_ORDER.map((dow) => {
+                          const on = rule.weekday === dow;
+                          return (
+                            <Pressable
+                              key={dow}
+                              onPress={() => patchRule(rule.subId, { weekday: dow })}
+                              accessibilityRole="radio"
+                              accessibilityLabel={weekdayName(dow, language, 'long')}
+                              accessibilityState={{ checked: on }}
+                              style={[styles.hourChip, on && styles.hourOn]}>
+                              <Text style={[styles.hourText, on && styles.hourTextOn]}>
+                                {weekdayName(dow, language, 'short')}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
+                      </View>
+                    </>
+                  ) : null}
+
+                  {reminderFrequency(rule) === 'monthly' ? (
                     <>
                       <Text style={styles.miniLabel}>{t('reminder.pickDay')}</Text>
                       <View style={styles.row}>
-                        {MONTH_DAYS.map((d) => (
-                          <Pressable
-                            key={d}
-                            onPress={() => patchRule(rule.subId, { dayOfMonth: d })}
-                            accessibilityRole="radio"
-                            accessibilityState={{ checked: rule.dayOfMonth === d }}
-                            style={[
-                              styles.hourChip,
-                              rule.dayOfMonth === d && styles.hourOn,
-                            ]}>
-                            <Text
-                              style={[
-                                styles.hourText,
-                                rule.dayOfMonth === d && styles.hourTextOn,
-                              ]}>
-                              {t('reminder.dayLabel', { day: d })}
-                            </Text>
-                          </Pressable>
-                        ))}
+                        {MONTH_DAYS.map((d) => {
+                          const on = !rule.lastDay && rule.dayOfMonth === d;
+                          return (
+                            <Pressable
+                              key={d}
+                              onPress={() => patchRule(rule.subId, { dayOfMonth: d, lastDay: undefined })}
+                              accessibilityRole="radio"
+                              accessibilityState={{ checked: on }}
+                              style={[styles.hourChip, on && styles.hourOn]}>
+                              <Text style={[styles.hourText, on && styles.hourTextOn]}>
+                                {t('reminder.dayLabel', { day: d })}
+                              </Text>
+                            </Pressable>
+                          );
+                        })}
+                        <Pressable
+                          onPress={() => patchRule(rule.subId, { lastDay: true, dayOfMonth: undefined })}
+                          accessibilityRole="radio"
+                          accessibilityState={{ checked: rule.lastDay === true }}
+                          style={[styles.hourChip, rule.lastDay && styles.hourOn]}>
+                          <Text style={[styles.hourText, rule.lastDay && styles.hourTextOn]}>
+                            {t('reminder.lastDay')}
+                          </Text>
+                        </Pressable>
                       </View>
                       <TextInput
-                        value={String(rule.dayOfMonth)}
+                        value={rule.lastDay ? '' : String(rule.dayOfMonth ?? '')}
                         onChangeText={(v) => {
                           const n = Math.min(28, Math.max(1, Number(v) || 1));
-                          patchRule(rule.subId, { dayOfMonth: n });
+                          patchRule(rule.subId, { dayOfMonth: n, lastDay: undefined });
                         }}
                         keyboardType="number-pad"
                         style={styles.dayInput}
