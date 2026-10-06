@@ -816,7 +816,7 @@ export const translations = {
       'Your bank and cash are already there. Add what is missing: Nequi or another bank, savings, and credit cards, so each expense comes from the right place.',
     'guide.step2Title': 'Plan — what you’ll find there',
     'guide.step2Body':
-      'Your categories (Food, Bills…) and their subcategories (Coffee, Power…). Optional: monthly limits, reminders and small spends 🐜 to watch.',
+      'Your categories (Food, Bills…) and their subcategories (Coffee, Power…). Optional: monthly limits and small spends 🐜 to watch. In Reminders, Rumi suggests the payments you make every month and stays quiet once you logged them.',
     'guide.step3Title': 'Log an expense',
     'guide.step3Body':
       'Tap + → I spent. Type the amount, tap what it was for and the account or card it came from. Save.',
@@ -825,10 +825,10 @@ export const translations = {
       'Got paid: + → I received money. Moved money between your accounts: + → I moved money. Moving is not an expense.',
     'guide.step5Title': 'Cards and loans are two different things',
     'guide.step5Body':
-      'Buying with a card is an expense. Paying the card later is not a new one — Rumi counts the purchase once. Loans: log each installment when you pay it.',
+      'Buying with a card is an expense. Paying the card later is not a new one — Rumi counts the purchase once. Loans: log each installment when you pay it. Rumi reminds you the day before each due date; turn it off per debt in Plan.',
     'guide.step6Title': 'Insights — the analysis engine',
     'guide.step6Body':
-      'Ask in your own words: “July”, “coffee this month”, “can I buy 200k?”, “where can I cut back?”. Smart notes below summarize the period.',
+      'Ask in your own words: “coffee last week”, “coffee vs last month”, “how much do I have left?”, “can I buy 200k?”. Rumi shows what it understood and the movements behind the answer. Smart notes below summarize the period.',
     'guide.step7Title': 'Home and Activity',
     'guide.step7Body':
       'Home: what you have, how the month is going and what is due. Activity: every transaction, to edit or delete.',
@@ -1903,7 +1903,7 @@ export const translations = {
       'Tu banco y tu efectivo ya están. Agrega lo que falte: Nequi u otro banco, ahorros y tarjetas de crédito, para que cada gasto salga de donde es.',
     'guide.step2Title': 'Plan: qué encuentras ahí',
     'guide.step2Body':
-      'Tus categorías (Alimentación, Recibos…) y sus subcategorías (Café, Luz…). Opcional: topes mensuales, recordatorios y gastos hormiga 🐜 para vigilar.',
+      'Tus categorías (Alimentación, Recibos…) y sus subcategorías (Café, Luz…). Opcional: topes mensuales y gastos hormiga 🐜 para vigilar. En Recordatorios, Rumi te sugiere los pagos que haces cada mes y no te avisa si ya los registraste.',
     'guide.step3Title': 'Registra un gasto',
     'guide.step3Body':
       'Toca + → Gasté. Escribe el monto, toca en qué fue y la cuenta o tarjeta de donde salió. Guarda.',
@@ -1912,10 +1912,10 @@ export const translations = {
       'Te pagaron: + → Recibí dinero. Moviste plata entre tus cuentas: + → Moví dinero. Mover no es un gasto.',
     'guide.step5Title': 'Tarjetas y créditos son dos cosas distintas',
     'guide.step5Body':
-      'Comprar con tarjeta es un gasto. Pagar la tarjeta después no es otro: Rumi cuenta la compra una sola vez. Préstamos: registra cada cuota cuando la pagues.',
+      'Comprar con tarjeta es un gasto. Pagar la tarjeta después no es otro: Rumi cuenta la compra una sola vez. Préstamos: registra cada cuota cuando la pagues. Rumi te avisa un día antes de cada vencimiento; puedes apagarlo por deuda en Plan.',
     'guide.step6Title': 'Análisis: el motor de preguntas',
     'guide.step6Body':
-      'Pregunta como hablas: “julio”, “café este mes”, “¿puedo comprar algo de 200 mil?”, “¿en qué puedo recortar?”. Abajo, las notas resumen el periodo.',
+      'Pregunta como hablas: “café la semana pasada”, “café vs el mes pasado”, “¿cuánto me queda?”, “¿puedo comprar algo de 200 mil?”. Rumi te muestra qué entendió y los movimientos detrás de la respuesta. Abajo, las notas resumen el periodo.',
     'guide.step7Title': 'Inicio y Actividad',
     'guide.step7Body':
       'Inicio: lo que tienes, cómo va el mes y qué viene. Actividad: todos tus movimientos, para editar o borrar.',

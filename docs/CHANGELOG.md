@@ -12,6 +12,12 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-06
 
+- **"Cómo usar Rumi" al día:**
+  - Paso 2: recordatorios sugeridos que no avisan lo ya pagado.
+  - Paso 5: aviso un día antes de cada vencimiento.
+  - Paso 6: nuevos ejemplos de preguntas y la vista de lo que Rumi entendió.
+  - El README también. El onboarding no cambia: no toca recordatorios ni preguntas.
+
 - **Un recordatorio llega una sola vez:**
   - Dos sincronizaciones que se solapaban (guardar un recordatorio y volver a la app) veían el mismo aviso como pendiente y lo programaban dos veces. Ahora `syncPlannedReminders` corre de a una.
   - Un concepto ligado a una deuda con aviso de vencimiento ya no avisa por su cuenta (`planAllReminders`).

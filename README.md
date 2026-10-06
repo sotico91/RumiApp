@@ -17,9 +17,9 @@ Built for daily use on **iPhone and Android** (same Expo codebase): guided onboa
 - **Quick templates** (coffee, delivery, transport, salary, savings)
 - **Home** month summary: income, expenses, savings signal, debts, and net worth
 - **Activity** by today / week / month, with edit and delete
-- **Plan**: daily local reminders + budgets for registered concepts
+- **Plan**: budgets for registered concepts and local reminders: every active debt the day before it is due, recurring payments suggested from history, daily / weekly / monthly / last-day rules that skip what is already paid
 - **Other** reminders: custom concept names (receipts, parking, utilities, etc.)
-- **Understand**: category ranking and “Ask Rumi”
+- **Understand**: category ranking and “Ask Rumi” (periods, comparisons, notes, month-end forecast; shows what it understood and the movements behind each answer)
 - **Wealth**: accounts, debts, and credit installments
 - **i18n** English / Spanish (device language)
 - **On-device** data (AsyncStorage); no remote push server required
