@@ -11,11 +11,7 @@ import { syncPlannedReminders } from '@/src/utils/notifications';
 import { reminderPushCopy } from '@/src/utils/reminderCopy';
 import type { TranslationKey } from '@/src/i18n/translations';
 import type { Debt } from '@/src/types/finance';
-import {
-  MAX_PLANNED_REMINDERS,
-  planDebtReminders,
-  planReminders,
-} from '@/src/utils/reminderPlan';
+import { planAllReminders } from '@/src/utils/reminderPlan';
 
 /** Let a burst of edits (saving several movements) settle into one sync. */
 const SYNC_DELAY_MS = 800;
@@ -67,14 +63,15 @@ export function ReminderScheduler() {
       amount != null && amountsVisible ? formatMoney(amount, settings.currency) : undefined;
     const raw = (amount: number | null) => (amount != null ? String(Math.round(amount)) : '');
 
-    const expenseItems = planReminders(rules, transactions, debts, concepts).map((o) => ({
+    const muted = new Set(settings.debtRemindersOff ?? []);
+    const plan = planAllReminders(rules, debts, transactions, concepts, muted);
+    const expenseItems = plan.expenses.map((o) => ({
       id: o.id,
       date: o.date,
       ...reminderPushCopy(o.subId, concepts, t, language, money(o.amount)),
       data: { type: 'expense-reminder' as const, categoryId: o.subId, amount: raw(o.amount) },
     }));
-    const muted = new Set(settings.debtRemindersOff ?? []);
-    const debtItems = planDebtReminders(debts, transactions, concepts, muted).map((o) => {
+    const debtItems = plan.debts.map((o) => {
       const name = debtName(debts.find((d) => d.id === o.debtId), t);
       const amount = money(o.amount);
       return {
@@ -87,8 +84,7 @@ export function ReminderScheduler() {
         data: { type: 'debt-reminder' as const, debtId: o.debtId },
       };
     });
-    // Debts first: when the platform limit bites, a due installment matters more.
-    const items = [...debtItems, ...expenseItems].slice(0, MAX_PLANNED_REMINDERS);
+    const items = [...debtItems, ...expenseItems];
     const timer = setTimeout(() => void syncPlannedReminders(items), SYNC_DELAY_MS);
     return () => clearTimeout(timer);
   }, [

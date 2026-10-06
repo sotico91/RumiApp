@@ -12,6 +12,12 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-06
 
+- **Un recordatorio llega una sola vez:**
+  - Dos sincronizaciones que se solapaban (guardar un recordatorio y volver a la app) veían el mismo aviso como pendiente y lo programaban dos veces. Ahora `syncPlannedReminders` corre de a una.
+  - Un concepto ligado a una deuda con aviso de vencimiento ya no avisa por su cuenta (`planAllReminders`).
+  - Los avisos de deuda también ponen el globo con el número en el ícono.
+  - Pruebas con un sistema de notificaciones simulado (`notifications.test.ts`).
+
 - **Recordatorios semanales y el último día del mes:**
   - La frecuencia ahora es diaria, semanal (eliges el día de la semana) o mensual. En la mensual se puede elegir "Último día", que cae el 28, 29, 30 o 31 según el mes.
   - El semanal no avisa si ese concepto ya se registró en los 6 días anteriores, por ejemplo si hiciste el mercado el jueves.

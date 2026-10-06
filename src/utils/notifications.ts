@@ -6,7 +6,8 @@ import { AppState, Platform } from 'react-native';
 
 Notifications.setNotificationHandler({
   handleNotification: async (notification) => {
-    const isReminder = notification.request.content.data?.type === 'expense-reminder';
+    const type = notification.request.content.data?.type;
+    const isReminder = type === 'expense-reminder' || type === 'debt-reminder';
     return {
       shouldShowBanner: true,
       shouldShowList: true,
@@ -231,7 +232,17 @@ const REMINDER_PREFIX = 'rumi-reminder-';
  * Safe for free Apple Personal Team — no aps-environment entitlement.
  * Sets the app-icon badge when a reminder fires (cleared when the app is opened).
  */
-export async function syncPlannedReminders(items: PlannedReminder[]): Promise<number> {
+export function syncPlannedReminders(items: PlannedReminder[]): Promise<number> {
+  // One sync at a time: two overlapping runs would both see an occurrence as
+  // missing and schedule it twice (saving a rule and returning to the app can overlap).
+  const run = syncQueue.then(() => applyPlannedReminders(items));
+  syncQueue = run.catch(() => 0);
+  return run;
+}
+
+let syncQueue: Promise<unknown> = Promise.resolve();
+
+async function applyPlannedReminders(items: PlannedReminder[]): Promise<number> {
   if (Platform.OS === 'web') return 0;
   if (items.length > 0 && !(await ensureNotificationPermission())) return 0;
 

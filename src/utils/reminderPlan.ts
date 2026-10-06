@@ -291,3 +291,35 @@ export function suggestReminders(
     })
     .sort((a, b) => b.amount - a.amount);
 }
+
+/**
+ * Everything to schedule, without double alerts: a concept linked to a debt
+ * that already has its due-date reminder is left to that one. Debts go first
+ * when the platform limit bites, since a due installment matters more.
+ */
+export function planAllReminders(
+  rules: ReminderRule[],
+  debts: Debt[],
+  transactions: Transaction[],
+  spendConcepts: SpendConcept[],
+  mutedDebtIds: Set<string>,
+  now = new Date()
+): { debts: DebtReminderOccurrence[]; expenses: ReminderOccurrence[] } {
+  const debtPlan = planDebtReminders(debts, transactions, spendConcepts, mutedDebtIds, now).slice(
+    0,
+    MAX_PLANNED_REMINDERS
+  );
+  const coveredByDebt = new Set(
+    remindableDebts(debts)
+      .filter((d) => !mutedDebtIds.has(d.id) && d.categoryId)
+      .map((d) => d.categoryId as string)
+  );
+  const expensePlan = planReminders(
+    rules.filter((r) => !coveredByDebt.has(r.subId)),
+    transactions,
+    debts,
+    spendConcepts,
+    now
+  ).slice(0, MAX_PLANNED_REMINDERS - debtPlan.length);
+  return { debts: debtPlan, expenses: expensePlan };
+}

@@ -3,6 +3,7 @@ import type { ReminderRule } from '@/src/types/settings';
 import {
   DEBT_REMINDER_HOUR,
   MAX_PLANNED_REMINDERS,
+  planAllReminders,
   planDebtReminders,
   planReminders,
   reminderFrequency,
@@ -227,5 +228,40 @@ describe('planReminders — weekly and last day', () => {
     expect(reminderFrequency(sunday)).toBe('weekly');
     expect(reminderFrequency(monthly)).toBe('monthly');
     expect(reminderFrequency({ ...daily, lastDay: true })).toBe('monthly');
+  });
+});
+
+describe('planAllReminders', () => {
+  const moto: Debt = {
+    id: 'moto',
+    name: 'Moto',
+    balance: 2_000_000,
+    installment: 300_000,
+    interestRate: 0,
+    termMonths: 10,
+    nextPaymentDate: new Date('2026-10-20T00:00:00').toISOString(),
+    paidCapital: 0,
+    paidInterest: 0,
+    otherCharges: 0,
+    categoryId: 'cuota-moto',
+  };
+  const conceptRule: ReminderRule = { subId: 'cuota-moto', hour: 9, minute: 0, dayOfMonth: 19 };
+
+  it('does not remind the same payment twice: the debt reminder covers its concept', () => {
+    const out = planAllReminders([conceptRule], [moto], [], [], new Set(), now);
+    expect(out.debts.length).toBeGreaterThan(0);
+    expect(out.expenses).toEqual([]);
+  });
+
+  it('keeps the concept reminder when that debt reminder is off', () => {
+    const out = planAllReminders([conceptRule], [moto], [], [], new Set(['moto']), now);
+    expect(out.debts).toEqual([]);
+    expect(out.expenses.length).toBeGreaterThan(0);
+  });
+
+  it('stays within the platform limit in total', () => {
+    const rules = Array.from({ length: 10 }, (_, i) => ({ subId: `c${i}`, hour: 20, minute: 0 }));
+    const out = planAllReminders(rules, [moto], [], [], new Set(), now);
+    expect(out.debts.length + out.expenses.length).toBe(MAX_PLANNED_REMINDERS);
   });
 });
