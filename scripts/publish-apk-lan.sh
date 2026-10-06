@@ -25,6 +25,16 @@ if [[ -z "$APK" ]]; then
   exit 1
 fi
 
+# A failed build leaves the previous APK behind; publishing it under the new
+# commit's name would hand out old code. Refuse unless asked explicitly.
+APK_TIME="$(stat -f %m "$APK")"
+HEAD_TIME="$(git -C "$ROOT" log -1 --format=%ct)"
+if [[ "$APK_TIME" -lt "$HEAD_TIME" && "${RUMI_PUBLISH_STALE:-}" != "1" ]]; then
+  echo "APK ($(date -r "$APK_TIME" '+%Y-%m-%d %H:%M')) is older than the last commit ($(date -r "$HEAD_TIME" '+%Y-%m-%d %H:%M'))." >&2
+  echo "Build it first: npm run android:apk (or RUMI_PUBLISH_STALE=1 to publish it anyway)." >&2
+  exit 1
+fi
+
 VERSION="$(node -p "require('$ROOT/app.json').expo.version")"
 STAMP="$(date -r "$APK" +%Y%m%d-%H%M)"
 SHA="$(git -C "$ROOT" rev-parse --short HEAD)"

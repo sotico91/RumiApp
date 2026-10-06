@@ -39,6 +39,8 @@ El detalle de cada cambio está en `git log`.
   - Las preguntas y las tarjetas usan solo tus movimientos, como el resto de la pantalla.
   - Las tarjetas ya no se recalculan en cada render.
 - **Tabla de pruebas del motor** (`src/utils/ask/__tests__/askRumi.test.ts`): unas 20 preguntas con la intención y el periodo esperados.
+- **Publicar APK no reutiliza builds viejos:** `publish-apk-lan.sh` se niega a publicar una APK más antigua que el último commit, porque una compilación fallida dejaba la anterior con el nombre del commit nuevo.
+  Para forzarlo: `RUMI_PUBLISH_STALE=1`.
 
 ## 2026-10-05
 
