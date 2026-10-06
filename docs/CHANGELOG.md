@@ -12,6 +12,18 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-06
 
+- **Recordatorios de Plan que saben si ya pagaste:**
+  - Antes eran repeticiones fijas del sistema.
+  - Ahora `ReminderScheduler` programa avisos con fecha (7 días para los diarios, 3 meses para los mensuales).
+  - Se replanifican al abrir la app y al registrar un movimiento, aplicando solo lo que cambió.
+  - El mes ya pagado no avisa y un pago parcial recuerda lo que falta.
+  - El diario no avisa si ese concepto ya se registró hoy.
+- **Monto habitual en el aviso:** "¿Ya pagaste la administración? Suele ser $300.000." Sale de "Pagos a vigilar" o de la mediana de meses o pagos anteriores.
+  Al tocarlo, Agregar abre con ese monto ya puesto.
+  Si los montos están ocultos (ojo), el aviso no lleva monto.
+- La lógica está en `src/utils/reminderPlan.ts`, con pruebas.
+  `useSettings` solo guarda las reglas y `ReminderHygiene` se reemplazó por `ReminderScheduler`.
+
 - **Pregúntale a Rumi entiende más periodos:** "la semana pasada", "últimos 7 días", "hace 15 días" y "el fin de semana".
   Antes estas frases se respondían en silencio con el periodo por defecto.
 - **Comparar un concepto:** "¿café vs el mes pasado?" compara el café de ambos meses, y "¿gasté más esta semana que la pasada?" también se reconoce.

@@ -24,7 +24,7 @@ import { OnboardingOverlay } from '@/src/components/OnboardingOverlay';
 import { HabitPilotHygiene } from '@/src/components/HabitPilotHygiene';
 import { AntSpendTipHygiene } from '@/src/components/AntSpendTipHygiene';
 import { ReminderDeepLink } from '@/src/components/ReminderDeepLink';
-import { ReminderHygiene } from '@/src/components/ReminderHygiene';
+import { ReminderScheduler } from '@/src/components/ReminderScheduler';
 import { StorageNotice } from '@/src/components/StorageNotice';
 import { HowToGuideProvider } from '@/src/hooks/useHowToGuide';
 import { AmountPrivacyProvider } from '@/src/hooks/useAmountPrivacy';
@@ -90,7 +90,7 @@ export default function RootLayout() {
                   <HowToGuideProvider>
                     <StatusBar style="light" />
                     <RootNavigator />
-                    <ReminderHygiene />
+                    <ReminderScheduler />
                     <StorageNotice />
                     <HabitPilotHygiene />
                     <AntSpendTipHygiene />

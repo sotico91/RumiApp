@@ -3,7 +3,6 @@ import { Asset } from 'expo-asset';
 import { File, Paths } from 'expo-file-system';
 import { AppState, Platform } from 'react-native';
 
-import type { ReminderRule } from '@/src/types/settings';
 
 Notifications.setNotificationHandler({
   handleNotification: async (notification) => {
@@ -213,58 +212,54 @@ export async function notifyExpenseRegistered(title: string, body: string): Prom
   });
 }
 
-export type ReminderCopy = {
+export type PlannedReminder = {
+  /** Unique per concept + fire time (see planReminders). */
+  id: string;
   categoryId: string;
+  date: Date;
   title: string;
   body: string;
-  hour: number;
-  minute: number;
-  /** 1–28 for monthly; omit for daily. */
-  dayOfMonth?: number;
+  /** Usual amount, passed to Add when the reminder is tapped. */
+  amount: number | null;
 };
 
+const REMINDER_PREFIX = 'rumi-reminder-';
+
 /**
- * Local reminders (not remote push).
+ * Local reminders (not remote push), one dated notification per occurrence so
+ * a month already paid can be skipped. Only the difference is applied: unchanged
+ * occurrences stay scheduled, so syncing on every app open does not re-alert.
  * Safe for free Apple Personal Team — no aps-environment entitlement.
- * Supports daily or monthly (day-of-month) schedules per subcategory.
- * Sets app-icon badge when the reminder fires (cleared when the app is opened).
+ * Sets the app-icon badge when a reminder fires (cleared when the app is opened).
  */
-export async function syncCategoryReminders(opts: {
-  reminders: ReminderCopy[];
-}): Promise<number> {
+export async function syncPlannedReminders(items: PlannedReminder[]): Promise<number> {
   if (Platform.OS === 'web') return 0;
+  if (items.length > 0 && !(await ensureNotificationPermission())) return 0;
 
-  const granted = await ensureNotificationPermission();
-  if (!granted) return 0;
-
-  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  const wanted = new Map(items.map((item) => [`${REMINDER_PREFIX}${item.id}`, item]));
+  const scheduled = (await Notifications.getAllScheduledNotificationsAsync()).filter((n) =>
+    n.identifier.startsWith(REMINDER_PREFIX)
+  );
+  const keep = new Set<string>();
   await Promise.all(
-    scheduled
-      .filter((n) => n.identifier.startsWith('rumi-reminder-'))
-      .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier))
+    scheduled.map((n) => {
+      const item = wanted.get(n.identifier);
+      if (item && n.content.body === item.body && n.content.title === item.title) {
+        keep.add(n.identifier);
+        return undefined;
+      }
+      // Old repeating rules, removed concepts, or copy that changed (amount, language).
+      return Notifications.cancelScheduledNotificationAsync(n.identifier);
+    })
   );
 
-  let count = 0;
-
-  for (const item of opts.reminders) {
-    const day = item.dayOfMonth;
-    const trigger: Notifications.NotificationTriggerInput =
-      day != null && day >= 1 && day <= 28
-        ? {
-            type: Notifications.SchedulableTriggerInputTypes.MONTHLY,
-            day,
-            hour: item.hour,
-            minute: item.minute,
-          }
-        : {
-            type: Notifications.SchedulableTriggerInputTypes.DAILY,
-            hour: item.hour,
-            minute: item.minute,
-          };
-
-    const attachments = await iosLogoAttachments();
+  const now = Date.now();
+  const attachments = await iosLogoAttachments();
+  let count = keep.size;
+  for (const [identifier, item] of wanted) {
+    if (keep.has(identifier) || item.date.getTime() <= now) continue;
     await Notifications.scheduleNotificationAsync({
-      identifier: `rumi-reminder-${item.categoryId}`,
+      identifier,
       content: {
         title: item.title,
         body: item.body,
@@ -273,7 +268,7 @@ export async function syncCategoryReminders(opts: {
         data: {
           categoryId: String(item.categoryId),
           type: 'expense-reminder',
-          dayOfMonth: day != null ? String(day) : '',
+          amount: item.amount != null ? String(Math.round(item.amount)) : '',
         },
         ...(attachments ? { attachments } : null),
         // iOS: system default sound. Android: channel controls sound (no custom file).
@@ -282,29 +277,11 @@ export async function syncCategoryReminders(opts: {
           ? { channelId: ANDROID_REMINDER_CHANNEL_ID, color: ANDROID_ACCENT }
           : null),
       },
-      trigger,
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: item.date },
     });
     count += 1;
   }
-
   return count;
-}
-
-/** @deprecated Prefer syncCategoryReminders with per-item hour/minute. */
-export async function syncRemindersFromRules(
-  rules: ReminderRule[],
-  labels: Record<string, { title: string; body: string }>
-): Promise<number> {
-  return syncCategoryReminders({
-    reminders: rules.map((rule) => ({
-      categoryId: rule.subId,
-      title: labels[rule.subId]?.title ?? 'Rumi',
-      body: labels[rule.subId]?.body ?? '',
-      hour: rule.hour,
-      minute: rule.minute,
-      dayOfMonth: rule.dayOfMonth,
-    })),
-  });
 }
 
 export async function clearCategoryReminders(): Promise<void> {
@@ -312,7 +289,7 @@ export async function clearCategoryReminders(): Promise<void> {
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
   await Promise.all(
     scheduled
-      .filter((n) => n.identifier.startsWith('rumi-reminder-'))
+      .filter((n) => n.identifier.startsWith(REMINDER_PREFIX))
       .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier))
   );
 }
@@ -378,19 +355,4 @@ export async function syncAntSpendTipNotification(opts: {
   });
 
   return true;
-}
-
-/** Cancel reminders whose subcategory is no longer allowed. */
-export async function cancelRemindersExcept(allowedCategoryIds: Set<string>): Promise<void> {
-  if (Platform.OS === 'web') return;
-  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-  await Promise.all(
-    scheduled
-      .filter((n) => n.identifier.startsWith('rumi-reminder-'))
-      .filter((n) => {
-        const categoryId = n.identifier.replace(/^rumi-reminder-/, '');
-        return !allowedCategoryIds.has(categoryId);
-      })
-      .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier))
-  );
 }

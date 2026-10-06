@@ -65,12 +65,6 @@ export function HabitPilotCard() {
         reminderRules: [
           { subId, hour: 20, minute: 0 },
         ],
-        reminderLabels: {
-          [subId]: {
-            title: t('reminder.pushTitle'),
-            body: t('habit.reminderPush'),
-          },
-        },
         reminderHour: 20,
         reminderMinute: 0,
       });

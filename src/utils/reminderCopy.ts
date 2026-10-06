@@ -193,12 +193,15 @@ export function reminderPushCopy(
   categoryId: string,
   spendConcepts: SpendConcept[],
   t: TFn,
-  language: Language
+  language: Language,
+  /** Formatted usual amount ("$1.200.000"), when known. */
+  amount?: string
 ): { title: string; body: string } {
+  const target = reminderPaidTarget(categoryId, spendConcepts, t, language);
   return {
     title: t('reminder.pushTitle'),
-    body: t('reminder.pushBody', {
-      target: reminderPaidTarget(categoryId, spendConcepts, t, language),
-    }),
+    body: amount
+      ? t('reminder.pushBodyAmount', { target, amount })
+      : t('reminder.pushBody', { target }),
   };
 }

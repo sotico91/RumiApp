@@ -837,7 +837,7 @@ export const translations = {
     'reminder.title': 'Expense reminders',
     'reminder.collapsed': '{count} {count|reminder|reminders} — tap to open',
     'reminder.body':
-      'Pick one or more subcategories (e.g. Bills/Power). Each gets its own local notification with date and time.',
+      'Pick one or more subcategories (e.g. Bills/Power). Each gets its own local notification with date and time. If you already logged it, Rumi skips that reminder, and it tells you the usual amount.',
     'reminder.pickHour': 'Hour',
     'reminder.pickMinute': 'Minutes',
     'reminder.pickSubs': 'Choose a subcategory',
@@ -869,6 +869,7 @@ export const translations = {
     'reminder.savedBody': 'Your local reminders were scheduled with date and time.',
     'reminder.pushTitle': 'Rumi reminder',
     'reminder.pushBody': 'Already paid {target}? Log it.',
+    'reminder.pushBodyAmount': 'Already paid {target}? Usually {amount}. Tap to log it.',
     'reminder.pickCategories': 'Categories to remind',
 
     'habit.title': '14-day diary',
@@ -882,7 +883,6 @@ export const translations = {
     'habit.todayDone': 'Logged today. Same cue tomorrow.',
     'habit.enableReminder': 'Turn on 8pm reminder',
     'habit.reminderOn': 'Evening reminder is on — tap the alert to log.',
-    'habit.reminderPush': 'One minute for today — what did you spend?',
     'habit.wrapTitle': '14 days done',
     'habit.wrapPass':
       'You logged on {logged} of 14 days. That’s the diary forming — keep the same cue.',
@@ -1903,7 +1903,7 @@ export const translations = {
     'reminder.title': 'Recordatorios de gastos',
     'reminder.collapsed': '{count} {count|recordatorio|recordatorios} — toca para abrir',
     'reminder.body':
-      'Elige una o varias subcategorías (ej. Recibos/Luz). Cada una tiene su notificación local con fecha y hora.',
+      'Elige una o varias subcategorías (ej. Recibos/Luz). Cada una tiene su notificación local con fecha y hora. Si ya lo registraste, Rumi no te lo recuerda, y te dice cuánto sueles pagar.',
     'reminder.pickHour': 'Hora',
     'reminder.pickMinute': 'Minutos',
     'reminder.pickSubs': 'Elige una subcategoría',
@@ -1936,6 +1936,7 @@ export const translations = {
     'reminder.savedBody': 'Tus alertas locales quedaron con fecha y hora.',
     'reminder.pushTitle': 'Recordatorio Rumi',
     'reminder.pushBody': '¿Ya pagaste {target}? Regístralo.',
+    'reminder.pushBodyAmount': '¿Ya pagaste {target}? Suele ser {amount}. Toca para registrarlo.',
     'reminder.pickCategories': 'Conceptos a recordar',
 
     'habit.title': 'Diario de 14 días',
@@ -1949,7 +1950,6 @@ export const translations = {
     'habit.todayDone': 'Hoy ya hay registro. Mañana, a la misma hora.',
     'habit.enableReminder': 'Activar aviso a las 8pm',
     'habit.reminderOn': 'El aviso de la tarde está activo — tócalo para anotar.',
-    'habit.reminderPush': 'Un minuto para lo de hoy. ¿Qué gastaste?',
     'habit.wrapTitle': 'Se cumplieron 14 días',
     'habit.wrapPass':
       'Registraste {logged} de 14 días. El diario está formándose: sigue con la misma rutina.',

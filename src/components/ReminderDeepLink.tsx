@@ -15,19 +15,20 @@ function categoryIdFromData(data: unknown): string | null {
   return categoryId || null;
 }
 
-function openFromNotification(type: string, categoryId: string) {
+function openFromNotification(type: string, categoryId: string, amount: string) {
   if (type === 'ant-spend-tip') {
     router.push('/(tabs)');
     return;
   }
   router.push({
     pathname: '/agregar',
-    params: { categoryId, mode: 'advanced' },
+    // The usual amount comes prefilled, so logging the bill is one tap on Save.
+    params: { categoryId, mode: 'advanced', ...(amount ? { amount } : null) },
   });
 }
 
 /**
- * Tap on a local expense reminder opens Agregar with that subcategory.
+ * Tap on a local expense reminder opens Agregar with that subcategory and its usual amount.
  * Persists the response id so an icon launch does not re-open Add (Android
  * keeps the last response around; iOS can too).
  */
@@ -49,9 +50,13 @@ export function ReminderDeepLink() {
         data && typeof data === 'object' && 'type' in data
           ? String((data as { type?: unknown }).type ?? '')
           : '';
+      const amount =
+        data && typeof data === 'object' && 'amount' in data
+          ? String((data as { amount?: unknown }).amount ?? '').trim()
+          : '';
       handled.current = id;
       void AsyncStorage.setItem(HANDLED_KEY, id);
-      openFromNotification(type, categoryId);
+      openFromNotification(type, categoryId, /^\d+$/.test(amount) ? amount : '');
     }
 
     void (async () => {

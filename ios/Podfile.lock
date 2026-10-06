@@ -2708,7 +2708,7 @@ SPEC CHECKSUMS:
   ExpoLinking: bf2536dae511c60982db438b4cd65f8a33c329eb
   ExpoLocalAuthentication: cfa9a87c91f8f349e4fe82c9ac299e024f7ad765
   ExpoLogBox: 40f17ecef6fcb296b5f5ee4d6ec85cc82ce6ba0f
-  ExpoModulesCore: 7504045f701c68ebba777458755fe37b29263818
+  ExpoModulesCore: 2199cb09c85f4ef7a46d3ee80e47ac0d507cf54f
   ExpoModulesJSI: 6cb6d299ace493e7dd20ba94c99e8c4799b07afd
   ExpoModulesWorklets: b9ae1e07dbb9a2de570c18bc117f293e0310ed5c
   ExpoModulesWorkletsAdapter: 07038279717b8486147e54b6f125339d6e6f1d87
@@ -2724,7 +2724,7 @@ SPEC CHECKSUMS:
   EXUpdates: 22518c1bff1693a7b8e11d2b2653f666d2ab28f8
   EXUpdatesInterface: df1347977d494c409d1f0f0b002d79f202bd6f07
   FBLazyVector: 3c3be9a019176b5699455f7f66c5444b78a411c6
-  hermes-engine: c7b9a9d01f548be38ccd1f845c29c82c3a43a311
+  hermes-engine: 744dfddd02444bfd9e5880ff75798508f33a556e
   RCTDeprecation: bccb6545c26db881ecddfd83a3f9ea82aba1605f
   RCTRequired: b2f74764d596fc0051f00fee94b49bf41a6f7f5a
   RCTSwiftUI: c6d6a31b849b9dfa64c33b55dc91ac15dd55774c

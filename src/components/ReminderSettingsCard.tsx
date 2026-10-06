@@ -16,7 +16,6 @@ import { useLanguage } from '@/src/i18n/LanguageContext';
 import { palette, radii } from '@/src/theme/colors';
 import type { ReminderRule } from '@/src/types/settings';
 import { categoryLabel } from '@/src/utils/categoryLabel';
-import { reminderPushCopy } from '@/src/utils/reminderCopy';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import { appAlert } from '@/src/components/AppAlert';
 
@@ -25,7 +24,7 @@ const MINUTES = [0, 15, 30, 45];
 const MONTH_DAYS = [1, 5, 10, 15, 20, 25, 28];
 
 export function ReminderSettingsCard() {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const { settings, updateReminders } = useSettings();
   const spendConcepts = settings.spendConcepts ?? [];
   const [rules, setRules] = useState<ReminderRule[]>(settings.reminderRules ?? []);
@@ -80,13 +79,8 @@ export function ReminderSettingsCard() {
   async function save() {
     setSaving(true);
     try {
-      const labels: Record<string, { title: string; body: string }> = {};
-      for (const rule of rules) {
-        labels[rule.subId] = reminderPushCopy(rule.subId, spendConcepts, t, language);
-      }
       await updateReminders({
         reminderRules: rules,
-        reminderLabels: labels,
         reminderHour: rules[0]?.hour ?? settings.reminderHour,
         reminderMinute: rules[0]?.minute ?? settings.reminderMinute ?? 0,
       });

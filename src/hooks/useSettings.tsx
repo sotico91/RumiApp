@@ -32,16 +32,12 @@ import type {
   UserSettings,
 } from '@/src/types/settings';
 import {
-  clearCategoryReminders,
   ensureNotificationPermission,
-  syncRemindersFromRules,
 } from '@/src/utils/notifications';
 import { ensureConceptIcons } from '@/src/data/conceptIcons';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { appendUniqueDay, localDateKey } from '@/src/utils/habitPilot';
 import { antTipWeekKey } from '@/src/utils/antSpendTips';
-
-type ReminderLabels = Record<string, { title: string; body: string }>;
 
 type SettingsContextValue = {
   settings: UserSettings;
@@ -56,7 +52,6 @@ type SettingsContextValue = {
     notifyOnExpense: boolean;
     reminderCategoryIds: string[];
     reminderHour?: number;
-    reminderLabels?: ReminderLabels;
   }) => Promise<void>;
   completeCoachMarks: () => Promise<void>;
   updateAppLock: (enabled: boolean) => Promise<void>;
@@ -88,17 +83,14 @@ type SettingsContextValue = {
   removeSpendConcept: (conceptId: string) => Promise<void>;
   removeSpendSub: (conceptId: string, subId: string) => Promise<void>;
   ensureDebtCategory: (debtName: string) => Promise<string>;
+  /** Saves the rules; ReminderScheduler turns them into notifications. */
   updateReminders: (input: {
     reminderRules: ReminderRule[];
-    reminderLabels: ReminderLabels;
     reminderHour?: number;
     reminderMinute?: number;
   }) => Promise<void>;
-  pruneRemindersToRegistered: (
-    allowedSubIds: Set<string>,
-    labels: ReminderLabels,
-    opts?: { reschedule?: boolean }
-  ) => Promise<void>;
+  /** Drops rules whose subcategory no longer exists. */
+  pruneRemindersToRegistered: (allowedSubIds: Set<string>) => Promise<void>;
   updateQuickTemplate: (
     template: Omit<QuickTemplate, 'id' | 'updatedAt'> & { id?: string }
   ) => Promise<void>;
@@ -186,7 +178,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       notifyOnExpense: boolean;
       reminderCategoryIds: string[];
       reminderHour?: number;
-      reminderLabels?: ReminderLabels;
     }) => {
       const needsPermission =
         input.notifyOnExpense || input.reminderCategoryIds.length > 0;
@@ -227,12 +218,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       setQuickTemplates(seeded);
       setCoachMarksPending(true);
       await Promise.all([saveSettings(next), saveQuickTemplates(seeded)]);
-
-      if (reminderRules.length > 0 && input.reminderLabels) {
-        await syncRemindersFromRules(reminderRules, input.reminderLabels);
-      } else {
-        await clearCategoryReminders();
-      }
     },
     [settings.personId, settings.appLockEnabled]
   );
@@ -430,7 +415,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const updateReminders = useCallback(
     async (input: {
       reminderRules: ReminderRule[];
-      reminderLabels: ReminderLabels;
       reminderHour?: number;
       reminderMinute?: number;
     }) => {
@@ -448,44 +432,20 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       };
       setSettings(next);
       await saveSettings(next);
-
-      if (reminderRules.length === 0) {
-        await clearCategoryReminders();
-        return;
-      }
-
-      await syncRemindersFromRules(reminderRules, input.reminderLabels);
     },
     [settings]
   );
 
   const pruneRemindersToRegistered = useCallback(
-    async (
-      allowedSubIds: Set<string>,
-      labels: ReminderLabels,
-      opts?: { reschedule?: boolean }
-    ) => {
+    async (allowedSubIds: Set<string>) => {
       const rules = settings.reminderRules ?? [];
       const nextRules = rules.filter((r) => allowedSubIds.has(r.subId));
-      const changed =
-        nextRules.length !== rules.length ||
-        nextRules.some((r, i) => r.subId !== rules[i]?.subId);
-
-      if (changed || (opts?.reschedule && nextRules.length > 0)) {
-        await updateReminders({
-          reminderRules: nextRules,
-          reminderLabels: labels,
-          reminderHour: settings.reminderHour,
-          reminderMinute: settings.reminderMinute,
-        });
-        return;
-      }
-
-      if (nextRules.length === 0) {
-        await clearCategoryReminders();
-      }
-      // If rules are unchanged, leave existing schedules alone — re-syncing on
-      // every app open can flood Android with duplicate local notifications.
+      if (nextRules.length === rules.length) return;
+      await updateReminders({
+        reminderRules: nextRules,
+        reminderHour: settings.reminderHour,
+        reminderMinute: settings.reminderMinute,
+      });
     },
     [settings, updateReminders]
   );
