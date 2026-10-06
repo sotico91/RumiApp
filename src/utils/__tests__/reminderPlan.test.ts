@@ -1,6 +1,11 @@
-import type { Transaction } from '@/src/types/finance';
+import type { Debt, Transaction } from '@/src/types/finance';
 import type { ReminderRule } from '@/src/types/settings';
-import { MAX_PLANNED_REMINDERS, planReminders } from '@/src/utils/reminderPlan';
+import {
+  DEBT_REMINDER_HOUR,
+  MAX_PLANNED_REMINDERS,
+  planDebtReminders,
+  planReminders,
+} from '@/src/utils/reminderPlan';
 
 let seq = 0;
 function tx(amount: number, when: string, categoryId: string): Transaction {
@@ -87,4 +92,63 @@ it('keeps the nearest reminders within the platform limit', () => {
 
 it('gives each occurrence a stable id', () => {
   expect(plan([monthly], adminHistory).map((o) => o.id)).toEqual(plan([monthly], adminHistory).map((o) => o.id));
+});
+
+describe('planDebtReminders', () => {
+  const loan: Debt = {
+    id: 'moto',
+    name: 'Moto',
+    balance: 2_000_000,
+    installment: 300_000,
+    interestRate: 0,
+    termMonths: 10,
+    nextPaymentDate: new Date('2026-10-20T00:00:00').toISOString(),
+    paidCapital: 0,
+    paidInterest: 0,
+    otherCharges: 0,
+    kind: 'installment',
+  };
+  const card: Debt = { ...loan, id: 'visa', name: 'Visa', installment: 0, kind: 'revolving', nextPaymentDate: new Date('2026-10-25T00:00:00').toISOString() };
+  const pay = (debtId: string, amount: number, when: string): Transaction => ({
+    ...tx(amount, when, ''),
+    type: 'debt_payment',
+    categoryId: undefined,
+    debtId,
+  });
+  const debtPlan = (debts: Debt[], txs: Transaction[] = [], muted: string[] = []) =>
+    planDebtReminders(debts, txs, [], new Set(muted), now);
+
+  it('reminds the morning before each due date with the installment', () => {
+    const out = debtPlan([loan]);
+    expect(out).toHaveLength(3);
+    expect(out[0].date).toEqual(new Date(2026, 9, 19, DEBT_REMINDER_HOUR));
+    expect(out[0].dueDate).toEqual(new Date(2026, 9, 20));
+    expect(out.every((o) => o.amount === 300_000)).toBe(true);
+  });
+
+  it('skips this month once the installment is paid', () => {
+    const out = debtPlan([loan], [pay('moto', 300_000, '2026-10-08T09:00')]);
+    expect(out[0].dueDate.getMonth()).toBe(10);
+  });
+
+  it('reminds what is left after a partial payment', () => {
+    const out = debtPlan([loan], [pay('moto', 100_000, '2026-10-08T09:00')]);
+    expect(out[0].dueDate.getMonth()).toBe(9);
+    expect(out[0].amount).toBe(200_000);
+  });
+
+  it('reminds a card without an installment, until any payment this month', () => {
+    expect(debtPlan([card])[0]).toMatchObject({ debtId: 'visa', amount: null });
+    expect(debtPlan([card], [pay('visa', 50_000, '2026-10-05T09:00')])[0].dueDate.getMonth()).toBe(10);
+  });
+
+  it('leaves out muted and closed debts', () => {
+    expect(debtPlan([loan, card], [], ['visa']).every((o) => o.debtId === 'moto')).toBe(true);
+    expect(debtPlan([{ ...loan, closedAt: '2026-09-01T00:00:00Z' }])).toEqual([]);
+  });
+
+  it('moves a due day past the end of a short month to its last day', () => {
+    const out = debtPlan([{ ...loan, nextPaymentDate: new Date('2026-10-31T00:00:00').toISOString() }]);
+    expect(out.map((o) => o.dueDate.getDate())).toEqual([31, 30, 31]);
+  });
 });

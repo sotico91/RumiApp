@@ -12,6 +12,14 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-06
 
+- **Recordatorios de deudas en Plan:**
+  - Cada deuda activa (cuota o tarjeta) avisa la mañana anterior a su vencimiento, a las 9:00: "Mañana vence el pago de Moto: $300.000".
+  - No avisa si ese mes ya está pago. Un pago parcial recuerda lo que falta, y en tarjetas sin cuota fija cualquier pago del mes cuenta.
+  - Vienen activados. En "Cuotas y deudas" se apagan uno por uno (`debtRemindersOff`).
+  - Al tocarlo se abre el pago de esa deuda con la cuota sugerida.
+- **Conceptos hormiga fuera del selector de recordatorios**, porque no se pagan con calendario.
+  Los pagos que se repiten salen primero, y un recordatorio nuevo empieza mensual, en el día en que sueles pagarlo.
+
 - **Recordatorios de Plan que saben si ya pagaste:**
   - Antes eran repeticiones fijas del sistema.
   - Ahora `ReminderScheduler` programa avisos con fecha (7 días para los diarios, 3 meses para los mensuales).

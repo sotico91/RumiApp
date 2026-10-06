@@ -5,30 +5,54 @@ import { useEffect, useRef } from 'react';
 
 const HANDLED_KEY = 'rumi:last-reminder-response-id';
 
-function categoryIdFromData(data: unknown): string | null {
+type Target =
+  | { type: 'expense-reminder'; categoryId: string; amount: string }
+  | { type: 'debt-reminder'; debtId: string }
+  | { type: 'ant-spend-tip' };
+
+/** What a tapped notification points at; Android delivers notification data as strings. */
+function targetFromData(data: unknown): Target | null {
   if (!data || typeof data !== 'object') return null;
   const rec = data as Record<string, unknown>;
-  // Android delivers notification data as strings.
-  const type = rec.type != null ? String(rec.type) : '';
-  if (type !== 'expense-reminder' && type !== 'ant-spend-tip') return null;
-  const categoryId = rec.categoryId != null ? String(rec.categoryId).trim() : '';
-  return categoryId || null;
+  const field = (key: string) => (rec[key] != null ? String(rec[key]).trim() : '');
+  const raw = field('amount');
+  const amount = /^\d+$/.test(raw) ? raw : '';
+  switch (field('type')) {
+    case 'expense-reminder':
+      return field('categoryId') ? { type: 'expense-reminder', categoryId: field('categoryId'), amount } : null;
+    case 'debt-reminder':
+      return field('debtId') ? { type: 'debt-reminder', debtId: field('debtId') } : null;
+    case 'ant-spend-tip':
+      return { type: 'ant-spend-tip' };
+    default:
+      return null;
+  }
 }
 
-function openFromNotification(type: string, categoryId: string, amount: string) {
-  if (type === 'ant-spend-tip') {
+function openFromNotification(target: Target) {
+  if (target.type === 'ant-spend-tip') {
     router.push('/(tabs)');
     return;
   }
+  if (target.type === 'debt-reminder') {
+    // The pay-debt flow suggests the installment itself.
+    router.push({ pathname: '/agregar', params: { intent: 'debt', debtId: target.debtId } });
+    return;
+  }
+  // The usual amount comes prefilled, so logging the bill is one tap on Save.
   router.push({
     pathname: '/agregar',
-    // The usual amount comes prefilled, so logging the bill is one tap on Save.
-    params: { categoryId, mode: 'advanced', ...(amount ? { amount } : null) },
+    params: {
+      categoryId: target.categoryId,
+      mode: 'advanced',
+      ...(target.amount ? { amount: target.amount } : null),
+    },
   });
 }
 
 /**
- * Tap on a local expense reminder opens Agregar with that subcategory and its usual amount.
+ * Tap on a reminder opens Agregar: an expense reminder with its subcategory, a debt
+ * reminder on paying that debt; both come with the usual amount filled in.
  * Persists the response id so an icon launch does not re-open Add (Android
  * keeps the last response around; iOS can too).
  */
@@ -43,20 +67,11 @@ export function ReminderDeepLink() {
       if (!response || cancelled) return;
       const id = response.notification.request.identifier;
       if (!id || handled.current === id) return;
-      const data = response.notification.request.content.data;
-      const categoryId = categoryIdFromData(data);
-      if (!categoryId) return;
-      const type =
-        data && typeof data === 'object' && 'type' in data
-          ? String((data as { type?: unknown }).type ?? '')
-          : '';
-      const amount =
-        data && typeof data === 'object' && 'amount' in data
-          ? String((data as { amount?: unknown }).amount ?? '').trim()
-          : '';
+      const target = targetFromData(response.notification.request.content.data);
+      if (!target) return;
       handled.current = id;
       void AsyncStorage.setItem(HANDLED_KEY, id);
-      openFromNotification(type, categoryId, /^\d+$/.test(amount) ? amount : '');
+      openFromNotification(target);
     }
 
     void (async () => {

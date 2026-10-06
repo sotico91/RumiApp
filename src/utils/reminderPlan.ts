@@ -64,6 +64,12 @@ function paidIn(subId: string, transactions: Transaction[], year: number, monthI
     .reduce((s, t) => s + t.amount, 0);
 }
 
+function paidDebtIn(debtId: string, transactions: Transaction[], month: Date): boolean {
+  return filterByCalendarMonth(transactions, month.getFullYear(), month.getMonth()).some(
+    (t) => t.type === 'debt_payment' && t.debtId === debtId
+  );
+}
+
 function paidOn(subId: string, transactions: Transaction[], day: Date): boolean {
   return transactions.some((t) => {
     if (!isSpend(t) || t.categoryId !== subId) return false;
@@ -127,4 +133,75 @@ export function planReminders(
   }
 
   return out.sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, MAX_PLANNED_REMINDERS);
+}
+
+/** Debt reminders go out the morning before the due date, in time to pay. */
+export const DEBT_REMINDER_HOUR = 9;
+const DEBT_DAYS_BEFORE = 1;
+
+export type DebtReminderOccurrence = {
+  id: string;
+  debtId: string;
+  date: Date;
+  dueDate: Date;
+  /** Installment (or what is left of it this month); null for a card without one. */
+  amount: number | null;
+};
+
+/** Active debts that can have a due-date reminder: open, with something owed and a due day. */
+export function remindableDebts(debts: Debt[]): Debt[] {
+  return debts.filter(
+    (d) =>
+      !d.closedAt &&
+      (d.balance > 0 || d.installment > 0) &&
+      !Number.isNaN(new Date(d.nextPaymentDate).getTime())
+  );
+}
+
+/**
+ * Next due dates of each active debt, reminded the day before. This month is
+ * skipped once its installment is logged; a partial payment reminds what is left.
+ */
+export function planDebtReminders(
+  debts: Debt[],
+  transactions: Transaction[],
+  spendConcepts: SpendConcept[],
+  mutedDebtIds: Set<string>,
+  now = new Date()
+): DebtReminderOccurrence[] {
+  const thisMonth = new Map(
+    predictMonthlySpends(transactions, debts, now, spendConcepts)
+      .filter((p) => p.debtId)
+      .map((p) => [p.debtId as string, p])
+  );
+  const out: DebtReminderOccurrence[] = [];
+
+  for (const debt of remindableDebts(debts)) {
+    if (mutedDebtIds.has(debt.id)) continue;
+    const dueDay = new Date(debt.nextPaymentDate).getDate();
+    const installment = debt.installment > 0 ? Math.min(debt.installment, debt.balance || debt.installment) : null;
+    let planned = 0;
+    for (let i = 0; i <= MONTHLY_HORIZON && planned < MONTHLY_HORIZON; i += 1) {
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + i + 1, 0).getDate();
+      const dueDate = new Date(now.getFullYear(), now.getMonth() + i, Math.min(dueDay, lastDay));
+      const date = new Date(
+        dueDate.getFullYear(),
+        dueDate.getMonth(),
+        dueDate.getDate() - DEBT_DAYS_BEFORE,
+        DEBT_REMINDER_HOUR
+      );
+      if (date <= now) continue;
+      let amount = installment;
+      if (i === 0) {
+        const bill = thisMonth.get(debt.id);
+        if (bill?.status === 'paid') continue;
+        if (bill) amount = bill.amount;
+        // Cards without a fixed installment are not in the bills list: any payment settles the month.
+        else if (paidDebtIn(debt.id, transactions, dueDate)) continue;
+      }
+      out.push({ id: `debt-${debt.id}@${stamp(date)}`, debtId: debt.id, date, dueDate, amount });
+      planned += 1;
+    }
+  }
+  return out;
 }

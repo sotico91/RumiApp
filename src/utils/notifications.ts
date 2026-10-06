@@ -213,14 +213,13 @@ export async function notifyExpenseRegistered(title: string, body: string): Prom
 }
 
 export type PlannedReminder = {
-  /** Unique per concept + fire time (see planReminders). */
+  /** Unique per concept or debt + fire time (see reminderPlan). */
   id: string;
-  categoryId: string;
   date: Date;
   title: string;
   body: string;
-  /** Usual amount, passed to Add when the reminder is tapped. */
-  amount: number | null;
+  /** Read by ReminderDeepLink on tap (Android delivers data as strings). */
+  data: { type: 'expense-reminder' | 'debt-reminder' } & Record<string, string>;
 };
 
 const REMINDER_PREFIX = 'rumi-reminder-';
@@ -265,11 +264,7 @@ export async function syncPlannedReminders(items: PlannedReminder[]): Promise<nu
         body: item.body,
         // Show “1” (or refresh) on the home-screen icon when the reminder fires.
         badge: 1,
-        data: {
-          categoryId: String(item.categoryId),
-          type: 'expense-reminder',
-          amount: item.amount != null ? String(Math.round(item.amount)) : '',
-        },
+        data: item.data,
         ...(attachments ? { attachments } : null),
         // iOS: system default sound. Android: channel controls sound (no custom file).
         ...(Platform.OS === 'ios' ? { sound: true } : null),

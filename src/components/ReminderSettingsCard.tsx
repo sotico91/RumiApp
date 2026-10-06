@@ -3,6 +3,7 @@ import {
   FlatList,
   Pressable,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
@@ -11,11 +12,17 @@ import {
 import { flattenSpendSubs } from '@/src/data/spendConcepts';
 import { AppModal } from '@/src/components/AppModal';
 import { KeyboardSafeOverlay } from '@/src/components/KeyboardSafe';
+import { useFinance } from '@/src/hooks/useFinance';
+import { useMoney } from '@/src/hooks/useMoney';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
+import type { TranslationKey } from '@/src/i18n/translations';
+import { colors } from '@/src/theme';
 import { palette, radii } from '@/src/theme/colors';
 import type { ReminderRule } from '@/src/types/settings';
 import { categoryLabel } from '@/src/utils/categoryLabel';
+import { predictMonthlySpends } from '@/src/utils/financeMath';
+import { remindableDebts } from '@/src/utils/reminderPlan';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import { appAlert } from '@/src/components/AppAlert';
 
@@ -25,7 +32,9 @@ const MONTH_DAYS = [1, 5, 10, 15, 20, 25, 28];
 
 export function ReminderSettingsCard() {
   const { t } = useLanguage();
-  const { settings, updateReminders } = useSettings();
+  const { settings, updateReminders, setDebtReminder } = useSettings();
+  const { transactions, debts } = useFinance();
+  const { format } = useMoney();
   const spendConcepts = settings.spendConcepts ?? [];
   const [rules, setRules] = useState<ReminderRule[]>(settings.reminderRules ?? []);
   const [editingSubId, setEditingSubId] = useState<string | null>(null);
@@ -37,18 +46,35 @@ export function ReminderSettingsCard() {
     setRules(settings.reminderRules ?? []);
   }, [settings.reminderRules]);
 
-  const allSubs = useMemo(() => flattenSpendSubs(spendConcepts), [spendConcepts]);
+  // Ant spends (coffee, snacks…) do not come back on a schedule, so they are not offered.
+  const allSubs = useMemo(
+    () => flattenSpendSubs(spendConcepts).filter((sub) => !sub.isAnt),
+    [spendConcepts]
+  );
+  const activeDebts = useMemo(() => remindableDebts(debts), [debts]);
+  const mutedDebts = useMemo(() => new Set(settings.debtRemindersOff ?? []), [settings.debtRemindersOff]);
+
+  /** Usual pay day of concepts already paid month after month ("Pagos a vigilar"). */
+  const billDays = useMemo(() => {
+    const days = new Map<string, number>();
+    for (const p of predictMonthlySpends(transactions, debts, new Date(), spendConcepts)) {
+      if (p.source === 'history') days.set(p.categoryId, p.typicalDay);
+    }
+    return days;
+  }, [transactions, debts, spendConcepts]);
 
   const availableSubs = useMemo(() => {
     const selected = new Set(rules.map((r) => r.subId));
     const q = pickerQuery.trim().toLowerCase();
-    return allSubs.filter((sub) => {
-      if (selected.has(sub.id)) return false;
-      if (!q) return true;
-      const label = categoryLabel(sub.id, t, spendConcepts).toLowerCase();
-      return label.includes(q) || sub.name.toLowerCase().includes(q);
-    });
-  }, [allSubs, rules, pickerQuery, t, spendConcepts]);
+    return allSubs
+      .filter((sub) => {
+        if (selected.has(sub.id)) return false;
+        if (!q) return true;
+        const label = categoryLabel(sub.id, t, spendConcepts).toLowerCase();
+        return label.includes(q) || sub.name.toLowerCase().includes(q);
+      })
+      .sort((a, b) => Number(billDays.has(b.id)) - Number(billDays.has(a.id)));
+  }, [allSubs, rules, pickerQuery, t, spendConcepts, billDays]);
 
   function addSub(subId: string) {
     tapFeedback();
@@ -58,6 +84,8 @@ export function ReminderSettingsCard() {
         subId,
         hour: settings.reminderHour ?? 20,
         minute: settings.reminderMinute ?? 0,
+        // Recurring payments are monthly: start on the day it is usually paid.
+        dayOfMonth: Math.min(28, billDays.get(subId) ?? new Date().getDate()),
       },
     ]);
     setEditingSubId(subId);
@@ -92,6 +120,44 @@ export function ReminderSettingsCard() {
 
   return (
     <View style={styles.card}>
+      <Text style={styles.sectionTitle}>{t('reminder.debtsTitle')}</Text>
+      {activeDebts.length === 0 ? (
+        <Text style={styles.copy}>{t('reminder.debtsEmpty')}</Text>
+      ) : (
+        <>
+          <Text style={styles.copy}>{t('reminder.debtsHint')}</Text>
+          {activeDebts.map((debt) => {
+            const name = debt.name?.trim() || (debt.nameKey ? t(debt.nameKey as TranslationKey) : '');
+            const day = new Date(debt.nextPaymentDate).getDate();
+            const on = !mutedDebts.has(debt.id);
+            return (
+              <View key={debt.id} style={styles.debtRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.ruleTitle}>{name}</Text>
+                  <Text style={styles.ruleMeta}>
+                    {debt.installment > 0
+                      ? t('reminder.debtDueAmount', { day, amount: format(debt.installment) })
+                      : t('reminder.debtDue', { day })}
+                  </Text>
+                </View>
+                <Switch
+                  value={on}
+                  onValueChange={(next) => {
+                    tapFeedback();
+                    void setDebtReminder(debt.id, next);
+                  }}
+                  accessibilityLabel={name}
+                  trackColor={{ true: colors.action.secondary, false: 'rgba(15,28,36,0.16)' }}
+                  thumbColor={colors.bg.surface}
+                  ios_backgroundColor="rgba(15,28,36,0.16)"
+                />
+              </View>
+            );
+          })}
+        </>
+      )}
+
+      <Text style={[styles.sectionTitle, styles.sectionGap]}>{t('reminder.conceptsTitle')}</Text>
       <Text style={styles.copy}>{t('reminder.body')}</Text>
 
       {allSubs.length === 0 ? (
@@ -343,6 +409,22 @@ export function ReminderSettingsCard() {
 }
 
 const styles = StyleSheet.create({
+  sectionTitle: {
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 15,
+    color: palette.ink,
+  },
+  sectionGap: {
+    marginTop: 18,
+  },
+  debtRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: palette.border,
+  },
   card: {
     backgroundColor: palette.surfaceSolid,
     borderRadius: radii.md,

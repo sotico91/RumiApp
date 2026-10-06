@@ -63,6 +63,8 @@ export type UserSettings = {
   notifyOnExpense: boolean;
   /** Per-subcategory local reminder schedules. */
   reminderRules: ReminderRule[];
+  /** Debts the user muted; every other active debt is reminded the day before it is due. */
+  debtRemindersOff?: string[];
   /** @deprecated Prefer reminderRules.subId list. */
   reminderCategoryIds: string[];
   /** @deprecated */
