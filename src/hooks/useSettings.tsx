@@ -57,6 +57,8 @@ type SettingsContextValue = {
   updateAppLock: (enabled: boolean) => Promise<void>;
   /** Turns the due-date reminder of one debt on or off. */
   setDebtReminder: (debtId: string, on: boolean) => Promise<void>;
+  /** Stops suggesting a reminder for this subcategory. */
+  dismissReminderSuggestion: (subId: string) => Promise<void>;
   /** Confirmation notification after each logged transaction. */
   updateNotifyOnExpense: (enabled: boolean) => Promise<boolean>;
   updateUserName: (userName: string) => Promise<void>;
@@ -245,6 +247,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       if (on) off.delete(debtId);
       else off.add(debtId);
       await persist({ ...settings, debtRemindersOff: [...off] });
+    },
+    [settings, persist]
+  );
+
+  const dismissReminderSuggestion = useCallback(
+    async (subId: string) => {
+      const dismissed = new Set(settings.reminderSuggestionsDismissed ?? []);
+      dismissed.add(subId);
+      await persist({ ...settings, reminderSuggestionsDismissed: [...dismissed] });
     },
     [settings, persist]
   );
@@ -585,6 +596,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       completeCoachMarks,
       updateAppLock,
       setDebtReminder,
+      dismissReminderSuggestion,
       updateNotifyOnExpense,
       updateUserName,
       addSpendConcept,
@@ -619,6 +631,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       completeCoachMarks,
       updateAppLock,
       setDebtReminder,
+      dismissReminderSuggestion,
       updateNotifyOnExpense,
       updateUserName,
       addSpendConcept,

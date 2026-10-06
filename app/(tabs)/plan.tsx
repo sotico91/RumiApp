@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { BrandScreen, ScreenHeader } from '@/src/components/ui';
@@ -19,6 +19,7 @@ import { palette, radii } from '@/src/theme/colors';
 import { isGeneralSubName } from '@/src/data/spendConcepts';
 import { categoryLabel } from '@/src/utils/categoryLabel';
 import { groupBySpendConcept } from '@/src/utils/conceptGroups';
+import { suggestReminders } from '@/src/utils/reminderPlan';
 import { toneFromBudgetRatio } from '@/src/utils/signalTone';
 import type { SpendConcept, SpendSub } from '@/src/types/settings';
 
@@ -26,7 +27,7 @@ export default function PlanScreen() {
   const { t } = useLanguage();
   const { format } = useMoney();
   const { settings } = useSettings();
-  const { budgetStatus, antForPeriod } = useFinance();
+  const { budgetStatus, antForPeriod, transactions, debts } = useFinance();
   const ant = antForPeriod('mes');
   const spendConcepts = settings.spendConcepts ?? [];
   const needsSubSetup =
@@ -41,6 +42,18 @@ export default function PlanScreen() {
 
   const activeBudgets = budgetStatus.filter((b) => b.limit > 0);
   const reminderCount = (settings.reminderRules ?? []).length;
+  // Shown while the section is folded, so new suggestions are not missed.
+  const suggestionCount = useMemo(
+    () =>
+      suggestReminders(
+        transactions,
+        debts,
+        settings.spendConcepts ?? [],
+        settings.reminderRules ?? [],
+        settings.reminderSuggestionsDismissed ?? []
+      ).length,
+    [transactions, debts, settings.spendConcepts, settings.reminderRules, settings.reminderSuggestionsDismissed]
+  );
   const markedAntSubs = spendConcepts.flatMap((c) =>
     c.subs.filter((s) => s.isAnt).map((s) => ({ concept: c.name, sub: s.name, id: s.id }))
   );
@@ -94,7 +107,11 @@ export default function PlanScreen() {
           title={t('reminder.title')}
           open={remindersOpen}
           onToggle={() => setRemindersOpen((v) => !v)}
-          summary={t('reminder.collapsed', { count: reminderCount })}>
+          summary={
+            suggestionCount > 0
+              ? t('reminder.collapsedSuggest', { count: reminderCount, suggest: suggestionCount })
+              : t('reminder.collapsed', { count: reminderCount })
+          }>
           <ReminderSettingsCard />
         </CollapsibleSection>
       </View>

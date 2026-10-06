@@ -205,3 +205,49 @@ export function planDebtReminders(
   }
   return out;
 }
+
+/** Suggested reminders fire this many days before the usual pay day, in the morning. */
+const SUGGEST_DAYS_BEFORE = 1;
+export const SUGGEST_REMINDER_HOUR = 9;
+
+export type ReminderSuggestion = {
+  subId: string;
+  /** Day of the month it is usually paid. */
+  usualDay: number;
+  /** Usual monthly amount. */
+  amount: number;
+  /** Ready-made rule: the morning before the usual day. */
+  rule: ReminderRule;
+};
+
+/**
+ * Concepts paid month after month ("Pagos a vigilar") that have no reminder yet
+ * and were not turned down: the reminders worth offering. Ant spends never are.
+ */
+export function suggestReminders(
+  transactions: Transaction[],
+  debts: Debt[],
+  spendConcepts: SpendConcept[],
+  rules: ReminderRule[],
+  dismissed: string[],
+  now = new Date()
+): ReminderSuggestion[] {
+  const taken = new Set([...rules.map((r) => r.subId), ...dismissed]);
+  const subs = new Map(spendConcepts.flatMap((c) => c.subs.map((s) => [s.id, s] as const)));
+  return predictMonthlySpends(transactions, debts, now, spendConcepts)
+    .filter((p) => p.source === 'history' && !taken.has(p.categoryId))
+    .filter((p) => {
+      const sub = subs.get(p.categoryId);
+      return sub != null && !sub.isAnt;
+    })
+    .map((p) => {
+      const day = Math.min(28, Math.max(1, p.typicalDay - SUGGEST_DAYS_BEFORE));
+      return {
+        subId: p.categoryId,
+        usualDay: p.typicalDay,
+        amount: p.expectedAmount,
+        rule: { subId: p.categoryId, hour: SUGGEST_REMINDER_HOUR, minute: 0, dayOfMonth: day },
+      };
+    })
+    .sort((a, b) => b.amount - a.amount);
+}

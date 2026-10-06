@@ -5,7 +5,9 @@ import {
   MAX_PLANNED_REMINDERS,
   planDebtReminders,
   planReminders,
+  suggestReminders,
 } from '@/src/utils/reminderPlan';
+import type { SpendConcept } from '@/src/types/settings';
 
 let seq = 0;
 function tx(amount: number, when: string, categoryId: string): Transaction {
@@ -150,5 +152,46 @@ describe('planDebtReminders', () => {
   it('moves a due day past the end of a short month to its last day', () => {
     const out = debtPlan([{ ...loan, nextPaymentDate: new Date('2026-10-31T00:00:00').toISOString() }]);
     expect(out.map((o) => o.dueDate.getDate())).toEqual([31, 30, 31]);
+  });
+});
+
+describe('suggestReminders', () => {
+  const concepts: SpendConcept[] = [
+    {
+      id: 'hogar',
+      name: 'Hogar',
+      subs: [
+        { id: 'admin', name: 'Administración' },
+        { id: 'internet', name: 'Internet' },
+        { id: 'cafe', name: 'Café', isAnt: true },
+      ],
+    } as SpendConcept,
+  ];
+  const history = [
+    ...adminHistory,
+    tx(90_000, '2026-08-05T09:00', 'internet'),
+    tx(90_000, '2026-09-05T09:00', 'internet'),
+    tx(8_000, '2026-08-03T09:00', 'cafe'),
+    tx(8_000, '2026-09-03T09:00', 'cafe'),
+  ];
+  const suggest = (rules: ReminderRule[] = [], dismissed: string[] = []) =>
+    suggestReminders(history, [], concepts, rules, dismissed, now);
+
+  it('offers monthly payments without a reminder, biggest first, the morning before', () => {
+    const out = suggest();
+    expect(out.map((s) => s.subId)).toEqual(['admin', 'internet']);
+    expect(out[1]).toMatchObject({
+      usualDay: 5,
+      amount: 90_000,
+      rule: { subId: 'internet', dayOfMonth: 4, hour: 9, minute: 0 },
+    });
+  });
+
+  it('never offers ant spends', () => {
+    expect(suggest().some((s) => s.subId === 'cafe')).toBe(false);
+  });
+
+  it('skips concepts that already have a reminder or were turned down', () => {
+    expect(suggest([monthly], ['internet'])).toEqual([]);
   });
 });

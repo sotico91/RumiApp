@@ -65,6 +65,8 @@ export type UserSettings = {
   reminderRules: ReminderRule[];
   /** Debts the user muted; every other active debt is reminded the day before it is due. */
   debtRemindersOff?: string[];
+  /** Subcategories whose suggested reminder the user turned down. */
+  reminderSuggestionsDismissed?: string[];
   /** @deprecated Prefer reminderRules.subId list. */
   reminderCategoryIds: string[];
   /** @deprecated */

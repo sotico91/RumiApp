@@ -22,7 +22,7 @@ import { palette, radii } from '@/src/theme/colors';
 import type { ReminderRule } from '@/src/types/settings';
 import { categoryLabel } from '@/src/utils/categoryLabel';
 import { predictMonthlySpends } from '@/src/utils/financeMath';
-import { remindableDebts } from '@/src/utils/reminderPlan';
+import { remindableDebts, suggestReminders, type ReminderSuggestion } from '@/src/utils/reminderPlan';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import { appAlert } from '@/src/components/AppAlert';
 
@@ -32,7 +32,7 @@ const MONTH_DAYS = [1, 5, 10, 15, 20, 25, 28];
 
 export function ReminderSettingsCard() {
   const { t } = useLanguage();
-  const { settings, updateReminders, setDebtReminder } = useSettings();
+  const { settings, updateReminders, setDebtReminder, dismissReminderSuggestion } = useSettings();
   const { transactions, debts } = useFinance();
   const { format } = useMoney();
   const spendConcepts = settings.spendConcepts ?? [];
@@ -62,6 +62,30 @@ export function ReminderSettingsCard() {
     }
     return days;
   }, [transactions, debts, spendConcepts]);
+
+  const suggestions = useMemo(
+    () =>
+      suggestReminders(
+        transactions,
+        debts,
+        spendConcepts,
+        rules,
+        settings.reminderSuggestionsDismissed ?? []
+      ),
+    [transactions, debts, spendConcepts, rules, settings.reminderSuggestionsDismissed]
+  );
+
+  async function acceptSuggestion(suggestion: ReminderSuggestion) {
+    tapFeedback();
+    // Saves any pending edits too: the card shows them as one list.
+    const next = [...rules, suggestion.rule];
+    setRules(next);
+    await updateReminders({
+      reminderRules: next,
+      reminderHour: settings.reminderHour,
+      reminderMinute: settings.reminderMinute,
+    });
+  }
 
   const availableSubs = useMemo(() => {
     const selected = new Set(rules.map((r) => r.subId));
@@ -159,6 +183,40 @@ export function ReminderSettingsCard() {
 
       <Text style={[styles.sectionTitle, styles.sectionGap]}>{t('reminder.conceptsTitle')}</Text>
       <Text style={styles.copy}>{t('reminder.body')}</Text>
+
+      {suggestions.length > 0 ? (
+        <View style={styles.suggestBox}>
+          <Text style={styles.suggestTitle}>{t('reminder.suggestTitle')}</Text>
+          <Text style={styles.ruleMeta}>{t('reminder.suggestHint')}</Text>
+          {suggestions.map((s) => (
+            <View key={s.subId} style={styles.suggestRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.ruleTitle}>{categoryLabel(s.subId, t, spendConcepts)}</Text>
+                <Text style={styles.ruleMeta}>
+                  {t('reminder.suggestMeta', { day: s.usualDay, amount: format(s.amount) })}
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => void acceptSuggestion(s)}
+                accessibilityRole="button"
+                style={[styles.chip, styles.chipOn]}>
+                <Text style={[styles.chipText, styles.chipTextOn]}>{t('reminder.suggestAdd')}</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  tapFeedback();
+                  void dismissReminderSuggestion(s.subId);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={`${t('reminder.suggestDismiss')}: ${categoryLabel(s.subId, t, spendConcepts)}`}
+                hitSlop={8}
+                style={styles.suggestDismiss}>
+                <Text style={styles.suggestDismissText}>{t('reminder.suggestDismiss')}</Text>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      ) : null}
 
       {allSubs.length === 0 ? (
         <Text style={styles.copy}>{t('reminder.noConcepts')}</Text>
@@ -416,6 +474,33 @@ const styles = StyleSheet.create({
   },
   sectionGap: {
     marginTop: 18,
+  },
+  suggestBox: {
+    marginTop: 12,
+    padding: 12,
+    borderRadius: radii.md,
+    backgroundColor: palette.accentSoft,
+    gap: 4,
+  },
+  suggestTitle: {
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 13,
+    color: palette.accentDeep,
+  },
+  suggestRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingTop: 10,
+  },
+  suggestDismiss: {
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+  },
+  suggestDismissText: {
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 13,
+    color: palette.inkMuted,
   },
   debtRow: {
     flexDirection: 'row',

@@ -836,6 +836,12 @@ export const translations = {
 
     'reminder.title': 'Expense reminders',
     'reminder.collapsed': '{count} {count|reminder|reminders} — tap to open',
+    'reminder.collapsedSuggest': '{count} {count|reminder|reminders} · {suggest} {suggest|suggestion|suggestions} — tap to open',
+    'reminder.suggestTitle': 'Suggested for you',
+    'reminder.suggestHint': 'You pay these every month and they have no reminder yet. We remind you the day before, at 9:00.',
+    'reminder.suggestMeta': 'Usually paid on day {day} · {amount}',
+    'reminder.suggestAdd': 'Remind me',
+    'reminder.suggestDismiss': 'Not now',
     'reminder.body':
       'Pick one or more subcategories (e.g. Bills/Power). Each gets its own local notification with date and time. If you already logged it, Rumi skips that reminder, and it tells you the usual amount.',
     'reminder.pickHour': 'Hour',
@@ -1912,6 +1918,12 @@ export const translations = {
 
     'reminder.title': 'Recordatorios de gastos',
     'reminder.collapsed': '{count} {count|recordatorio|recordatorios} — toca para abrir',
+    'reminder.collapsedSuggest': '{count} {count|recordatorio|recordatorios} · {suggest} {suggest|sugerencia|sugerencias} — toca para abrir',
+    'reminder.suggestTitle': 'Te sugerimos',
+    'reminder.suggestHint': 'Los pagas cada mes y aún no tienen recordatorio. Te avisamos el día antes, a las 9:00.',
+    'reminder.suggestMeta': 'Sueles pagarlo el día {day} · {amount}',
+    'reminder.suggestAdd': 'Recordármelo',
+    'reminder.suggestDismiss': 'Ahora no',
     'reminder.body':
       'Elige una o varias subcategorías (ej. Recibos/Luz). Cada una tiene su notificación local con fecha y hora. Si ya lo registraste, Rumi no te lo recuerda, y te dice cuánto sueles pagar.',
     'reminder.pickHour': 'Hora',

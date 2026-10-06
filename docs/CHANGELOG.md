@@ -12,6 +12,11 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-06
 
+- **Recordatorios sugeridos en Plan:**
+  - Los pagos que haces cada mes y aún no tienen recordatorio aparecen en "Te sugerimos", con el día habitual y el monto. Salen de "Pagos a vigilar" y nunca incluyen hormigas.
+  - "Recordármelo" crea un recordatorio mensual el día anterior, a las 9:00. "Ahora no" lo descarta para siempre (`reminderSuggestionsDismissed`).
+  - Con la sección plegada, el resumen dice cuántas sugerencias hay.
+
 - **El vencimiento de una deuda ya no se corre al día del pago:**
   - Antes, pagar el 8 una cuota del 20 dejaba el próximo vencimiento el 8 del mes siguiente.
   - Ahora cada pago cubre el vencimiento más cercano (con 10 días de margen para pagos atrasados) y la fecha pasa al siguiente con el mismo día de pago.
