@@ -25,6 +25,7 @@ import {
   predictMonthlySpends,
   previousMonthRange,
   revolvingDebtIds,
+  startOfWeek,
   sumByType,
   sumSpendOut,
 } from '@/src/utils/financeMath';
@@ -149,6 +150,27 @@ function skipIncomeCategoryMatch(q: string): boolean {
   );
 }
 
+/** "más que el mes pasado", "vs", "compara…": the question wants two periods side by side. */
+const COMPARE_WORDS = [
+  'mas que',
+  'más que',
+  'more than',
+  'menos que',
+  'less than',
+  'compar',
+  'aumento',
+  'vs',
+  'versus',
+  'respecto',
+  'contra el mes',
+  'contra la semana',
+];
+
+/** Also "gasté más esta semana que la pasada", where the words are split. */
+function isCompareQuery(q: string): boolean {
+  return includesAny(q, COMPARE_WORDS) || /\b(?:mas|menos|more|less)\b.+\b(?:que|than)\b/.test(q);
+}
+
 const INCOME_CATEGORY_IDS = ['salario', 'freelance', 'bonos', 'reembolsos', 'ingresos'];
 
 const FOOD_GROUP = ['alimentacion', 'delivery', 'cafe', 'snacks'];
@@ -214,16 +236,6 @@ function topRisingExpenseCategory(
   return best;
 }
 
-function withAccruedInstallments(
-  list: Transaction[],
-  _debts: Debt[] | undefined,
-  _periodKey: string
-): Transaction[] {
-  // Debts from Wealth are reminders until the user logs a real payment.
-  // Do not invent virtual debt_payment rows for insights or search.
-  return list;
-}
-
 export function buildSmartInsights(
   transactions: Transaction[],
   t: TFn,
@@ -240,11 +252,7 @@ export function buildSmartInsights(
         ? t('smart.compareLastWeek')
         : t('smart.compareLastMonth');
 
-  const current = withAccruedInstallments(
-    filterByPeriod(transactions, period),
-    debts,
-    period
-  );
+  const current = filterByPeriod(transactions, period);
   const now = new Date();
   const { from, to } = comparableRange(
     { from: periodStart(period, now), to: periodEnd(period, now) },
@@ -488,6 +496,8 @@ type QueryPeriod = {
   analog: 'day' | 'week' | 'month' | 'year' | 'range';
   /** True when the question named a time (last month, August, yesterday…). */
   explicit: boolean;
+  /** Window to compare against when "the one before" is not just the same length back. */
+  previous?: { from: Date; to: Date };
 };
 
 function startOfDay(date: Date): Date {
@@ -597,11 +607,30 @@ function presetPeriod(
   return { label: t('period.mes'), from, to, analog: 'month', explicit: true };
 }
 
+/** How to name the window a period is compared against. */
+function previousLabel(
+  period: QueryPeriod,
+  prev: { from: Date; to: Date },
+  language: 'en' | 'es',
+  t: TFn
+): string {
+  if (period.analog === 'month') {
+    return `${monthLabel(prev.from.getMonth(), language)} ${prev.from.getFullYear()}`;
+  }
+  if (period.analog === 'year') {
+    return language === 'es' ? `el año ${prev.from.getFullYear()}` : String(prev.from.getFullYear());
+  }
+  if (period.analog === 'week') return t('search.periodLastWeek');
+  if (period.analog === 'day') return dayPeriod(prev.from, language).label;
+  return t('search.periodBefore');
+}
+
 function analogRange(period: QueryPeriod, now = new Date()): { from: Date; to: Date } {
   return comparableRange(period, fullAnalogRange(period), now);
 }
 
 function fullAnalogRange(period: QueryPeriod): { from: Date; to: Date } {
+  if (period.previous) return period.previous;
   if (period.analog === 'month') {
     const prev = new Date(period.from);
     prev.setMonth(prev.getMonth() - 1);
@@ -611,10 +640,69 @@ function fullAnalogRange(period: QueryPeriod): { from: Date; to: Date } {
     const y = period.from.getFullYear() - 1;
     return { from: new Date(y, 0, 1), to: new Date(y + 1, 0, 1) };
   }
+  if (period.analog === 'week') {
+    return { from: addDays(period.from, -7), to: period.from };
+  }
   const ms = Math.max(period.to.getTime() - period.from.getTime(), 24 * 60 * 60 * 1000);
   return {
     from: new Date(period.from.getTime() - ms),
     to: new Date(period.from.getTime()),
+  };
+}
+
+const DAY_COUNT_WORDS: Record<string, number> = {
+  un: 1,
+  una: 1,
+  dos: 2,
+  tres: 3,
+  cuatro: 4,
+  cinco: 5,
+  seis: 6,
+  siete: 7,
+  ocho: 8,
+  nueve: 9,
+  diez: 10,
+  once: 11,
+  doce: 12,
+  quince: 15,
+  veinte: 20,
+  treinta: 30,
+};
+
+function parseDayCount(raw: string): number | null {
+  const n = DAY_COUNT_WORDS[raw] ?? Number(raw);
+  return Number.isFinite(n) && n >= 1 && n <= 366 ? n : null;
+}
+
+/** Rolling window that ends today: "últimos 7 días". */
+function lastDaysPeriod(count: number, t: TFn, now: Date): QueryPeriod {
+  const to = addDays(startOfDay(now), 1);
+  const from = addDays(to, -count);
+  return {
+    label: t('search.periodLastDays', { count }),
+    from,
+    to,
+    analog: 'range',
+    explicit: true,
+  };
+}
+
+/** Saturday + Sunday: this one while it runs, else the most recent; "pasado" steps back one more. */
+function weekendPeriod(past: boolean, t: TFn, now: Date): QueryPeriod {
+  const today = startOfDay(now);
+  const dow = today.getDay();
+  let saturday = addDays(today, -((dow + 1) % 7));
+  const inWeekend = dow === 6 || dow === 0;
+  if (past && inWeekend) saturday = addDays(saturday, -7);
+  const end = addDays(saturday, 2);
+  const tomorrow = addDays(today, 1);
+  return {
+    label: t(past || !inWeekend ? 'search.periodLastWeekend' : 'search.periodWeekend'),
+    from: saturday,
+    to: end < tomorrow ? end : tomorrow,
+    analog: 'range',
+    explicit: true,
+    previous: { from: addDays(saturday, -7), to: addDays(saturday, -5) },
   };
 }
 
@@ -688,6 +776,51 @@ function resolvePeriod(
     if (count) return monthsAgoPeriod(count, language, now);
   }
 
+  const daysWords =
+    '(\\d{1,3}|un|una|dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|quince|veinte|treinta)';
+  const lastDays =
+    q.match(new RegExp(`\\b(?:ultimos|ultimas)\\s+${daysWords}\\s+dias\\b`)) ??
+    q.match(/\b(?:last|past)\s+(\d{1,3})\s+days\b/);
+  if (lastDays) {
+    const count = parseDayCount(lastDays[1]);
+    if (count) return lastDaysPeriod(count, t, now);
+  }
+  const daysAgo =
+    q.match(new RegExp(`\\bhace\\s+${daysWords}\\s+dias?\\b`)) ??
+    q.match(/\b(\d{1,3})\s+days?\s+ago\b/);
+  if (daysAgo) {
+    const count = parseDayCount(daysAgo[1]);
+    if (count) return dayPeriod(addDays(now, -count), language);
+  }
+
+  if (includesAny(q, ['fin de semana', 'finde', 'weekend'])) {
+    return weekendPeriod(includesAny(q, ['pasado', 'anterior', 'last', 'previous']), t, now);
+  }
+
+  const hasLastWeek = includesAny(q, [
+    'semana pasada',
+    'semana anterior',
+    'la semana pasada',
+    'last week',
+    'previous week',
+  ]);
+  const hasThisWeek = includesAny(q, ['esta semana', 'this week']);
+  // "esta semana vs la pasada" is this week compared with the last one.
+  if (hasLastWeek && (hasThisWeek || isCompareQuery(q))) {
+    return presetPeriod('semana', language, t, now);
+  }
+  if (hasLastWeek) {
+    const to = startOfWeek(now);
+    const from = addDays(to, -7);
+    return {
+      label: t('search.periodLastWeek'),
+      from,
+      to,
+      analog: 'week',
+      explicit: true,
+    };
+  }
+
   const namedMonth = q.match(
     new RegExp(
       `\\b(?:(?:en|del)\\s+(?:el\\s+)?(?:mes\\s+de\\s+)?)?(${months})(?:\\s+(?:de(?:l)?\\s+)?(\\d{4}))?\\b`
@@ -706,18 +839,7 @@ function resolvePeriod(
     'previous month',
   ]);
   const hasThisMonth = includesAny(q, ['este mes', 'this month']);
-  const hasCompare = includesAny(q, [
-    'mas que',
-    'más que',
-    'more than',
-    'menos que',
-    'less than',
-    'compar',
-    'vs',
-    'versus',
-    'respecto',
-    'contra el mes',
-  ]);
+  const hasCompare = isCompareQuery(q);
   // "más que el mes pasado" is this month vs last — don't switch the window to last month.
   if (hasLastMonth && (hasThisMonth || hasCompare)) {
     return presetPeriod('mes', language, t, now);
@@ -976,6 +1098,53 @@ function detectCategories(
   // Ignore very weak matches (noise from stopwords / short tokens).
   if (top.score < 14) return null;
   return top;
+}
+
+/**
+ * "café y delivery", "uber, taxi": one hit per part, merged. A single concept
+ * whose own name has "y" in it ("Luz y agua") still wins as one.
+ */
+function detectCategoryList(
+  q: string,
+  spendConcepts: SpendConcept[] = []
+): CategoryHit | null {
+  const whole = detectCategories(q, spendConcepts);
+  const parts = q.split(/\s*(?:,|\+|\by\b|\be\b|\band\b)\s*/).filter((p) => p.trim().length >= 2);
+  if (parts.length < 2) return whole;
+  if (whole?.displayName && /(?:^|\s)(?:y|and)(?:\s|$)/.test(normalize(whole.displayName))) {
+    return whole;
+  }
+  const hits: CategoryHit[] = [];
+  for (const part of parts) {
+    const hit = detectCategories(part, spendConcepts);
+    if (hit && !hits.some((h) => h.ids.join() === hit.ids.join())) hits.push(hit);
+  }
+  if (hits.length < 2) return whole;
+  const named = hits.every(
+    (h) => h.displayName && h.label !== 'food-group' && !h.displayName.startsWith('concept-')
+  );
+  return {
+    ids: [...new Set(hits.flatMap((h) => h.ids))],
+    label: 'multi',
+    score: Math.max(...hits.map((h) => h.score)),
+    displayName: named ? hits.map((h) => h.displayName).join(' + ') : undefined,
+  };
+}
+
+/** Words about time or the question itself, never what was bought. */
+const NON_NOTE_WORDS = new Set([
+  'mes', 'meses', 'semana', 'semanas', 'dia', 'dias', 'hoy', 'ayer', 'anteayer', 'ano', 'anos',
+  'pasado', 'pasada', 'anterior', 'ultimo', 'ultimos', 'ultima', 'ultimas', 'hace', 'fin', 'finde',
+  'total', 'plata', 'dinero', 'gastado', 'gastamos', 'compre', 'compras', 'llevo', 'van', 'vez', 'veces',
+  'month', 'months', 'week', 'weeks', 'day', 'days', 'today', 'yesterday', 'year', 'last', 'past',
+  'ago', 'weekend', 'money', 'bought', 'buy', 'so', 'far', 'in', 'at',
+  ...MONTHS_ES.map(normalize),
+  ...MONTHS_EN,
+]);
+
+/** Leftover words of a question, to look for in notes: "¿cuánto gasté en pizza?" → ["pizza"]. */
+function noteSearchTokens(q: string): string[] {
+  return tokenize(q).filter((tok) => tok.length >= 3 && !/^\d+$/.test(tok) && !NON_NOTE_WORDS.has(tok));
 }
 
 function isExpenseTx(tx: Transaction): boolean {
@@ -1755,10 +1924,11 @@ function answerProjection(
   let days: number;
   let totalDays: number;
   let pending = 0;
+  let oneOffs = 0;
   let early: boolean;
   if (period.analog === 'month') {
     const p = projectMonth(allTransactions, debts, now, spendConcepts);
-    ({ spent, income, days, totalDays, early } = p);
+    ({ spent, income, days, totalDays, early, oneOffs } = p);
     projected = p.projectedSpend;
     pending = p.pendingFixed;
   } else {
@@ -1782,6 +1952,9 @@ function answerProjection(
   ];
   if (pending > 0) {
     parts.push(t('search.answerProjectionPending', { pending: format(pending) }));
+  }
+  if (oneOffs > 0) {
+    parts.push(t('search.answerProjectionOneOff', { amount: format(oneOffs) }));
   }
   if (income > 0) {
     const left = income - projected;
@@ -1808,11 +1981,7 @@ export function answerFinanceQuery(
   const q = normalize(raw);
   const language = options.language ?? 'es';
   const period = resolvePeriod(q, options.defaultPeriod ?? 'mes', language, t);
-  const list = withAccruedInstallments(
-    txsForPeriod(transactions, period),
-    options.debts,
-    period.label
-  );
+  const list = txsForPeriod(transactions, period);
   const periodLabel = period.label;
 
   const wantsCount = includesAny(q, [
@@ -1994,19 +2163,7 @@ export function answerFinanceQuery(
     'cuánto tengo',
     'tengo en cuentas',
   ]);
-  const wantsCompare = includesAny(q, [
-    'mas que',
-    'más que',
-    'more than',
-    'menos que',
-    'less than',
-    'compar',
-    'aumento',
-    'vs',
-    'versus',
-    'respecto',
-    'contra el mes',
-  ]);
+  const wantsCompare = isCompareQuery(q);
   const wantsOrigin = includesAny(q, [
     'de que cuenta',
     'de qué cuenta',
@@ -2072,7 +2229,7 @@ export function answerFinanceQuery(
   ]);
 
   const spendConcepts = options.spendConcepts ?? [];
-  const cats = detectCategories(q, spendConcepts);
+  const cats = detectCategoryList(q, spendConcepts);
   const method = detectPaymentMethod(q);
   const noteNeedle = extractNoteNeedle(q);
 
@@ -2112,6 +2269,23 @@ export function answerFinanceQuery(
     );
   }
 
+  // "¿cuánto me queda?" with no month-end words: cash on hand now, then where the month lands.
+  const wantsLeftNow =
+    includesAny(q, ['me queda', 'nos queda', 'tengo disponible', 'have left', 'money left']) &&
+    !includesAny(q, ['fin de mes', 'final del mes', 'cierre', 'a este ritmo', 'quedara', 'end of', 'at this pace']);
+  if (wantsLeftNow && options.availableCash != null) {
+    const parts = [t('search.answerAvailable', { amount: format(options.availableCash) })];
+    const p = projectMonth(transactions, options.debts, new Date(), options.spendConcepts);
+    if (p.income > 0) {
+      parts.push(
+        p.projectedLeft >= 0
+          ? t('search.answerProjectionLeft', { income: format(p.income), left: format(p.projectedLeft) })
+          : t('search.answerProjectionShort', { income: format(p.income), short: format(-p.projectedLeft) })
+      );
+    }
+    return parts.join(' ');
+  }
+
   if (wantsProjection && inProgress && period.analog !== 'day') {
     return answerProjection(transactions, list, period, format, t, options.debts, options.spendConcepts);
   }
@@ -2122,6 +2296,17 @@ export function answerFinanceQuery(
     const expense = sumSpendOut(list, options.debts);
     const obligations = cardObligationTxs(list, options.debts).reduce((s, x) => s + x.amount, 0);
     const saved = income - expense;
+    if (saved < 0) {
+      const over = t(inProgress ? 'search.answerOverspentSoFar' : 'search.answerOverspent', {
+        amount: format(-saved),
+        period: periodLabel,
+        income: format(income),
+        expenses: format(expense),
+      });
+      return obligations > 0
+        ? `${over} ${t('search.answerCardPayNote', { obligations: format(obligations) })}`
+        : over;
+    }
     if (inProgress) {
       const soFar = t('search.answerSavingsSoFar', {
         amount: format(saved),
@@ -2294,6 +2479,28 @@ export function answerFinanceQuery(
           ? cats.displayName
           : cats.ids.map(categoryLabel).join(' + ');
 
+    if (wantsCompare) {
+      const prevRange = analogRange(period);
+      let prevMatched = matchTransactionsToCategories(
+        filterBetween(transactions, prevRange.from, prevRange.to),
+        cats,
+        spendConcepts,
+        creditsAsk ? 'obligation' : 'expense'
+      );
+      if (method) prevMatched = prevMatched.filter((x) => x.paymentMethod === method);
+      const prevAmount = prevMatched.reduce((s, x) => s + x.amount, 0);
+      const diff = amount - prevAmount;
+      return t('search.answerCompareCategory', {
+        label,
+        period: periodLabel,
+        compare: previousLabel(period, prevRange, language, t),
+        amount: format(Math.abs(diff)),
+        direction: diff >= 0 ? t('search.more') : t('search.less'),
+        now: format(amount),
+        prev: format(prevAmount),
+      });
+    }
+
     if (matched.length === 0) {
       return t('search.answerCategoryEmpty', {
         label,
@@ -2377,17 +2584,9 @@ export function answerFinanceQuery(
     const nowSpend = sumByType(list, 'expense');
     const prevSpend = sumByType(prev, 'expense');
     const diff = nowSpend - prevSpend;
-    const compareLabel =
-      period.analog === 'month'
-        ? `${monthLabel(prevRange.from.getMonth(), language)} ${prevRange.from.getFullYear()}`
-        : period.analog === 'year'
-          ? language === 'es'
-            ? `el año ${prevRange.from.getFullYear()}`
-            : String(prevRange.from.getFullYear())
-          : t('search.periodLastMonth');
     return t('search.answerComparePeriods', {
       period: periodLabel,
-      compare: compareLabel,
+      compare: previousLabel(period, prevRange, language, t),
       amount: format(Math.abs(diff)),
       direction: diff >= 0 ? t('search.more') : t('search.less'),
       now: format(nowSpend),
@@ -2471,6 +2670,23 @@ export function answerFinanceQuery(
       amount: format(amount),
       period: periodLabel,
     });
+  }
+
+  // Nothing else matched: maybe the word lives in a note ("pizza", "cine con Ana").
+  const looseTokens = noteNeedle ? [] : noteSearchTokens(q);
+  if (looseTokens.length > 0) {
+    const matched = list.filter((x) => {
+      const note = normalize(x.note ?? '');
+      return note && looseTokens.every((tok) => note.includes(tok));
+    });
+    if (matched.length > 0) {
+      return t('search.answerNote', {
+        label: looseTokens.join(' '),
+        amount: format(matched.reduce((s, x) => s + x.amount, 0)),
+        period: periodLabel,
+        count: matched.length,
+      });
+    }
   }
 
   if (noteNeedle) {

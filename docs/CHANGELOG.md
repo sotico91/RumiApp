@@ -10,6 +10,21 @@ El detalle de cada cambio está en `git log`.
 - **Comentarios de código en inglés:** todos los comentarios del código van en inglés.
   Los textos que ve el usuario van en `src/i18n/translations.ts` (es/en).
 
+## 2026-10-06
+
+- **Pregúntale a Rumi entiende más periodos:** "la semana pasada", "últimos 7 días", "hace 15 días" y "el fin de semana".
+  Antes estas frases se respondían en silencio con el periodo por defecto.
+- **Comparar un concepto:** "¿café vs el mes pasado?" compara el café de ambos meses, y "¿gasté más esta semana que la pasada?" también se reconoce.
+  La semana se compara contra el lunes a domingo anterior, cortado al mismo tiempo transcurrido.
+- **Varios conceptos a la vez** ("café y delivery") y **búsqueda en notas** cuando la palabra no es un concepto ("¿cuánto gasté en pizza?").
+- **Ahorro negativo con palabras claras:** "Gastaste X más de lo que te ingresó" en vez de "Ahorraste −X".
+  "¿Cuánto me queda?" responde primero con el disponible de hoy y luego con cómo cerraría el mes.
+- **Proyección del mes más precisa (`projectMonth`):**
+  - El ritmo diario mezcla el mes actual con el de los últimos 3 meses, y el mes actual pesa más a medida que avanza.
+  - Respeta los hábitos por día de la semana, por ejemplo sábados más caros.
+  - Las compras puntuales (muy por encima de lo normal y sin parecidas en su concepto) cuentan una sola vez y no se extrapolan.
+  - Con historial previo, la estimación deja de marcarse como "temprana".
+
 ## 2026-10-05
 
 - **APK más liviano: de 24.6 MB a 21.9 MB.** El APK llevaba 57 fuentes y ahora lleva 8.

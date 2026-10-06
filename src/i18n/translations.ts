@@ -1000,6 +1000,19 @@ export const translations = {
       'Share of income by category ({period}, base {income}): {detail}.',
     'search.labelFood': 'Food / restaurants',
     'search.periodLastMonth': 'Last month',
+    'search.periodLastWeek': 'last week',
+    'search.periodWeekend': 'this weekend',
+    'search.periodLastWeekend': 'last weekend',
+    'search.periodLastDays': 'last {count} days',
+    'search.periodBefore': 'the period before',
+    'search.answerCompareCategory':
+      '{label} ({period}): {now}, {amount} {direction} than {compare} ({prev}).',
+    'search.answerOverspent':
+      'You spent {amount} more than came in ({period}): income {income} − expenses {expenses}.',
+    'search.answerOverspentSoFar':
+      '{period} so far: expenses are {amount} above income (income {income} − expenses {expenses}). The month is not over yet.',
+    'search.answerProjectionOneOff':
+      'One-off purchases ({amount}) count once and do not set the pace.',
     'search.periodYear': 'This year',
     'search.answerExpensesDetail':
       'Your expenses ({period}): {amount} across {count} {count|transaction|transactions}. Highest: {detail}.',
@@ -2043,6 +2056,19 @@ export const translations = {
       'Peso sobre el ingreso por categoría ({period}, base {income}): {detail}.',
     'search.labelFood': 'Comida / restaurantes',
     'search.periodLastMonth': 'Mes pasado',
+    'search.periodLastWeek': 'la semana pasada',
+    'search.periodWeekend': 'este fin de semana',
+    'search.periodLastWeekend': 'el fin de semana pasado',
+    'search.periodLastDays': 'últimos {count} días',
+    'search.periodBefore': 'el periodo anterior',
+    'search.answerCompareCategory':
+      '{label} ({period}): {now}, {amount} {direction} que {compare} ({prev}).',
+    'search.answerOverspent':
+      'Gastaste {amount} más de lo que te ingresó ({period}): ingresos {income} − gastos {expenses}.',
+    'search.answerOverspentSoFar':
+      '{period} hasta hoy: tus gastos van {amount} por encima de tus ingresos (ingresos {income} − gastos {expenses}). El mes aún no termina.',
+    'search.answerProjectionOneOff':
+      'Las compras puntuales ({amount}) cuentan una sola vez y no marcan el ritmo.',
     'search.periodYear': 'Este año',
     'search.answerExpensesDetail':
       'Tus gastos ({period}): {amount} en {count} {count|movimiento|movimientos}. Lo más alto: {detail}.',

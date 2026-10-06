@@ -147,3 +147,70 @@ describe('Ask Rumi', () => {
     expect(ask('¿cuánto gasté este mes?')).not.toMatch(/\bcafe\b/);
   });
 });
+
+describe('answerFinanceQuery — periods, comparisons and notes', () => {
+  const data = [
+    tx('c1', 'expense', 12_000, '2026-10-03T09:00', { categoryId: 'cafe' }),
+    tx('d1', 'expense', 45_000, '2026-10-05T20:00', { categoryId: 'delivery', note: 'Pizza familiar' }),
+    tx('i1', 'income', 3_000_000, '2026-10-01T09:00', { categoryId: 'salario' }),
+    tx('c0', 'expense', 20_000, '2026-09-12T09:00', { categoryId: 'cafe' }),
+    tx('t0', 'expense', 80_000, '2026-09-10T09:00', { categoryId: 'transporte' }),
+    tx('c2', 'expense', 9_000, '2026-10-14T09:00', { categoryId: 'cafe' }),
+    tx('s1', 'expense', 15_000, '2026-10-18T09:00', { categoryId: 'snacks' }),
+  ];
+  const ask = (q: string, extra = {}) =>
+    answerFinanceQuery(q, data, format, t, { language: 'es', availableCash: 500_000, ...extra });
+
+  beforeEach(() => {
+    jest.setSystemTime(new Date('2026-10-20T12:00:00')); // Tuesday
+  });
+
+  it('reads "la semana pasada" as the previous Monday–Sunday', () => {
+    expect(ask('¿cuánto gasté en café la semana pasada?')).toBe(
+      `Café (la semana pasada): ${format(9_000)} en 1 movimiento.`
+    );
+  });
+
+  it('reads "últimos 7 días" as a rolling window', () => {
+    expect(ask('¿cuánto gasté los últimos 7 días?')).toContain(`(últimos 7 días): ${format(24_000)}`);
+  });
+
+  it('reads "hace N días" as that day', () => {
+    expect(ask('¿cuánto gasté hace 17 días?')).toContain('3 de octubre 2026');
+  });
+
+  it('reads "fin de semana" as the latest Saturday–Sunday', () => {
+    expect(ask('gastos del fin de semana')).toContain(`(el fin de semana pasado): ${format(15_000)}`);
+  });
+
+  it('compares one concept with the previous month', () => {
+    expect(ask('¿cuánto gasté en café vs el mes pasado?')).toBe(
+      `Café (Este mes): ${format(21_000)}, ${format(1_000)} más que Septiembre 2026 (${format(20_000)}).`
+    );
+  });
+
+  it('compares this week with last week when the words are split', () => {
+    expect(ask('¿gasté más esta semana que la semana pasada?')).toMatch(/que la semana pasada/);
+  });
+
+  it('adds up several concepts', () => {
+    expect(ask('¿cuánto gasté en café y delivery?')).toBe(
+      `Café + Delivery (Este mes): ${format(66_000)} en 3 movimientos.`
+    );
+  });
+
+  it('falls back to notes for words that are not concepts', () => {
+    expect(ask('¿cuánto gasté en pizza?')).toBe(
+      `Coincidencias de “pizza” (Este mes): ${format(45_000)} en 1 movimiento.`
+    );
+  });
+
+  it('says "gastaste más" instead of a negative saving', () => {
+    expect(ask('¿cuánto ahorré el mes pasado?')).toMatch(/^Gastaste .* más de lo que te ingresó/);
+  });
+
+  it('answers "¿cuánto me queda?" with cash on hand first', () => {
+    expect(ask('¿cuánto me queda?')).toMatch(/^Disponible ahora: /);
+    expect(ask('¿cuánto me queda hasta fin de mes?')).toMatch(/^A este ritmo/);
+  });
+});

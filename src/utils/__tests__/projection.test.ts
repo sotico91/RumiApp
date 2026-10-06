@@ -71,6 +71,49 @@ describe('projectMonth', () => {
   });
 });
 
+describe('projectMonth — pace model', () => {
+  const now = new Date('2026-10-10T12:00:00');
+  /** 10.000 a day of small spend through September. */
+  const september = Array.from({ length: 30 }, (_, i) =>
+    tx('expense', 10_000, `2026-09-${String(i + 1).padStart(2, '0')}T12:00`, { categoryId: 'cafe' })
+  );
+
+  it('blends a fast start with the usual pace instead of extrapolating it', () => {
+    // 25.000 a day so far in October vs 10.000 usual.
+    const october = Array.from({ length: 10 }, (_, i) =>
+      tx('expense', 25_000, `2026-10-${String(i + 1).padStart(2, '0')}T09:00`, { categoryId: 'cafe' })
+    );
+    const p = projectMonth([...september, ...october], [], now);
+    expect(p.historyMonths).toBe(1);
+    expect(p.projectedSpend).toBeLessThan(25_000 * 31);
+    expect(p.projectedSpend).toBeGreaterThan(250_000 + 21 * 10_000);
+  });
+
+  it('counts an unusual big purchase once and keeps it out of the pace', () => {
+    const october = [
+      ...Array.from({ length: 9 }, (_, i) =>
+        tx('expense', 10_000, `2026-10-0${i + 1}T09:00`, { categoryId: 'cafe' })
+      ),
+      tx('expense', 2_000_000, '2026-10-05T15:00', { categoryId: 'tecnologia' }),
+    ];
+    const p = projectMonth([...september, ...october], [], now);
+    expect(p.oneOffs).toBe(2_000_000);
+    expect(p.projectedSpend).toBeGreaterThan(2_090_000 + 21 * 9_000);
+    expect(p.projectedSpend).toBeLessThanOrEqual(2_090_000 + 21 * 10_000);
+  });
+
+  it('follows weekday habits once there is enough history', () => {
+    // Saturdays 70.000, other days 5.000, for August through October 23.
+    const days: Transaction[] = [];
+    for (let d = new Date('2026-08-01T12:00'); d < new Date('2026-10-24T00:00'); d.setDate(d.getDate() + 1)) {
+      days.push(tx('expense', d.getDay() === 6 ? 70_000 : 5_000, d.toISOString(), { categoryId: 'cafe' }));
+    }
+    // Friday Oct 23: the 8 days left hold two Saturdays, more than the usual share.
+    const p = projectMonth(days, [], new Date('2026-10-23T20:00:00'));
+    expect(p.projectedSpend - p.spent).toBeGreaterThan(p.dailyPace * 8 * 1.2);
+  });
+});
+
 describe('parseQueryAmount', () => {
   it.each([
     ['¿puedo comprar algo de 500000?', 500_000],
