@@ -12,6 +12,12 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-06
 
+- **El vencimiento de una deuda ya no se corre al día del pago:**
+  - Antes, pagar el 8 una cuota del 20 dejaba el próximo vencimiento el 8 del mes siguiente.
+  - Ahora cada pago cubre el vencimiento más cercano (con 10 días de margen para pagos atrasados) y la fecha pasa al siguiente con el mismo día de pago.
+  - Un segundo pago o abono en el mismo ciclo no adelanta otro mes.
+  - Deshacer o editar el pago devuelve la fecha (`nextDueAfterPayment` / `dueBeforePayment` en `payDay.ts`).
+
 - **Recordatorios de deudas en Plan:**
   - Cada deuda activa (cuota o tarjeta) avisa la mañana anterior a su vencimiento, a las 9:00: "Mañana vence el pago de Moto: $300.000".
   - No avisa si ese mes ya está pago. Un pago parcial recuerda lo que falta, y en tarjetas sin cuota fija cualquier pago del mes cuenta.

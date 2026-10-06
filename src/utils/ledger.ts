@@ -1,6 +1,7 @@
 import type { Account, Debt, Transaction } from '@/src/types/finance';
 import { roundMoney } from '@/src/utils/money';
 import { applyRevolvingCharge, closedAtAfterBalance } from '@/src/utils/debts';
+import { dueBeforePayment, nextDueAfterPayment } from '@/src/utils/payDay';
 
 /**
  * Apply one movement to account balances.
@@ -85,13 +86,12 @@ export function applyDebtPayment(
     if (direction === 1) {
       const paid = Math.min(tx.amount, d.balance);
       const nextBalance = roundMoney(Math.max(0, d.balance - paid));
-      const nextDate = new Date();
-      nextDate.setMonth(nextDate.getMonth() + 1);
       return {
         ...d,
         balance: nextBalance,
         paidCapital: roundMoney((d.paidCapital || 0) + paid),
-        nextPaymentDate: nextDate.toISOString(),
+        // Keep the pay day: paying early on the 8th for the 20th moves it to next month's 20th.
+        nextPaymentDate: nextDueAfterPayment(d.nextPaymentDate, tx.createdAt),
         closedAt: closedAtAfterBalance(d, nextBalance, tx.createdAt),
       };
     }
@@ -100,6 +100,7 @@ export function applyDebtPayment(
       ...d,
       balance: nextBalance,
       paidCapital: roundMoney(Math.max(0, (d.paidCapital || 0) - tx.amount)),
+      nextPaymentDate: dueBeforePayment(d.nextPaymentDate, tx.createdAt),
       closedAt: closedAtAfterBalance(d, nextBalance, d.closedAt ?? tx.createdAt),
     };
   });
