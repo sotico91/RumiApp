@@ -7,6 +7,7 @@ import { BrandScreen, ScreenHeader } from '@/src/components/ui';
 import { colors, space } from '@/src/theme';
 import { CategoryBreakdown } from '@/src/components/CategoryBreakdown';
 import { EmptyState } from '@/src/components/EmptyState';
+import { ExpenseRow } from '@/src/components/ExpenseRow';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
 import { HowToGuideButton } from '@/src/components/HowToGuideButton';
 import { MoneyText } from '@/src/components/MoneyText';
@@ -23,12 +24,17 @@ import type { Period } from '@/src/types/finance';
 import { categoryLabel } from '@/src/utils/categoryLabel';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import { spendByPocket } from '@/src/utils/pockets';
+import { filterByPersonScope } from '@/src/utils/personScope';
 import {
-  answerFinanceQuery,
+  askRumi,
   buildSearchSuggestions,
   buildSmartInsights,
+  type AskResult,
 } from '@/src/utils/smartInsights';
 import { toneFromBudgetRatio } from '@/src/utils/signalTone';
+
+/** Rows shown under an answer; the rest live in Activity. */
+const MAX_ANSWER_TXS = 8;
 
 export default function InsightsScreen() {
   const { t, language } = useLanguage();
@@ -39,7 +45,9 @@ export default function InsightsScreen() {
     useFinance();
   const [period, setPeriod] = useState<Period>('mes');
   const [query, setQuery] = useState('');
-  const [answer, setAnswer] = useState('');
+  const [result, setResult] = useState<AskResult | null>(null);
+  const [showTxs, setShowTxs] = useState(false);
+  const answer = result?.text ?? '';
   const [activeSuggestion, setActiveSuggestion] = useState<string | null>(null);
   const [rankingOpen, setRankingOpen] = useState(false);
   const [pocketsOpen, setPocketsOpen] = useState(true);
@@ -50,7 +58,15 @@ export default function InsightsScreen() {
   const top = insights[0];
   const periodLabel = t(`period.${period}` as TranslationKey);
   const searchPlaceholder = t('insights.searchPlaceholder');
-  const smart = buildSmartInsights(transactions, t, format, spendConcepts, period, debts);
+  // Same people as the rest of this screen: what I registered, not the whole household.
+  const mine = useMemo(
+    () => filterByPersonScope(transactions, 'mine', settings.personId),
+    [transactions, settings.personId]
+  );
+  const smart = useMemo(
+    () => buildSmartInsights(mine, t, format, spendConcepts, period, debts),
+    [mine, t, format, spendConcepts, period, debts]
+  );
   const topBudget = top
     ? budgetStatus.find((b) => b.categoryId === top.categoryId)
     : undefined;
@@ -67,9 +83,9 @@ export default function InsightsScreen() {
         spendConcepts,
         language === 'es' ? 'es' : 'en',
         period,
-        { transactions, debts }
+        { transactions: mine, debts }
       ),
-    [spendConcepts, language, period, transactions, debts]
+    [spendConcepts, language, period, mine, debts]
   );
 
   const pocketSpend = useMemo(
@@ -85,8 +101,9 @@ export default function InsightsScreen() {
     } else {
       setActiveSuggestion(suggestions.includes(q) ? q : null);
     }
-    setAnswer(
-      answerFinanceQuery(q, transactions, format, t, {
+    setShowTxs(false);
+    setResult(
+      askRumi(q, mine, format, t, {
         defaultPeriod: period,
         debtsTotal: debtTotal,
         debts,
@@ -102,7 +119,8 @@ export default function InsightsScreen() {
 
   function clearAsk() {
     setQuery('');
-    setAnswer('');
+    setResult(null);
+    setShowTxs(false);
     setActiveSuggestion(null);
   }
 
@@ -173,7 +191,69 @@ export default function InsightsScreen() {
                 {query.trim()}
               </Text>
             ) : null}
+            {result?.understood ? (
+              <Text style={styles.answerUnderstood}>
+                {t('insights.askUnderstood', {
+                  what: [result.understood.concept, result.understood.period]
+                    .filter(Boolean)
+                    .join(' · '),
+                })}
+              </Text>
+            ) : null}
             <Text style={styles.answerBody}>{answer}</Text>
+
+            {result && result.txs.length > 0 ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ expanded: showTxs }}
+                style={styles.txToggle}
+                onPress={() => {
+                  tapFeedback();
+                  setShowTxs((v) => !v);
+                }}>
+                <Text style={styles.txToggleText}>
+                  {showTxs
+                    ? t('insights.askHideTxs')
+                    : t('insights.askShowTxs', { count: result.txs.length })}
+                </Text>
+              </Pressable>
+            ) : null}
+            {showTxs && result ? (
+              <View style={styles.txList}>
+                {result.txs.slice(0, MAX_ANSWER_TXS).map((tx, index, shown) => (
+                  <ExpenseRow key={tx.id} expense={tx} last={index === shown.length - 1} />
+                ))}
+                {result.txs.length > MAX_ANSWER_TXS ? (
+                  <Pressable accessibilityRole="link" onPress={() => router.push('/(tabs)/historial')}>
+                    <Text style={styles.txMore}>
+                      {t('insights.askMoreTxs', { count: result.txs.length - MAX_ANSWER_TXS })}
+                    </Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            ) : null}
+
+            {result && result.followUps.length > 0 ? (
+              <>
+                <Text style={styles.followLabel}>{t('insights.askFollowUps')}</Text>
+                <View style={styles.suggestRow}>
+                  {result.followUps.map((prompt) => (
+                    <Pressable
+                      accessibilityRole="button"
+                      key={prompt}
+                      style={styles.suggestChip}
+                      onPress={() => {
+                        tapFeedback();
+                        ask(prompt);
+                      }}>
+                      <Text style={styles.suggestText} numberOfLines={2}>
+                        {prompt}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </>
+            ) : null}
           </View>
         ) : null}
 
@@ -397,6 +477,40 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: palette.inkMuted,
     lineHeight: 18,
+  },
+  answerUnderstood: {
+    marginTop: 8,
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 12,
+    color: palette.accentDeep,
+  },
+  txToggle: {
+    marginTop: 12,
+    alignSelf: 'flex-start',
+    paddingVertical: 6,
+  },
+  txToggleText: {
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 13,
+    color: palette.accentDeep,
+    textDecorationLine: 'underline',
+  },
+  txList: {
+    marginTop: 4,
+  },
+  txMore: {
+    marginTop: 8,
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 13,
+    color: palette.inkMuted,
+  },
+  followLabel: {
+    marginTop: 14,
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 12,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: palette.inkMuted,
   },
   answerBody: {
     marginTop: 10,

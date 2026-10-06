@@ -24,6 +24,21 @@ El detalle de cada cambio está en `git log`.
   - Respeta los hábitos por día de la semana, por ejemplo sábados más caros.
   - Las compras puntuales (muy por encima de lo normal y sin parecidas en su concepto) cuentan una sola vez y no se extrapolan.
   - Con historial previo, la estimación deja de marcarse como "temprana".
+- **Motor de preguntas reorganizado en `src/utils/ask/`** (antes era una función de ~800 líneas en `smartInsights.ts`):
+  - `parse.ts` convierte la pregunta en periodo, conceptos, método de pago e intenciones, sin calcular nada.
+  - `handlers.ts` tiene un manejador por intención; su orden en `HANDLERS` es la prioridad del motor.
+  - `lexicon/es.ts` y `lexicon/en.ts` guardan las palabras clave por idioma.
+  - `period.ts`, `categories.ts`, `signals.ts`, `ledger.ts`, `percent.ts`, `planning.ts` y `suggestions.ts` agrupan lo demás.
+  - `smartInsights.ts` queda solo con las tarjetas de Insights y reexporta el motor.
+- **`askRumi` devuelve una respuesta estructurada:** texto, qué entendió (concepto y periodo), qué manejador respondió, los movimientos detrás y preguntas de seguimiento.
+  `answerFinanceQuery` sigue devolviendo solo el texto.
+- **Pregúntale a Rumi en Insights:**
+  - Muestra "Entendí: Café · Este mes".
+  - "Ver N movimientos" despliega los movimientos que suman la respuesta.
+  - "Sigue preguntando" ofrece chips de seguimiento.
+  - Las preguntas y las tarjetas usan solo tus movimientos, como el resto de la pantalla.
+  - Las tarjetas ya no se recalculan en cada render.
+- **Tabla de pruebas del motor** (`src/utils/ask/__tests__/askRumi.test.ts`): unas 20 preguntas con la intención y el periodo esperados.
 
 ## 2026-10-05
 
