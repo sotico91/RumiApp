@@ -24,6 +24,8 @@ import {
   subColorShades,
 } from '@/src/data/spendConcepts';
 import { SelectPressable } from '@/src/components/SelectPressable';
+import { SubDestinationPicker } from '@/src/components/SubDestinationPicker';
+import { useSpendTreeEdit, type TreeEditError } from '@/src/hooks/useSpendTreeEdit';
 import { palette, radii } from '@/src/theme/colors';
 import { categoryLabel } from '@/src/utils/categoryLabel';
 import { tapFeedback } from '@/src/utils/selectFeedback';
@@ -41,7 +43,9 @@ export function ConceptsPlanCard() {
     updateSpendSubAnt,
     removeSpendConcept,
     removeSpendSub,
+    settings,
   } = useSettings();
+  const tree = useSpendTreeEdit();
   const { budgetStatus, updateBudget, removeBudget, debts } = useFinance();
 
   const [conceptDraft, setConceptDraft] = useState('');
@@ -56,6 +60,15 @@ export function ConceptsPlanCard() {
   const [limitDraft, setLimitDraft] = useState('');
   const [saving, setSaving] = useState(false);
   const [budgetsOpen, setBudgetsOpen] = useState(false);
+  const [renamingConceptId, setRenamingConceptId] = useState<string | null>(null);
+  const [nameDraft, setNameDraft] = useState('');
+  const [subEditingId, setSubEditingId] = useState<string | null>(null);
+  // Picking where things go: join a sub, or re-file what a deleted sub / category had.
+  const [relocate, setRelocate] = useState<
+    | { kind: 'merge' | 'deleteSub'; subId: string; name: string }
+    | { kind: 'deleteConcept'; conceptId: string; name: string }
+    | null
+  >(null);
 
   const concepts = usePickableSpendConcepts();
   const newConceptColor = nextConceptColor(concepts);
@@ -64,6 +77,169 @@ export function ConceptsPlanCard() {
 
   // A credit paid off this month stays listed as paid; from next month it is gone.
   const paidSubIds = useMemo(() => paidDebtSubIds(debts).paidThisMonth, [debts]);
+
+  function editFailed(reason: TreeEditError | null) {
+    if (reason === 'duplicate') {
+      appAlert(t('plan.nameTaken'), undefined, undefined, { tone: 'warning' });
+    }
+    return reason !== null;
+  }
+
+  async function saveConceptName(conceptId: string) {
+    if (editFailed(await tree.renameConcept(conceptId, nameDraft))) return;
+    setRenamingConceptId(null);
+  }
+
+  async function saveSubName(subId: string) {
+    if (editFailed(await tree.renameSub(subId, nameDraft))) return;
+    setSubEditingId(null);
+  }
+
+  function openSubEdit(subId: string, name: string) {
+    tapFeedback();
+    setRelocate(null);
+    setSubEditingId((prev) => (prev === subId ? null : subId));
+    setNameDraft(name);
+  }
+
+  function askMove(subId: string, subName: string, toConceptId: string, toName: string) {
+    const target = concepts.find((c) => c.id === toConceptId);
+    const twin = target?.subs.some(
+      (s) => s.name.trim().toLowerCase() === subName.trim().toLowerCase()
+    );
+    appAlert(
+      t('plan.moveConfirmTitle', { name: subName, to: toName }),
+      twin ? t('plan.moveJoinsBody', { name: subName, to: toName }) : t('plan.moveBody'),
+      [
+        { text: t('plan.setLimitCancel'), style: 'cancel' },
+        {
+          text: t('plan.moveConfirm'),
+          onPress: () =>
+            void tree.moveSub(subId, toConceptId).then((reason) => {
+              if (!editFailed(reason)) setSubEditingId(null);
+            }),
+        },
+      ]
+    );
+  }
+
+  /** Deleting never strands movements: with any, first choose where they go. */
+  function askDeleteSub(conceptId: string, subId: string, name: string) {
+    const used = tree.usage([subId]);
+    if (used.movements + used.debts > 0) {
+      setRelocate({ kind: 'deleteSub', subId, name });
+      return;
+    }
+    appAlert(name, undefined, [
+      { text: t('plan.setLimitCancel'), style: 'cancel' },
+      {
+        text: t('plan.deleteSub'),
+        style: 'destructive',
+        onPress: () => {
+          setSubEditingId(null);
+          void removeSpendSub(conceptId, subId);
+        },
+      },
+    ]);
+  }
+
+  function askDeleteConcept(conceptId: string, name: string) {
+    const full = (settings.spendConcepts ?? []).find((c) => c.id === conceptId);
+    const used = tree.usage([conceptId, ...(full?.subs ?? []).map((s) => s.id)]);
+    if (used.movements + used.debts > 0) {
+      setSubEditingId(null);
+      setRelocate({ kind: 'deleteConcept', conceptId, name });
+      return;
+    }
+    appAlert(name, t('plan.deleteConcept'), [
+      { text: t('plan.setLimitCancel'), style: 'cancel' },
+      {
+        text: t('plan.deleteConcept'),
+        style: 'destructive',
+        onPress: () => void removeSpendConcept(conceptId),
+      },
+    ]);
+  }
+
+  /** Destination picked: confirm, then join / re-file. */
+  function relocateTo(toSubId: string, toLabel: string) {
+    if (!relocate) return;
+    const current = relocate;
+    const ids =
+      current.kind === 'deleteConcept'
+        ? [
+            current.conceptId,
+            ...((settings.spendConcepts ?? []).find((c) => c.id === current.conceptId)?.subs ?? []).map(
+              (s) => s.id
+            ),
+          ]
+        : [current.subId];
+    const count = tree.usage(ids).movements;
+    const merging = current.kind === 'merge';
+    appAlert(
+      t(merging ? 'plan.mergeConfirmTitle' : 'plan.deleteMoveTitle', {
+        from: current.name,
+        to: toLabel,
+      }),
+      t(merging ? 'plan.mergeConfirmBody' : 'plan.deleteMoveBody', {
+        from: current.name,
+        to: toLabel,
+        count,
+      }),
+      [
+        { text: t('plan.setLimitCancel'), style: 'cancel' },
+        {
+          text: t(merging ? 'plan.mergeConfirm' : 'plan.deleteMoveConfirm'),
+          style: merging ? 'default' : 'destructive',
+          onPress: () =>
+            void (
+              current.kind === 'deleteConcept'
+                ? tree.removeConceptInto(current.conceptId, toSubId)
+                : tree.mergeSub(current.subId, toSubId)
+            ).then((reason) => {
+              if (editFailed(reason)) return;
+              setRelocate(null);
+              setSubEditingId(null);
+            }),
+        },
+      ]
+    );
+  }
+
+  function relocatePanel(excludeSubIds: string[], excludeConceptId?: string) {
+    if (!relocate) return null;
+    const ids =
+      relocate.kind === 'deleteConcept'
+        ? [
+            relocate.conceptId,
+            ...((settings.spendConcepts ?? []).find((c) => c.id === relocate.conceptId)?.subs ?? []).map(
+              (s) => s.id
+            ),
+          ]
+        : [relocate.subId];
+    const count = tree.usage(ids).movements;
+    return (
+      <View style={styles.relocate}>
+        <Text style={styles.copy}>
+          {relocate.kind === 'merge'
+            ? t('plan.mergePick', { name: relocate.name })
+            : t('plan.deletePick', { name: relocate.name, count })}
+        </Text>
+        <SubDestinationPicker
+          concepts={concepts}
+          excludeSubIds={excludeSubIds}
+          excludeConceptId={excludeConceptId}
+          onPick={(_conceptId, subId, label) => relocateTo(subId, label)}
+        />
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => setRelocate(null)}
+          style={styles.secondaryBtn}>
+          <Text style={styles.secondaryText}>{t('plan.setLimitCancel')}</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   async function handleAddConcept() {
     if (!conceptDraft.trim()) return;
@@ -174,17 +350,45 @@ export function ConceptsPlanCard() {
                     variant="bubble"
                   />
                 </SelectPressable>
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => {
-                    tapFeedback();
-                    setExpanded(open ? null : concept.id);
-                    setColorEditingId(null);
-                  }}
-                  style={styles.conceptHeaderMain}>
-                  <Text style={styles.conceptTitle}>{concept.name}</Text>
-                  <Text style={styles.chevron}>{open ? '▾' : '▸'}</Text>
-                </Pressable>
+                {renamingConceptId === concept.id ? (
+                  <View style={[styles.addRow, styles.renameRow]}>
+                    <TextInput
+                      value={nameDraft}
+                      onChangeText={setNameDraft}
+                      autoFocus
+                      returnKeyType="done"
+                      onSubmitEditing={() => void saveConceptName(concept.id)}
+                      accessibilityLabel={t('plan.rename')}
+                      style={styles.input}
+                    />
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => setRenamingConceptId(null)}
+                      style={styles.secondaryBtn}>
+                      <Text style={styles.secondaryText}>{t('plan.setLimitCancel')}</Text>
+                    </Pressable>
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => void saveConceptName(concept.id)}
+                      style={styles.addBtn}>
+                      <Text style={styles.addBtnText}>{t('plan.setLimitSave')}</Text>
+                    </Pressable>
+                  </View>
+                ) : (
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => {
+                      tapFeedback();
+                      setExpanded(open ? null : concept.id);
+                      setColorEditingId(null);
+                      setSubEditingId(null);
+                      setRelocate(null);
+                    }}
+                    style={styles.conceptHeaderMain}>
+                    <Text style={styles.conceptTitle}>{concept.name}</Text>
+                    <Text style={styles.chevron}>{open ? '▾' : '▸'}</Text>
+                  </Pressable>
+                )}
               </View>
 
               {editingColor ? (
@@ -279,20 +483,75 @@ export function ConceptsPlanCard() {
                           </Pressable>
                           <Pressable
                             accessibilityRole="button"
-                            onPress={() =>
-                              appAlert(sub.name, undefined, [
-                                { text: t('plan.setLimitCancel'), style: 'cancel' },
-                                {
-                                  text: t('plan.deleteSub'),
-                                  style: 'destructive',
-                                  onPress: () =>
-                                    void removeSpendSub(concept.id, sub.id),
-                                },
-                              ])
-                            }>
-                            <Text style={styles.deleteText}>{t('plan.deleteSub')}</Text>
+                            accessibilityState={{ expanded: subEditingId === sub.id }}
+                            hitSlop={8}
+                            onPress={() => openSubEdit(sub.id, sub.name)}>
+                            <Text style={styles.editText}>{t('plan.subEdit')}</Text>
                           </Pressable>
                         </View>
+                        {subEditingId === sub.id ? (
+                          <View style={styles.subEditor}>
+                            <Text style={styles.colorLabel}>{t('plan.rename')}</Text>
+                            <View style={styles.addRow}>
+                              <TextInput
+                                value={nameDraft}
+                                onChangeText={setNameDraft}
+                                returnKeyType="done"
+                                onSubmitEditing={() => void saveSubName(sub.id)}
+                                accessibilityLabel={t('plan.rename')}
+                                style={styles.input}
+                              />
+                              <Pressable
+                                accessibilityRole="button"
+                                onPress={() => void saveSubName(sub.id)}
+                                style={styles.addBtn}>
+                                <Text style={styles.addBtnText}>{t('plan.setLimitSave')}</Text>
+                              </Pressable>
+                            </View>
+
+                            {concepts.length > 1 ? (
+                              <>
+                                <Text style={styles.colorLabel}>{t('plan.moveTo')}</Text>
+                                <View style={styles.moveChips}>
+                                  {concepts
+                                    .filter((c) => c.id !== concept.id)
+                                    .map((c) => (
+                                      <SelectPressable
+                                        key={c.id}
+                                        onPress={() => askMove(sub.id, sub.name, c.id, c.name)}
+                                        style={styles.moveChip}>
+                                        <ConceptIcon icon={c.icon} color={c.color} size={14} />
+                                        <Text style={styles.moveChipText}>{c.name}</Text>
+                                      </SelectPressable>
+                                    ))}
+                                </View>
+                              </>
+                            ) : null}
+
+                            <View style={styles.subActions}>
+                              <Pressable
+                                accessibilityRole="button"
+                                onPress={() =>
+                                  setRelocate({ kind: 'merge', subId: sub.id, name: sub.name })
+                                }
+                                style={styles.secondaryBtn}>
+                                <Text style={styles.secondaryText}>{t('plan.mergeWith')}</Text>
+                              </Pressable>
+                              <Pressable
+                                accessibilityRole="button"
+                                onPress={() => askDeleteSub(concept.id, sub.id, sub.name)}
+                                style={styles.secondaryBtn}>
+                                <Text style={[styles.secondaryText, { color: palette.danger }]}>
+                                  {t('plan.deleteSub')}
+                                </Text>
+                              </Pressable>
+                            </View>
+
+                            {relocate && relocate.kind !== 'deleteConcept' && relocate.subId === sub.id
+                              ? relocatePanel([sub.id])
+                              : null}
+                          </View>
+                        ) : null}
                         {editingSubColor ? (
                           <View style={styles.subColorEditor}>
                             <Text style={styles.colorLabel}>{t('plan.subColor')}</Text>
@@ -346,6 +605,16 @@ export function ConceptsPlanCard() {
 
                   <Pressable
                     accessibilityRole="button"
+                    onPress={() => {
+                      setRenamingConceptId(concept.id);
+                      setNameDraft(concept.name);
+                    }}
+                    style={styles.styleEditBtn}>
+                    <Text style={styles.styleEditText}>{t('plan.renameConcept')}</Text>
+                  </Pressable>
+
+                  <Pressable
+                    accessibilityRole="button"
                     onPress={() =>
                       setColorEditingId((prev) => (prev === concept.id ? null : concept.id))
                     }
@@ -355,19 +624,14 @@ export function ConceptsPlanCard() {
 
                   <Pressable
                     accessibilityRole="button"
-                    onPress={() =>
-                      appAlert(concept.name, t('plan.deleteConcept'), [
-                        { text: t('plan.setLimitCancel'), style: 'cancel' },
-                        {
-                          text: t('plan.deleteConcept'),
-                          style: 'destructive',
-                          onPress: () => void removeSpendConcept(concept.id),
-                        },
-                      ])
-                    }
+                    onPress={() => askDeleteConcept(concept.id, concept.name)}
                     style={styles.deleteConceptBtn}>
                     <Text style={styles.deleteText}>{t('plan.deleteConcept')}</Text>
                   </Pressable>
+
+                  {relocate?.kind === 'deleteConcept' && relocate.conceptId === concept.id
+                    ? relocatePanel([], concept.id)
+                    : null}
                 </View>
               ) : null}
             </View>
@@ -615,6 +879,47 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
+  },
+  renameRow: { flex: 1, marginTop: 0 },
+  editText: {
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 13,
+    color: palette.accentDeep,
+  },
+  subEditor: {
+    marginLeft: 22,
+    marginBottom: 10,
+    gap: 6,
+  },
+  subActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 4,
+  },
+  moveChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  moveChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: palette.border,
+  },
+  moveChipText: {
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 13,
+    color: palette.ink,
+  },
+  relocate: {
+    marginTop: 8,
+    padding: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: palette.border,
+    gap: 6,
   },
   paidBadge: {
     fontFamily: 'DMSans_600SemiBold',

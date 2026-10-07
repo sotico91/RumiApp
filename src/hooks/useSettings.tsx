@@ -14,6 +14,7 @@ import {
   ensureSpendConceptSub,
   hasDuplicateSubName,
   localizeDefaultConcepts,
+  uniqueSubId,
 } from '@/src/data/spendConcepts';
 import {
   CURRENT_CATALOG_VERSION,
@@ -86,6 +87,11 @@ type SettingsContextValue = {
   ) => Promise<void>;
   removeSpendConcept: (conceptId: string) => Promise<void>;
   removeSpendSub: (conceptId: string, subId: string) => Promise<void>;
+  /**
+   * Save an edited category tree (rename / move / join). `remaps` (old sub id →
+   * new) also moves reminders, dismissed suggestions and quick templates.
+   */
+  applySpendTree: (concepts: SpendConcept[], remaps: Record<string, string>) => Promise<void>;
   ensureDebtCategory: (debtName: string) => Promise<string>;
   /** Saves the rules; ReminderScheduler turns them into notifications. */
   updateReminders: (input: {
@@ -317,10 +323,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       if (hasDuplicateSubName(concepts, conceptId, trimmed)) {
         return null;
       }
-      const sub = createSpendSub(conceptId, trimmed);
-      if (concepts.some((c) => c.subs.some((s) => s.id === sub.id))) {
-        return null;
-      }
+      const created = createSpendSub(conceptId, trimmed);
+      const sub = { ...created, id: uniqueSubId(concepts, created.id) };
       await persist({
         ...settings,
         spendConcepts: concepts.map((c) =>
@@ -422,6 +426,46 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       });
     },
     [settings, persist]
+  );
+
+  const applySpendTree = useCallback(
+    async (concepts: SpendConcept[], remaps: Record<string, string>) => {
+      const to = (id: string) => remaps[id] ?? id;
+      // A sub that already had its own reminder keeps it; the joined one's is dropped.
+      const ownRules = new Set(
+        settings.reminderRules.filter((r) => !remaps[r.subId]).map((r) => r.subId)
+      );
+      const ruleSubs = new Set<string>();
+      const reminderRules = settings.reminderRules.filter((r) => {
+        const id = to(r.subId);
+        if (remaps[r.subId] && (ownRules.has(id) || ruleSubs.has(id))) return false;
+        ruleSubs.add(id);
+        return true;
+      }).map((r) => (remaps[r.subId] ? { ...r, subId: remaps[r.subId] } : r));
+      const dismissed = settings.reminderSuggestionsDismissed;
+      await persist({
+        ...settings,
+        spendConcepts: concepts,
+        reminderRules,
+        reminderCategoryIds: reminderRules.map((r) => r.subId),
+        reminderSuggestionsDismissed: dismissed ? [...new Set(dismissed.map(to))] : dismissed,
+      });
+
+      if (Object.keys(remaps).length === 0) return;
+      // One quick template per subcategory: the most recent wins.
+      const seen = new Set<string>();
+      const nextQuick = [...quickTemplates]
+        .map((tpl) => (remaps[tpl.categoryId] ? { ...tpl, categoryId: to(tpl.categoryId) } : tpl))
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+        .filter((tpl) => {
+          if (seen.has(tpl.categoryId)) return false;
+          seen.add(tpl.categoryId);
+          return true;
+        });
+      setQuickTemplates(nextQuick);
+      await saveQuickTemplates(nextQuick);
+    },
+    [settings, persist, quickTemplates]
   );
 
   const ensureDebtCategory = useCallback(
@@ -608,6 +652,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       updateSpendSubAnt,
       removeSpendConcept,
       removeSpendSub,
+      applySpendTree,
       ensureDebtCategory,
       updateReminders,
       pruneRemindersToRegistered,
@@ -643,6 +688,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       updateSpendSubAnt,
       removeSpendConcept,
       removeSpendSub,
+      applySpendTree,
       ensureDebtCategory,
       updateReminders,
       pruneRemindersToRegistered,

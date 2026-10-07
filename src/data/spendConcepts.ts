@@ -563,8 +563,10 @@ export function ensureSpendConceptSub(
     return { concepts, conceptId: parent.id, subId: same.id };
   }
 
+  const created = createSpendSub(parent.id, subName || parent.name);
   const sub: SpendSub = {
-    ...createSpendSub(parent.id, subName || parent.name),
+    ...created,
+    id: uniqueSubId(concepts, created.id),
     ...(input.isAnt ? { isAnt: true } : {}),
   };
   return {
@@ -611,6 +613,149 @@ export function ensureCreditSub(
     ),
     subId: sub.id,
   };
+}
+
+/** Sub ids are opaque once created; a moved sub may own the id a new one would get. */
+export function uniqueSubId(concepts: SpendConcept[], id: string): string {
+  const taken = new Set(concepts.flatMap((c) => c.subs.map((s) => s.id)));
+  if (!taken.has(id)) return id;
+  let n = 2;
+  while (taken.has(`${id}-${n}`)) n += 1;
+  return `${id}-${n}`;
+}
+
+/** A category never ends up empty: it gets the placeholder "General" sub back. */
+function withPlaceholder(concept: SpendConcept, all: SpendConcept[]): SpendConcept {
+  if (concept.subs.length > 0) return concept;
+  const id = uniqueSubId(all, makeSpendSubId(concept.id, 'General'));
+  return { ...concept, subs: [{ id, name: 'General' }] };
+}
+
+export type TreeEdit =
+  | { ok: true; concepts: SpendConcept[]; remaps: Record<string, string> }
+  | { ok: false; reason: 'empty' | 'duplicate' | 'missing' | 'same' };
+
+export function renameSpendConcept(
+  concepts: SpendConcept[],
+  conceptId: string,
+  name: string
+): TreeEdit {
+  const trimmed = name.trim();
+  if (!trimmed) return { ok: false, reason: 'empty' };
+  if (!concepts.some((c) => c.id === conceptId)) return { ok: false, reason: 'missing' };
+  const needle = trimmed.toLowerCase();
+  if (concepts.some((c) => c.id !== conceptId && c.name.trim().toLowerCase() === needle)) {
+    return { ok: false, reason: 'duplicate' };
+  }
+  return {
+    ok: true,
+    concepts: concepts.map((c) => (c.id === conceptId ? { ...c, name: trimmed } : c)),
+    remaps: {},
+  };
+}
+
+export function renameSpendSub(
+  concepts: SpendConcept[],
+  subId: string,
+  name: string
+): TreeEdit {
+  const trimmed = name.trim();
+  if (!trimmed) return { ok: false, reason: 'empty' };
+  const hit = findSpendSub(concepts, subId);
+  if (!hit) return { ok: false, reason: 'missing' };
+  if (hasDuplicateSubName(concepts, hit.concept.id, trimmed, subId)) {
+    return { ok: false, reason: 'duplicate' };
+  }
+  return {
+    ok: true,
+    concepts: concepts.map((c) =>
+      c.id !== hit.concept.id
+        ? c
+        : { ...c, subs: c.subs.map((s) => (s.id === subId ? { ...s, name: trimmed } : s)) }
+    ),
+    remaps: {},
+  };
+}
+
+/**
+ * Put a sub (with its id, so its movements follow) under another category.
+ * When that category already has a sub with the same name, they are joined.
+ */
+export function moveSpendSub(
+  concepts: SpendConcept[],
+  subId: string,
+  toConceptId: string
+): TreeEdit {
+  const hit = findSpendSub(concepts, subId);
+  const target = concepts.find((c) => c.id === toConceptId);
+  if (!hit || !target) return { ok: false, reason: 'missing' };
+  if (hit.concept.id === toConceptId) return { ok: false, reason: 'same' };
+  const needle = hit.sub.name.trim().toLowerCase();
+  const twin = target.subs.find((s) => s.name.trim().toLowerCase() === needle);
+  if (twin) return mergeSpendSubs(concepts, subId, twin.id);
+
+  const moved = concepts.map((c) => {
+    if (c.id === hit.concept.id) return { ...c, subs: c.subs.filter((s) => s.id !== subId) };
+    if (c.id === toConceptId) return { ...c, subs: [...c.subs, hit.sub] };
+    return c;
+  });
+  return { ok: true, concepts: moved.map((c) => withPlaceholder(c, moved)), remaps: {} };
+}
+
+/** Join a sub into another: its movements, limits, reminders… go there and it is removed. */
+export function mergeSpendSubs(
+  concepts: SpendConcept[],
+  fromSubId: string,
+  toSubId: string
+): TreeEdit {
+  if (fromSubId === toSubId) return { ok: false, reason: 'same' };
+  const from = findSpendSub(concepts, fromSubId);
+  if (!from || !findSpendSub(concepts, toSubId)) return { ok: false, reason: 'missing' };
+  const pruned = concepts.map((c) =>
+    c.id === from.concept.id ? { ...c, subs: c.subs.filter((s) => s.id !== fromSubId) } : c
+  );
+  return {
+    ok: true,
+    concepts: pruned.map((c) => withPlaceholder(c, pruned)),
+    remaps: { [fromSubId]: toSubId },
+  };
+}
+
+/** Remove a whole category, sending everything filed under it to one sub elsewhere. */
+export function removeSpendConceptInto(
+  concepts: SpendConcept[],
+  conceptId: string,
+  toSubId: string
+): TreeEdit {
+  const concept = concepts.find((c) => c.id === conceptId);
+  const to = findSpendSub(concepts, toSubId);
+  if (!concept || !to) return { ok: false, reason: 'missing' };
+  if (to.concept.id === conceptId) return { ok: false, reason: 'same' };
+  const remaps: Record<string, string> = { [conceptId]: toSubId };
+  for (const sub of concept.subs) remaps[sub.id] = toSubId;
+  return { ok: true, concepts: concepts.filter((c) => c.id !== conceptId), remaps };
+}
+
+/**
+ * Limits after a join: one row per subcategory. When both had one, the
+ * destination keeps its own.
+ */
+export function remapBudgets(budgets: Budget[], remaps: Record<string, string>): Budget[] {
+  if (Object.keys(remaps).length === 0) return budgets;
+  const own = new Set(budgets.filter((b) => !remaps[b.categoryId]).map((b) => b.categoryId));
+  const seen = new Set<string>();
+  const next: Budget[] = [];
+  for (const b of budgets) {
+    const to = remaps[b.categoryId];
+    if (!to) {
+      next.push(b);
+      continue;
+    }
+    if (own.has(to) || seen.has(to)) continue;
+    seen.add(to);
+    next.push({ ...b, categoryId: to });
+  }
+  return next;
 }
 
 export function applyCategoryIdRemaps<T extends { categoryId?: string }>(

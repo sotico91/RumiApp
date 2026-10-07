@@ -16,7 +16,9 @@ import {
 import {
   findSpendSub,
   flattenSpendSubs,
+  applyCategoryIdRemaps,
   pruneBudgetsToSpendSubs,
+  remapBudgets,
   resolveConceptColor,
 } from '@/src/data/spendConcepts';
 import {
@@ -153,6 +155,8 @@ type FinanceContextValue = {
     >
   ) => Promise<Transaction | null>;
   removeTransaction: (id: string) => Promise<void>;
+  /** Re-file everything under old sub ids (old → new): movements, limits, debts, subscriptions. */
+  remapCategories: (remaps: Record<string, string>) => Promise<void>;
   /** Puts a just-deleted transaction back (Undo), with its balances. */
   restoreTransaction: (tx: Transaction) => Promise<void>;
   canEditTransaction: (tx: Transaction) => boolean;
@@ -636,6 +640,29 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     [settings.personId]
   );
 
+  const remapCategories = useCallback(
+    async (remaps: Record<string, string>) => {
+      if (Object.keys(remaps).length === 0) return;
+      const nextTx = applyCategoryIdRemaps(transactionsRef.current, remaps);
+      const nextDebts = applyCategoryIdRemaps(debtsRef.current, remaps);
+      const nextBudgets = remapBudgets(budgets, remaps);
+      const nextSubs = applyCategoryIdRemaps(subscriptions, remaps);
+      transactionsRef.current = nextTx;
+      debtsRef.current = nextDebts;
+      setTransactions(nextTx);
+      setDebts(nextDebts);
+      setBudgets(nextBudgets);
+      setSubscriptions(nextSubs);
+      await saveFinanceState({
+        transactions: nextTx,
+        debts: nextDebts,
+        budgets: nextBudgets,
+        subscriptions: nextSubs,
+      });
+    },
+    [budgets, subscriptions]
+  );
+
   const removeTransaction = useCallback(
     async (id: string) => {
       const existing = transactionsRef.current.find((t) => t.id === id);
@@ -1056,6 +1083,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       setAccountBalance,
       updateTransaction,
       removeTransaction,
+      remapCategories,
       restoreTransaction,
       canEditTransaction,
       resetFinance,
@@ -1104,6 +1132,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       setAccountBalance,
       updateTransaction,
       removeTransaction,
+      remapCategories,
       restoreTransaction,
       canEditTransaction,
       resetFinance,
