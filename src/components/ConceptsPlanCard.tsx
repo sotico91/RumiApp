@@ -317,6 +317,8 @@ export function ConceptsPlanCard() {
         })
         .filter((x): x is { concept: (typeof concepts)[number]; forceOpen: boolean } => !!x)
     : concepts.map((concept) => ({ concept, forceOpen: false }));
+  // Many categories: show them as small chips; tapping one opens just that one.
+  const compact = concepts.length >= SEARCH_MIN_CONCEPTS && !needle;
 
   return (
     <View style={styles.wrap}>
@@ -365,12 +367,41 @@ export function ConceptsPlanCard() {
         />
       ) : null}
 
+      {compact ? (
+        <View style={styles.conceptChips}>
+          {concepts.map((c) => {
+            const on = expanded === c.id;
+            return (
+              <SelectPressable
+                key={c.id}
+                accessibilityState={{ selected: on }}
+                onPress={() => {
+                  setExpanded(on ? null : c.id);
+                  setColorEditingId(null);
+                  setSubEditingId(null);
+                  setConceptMenuId(null);
+                  setRelocate(null);
+                  closeLimit();
+                }}
+                style={[styles.conceptChip, on && { borderColor: c.color }]}>
+                <ConceptIcon icon={c.icon} color={c.color} size={14} />
+                <Text style={styles.conceptChipText} numberOfLines={1}>
+                  {c.name}
+                </Text>
+                <Text style={styles.conceptChipCount}>{c.subs.length}</Text>
+              </SelectPressable>
+            );
+          })}
+        </View>
+      ) : null}
+
       {concepts.length === 0 ? (
         <Text style={styles.copy}>{t('plan.conceptsEmpty')}</Text>
       ) : needle && shown.length === 0 ? (
         <Text style={styles.copy}>{t('plan.searchEmpty')}</Text>
       ) : (
-        shown.map(({ concept, forceOpen }) => {
+        // Compact: only the category picked above opens here.
+        (compact ? shown.filter((x) => x.concept.id === expanded) : shown).map(({ concept, forceOpen }) => {
           const open = forceOpen || expanded === concept.id;
           const limited = concept.subs.filter((sub) =>
             budgetStatus.some((b) => b.categoryId === sub.id && b.limit > 0)
@@ -1026,6 +1057,34 @@ const styles = StyleSheet.create({
   },
   search: { flex: 0, marginTop: 4 },
   conceptTitleCol: { flex: 1, gap: 2 },
+  conceptChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  conceptChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 999,
+    borderWidth: 1.5,
+    borderColor: palette.border,
+    backgroundColor: palette.surfaceSolid,
+    maxWidth: '100%',
+  },
+  conceptChipText: {
+    flexShrink: 1,
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 13,
+    color: palette.ink,
+  },
+  conceptChipCount: {
+    fontFamily: 'DMSans_400Regular',
+    fontSize: 12,
+    color: palette.inkMuted,
+  },
   conceptSummary: {
     fontFamily: 'DMSans_400Regular',
     fontSize: 12,

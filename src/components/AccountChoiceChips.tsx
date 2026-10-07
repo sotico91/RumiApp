@@ -37,9 +37,10 @@ type Props = {
 type Kind = Account['type'];
 
 /**
- * Where the money comes from (or goes), in two small steps: first the kind
- * (Cash, Bank, Wallets, Savings, Credit card); a kind with one account is that
- * account, a kind with several opens one compact row to pick which.
+ * Where the money comes from (or goes), taking one line once chosen:
+ * "Wallets › Nequi · $20.000 · Change". Changing goes kind first (Cash,
+ * Banks, Wallets, Savings, Credit cards); a kind with several accounts then
+ * shows only those, with a way back.
  */
 export function AccountChoiceChips({
   accounts,
@@ -49,7 +50,9 @@ export function AccountChoiceChips({
 }: Props) {
   const { t } = useLanguage();
   const { format } = useMoney();
-  const [pickedKind, setPickedKind] = useState<Kind | null>(null);
+  const selected = accounts.find((a) => a.id === selectedId);
+  const [browsing, setBrowsing] = useState(!selected);
+  const [openKind, setOpenKind] = useState<Kind | null>(null);
   // Adding a wallet is rare while registering: one chip opens the form.
   const [addingWallet, setAddingWallet] = useState(false);
 
@@ -62,58 +65,124 @@ export function AccountChoiceChips({
   if (allowAddWallet && !groups.some((g) => g.kind === 'wallet')) {
     groups.push({ kind: 'wallet', list: [] });
   }
-
-  const selected = accounts.find((a) => a.id === selectedId);
-  const activeKind = pickedKind ?? selected?.type ?? null;
-  const active = groups.find((g) => g.kind === activeKind);
-  // One kind only (e.g. just cards): skip the first step.
-  const single = groups.length === 1 ? groups[0] : null;
-  const second = single ?? (active && (active.list.length !== 1 || active.kind === 'wallet') ? active : null);
+  // One kind only (e.g. just cards): no kind step.
+  const onlyGroup = groups.length === 1 ? groups[0] : null;
+  const kindGroup = onlyGroup ?? groups.find((g) => g.kind === openKind) ?? null;
 
   const amountText = (acc: Account) =>
     acc.type === 'credit'
       ? t('flow.cardAvailable', { amount: format(acc.balance) })
       : format(acc.balance);
+  const kindLabel = (kind: Kind) => t(`accountKind.${kind}` as TranslationKey);
+
+  function choose(id: string) {
+    tapFeedback();
+    onSelect(id);
+    setBrowsing(false);
+    setOpenKind(null);
+    setAddingWallet(false);
+  }
 
   function pickKind(group: { kind: Kind; list: Account[] }) {
-    tapFeedback();
-    setPickedKind(group.kind);
-    setAddingWallet(false);
-    if (group.list.length === 1) onSelect(group.list[0].id);
-    else if (group.list.length > 1 && !group.list.some((a) => a.id === selectedId)) {
-      onSelect(group.list[0].id);
-    } else if (group.list.length === 0 && group.kind === 'wallet') {
-      setAddingWallet(true);
+    if (group.list.length === 1) {
+      choose(group.list[0].id);
+      return;
     }
+    tapFeedback();
+    setOpenKind(group.kind);
+    setAddingWallet(group.list.length === 0 && group.kind === 'wallet');
+  }
+
+  if (selected && !browsing) {
+    const several = (groups.find((g) => g.kind === selected.type)?.list.length ?? 0) > 1;
+    return (
+      <View style={styles.summaryRow}>
+        <Text style={styles.summaryText} numberOfLines={1}>
+          {several ? `${kindLabel(selected.type)} › ` : ''}
+          <Text style={styles.summaryName}>{accountDisplayName(selected, t)}</Text>
+          {` · ${amountText(selected)}`}
+        </Text>
+        {accounts.length > 1 || allowAddWallet ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('accountKind.changeA11y')}
+            hitSlop={8}
+            onPress={() => {
+              tapFeedback();
+              setBrowsing(true);
+              setOpenKind(null);
+            }}>
+            <Text style={styles.changeText}>{t('accountKind.change')}</Text>
+          </Pressable>
+        ) : null}
+      </View>
+    );
   }
 
   return (
     <View style={styles.block}>
-      {single ? null : (
-        <View style={styles.wrap} accessibilityRole="tablist">
+      {kindGroup ? (
+        <>
+          {onlyGroup ? null : (
+            <Pressable
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={() => {
+                tapFeedback();
+                setOpenKind(null);
+                setAddingWallet(false);
+              }}
+              style={styles.backRow}>
+              <Text style={styles.backText}>‹ {kindLabel(kindGroup.kind)}</Text>
+            </Pressable>
+          )}
+          <View style={styles.wrap}>
+            {kindGroup.list.map((acc) => {
+              const on = acc.id === selectedId;
+              return (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: on }}
+                  key={acc.id}
+                  onPress={() => choose(acc.id)}
+                  style={[styles.pill, on && styles.pillOn]}>
+                  <Text style={[styles.pillText, on && styles.onText]} numberOfLines={1}>
+                    {accountDisplayName(acc, t)} · {amountText(acc)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+            {allowAddWallet && kindGroup.kind === 'wallet' && !addingWallet ? (
+              <Pressable
+                onPress={() => {
+                  tapFeedback();
+                  setAddingWallet(true);
+                }}
+                accessibilityRole="button"
+                style={[styles.pill, styles.addChip]}>
+                <Text style={styles.presetText}>{t('flow.walletAddChip')}</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        </>
+      ) : (
+        <View style={styles.wrap}>
           {groups.map((group) => {
-            const on = group.kind === activeKind;
             const only = group.list.length === 1 ? group.list[0] : null;
+            const on = group.kind === selected?.type;
             return (
               <Pressable
                 key={group.kind}
-                accessibilityRole="tab"
+                accessibilityRole="button"
                 accessibilityState={{ selected: on }}
                 onPress={() => pickKind(group)}
-                style={[styles.chip, on && styles.chipOn]}>
-                <Text style={[styles.chipName, on && styles.onText]} numberOfLines={1}>
+                style={[styles.pill, on && styles.pillOn]}>
+                <Text style={[styles.pillText, on && styles.onText]} numberOfLines={1}>
                   {only
-                    ? accountDisplayName(only, t)
+                    ? `${accountDisplayName(only, t)} · ${amountText(only)}`
                     : group.list.length === 0
                       ? `+ ${t('accountKind.wallet_one')}`
-                      : t(`accountKind.${group.kind}` as TranslationKey)}
-                </Text>
-                <Text style={[styles.meta, on && styles.onText]} numberOfLines={1}>
-                  {only
-                    ? amountText(only)
-                    : group.list.length === 0
-                      ? t('accountKind.addHint')
-                      : t('accountKind.count', { count: group.list.length })}
+                      : `${kindLabel(group.kind)} (${group.list.length}) ›`}
                 </Text>
               </Pressable>
             );
@@ -121,48 +190,8 @@ export function AccountChoiceChips({
         </View>
       )}
 
-      {second && second.list.length > 0 ? (
-        <View style={[styles.wrap, !single && styles.subRow]}>
-          {second.list.map((acc) => {
-            const on = acc.id === selectedId;
-            return (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityState={{ selected: on }}
-                key={acc.id}
-                onPress={() => {
-                  tapFeedback();
-                  onSelect(acc.id);
-                }}
-                style={[styles.subChip, on && styles.chipOn]}>
-                <Text style={[styles.subName, on && styles.onText]} numberOfLines={1}>
-                  {accountDisplayName(acc, t)} · {amountText(acc)}
-                </Text>
-              </Pressable>
-            );
-          })}
-          {allowAddWallet && second.kind === 'wallet' && !addingWallet ? (
-            <Pressable
-              onPress={() => {
-                tapFeedback();
-                setAddingWallet(true);
-              }}
-              accessibilityRole="button"
-              style={[styles.subChip, styles.addChip]}>
-              <Text style={styles.presetText}>{t('flow.walletAddChip')}</Text>
-            </Pressable>
-          ) : null}
-        </View>
-      ) : null}
-
       {allowAddWallet && addingWallet ? (
-        <WalletQuickAdd
-          onAdded={(id) => {
-            setAddingWallet(false);
-            setPickedKind('wallet');
-            onSelect(id);
-          }}
-        />
+        <WalletQuickAdd onAdded={(id) => choose(id)} />
       ) : null}
     </View>
   );
@@ -409,40 +438,13 @@ const styles = StyleSheet.create({
   wrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'center',
     gap: 8,
-  },
-  chip: {
-    borderWidth: 1,
-    borderColor: palette.border,
-    borderRadius: radii.md,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: '#F7FAFC',
-  },
-  chipOn: {
-    backgroundColor: palette.accent,
-    borderColor: palette.accent,
-  },
-  chipName: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 13,
-    color: palette.ink,
-  },
-  meta: {
-    marginTop: 2,
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 12,
-    color: palette.inkMuted,
   },
   onText: {
     color: palette.white,
   },
-  subRow: {
-    paddingLeft: 10,
-    borderLeftWidth: 2,
-    borderLeftColor: palette.border,
-  },
-  subChip: {
+  pill: {
     borderWidth: 1,
     borderColor: palette.border,
     borderRadius: 999,
@@ -450,10 +452,42 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     backgroundColor: '#F7FAFC',
   },
-  subName: {
+  pillOn: {
+    backgroundColor: palette.accent,
+    borderColor: palette.accent,
+  },
+  pillText: {
     fontFamily: 'DMSans_500Medium',
     fontSize: 13,
     color: palette.ink,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 4,
+  },
+  summaryText: {
+    flexShrink: 1,
+    fontFamily: 'DMSans_400Regular',
+    fontSize: 14,
+    color: palette.inkMuted,
+  },
+  summaryName: {
+    fontFamily: 'DMSans_600SemiBold',
+    color: palette.ink,
+  },
+  changeText: {
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 13,
+    color: palette.accentDeep,
+  },
+  backRow: { alignSelf: 'center' },
+  backText: {
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 13,
+    color: palette.accentDeep,
   },
   addChip: {
     borderStyle: 'dashed',
