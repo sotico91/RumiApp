@@ -27,7 +27,8 @@ import { SelectPressable } from '@/src/components/SelectPressable';
 import { SubDestinationPicker } from '@/src/components/SubDestinationPicker';
 import { useSpendTreeEdit, type TreeEditError } from '@/src/hooks/useSpendTreeEdit';
 import { palette, radii } from '@/src/theme/colors';
-import { categoryLabel } from '@/src/utils/categoryLabel';
+import { normalize as foldText } from '@/src/utils/ask/text';
+import { formatAmountTyping } from '@/src/utils/money';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import { appAlert } from '@/src/components/AppAlert';
 
@@ -59,7 +60,7 @@ export function ConceptsPlanCard() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [limitDraft, setLimitDraft] = useState('');
   const [saving, setSaving] = useState(false);
-  const [budgetsOpen, setBudgetsOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const [renamingConceptId, setRenamingConceptId] = useState<string | null>(null);
   // Category actions live by its name, so a long list of subs never hides them.
   const [conceptMenuId, setConceptMenuId] = useState<string | null>(null);
@@ -100,6 +101,7 @@ export function ConceptsPlanCard() {
   function openSubEdit(subId: string, name: string) {
     tapFeedback();
     setRelocate(null);
+    closeLimit();
     setSubEditingId((prev) => (prev === subId ? null : subId));
     setNameDraft(name);
   }
@@ -274,10 +276,21 @@ export function ConceptsPlanCard() {
   }
 
   function openLimit(subId: string) {
+    if (editingId === subId) {
+      closeLimit();
+      return;
+    }
     const current = budgetStatus.find((b) => b.categoryId === subId)?.limit;
     setEditingId(subId);
-    setLimitDraft(current ? String(current) : '');
-    setBudgetsOpen(true);
+    tapFeedback();
+    setSubEditingId(null);
+    setRelocate(null);
+    setLimitDraft(current ? formatAmountTyping(String(current), currency) : '');
+  }
+
+  function closeLimit() {
+    setEditingId(null);
+    setLimitDraft('');
   }
 
   async function saveLimit() {
@@ -289,9 +302,21 @@ export function ConceptsPlanCard() {
       if (!amount || amount <= 0) await removeBudget(editingId);
       else await updateBudget(editingId, amount);
     }
-    setEditingId(null);
-    setLimitDraft('');
+    closeLimit();
   }
+
+  // Long trees: a search narrows to matching categories / subcategories, opened.
+  const SEARCH_MIN_CONCEPTS = 6;
+  const needle = foldText(query);
+  const shown = needle
+    ? concepts
+        .map((c) => {
+          if (foldText(c.name).includes(needle)) return { concept: c, forceOpen: false };
+          const subs = c.subs.filter((sub) => foldText(sub.name).includes(needle));
+          return subs.length > 0 ? { concept: { ...c, subs }, forceOpen: true } : null;
+        })
+        .filter((x): x is { concept: (typeof concepts)[number]; forceOpen: boolean } => !!x)
+    : concepts.map((concept) => ({ concept, forceOpen: false }));
 
   return (
     <View style={styles.wrap}>
@@ -328,11 +353,28 @@ export function ConceptsPlanCard() {
         </>
       ) : null}
 
+      {concepts.length >= SEARCH_MIN_CONCEPTS ? (
+        <TextInput
+          value={query}
+          onChangeText={setQuery}
+          placeholder={t('plan.searchPlaceholder')}
+          placeholderTextColor={palette.inkSoft}
+          accessibilityLabel={t('plan.searchPlaceholder')}
+          returnKeyType="search"
+          style={[styles.input, styles.search]}
+        />
+      ) : null}
+
       {concepts.length === 0 ? (
         <Text style={styles.copy}>{t('plan.conceptsEmpty')}</Text>
+      ) : needle && shown.length === 0 ? (
+        <Text style={styles.copy}>{t('plan.searchEmpty')}</Text>
       ) : (
-        concepts.map((concept) => {
-          const open = expanded === concept.id;
+        shown.map(({ concept, forceOpen }) => {
+          const open = forceOpen || expanded === concept.id;
+          const limited = concept.subs.filter((sub) =>
+            budgetStatus.some((b) => b.categoryId === sub.id && b.limit > 0)
+          ).length;
           const editingColor = colorEditingId === concept.id;
           return (
             <View key={concept.id} style={styles.conceptBlock}>
@@ -387,7 +429,15 @@ export function ConceptsPlanCard() {
                       setRelocate(null);
                     }}
                     style={styles.conceptHeaderMain}>
-                    <Text style={styles.conceptTitle}>{concept.name}</Text>
+                    <View style={styles.conceptTitleCol}>
+                      <Text style={styles.conceptTitle}>{concept.name}</Text>
+                      <Text style={styles.conceptSummary} numberOfLines={1}>
+                        {t(concept.subs.length === 1 ? 'plan.subCount_one' : 'plan.subCount', {
+                          count: concept.subs.length,
+                        })}
+                        {limited > 0 ? ` · ${t('plan.limitedCount', { count: limited })}` : ''}
+                      </Text>
+                    </View>
                     <Text style={styles.chevron}>{open ? '▾' : '▸'}</Text>
                   </Pressable>
                 )}
@@ -514,9 +564,14 @@ export function ConceptsPlanCard() {
                             </View>
                             {/* Only the limit here; what was spent lives in History, month by month. */}
                             <Text style={styles.limitMeta}>
-                              {budget
-                                ? t('plan.limitValue', { amount: format(budget.limit) })
-                                : t('plan.noLimit')}
+                              {budget ? (
+                                t('plan.limitValue', { amount: format(budget.limit) })
+                              ) : (
+                                <>
+                                  {t('plan.noLimit')} ·{' '}
+                                  <Text style={styles.limitSet}>{t('plan.setLimit')}</Text>
+                                </>
+                              )}
                             </Text>
                           </Pressable>
                           <Pressable
@@ -541,6 +596,45 @@ export function ConceptsPlanCard() {
                             <Text style={styles.editText}>{t('plan.subEdit')}</Text>
                           </Pressable>
                         </View>
+                        {editingId === sub.id ? (
+                          <View style={styles.limitEditor}>
+                            <Text style={styles.colorLabel}>{t('plan.limitMonthly')}</Text>
+                            <TextInput
+                              value={limitDraft}
+                              onChangeText={(text) => setLimitDraft(formatAmountTyping(text, currency))}
+                              keyboardType="decimal-pad"
+                              placeholder="0"
+                              placeholderTextColor={palette.inkSoft}
+                              accessibilityLabel={t('plan.limitMonthlyA11y', { name: sub.name })}
+                              style={styles.input}
+                              autoFocus
+                            />
+                            <View style={styles.addRow}>
+                              <Pressable
+                                accessibilityRole="button"
+                                onPress={closeLimit}
+                                style={styles.secondaryBtn}>
+                                <Text style={styles.secondaryText}>{t('plan.setLimitCancel')}</Text>
+                              </Pressable>
+                              {budget ? (
+                                <Pressable
+                                  accessibilityRole="button"
+                                  onPress={() => void removeBudget(sub.id).then(closeLimit)}
+                                  style={styles.secondaryBtn}>
+                                  <Text style={[styles.secondaryText, { color: palette.danger }]}>
+                                    {t('plan.setLimitClear')}
+                                  </Text>
+                                </Pressable>
+                              ) : null}
+                              <Pressable
+                                accessibilityRole="button"
+                                onPress={() => void saveLimit()}
+                                style={styles.addBtn}>
+                                <Text style={styles.addBtnText}>{t('plan.setLimitSave')}</Text>
+                              </Pressable>
+                            </View>
+                          </View>
+                        ) : null}
                         {subEditingId === sub.id ? (
                           <View style={styles.subEditor}>
                             <Text style={styles.colorLabel}>{t('plan.rename')}</Text>
@@ -664,68 +758,6 @@ export function ConceptsPlanCard() {
 
       <Pressable
         accessibilityRole="button"
-        onPress={() => {
-          tapFeedback();
-          setBudgetsOpen((v) => !v);
-        }}
-        style={styles.collapseHeader}>
-        <Text style={styles.section}>{t('plan.budgets')}</Text>
-        <Text style={styles.chevron}>{budgetsOpen ? '▾' : '▸'}</Text>
-      </Pressable>
-      {budgetsOpen ? (
-        <>
-          <Text style={styles.copy}>{t('plan.budgetsHint')}</Text>
-
-          {editingId ? (
-            <View style={styles.limitEditor}>
-              <Text style={styles.subTitle}>
-                {categoryLabel(editingId, t, concepts)}
-              </Text>
-              <TextInput
-                value={limitDraft}
-                onChangeText={setLimitDraft}
-                keyboardType="decimal-pad"
-                placeholder="0"
-                placeholderTextColor={palette.inkSoft}
-                style={styles.input}
-                autoFocus
-              />
-              <View style={styles.addRow}>
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => {
-                    setEditingId(null);
-                    setLimitDraft('');
-                  }}
-                  style={styles.secondaryBtn}>
-                  <Text style={styles.secondaryText}>{t('plan.setLimitCancel')}</Text>
-                </Pressable>
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() =>
-                    void removeBudget(editingId).then(() => {
-                      setEditingId(null);
-                      setLimitDraft('');
-                    })
-                  }
-                  style={styles.secondaryBtn}>
-                  <Text style={[styles.secondaryText, { color: palette.danger }]}>
-                    {t('plan.setLimitClear')}
-                  </Text>
-                </Pressable>
-                <Pressable accessibilityRole="button" onPress={() => void saveLimit()} style={styles.addBtn}>
-                  <Text style={styles.addBtnText}>{t('plan.setLimitSave')}</Text>
-                </Pressable>
-              </View>
-            </View>
-          ) : (
-            <Text style={styles.copy}>{t('plan.budgetsTapHint')}</Text>
-          )}
-        </>
-      ) : null}
-
-      <Pressable
-        accessibilityRole="button"
         onPress={() => router.push('/(tabs)/wealth')}
         style={styles.debtLink}>
         <Text style={styles.debtLinkText}>{t('plan.goDebts')}</Text>
@@ -748,11 +780,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: palette.inkMuted,
     lineHeight: 18,
-  },
-  section: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 15,
-    color: palette.ink,
   },
   addRow: { flexDirection: 'row', gap: 8, alignItems: 'center', flexWrap: 'wrap' },
   input: {
@@ -987,19 +1014,26 @@ const styles = StyleSheet.create({
   antToggleTextOn: {
     color: palette.white,
   },
-  collapseHeader: {
-    marginTop: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
   limitMeta: {
     marginTop: 2,
     fontFamily: 'DMSans_400Regular',
     fontSize: 12,
     color: palette.inkMuted,
   },
+  limitSet: {
+    fontFamily: 'DMSans_600SemiBold',
+    color: palette.accentDeep,
+  },
+  search: { flex: 0, marginTop: 4 },
+  conceptTitleCol: { flex: 1, gap: 2 },
+  conceptSummary: {
+    fontFamily: 'DMSans_400Regular',
+    fontSize: 12,
+    color: palette.inkMuted,
+  },
   limitEditor: {
+    marginLeft: 22,
+    marginBottom: 10,
     padding: 12,
     borderRadius: radii.sm,
     borderWidth: 1,
