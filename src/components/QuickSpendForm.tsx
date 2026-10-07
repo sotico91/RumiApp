@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { QuickCategoryPicker } from '@/src/components/QuickCategoryPicker';
 import { NoMoneyHint } from '@/src/components/NoMoneyHint';
 import { CategorySuggestionHint } from '@/src/components/CategorySuggestionHint';
 import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
@@ -46,7 +47,8 @@ type Props = {
   /** Templates and the full guided flow ("What happened?" cards). */
   onBack: () => void;
   /** Open the guided flow for anything the quick form does not cover. */
-  onOpenGuided: (intent: FriendlyIntent) => void;
+  /** Opens the guided flow for this intent, carrying the amount already typed. */
+  onOpenGuided: (intent: FriendlyIntent, amount?: string) => void;
 };
 
 /**
@@ -98,6 +100,8 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
   const [amount, setAmount] = useState('');
   const [pickedCategoryId, setCategoryId] = useState<string | null>(null);
   const [note, setNote] = useState('');
+  // "Other category" opens a picker right here: the amount stays typed.
+  const [pickerOpen, setPickerOpen] = useState(false);
   // Until the user picks one, the description decides: an existing subcategory,
   // or one created on save ("fútbol" → Deporte · Fútbol).
   const hint = useCategorySuggestion(note, spendConcepts);
@@ -207,7 +211,7 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
               onPress={() => {
                 if (on) return;
                 tapFeedback();
-                onOpenGuided(kind.id);
+                onOpenGuided(kind.id, amount || undefined);
               }}
               accessibilityRole="tab"
               accessibilityState={{ selected: on }}
@@ -273,14 +277,26 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
             );
           })}
           <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ expanded: pickerOpen }}
             onPress={() => {
               tapFeedback();
-              onOpenGuided('spend');
+              Keyboard.dismiss();
+              setPickerOpen((v) => !v);
             }}
-            style={[styles.chip, styles.chipGhost]}>
+            style={[styles.chip, styles.chipGhost, pickerOpen && styles.chipGhostOn]}>
             <Text style={styles.chipText}>{t('quick.otherCategory')}</Text>
           </Pressable>
         </View>
+        {pickerOpen ? (
+          <QuickCategoryPicker
+            concepts={spendConcepts}
+            onPick={(subId) => {
+              setCategoryId(subId);
+              setPickerOpen(false);
+            }}
+          />
+        ) : null}
 
         <Text style={styles.section}>{t('quick.from')}</Text>
         {payAccounts.every((a) => a.type === 'credit') ? (
@@ -435,6 +451,7 @@ const styles = StyleSheet.create({
     backgroundColor: palette.accent,
     borderColor: palette.accent,
   },
+  chipGhostOn: { borderColor: palette.accentDeep },
   chipGhost: {
     backgroundColor: 'transparent',
     borderStyle: 'dashed',

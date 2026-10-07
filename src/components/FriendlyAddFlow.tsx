@@ -72,6 +72,8 @@ type Props = {
   onSaved?: (result: SavedMovement) => void;
   initialIntent?: FriendlyIntent;
   initialDebtId?: string;
+  /** Amount already typed in the quick form: kept, and the "How much?" step is skipped. */
+  initialAmount?: string;
   /** When set, tapping "I spent" opens the one-screen quick form instead. */
   onPickSpend?: () => void;
   /** Back from the first step returns here (the quick form) instead of "What happened?". */
@@ -82,6 +84,7 @@ export function FriendlyAddFlow({
   onSaved,
   initialIntent,
   initialDebtId,
+  initialAmount,
   onPickSpend,
   onBackFromStart,
 }: Props) {
@@ -95,10 +98,13 @@ export function FriendlyAddFlow({
   const liveDebts = useMemo(() => openDebts(debts), [debts]);
   const incomeAccounts = useMemo(() => incomeDestinationAccounts(accounts), [accounts]);
 
-  // Arriving with an intent (from the quick form or a debt) skips "What happened?".
-  const [step, setStep] = useState(() => (initialIntent ? 1 : 0));
+  // Arriving with an intent (from the quick form or a debt) skips "What happened?",
+  // and with the amount already typed, "How much?" too.
+  const [step, setStep] = useState(() =>
+    initialIntent ? (initialAmount && parse(initialAmount) ? 2 : 1) : 0
+  );
   const [intent, setIntent] = useState<FriendlyIntent>(initialIntent ?? 'spend');
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(initialAmount ?? '');
   const [conceptId, setConceptId] = useState<string | null>(null);
   const [categoryId, setCategoryId] = useState('cafe');
   const [debtId, setDebtId] = useState<string | null>(

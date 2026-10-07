@@ -61,6 +61,8 @@ export default function AgregarScreen() {
         : 'quick'
   );
   const [guidedIntent, setGuidedIntent] = useState<FriendlyIntent | undefined>(undefined);
+  // Amount typed in the quick form travels to the guided flow.
+  const [guidedAmount, setGuidedAmount] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (params.mode === 'advanced' || prefilledCategoryId) {
@@ -115,8 +117,9 @@ export default function AgregarScreen() {
               setGuidedIntent(undefined);
               setMode('friendly');
             }}
-            onOpenGuided={(intent) => {
+            onOpenGuided={(intent, amount) => {
               setGuidedIntent(intent);
+              setGuidedAmount(amount);
               setMode('friendly');
             }}
           />
@@ -145,7 +148,8 @@ export default function AgregarScreen() {
 
           {mode === 'friendly' ? (
             <FriendlyAddFlow
-              key={guidedIntent ?? 'pick'}
+              key={`${guidedIntent ?? 'pick'}-${guidedAmount ?? ''}`}
+              initialAmount={guidedAmount}
               onSaved={handleSaved}
               initialIntent={guidedIntent ?? payIntent}
               initialDebtId={payDebtId}
