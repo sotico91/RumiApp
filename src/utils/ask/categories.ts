@@ -231,7 +231,9 @@ export function detectCategories(
       candidates.push({
         ids: concept.subs.map((s) => s.id),
         label: concept.id,
-        score: conceptScore + 2,
+        // The user's own category ("Deporte") outranks a built-in alias group
+        // that shares the word (+5), never one of its own subs (+8).
+        score: conceptScore + 6,
         displayName: concept.name,
       });
     }

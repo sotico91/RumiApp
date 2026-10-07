@@ -13,11 +13,12 @@ Built for daily use on **iPhone and Android** (same Expo codebase): guided onboa
 
 ## Features
 
-- **Guided logging** for expenses, income, transfers, and debt payments
-- **Quick templates** (coffee, delivery, transport, salary, savings)
+- **Quick add** that files a spend from its description (lunch, uber, football…) in your category for it, creating it when missing; works the same in English and Spanish
+- **Guided and advanced logging** for expenses, income, transfers, and debt payments, plus quick templates (coffee, delivery, transport, salary, savings)
+- **Spends need money**: only accounts with a balance are offered; with every pocket at zero Rumi asks to log the income first (credit cards are not blocked)
 - **Home** month summary: income, expenses, savings signal, debts, and net worth
-- **Activity** by today / week / month, with edit and delete
-- **Plan**: budgets for registered concepts and local reminders: every active debt the day before it is due, recurring payments suggested from history, daily / weekly / monthly / last-day rules that skip what is already paid
+- **Activity** by today / week / month, with edit and delete, and what each category cost month by month
+- **Plan**: categories you can rename, move and join without losing movements; a monthly limit set on each subcategory; and local reminders: every active debt the day before it is due, recurring payments suggested from history, daily / weekly / monthly / last-day rules that skip what is already paid
 - **Other** reminders: custom concept names (receipts, parking, utilities, etc.)
 - **Understand**: category ranking and “Ask Rumi” (periods, comparisons, notes, month-end forecast; shows what it understood and the movements behind each answer)
 - **Wealth**: accounts, debts, and credit installments

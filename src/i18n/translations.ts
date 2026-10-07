@@ -852,7 +852,7 @@ export const translations = {
     'onboard.currencyCop': 'Colombian pesos (COP)',
     'onboard.currencyUsd': 'US dollars (USD)',
     'onboard.balanceTitle': 'How much money do you have today?',
-    'onboard.balanceBody': 'Optional — so “Spendable today” starts with your real balance. You can change it anytime in Wealth.',
+    'onboard.balanceBody': 'So “Spendable today” starts with your real balance and your spends have money to come from. If you skip it, Rumi asks for an income before your first cash or debit spend.',
     'onboard.antTitle': 'Where does money slip away without you noticing?',
     'onboard.antBody': 'These are your small spends 🐜: little, frequent and easy to forget. Mark yours and Rumi shows how much they add up to. Optional.',
     'onboard.ant.rides': 'Rides & taxis',
@@ -904,16 +904,16 @@ export const translations = {
     'guide.kicker': 'First day, in this order',
     'guide.introTitle': 'Start with one real expense',
     'guide.introBody':
-      'Rumi already knows how much money you have. Now log something you paid for today: it takes ten seconds.',
+      'Every spend comes out of an account with money. If you told Rumi what you have, log something you paid for today; if not, start with an income.',
     'guide.step1Title': 'Wealth — where your money is',
     'guide.step1Body':
       'Your bank and cash are already there. Add what is missing: Nequi or another bank, savings, and credit cards, so each expense comes from the right place.',
     'guide.step2Title': 'Plan — what you’ll find there',
     'guide.step2Body':
-      'Your categories (Food, Bills…) and their subcategories (Coffee, Power…). Optional: monthly limits and small spends 🐜 to watch. In Reminders, Rumi suggests the payments you make every month and stays quiet once you logged them.',
+      'Your categories (Food, Bills…) and their subcategories (Coffee, Power…). Tap a subcategory to give it a monthly limit; Edit renames, moves or joins it without losing movements. Mark small spends 🐜 to watch. In Reminders, Rumi suggests the payments you make every month and stays quiet once you logged them.',
     'guide.step3Title': 'Log an expense',
     'guide.step3Body':
-      'Tap + → I spent. Type the amount, tap what it was for and the account or card it came from. Save.',
+      'Tap + → I spent. Type the amount and a description (lunch, uber…): Rumi files it in its category, or creates it. Pick the account or card it came from (only accounts with money show). Save.',
     'guide.step4Title': 'Income, or just moving money',
     'guide.step4Body':
       'Got paid: + → I received money. Moved money between your accounts: + → I moved money. Moving is not an expense.',
@@ -2033,7 +2033,7 @@ export const translations = {
     'onboard.currencyCop': 'Pesos colombianos (COP)',
     'onboard.currencyUsd': 'Dólares (USD)',
     'onboard.balanceTitle': '¿Cuánta plata tienes hoy?',
-    'onboard.balanceBody': 'Opcional: así “Disponible hoy” arranca con tu saldo real. Lo puedes cambiar cuando quieras en Patrimonio.',
+    'onboard.balanceBody': 'Así “Disponible hoy” arranca con tu saldo real y tus gastos tienen de dónde salir. Si lo saltas, Rumi te pedirá un ingreso antes de tu primer gasto en efectivo o débito.',
     'onboard.antTitle': '¿En qué se te va la plata sin darte cuenta?',
     'onboard.antBody': 'Son tus gastos hormiga 🐜: pequeños, frecuentes y fáciles de olvidar. Márcalos y Rumi te muestra cuánto suman. Opcional.',
     'onboard.ant.rides': 'Taxi y apps',
@@ -2085,16 +2085,16 @@ export const translations = {
     'guide.kicker': 'Primer día, en este orden',
     'guide.introTitle': 'Empieza con un gasto real',
     'guide.introBody':
-      'Rumi ya sabe cuánta plata tienes. Ahora registra algo que pagaste hoy: toma diez segundos.',
+      'Cada gasto sale de una cuenta con dinero. Si ya le dijiste a Rumi cuánto tienes, registra algo que pagaste hoy; si no, empieza con un ingreso.',
     'guide.step1Title': 'Patrimonio: dónde está tu plata',
     'guide.step1Body':
       'Tu banco y tu efectivo ya están. Agrega lo que falte: Nequi u otro banco, ahorros y tarjetas de crédito, para que cada gasto salga de donde es.',
     'guide.step2Title': 'Plan: qué encuentras ahí',
     'guide.step2Body':
-      'Tus categorías (Alimentación, Recibos…) y sus subcategorías (Café, Luz…). Opcional: topes mensuales y gastos hormiga 🐜 para vigilar. En Recordatorios, Rumi te sugiere los pagos que haces cada mes y no te avisa si ya los registraste.',
+      'Tus categorías (Alimentación, Recibos…) y sus subcategorías (Café, Luz…). Toca una subcategoría para ponerle tope al mes; con Editar la renombras, la mueves o la juntas sin perder movimientos. Marca gastos hormiga 🐜 para vigilarlos. En Recordatorios, Rumi te sugiere los pagos que haces cada mes y no te avisa si ya los registraste.',
     'guide.step3Title': 'Registra un gasto',
     'guide.step3Body':
-      'Toca + → Gasté. Escribe el monto, toca en qué fue y la cuenta o tarjeta de donde salió. Guarda.',
+      'Toca + → Gasté. Escribe el monto y una descripción (almuerzo, uber…): Rumi lo ubica en su categoría o la crea. Elige la cuenta o tarjeta de donde salió (solo aparecen cuentas con dinero). Guarda.',
     'guide.step4Title': 'Si te pagaron o solo moviste plata',
     'guide.step4Body':
       'Te pagaron: + → Recibí dinero. Moviste plata entre tus cuentas: + → Moví dinero. Mover no es un gasto.',

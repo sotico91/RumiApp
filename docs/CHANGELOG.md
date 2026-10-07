@@ -12,6 +12,22 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-06
 
+- **La descripción ubica el gasto:**
+  - Al escribir "almuerzo", "uber", "gasolina" o "fútbol", Rumi propone la subcategoría (`suggestCategory`, `src/utils/suggestCategory.ts`). En el registro rápido la aplica sola mientras no elijas una a mano, y si no existe la crea al guardar (por ejemplo *Deporte · Fútbol*). En el guiado y el avanzado aparece "Usar" o "Crear y usar".
+  - El tipo de gasto decide la categoría y el historial solo elige la subcategoría dentro de ella. Así un almuerzo va a Alimentación aunque antes se hayan guardado almuerzos en "Gastos adicionales".
+  - Funciona igual en español e inglés. Lo que crea lleva el nombre en el idioma de la app y se reconoce la próxima vez.
+- **Un gasto necesita de dónde salir:**
+  - Solo se ofrecen cuentas con saldo, y una cuenta no puede quedar en negativo (`fundsShortfall`, `liquidPocketsForPay`). Si todas están en cero, aparece un aviso con "Registrar ingreso".
+  - Las tarjetas de crédito no se bloquean. El onboarding y la guía lo explican.
+- **Plan más simple:**
+  - El tope se define en la fila de la subcategoría, ya no en una sección al fondo.
+  - Las categorías se renombran, mueven y juntan sin perder movimientos (`useSpendTreeEdit`). Borrar una con movimientos pregunta primero a dónde pasan.
+  - Con 6 categorías o más aparecen como chips y hay un buscador.
+  - Un crédito pagado se marca "Pagada" ese mes y desaparece el mes siguiente.
+- **Selector de cuentas en dos pasos:** primero el tipo (Efectivo, Bancos, Billeteras, Ahorros, Tarjetas) y después cuál. Una vez elegida, ocupa una sola línea.
+- **Historial:** "Gastado por categoría" en el resumen de cada mes.
+- **Pregúntale a Rumi:** una categoría propia ("Deporte") gana sobre un sinónimo interno que comparte la palabra. Antes "deporte" solo contaba lo que estaba ligado a salud.
+
 - **"Cómo usar Rumi" al día:**
   - Paso 2: recordatorios sugeridos que no avisan lo ya pagado.
   - Paso 5: aviso un día antes de cada vencimiento.

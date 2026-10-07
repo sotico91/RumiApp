@@ -374,10 +374,14 @@ export function suggestCategory(
 
   const named = byName(words, concepts);
   if (named) return named;
-  // What the user did twice or more beats generic words; once, it only fills a gap.
   const past = byHistory(words, concepts, history);
-  if (past && past.votes >= 2) return past.s;
   const keyword = byKeyword(words, note, concepts);
-  if (keyword?.create && past) return past.s;
-  return keyword ?? past?.s ?? null;
+  if (!keyword) return past?.s ?? null;
+
+  // The kind of spend picks the category ("almuerzo" is food, even if older
+  // lunches were filed under a catch-all); past spends only pick the sub in it.
+  const home = keyword.create ? keyword.create.conceptId : keyword.conceptId;
+  if (home) return past && past.s.conceptId === home ? past.s : keyword;
+  // No category of that kind at all: a habit (twice or more) beats creating one.
+  return past && past.votes >= 2 ? past.s : keyword;
 }

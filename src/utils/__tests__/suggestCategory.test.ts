@@ -121,6 +121,30 @@ describe('suggestCategory', () => {
     });
   });
 
+  it('keeps a lunch in food even if older lunches went to a catch-all', () => {
+    const withExtra: SpendConcept[] = [
+      ...concepts,
+      { id: 'concept-extra', name: 'Gastos adicionales', color: '#7A8790', subs: [{ id: 'sub-extra', name: 'General' }] },
+    ];
+    const history = buildNoteHistory([
+      tx('1', 'almuerzo', 'sub-extra'),
+      tx('2', 'Almuerzo trabajo', 'sub-extra'),
+      tx('3', 'almuerzo', 'sub-extra'),
+    ]);
+    expect(suggestCategory('desayuno', withExtra, history)?.subId).toBe('sub-almuerzo');
+    expect(suggestCategory('corrientazo', withExtra, history)?.conceptId).toBe('concept-alimentacion');
+  });
+
+  it('uses past spends to pick the sub inside the right category', () => {
+    const history = buildNoteHistory([tx('1', 'corrientazo', 'sub-mercado'), tx('2', 'corrientazo', 'sub-mercado')]);
+    expect(suggestCategory('corrientazo', concepts, history)?.subId).toBe('sub-mercado');
+  });
+
+  it('follows a habit when there is no category for that kind of spend', () => {
+    const history = buildNoteHistory([tx('1', 'veterinario', 'sub-salidas'), tx('2', 'veterinario', 'sub-salidas')]);
+    expect(suggestCategory('veterinario', concepts, history)?.subId).toBe('sub-salidas');
+  });
+
   it('never suggests Credits for a spend', () => {
     expect(suggestCategory('tarjeta almuerzos', concepts, empty)?.conceptId).not.toBe(
       'concept-creditos'
