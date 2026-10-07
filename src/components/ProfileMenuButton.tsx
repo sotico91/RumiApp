@@ -14,6 +14,7 @@ import {
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { listAutoBackups, readAutoBackup } from '@/src/data/autoBackup';
 import { AppModal } from '@/src/components/AppModal';
 import { KeyboardSafeOverlay } from '@/src/components/KeyboardSafe';
 import { useFinance } from '@/src/hooks/useFinance';
@@ -26,6 +27,7 @@ import { SUPPORT_EMAIL } from '@/src/constants/store';
 import {
   pickAndReadBackupFile,
   shareBackupJson,
+  type RumiBackup,
   shareTransactionsCsv,
 } from '@/src/utils/backup';
 import { tapFeedback } from '@/src/utils/selectFeedback';
@@ -155,41 +157,54 @@ export function ProfileMenuButton() {
     }
   }
 
+  /** Restore from a picked file or from one of the silent daily copies. */
   function confirmRestore() {
     setMenuOpen(false);
+    const days = listAutoBackups().slice(0, 3);
+    const dayLabel = (day: string) =>
+      new Date(`${day}T12:00:00`).toLocaleDateString(language === 'es' ? 'es-CO' : 'en-US', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'short',
+      });
     appAlert(t('backup.restoreTitle'), t('backup.restoreMessage'), [
       { text: t('history.cancel'), style: 'cancel' },
+      ...days.map((day) => ({
+        text: t('backup.autoCopy', { date: dayLabel(day) }),
+        style: 'destructive' as const,
+        onPress: () => void restoreWith(() => readAutoBackup(day)),
+      })),
       {
-        text: t('backup.restoreConfirm'),
+        text: days.length > 0 ? t('backup.pickFile') : t('backup.restoreConfirm'),
         style: 'destructive',
-        onPress: () => {
-          void (async () => {
-            setBusy(true);
-            try {
-              const backup = await pickAndReadBackupFile();
-              await restoreSettingsFromBackup({
-                settings: backup.settings,
-                quickTemplates: backup.quickTemplates,
-              });
-              await restoreFromBackup({
-                transactions: backup.transactions,
-                accounts: backup.accounts,
-                budgets: backup.budgets,
-                debts: backup.debts,
-                subscriptions: backup.subscriptions,
-              });
-              appAlert(t('backup.restoreDoneTitle'), t('backup.restoreDoneBody'), undefined, { tone: 'success' });
-            } catch (err) {
-              const code = err instanceof Error ? err.message : '';
-              if (code === 'CANCELLED') return;
-              appAlert(t('backup.errorTitle'), t('backup.restoreError'), undefined, { tone: 'warning' });
-            } finally {
-              setBusy(false);
-            }
-          })();
-        },
+        onPress: () => void restoreWith(pickAndReadBackupFile),
       },
     ]);
+  }
+
+  async function restoreWith(read: () => Promise<RumiBackup>) {
+    setBusy(true);
+    try {
+      const backup = await read();
+      await restoreSettingsFromBackup({
+        settings: backup.settings,
+        quickTemplates: backup.quickTemplates,
+      });
+      await restoreFromBackup({
+        transactions: backup.transactions,
+        accounts: backup.accounts,
+        budgets: backup.budgets,
+        debts: backup.debts,
+        subscriptions: backup.subscriptions,
+      });
+      appAlert(t('backup.restoreDoneTitle'), t('backup.restoreDoneBody'), undefined, { tone: 'success' });
+    } catch (err) {
+      const code = err instanceof Error ? err.message : '';
+      if (code === 'CANCELLED') return;
+      appAlert(t('backup.errorTitle'), t('backup.restoreError'), undefined, { tone: 'warning' });
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function toggleNotifyOnExpense() {

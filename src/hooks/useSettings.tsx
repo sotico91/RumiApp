@@ -16,6 +16,7 @@ import {
   localizeDefaultConcepts,
   uniqueSubId,
 } from '@/src/data/spendConcepts';
+import { teach } from '@/src/utils/suggestCategory';
 import {
   CURRENT_CATALOG_VERSION,
   DEFAULT_SETTINGS,
@@ -60,8 +61,13 @@ type SettingsContextValue = {
   setDebtReminder: (debtId: string, on: boolean) => Promise<void>;
   /** Stops suggesting a reminder for this subcategory. */
   dismissReminderSuggestion: (subId: string) => Promise<void>;
-  /** "Leave as is" in the category review: these spends are not suggested again. */
-  dismissCategoryReview: (txIds: string[]) => Promise<void>;
+  /**
+   * "Leave as is" in the category review: these spends are not suggested
+   * again, and where they are is learned for their descriptions.
+   */
+  dismissCategoryReview: (items: { txId: string; note?: string; subId?: string }[]) => Promise<void>;
+  /** The user picked this sub for this description: suggest it next time. */
+  teachCategory: (note: string, subId: string) => Promise<void>;
   /** Confirmation notification after each logged transaction. */
   updateNotifyOnExpense: (enabled: boolean) => Promise<boolean>;
   updateUserName: (userName: string) => Promise<void>;
@@ -269,10 +275,23 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   );
 
   const dismissCategoryReview = useCallback(
-    async (txIds: string[]) => {
+    async (items: { txId: string; note?: string; subId?: string }[]) => {
       const dismissed = new Set(settings.categoryReviewDismissed ?? []);
-      for (const id of txIds) dismissed.add(id);
-      await persist({ ...settings, categoryReviewDismissed: [...dismissed] });
+      let taught = settings.taughtCategories ?? [];
+      for (const item of items) {
+        dismissed.add(item.txId);
+        if (item.note && item.subId) taught = teach(taught, item.note, item.subId);
+      }
+      await persist({ ...settings, categoryReviewDismissed: [...dismissed], taughtCategories: taught });
+    },
+    [settings, persist]
+  );
+
+  const teachCategory = useCallback(
+    async (note: string, subId: string) => {
+      const taught = teach(settings.taughtCategories ?? [], note, subId);
+      if (taught === settings.taughtCategories) return;
+      await persist({ ...settings, taughtCategories: taught });
     },
     [settings, persist]
   );
@@ -460,6 +479,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         reminderRules,
         reminderCategoryIds: reminderRules.map((r) => r.subId),
         reminderSuggestionsDismissed: dismissed ? [...new Set(dismissed.map(to))] : dismissed,
+        // What was learned follows a joined sub.
+        taughtCategories: settings.taughtCategories?.map(([key, subId]) => [key, to(subId)] as [string, string]),
       });
 
       if (Object.keys(remaps).length === 0) return;
@@ -653,6 +674,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       setDebtReminder,
       dismissReminderSuggestion,
       dismissCategoryReview,
+      teachCategory,
       updateNotifyOnExpense,
       updateUserName,
       addSpendConcept,
@@ -690,6 +712,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       setDebtReminder,
       dismissReminderSuggestion,
       dismissCategoryReview,
+      teachCategory,
       updateNotifyOnExpense,
       updateUserName,
       addSpendConcept,

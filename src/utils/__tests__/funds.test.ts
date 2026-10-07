@@ -6,6 +6,7 @@ import {
   spendableTotal,
 } from '@/src/utils/accounts';
 import { payAccountIdForDebt } from '@/src/utils/debts';
+import { applyAccountDelta } from '@/src/utils/ledger';
 
 const accounts = (cash: number, bank = 0, savings = 0): Account[] => [
   { id: 'cash', nameKey: 'account.cash', type: 'cash', balance: cash },
@@ -63,5 +64,16 @@ describe('pockets offered for a spend', () => {
   it('keeps the pocket a movement being edited already uses', () => {
     const ids = liquidPocketsForPay(accounts(0, 20000, 0), 'cash').map((a) => a.id);
     expect(ids).toEqual(['cash', 'bank-main']);
+  });
+});
+
+describe('editing a spend', () => {
+  it('counts the money of the movement being edited as back in the pocket', () => {
+    // 20.000 left in cash after a 30.000 spend from it.
+    const list = accounts(20000);
+    const original = { id: 't1', type: 'expense' as const, amount: 30000, accountId: 'cash', createdAt: '' };
+    const undone = applyAccountDelta(list, original, -1);
+    expect(fundsShortfall(undone, { type: 'expense', amount: 45000, accountId: 'cash' })).toBe(0);
+    expect(fundsShortfall(undone, { type: 'expense', amount: 60000, accountId: 'cash' })).toBe(10000);
   });
 });

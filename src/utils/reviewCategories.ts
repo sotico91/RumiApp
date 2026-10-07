@@ -7,6 +7,7 @@ import {
   type CategorySuggestion,
   type NewConceptId,
   type NewSubId,
+  type TaughtCategories,
   noteFitsSub,
 } from '@/src/utils/suggestCategory';
 
@@ -24,7 +25,8 @@ export type MisfiledSpend = {
 export function findMisfiledSpends(
   transactions: Transaction[],
   spendConcepts: SpendConcept[],
-  dismissedIds: ReadonlySet<string> = new Set()
+  dismissedIds: ReadonlySet<string> = new Set(),
+  taught: TaughtCategories = []
 ): MisfiledSpend[] {
   const history = buildNoteHistory(transactions);
   const out: MisfiledSpend[] = [];
@@ -33,7 +35,7 @@ export function findMisfiledSpends(
     if (tx.categoryId && findSpendSub(spendConcepts, tx.categoryId)?.concept.id === CREDITS_CONCEPT_ID) {
       continue;
     }
-    const suggestion = suggestCategory(tx.note, spendConcepts, history, tx.id);
+    const suggestion = suggestCategory(tx.note, spendConcepts, history, tx.id, taught);
     if (!suggestion) continue;
     if (!suggestion.create && suggestion.subId === tx.categoryId) continue;
     // Already in the right category, in a sub that can hold it (Almuerzo, or

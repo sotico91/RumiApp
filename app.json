@@ -22,6 +22,7 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "CFBundleAllowMixedLocalizations": true,
+        "CFBundleLocalizations": ["en", "es"],
         "CFBundleDisplayName": "Rumi",
         "CFBundleName": "Rumi",
         "UIApplicationSceneManifest": {

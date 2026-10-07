@@ -4,8 +4,10 @@ import { translations } from '@/src/i18n/translations';
 import {
   buildNoteHistory,
   noteWords,
+  MAX_TAUGHT,
   SPEND_KINDS,
   suggestCategory,
+  teach,
 } from '@/src/utils/suggestCategory';
 
 const concepts: SpendConcept[] = [
@@ -350,5 +352,36 @@ describe('what Rumi creates', () => {
 describe('noteWords', () => {
   it('drops amounts and filler', () => {
     expect(noteWords('Pagué almuerzo con Juan 15000')).toEqual(['almuerzo', 'juan']);
+  });
+});
+
+describe('learning from the user', () => {
+  it('a correction wins next time, for the same words and the kind word', () => {
+    // The user files lunch with Juan under Mercado on purpose.
+    const taught = teach([], 'Almuerzo con Juan', 'sub-mercado');
+    expect(suggestCategory('almuerzo con juan', concepts, empty, undefined, taught)).toMatchObject({
+      subId: 'sub-mercado',
+      source: 'taught',
+    });
+    expect(suggestCategory('almuerzo', concepts, empty, undefined, taught)?.subId).toBe('sub-mercado');
+  });
+
+  it('learns words the engine does not know', () => {
+    const taught = teach([], 'donde Rosa', 'sub-almuerzo');
+    expect(suggestCategory('Donde rosa', concepts, empty, undefined, taught)?.subId).toBe('sub-almuerzo');
+  });
+
+  it('the newest correction replaces an older one', () => {
+    const taught = teach(teach([], 'almuerzo', 'sub-mercado'), 'almuerzo', 'sub-almuerzo');
+    expect(suggestCategory('almuerzo', concepts, empty, undefined, taught)?.subId).toBe('sub-almuerzo');
+  });
+
+  it('ignores lessons about subs that no longer exist, and keeps a bounded list', () => {
+    const gone = teach([], 'almuerzo', 'sub-borrada');
+    expect(suggestCategory('almuerzo', concepts, empty, undefined, gone)?.subId).toBe('sub-almuerzo');
+    let many: [string, string][] = [];
+    for (let i = 0; i < MAX_TAUGHT + 20; i += 1) many = teach(many, `palabra${i}`, 'sub-mercado');
+    expect(many).toHaveLength(MAX_TAUGHT);
+    expect(many[0][0]).toBe(`palabra${MAX_TAUGHT + 19}`);
   });
 });

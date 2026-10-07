@@ -39,13 +39,13 @@ export function useCategoryReview() {
     };
     const dismissed = new Set(settings.categoryReviewDismissed ?? []);
     const editable = transactions.filter(canEditTransaction);
-    return findMisfiledSpends(editable, concepts, dismissed).map((item) => ({
+    return findMisfiledSpends(editable, concepts, dismissed, settings.taughtCategories ?? []).map((item) => ({
       ...item,
       from: whereNow(item.tx.categoryId),
       to: describeSuggestion(item.suggestion, concepts, t).label,
       creates: !!item.suggestion.create,
     }));
-  }, [transactions, canEditTransaction, concepts, settings.categoryReviewDismissed, t]);
+  }, [transactions, canEditTransaction, concepts, settings.categoryReviewDismissed, settings.taughtCategories, t]);
 
   const move = useCallback(
     async (list: ReviewItem[]) => {
@@ -60,7 +60,11 @@ export function useCategoryReview() {
   );
 
   const leave = useCallback(
-    (list: ReviewItem[]) => dismissCategoryReview(list.map((item) => item.tx.id)),
+    (list: ReviewItem[]) =>
+      // Leaving it there is a lesson too: this description belongs where it is.
+      dismissCategoryReview(
+        list.map((item) => ({ txId: item.tx.id, note: item.tx.note, subId: item.tx.categoryId }))
+      ),
     [dismissCategoryReview]
   );
 

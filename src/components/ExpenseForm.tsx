@@ -102,7 +102,7 @@ export function ExpenseForm({
 }: Props) {
   const { t } = useLanguage();
   const { format, formatPlain, parse, currency } = useMoney();
-  const { settings, updateQuickTemplate } = useSettings();
+  const { settings, updateQuickTemplate, teachCategory } = useSettings();
   const { addTransaction, totalForPeriod, accounts, debts, transactions } = useFinance();
   const spendConcepts = usePickableSpendConcepts();
   // The concept is already picked above, so a sub chip only needs its own name.
@@ -332,6 +332,8 @@ export function ExpenseForm({
           amount: parsed,
           note: note.trim() || undefined,
         });
+        // Picked by hand for this description: Rumi learns it for next time.
+        if (manualCategory && note.trim()) await teachCategory(note, subId);
       }
 
       const resolvedCategoryId =

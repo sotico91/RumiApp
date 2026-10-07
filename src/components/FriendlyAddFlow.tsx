@@ -90,7 +90,7 @@ export function FriendlyAddFlow({
 }: Props) {
   const { t } = useLanguage();
   const { format, formatPlain, parse, currency } = useMoney();
-  const { settings, updateQuickTemplate, ensureSpendConceptSub } = useSettings();
+  const { settings, updateQuickTemplate, ensureSpendConceptSub, teachCategory } = useSettings();
   const { addTransaction, totalForPeriod, accounts, debts, transactions } = useFinance();
   const keyboardVisible = useKeyboardVisible();
 
@@ -490,6 +490,8 @@ export function FriendlyAddFlow({
           amount: parsed,
           note: note.trim() || undefined,
         });
+        // The guided flow always picks by hand: learn it unless it is what Rumi suggested.
+        if (note.trim() && hint.suggestion?.subId !== categoryId) await teachCategory(note, categoryId);
       }
 
       // Never block save on notification permission / scheduling (esp. Android).

@@ -5,7 +5,8 @@ import { appAlert } from '@/src/components/AppAlert';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useLanguage } from '@/src/i18n/LanguageContext';
-import type { TransactionType } from '@/src/types/finance';
+import type { Transaction, TransactionType } from '@/src/types/finance';
+import { applyAccountDelta } from '@/src/utils/ledger';
 import { accountDisplayName, fundsShortfall, spendableTotal } from '@/src/utils/accounts';
 
 /**
@@ -17,10 +18,17 @@ import { accountDisplayName, fundsShortfall, spendableTotal } from '@/src/utils/
 export function useFundsCheck() {
   const { t } = useLanguage();
   const { format } = useMoney();
-  const { accounts } = useFinance();
+  const { accounts: liveAccounts } = useFinance();
 
   return useCallback(
-    (input: { type: TransactionType; amount: number; accountId?: string }): boolean => {
+    (input: {
+      type: TransactionType;
+      amount: number;
+      accountId?: string;
+      /** Editing: this movement's own effect is undone first (its money is back in the pocket). */
+      replacing?: Transaction;
+    }): boolean => {
+      const accounts = input.replacing ? applyAccountDelta(liveAccounts, input.replacing, -1) : liveAccounts;
       if (fundsShortfall(accounts, input) <= 0) return true;
       const account = accounts.find((a) => a.id === input.accountId);
       const available = account ? Math.max(0, account.balance) : 0;
@@ -45,6 +53,6 @@ export function useFundsCheck() {
       );
       return false;
     },
-    [accounts, format, t]
+    [liveAccounts, format, t]
   );
 }

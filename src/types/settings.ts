@@ -73,6 +73,8 @@ export type UserSettings = {
   reminderSuggestionsDismissed?: string[];
   /** Saved spends the user chose to leave where they are in the category review. */
   categoryReviewDismissed?: string[];
+  /** Category corrections the suggestion engine learned (description key → sub id), newest first. */
+  taughtCategories?: [string, string][];
   /** @deprecated Prefer reminderRules.subId list. */
   reminderCategoryIds: string[];
   /** @deprecated */

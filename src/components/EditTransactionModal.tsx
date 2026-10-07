@@ -16,6 +16,7 @@ import {
   isGeneralSubName,
   spendSubsAsCategories,
 } from '@/src/data/spendConcepts';
+import { useFundsCheck } from '@/src/hooks/useFundsCheck';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useKeyboardVisible } from '@/src/hooks/useKeyboardVisible';
 import { useMoney } from '@/src/hooks/useMoney';
@@ -69,7 +70,7 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
   const insets = useSafeAreaInsets();
   const { t } = useLanguage();
   const { format, parse, currency } = useMoney();
-  const { settings } = useSettings();
+  const { settings, teachCategory } = useSettings();
   const { updateTransaction, accounts, debts } = useFinance();
   const keyboardVisible = useKeyboardVisible();
 
@@ -85,6 +86,7 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
   const scrollRef = useRef<ScrollView>(null);
 
   const spendConcepts = usePickableSpendConcepts(transaction?.categoryId);
+  const checkFunds = useFundsCheck();
   const showConcepts = type !== 'income' && spendConcepts.length > 0;
 
   // Spends pick a category first, then only that category's subs show.
@@ -173,6 +175,8 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
       appAlert(t('add.invalidTitle'), t('add.invalidMessage'), undefined, { tone: 'warning' });
       return;
     }
+    // A bigger amount must still fit in the pocket (with this movement's own money back in it).
+    if (!checkFunds({ type, amount: parsed, accountId, replacing: transaction })) return;
 
     setSaving(true);
     try {
@@ -193,6 +197,10 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
         toAccountId: needsDestination ? toAccountId : undefined,
         note,
       });
+      // Moved to another category by hand: learn it for this description.
+      if (type === 'expense' && note.trim() && categoryId && categoryId !== transaction.categoryId) {
+        await teachCategory(note, categoryId);
+      }
       onClose();
     } finally {
       setSaving(false);

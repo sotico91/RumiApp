@@ -72,7 +72,8 @@ export type CategorySuggestion =
       conceptId: string;
       subId: string;
       /** name = a subcategory is named in the note; history = past spends; keyword = common words. */
-      source: 'name' | 'history' | 'keyword';
+      /** taught = the user corrected it before; name = a sub is named in the note; history = past spends; keyword = common words. */
+      source: 'taught' | 'name' | 'history' | 'keyword';
       create?: undefined;
     }
   | {
@@ -655,18 +656,55 @@ function byKeyword(match: KindMatch, concepts: SpendConcept[]): CategorySuggesti
   };
 }
 
+/**
+ * What the user taught by correcting a suggestion: key → sub id, newest first.
+ * Keys are the whole description ("almuerzo juan") and the kind word in it
+ * ("almuerzo"), see teachKeys.
+ */
+export type TaughtCategories = [key: string, subId: string][];
+
+/** At most this many corrections are kept; the oldest go first. */
+export const MAX_TAUGHT = 300;
+
+/** The keys a correction is remembered under: the whole description, then its kind word. */
+export function teachKeys(note: string): string[] {
+  const words = noteWords(note);
+  if (words.length === 0) return [];
+  const keys = [words.join(' ')];
+  const match = matchKind(words, note);
+  if (match && !keys.includes(match.word)) keys.push(match.word);
+  return keys;
+}
+
+/** Remember a correction: newer entries for the same key replace older ones. */
+export function teach(taught: TaughtCategories, note: string, subId: string): TaughtCategories {
+  const keys = teachKeys(note);
+  if (keys.length === 0) return taught;
+  const rest = taught.filter(([key]) => !keys.includes(key));
+  return [...keys.map((key) => [key, subId] as [string, string]), ...rest].slice(0, MAX_TAUGHT);
+}
+
 export function suggestCategory(
   note: string,
   spendConcepts: SpendConcept[],
   history: NoteHistory,
   /** Reviewing a saved spend: it is not evidence for itself. */
-  ignoreTxId?: string
+  ignoreTxId?: string,
+  /** The user's own corrections win over everything else. */
+  taught: TaughtCategories = []
 ): CategorySuggestion | null {
   const words = noteWords(note);
   if (words.length === 0) return null;
   const concepts = suggestible(spendConcepts);
 
   const match = matchKind(words, note);
+  // Whole description first ("almuerzo juan"), then its kind word ("almuerzo").
+  for (const key of [words.join(' '), match?.word]) {
+    if (!key) continue;
+    const subId = taught.find(([k]) => k === key)?.[1];
+    const hit = subId ? findSpendSub(concepts, subId) : null;
+    if (hit) return { conceptId: hit.concept.id, subId: hit.sub.id, source: 'taught' };
+  }
   const named = byName(words, concepts);
   // A sub named in the note wins, unless the note is about something it
   // does not hold ("mercado libre" is online shopping, not "Mercado").

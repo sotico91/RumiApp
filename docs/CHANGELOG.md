@@ -12,6 +12,16 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-06
 
+- **Idioma del teléfono desde el primer arranque (iPhone):** `CFBundleLocalizations` declara en/es. Antes, un iPhone en español abría en inglés.
+- **Editar un gasto revisa el dinero:** el nuevo monto debe caber en la cuenta, contando el dinero que ese mismo movimiento devuelve a ella.
+- **El motor aprende de tus correcciones:**
+  - Elegir otra categoría a mano, cambiarla al editar o tocar "Dejar así" enseña esa descripción y su palabra clave (`taughtCategories`).
+  - Lo aprendido gana sobre el diccionario y sigue a las subcategorías cuando se juntan. Se guardan hasta 300 enseñanzas.
+- **Respaldo automático silencioso:**
+  - Una copia cifrada al día en el teléfono; se guardan las últimas 7 (`autoBackup.ts`, `AutoBackupRunner`). No necesita iCloud ni Drive.
+  - "Restaurar respaldo" ofrece las copias de los últimos días además de elegir un archivo.
+- **Plan de mejoras** en `docs/ROADMAP.md`. Todo lo anterior se verificó en el simulador de iOS con Maestro.
+
 - **Motor de sugerencias revisado con un banco de pruebas real** (`suggestCorpus.test.ts`, más de 120 descripciones en español colombiano e inglés):
   - Más palabras, marcas y jerga: D1, Éxito, Juan Valdez, Frisby, Enel, Vanti, Claro, Smart Fit, SOAT, 4x1000, corrientazo, polas, guayos…
   - Tipos nuevos: mantenimiento del carro, seguros, aseo y hogar, regalos, viajes, comisiones del banco, donaciones y juegos.

@@ -59,7 +59,7 @@ type Props = {
 export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
   const { t } = useLanguage();
   const { formatPlain, parse, currency } = useMoney();
-  const { settings, updateQuickTemplate } = useSettings();
+  const { settings, updateQuickTemplate, teachCategory } = useSettings();
   const { addTransaction, totalForPeriod, accounts, debts, transactions } = useFinance();
   const spendConcepts = usePickableSpendConcepts();
 
@@ -180,6 +180,8 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
         note,
       });
       await updateQuickTemplate({ categoryId: subId, amount: parsed, note: note.trim() || undefined });
+      // Picked by hand for this description: Rumi learns it for next time.
+      if (pickedCategoryId && note.trim()) await teachCategory(note, subId);
 
       if (settings.notifyOnExpense) {
         const copy = movementNotifyCopy({

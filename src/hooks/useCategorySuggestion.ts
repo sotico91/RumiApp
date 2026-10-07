@@ -53,11 +53,12 @@ export function useCategorySuggestion(
 ): CategorySuggestionState {
   const { t } = useLanguage();
   const { transactions } = useFinance();
-  const { ensureSpendConceptSub: ensureSpendPath } = useSettings();
+  const { ensureSpendConceptSub: ensureSpendPath, settings } = useSettings();
+  const taught = settings.taughtCategories;
   const history = useMemo(() => buildNoteHistory(transactions), [transactions]);
   const fresh = useMemo(
-    () => suggestCategory(note, concepts, history),
-    [note, concepts, history]
+    () => suggestCategory(note, concepts, history, undefined, taught ?? []),
+    [note, concepts, history, taught]
   );
   // While the user fixes a typo or deletes a letter ("almuerzo" → "almuerz" →
   // "alm"), keep the last suggestion instead of flickering to nothing.

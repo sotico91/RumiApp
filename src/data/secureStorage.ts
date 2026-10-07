@@ -123,6 +123,12 @@ export async function decodeStored<T>(key: string, raw: string): Promise<T | nul
   }
 }
 
+/** Opens what encryptText sealed (plain text passes through, for old files). */
+export async function decryptText(sealed: string): Promise<string> {
+  if (!sealed.startsWith(ENCRYPTED_PREFIX)) return sealed;
+  return getCipher().decrypt(sealed.slice(ENCRYPTED_PREFIX.length));
+}
+
 export async function writeSecureJson(key: string, value: unknown): Promise<void> {
   await AsyncStorage.setItem(key, await encryptJson(value));
 }

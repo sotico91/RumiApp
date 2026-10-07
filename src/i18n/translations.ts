@@ -314,8 +314,10 @@ export const translations = {
     'backup.restore': 'Restore backup…',
     'backup.restoreTitle': 'Restore backup?',
     'backup.restoreMessage':
-      'This replaces your current transactions, accounts, debts, budgets and settings with the file you choose. This cannot be undone.',
+      'This replaces your current transactions, accounts, debts, budgets and settings with the copy or file you choose. Rumi keeps a copy of each of the last 7 days on this phone.',
     'backup.restoreConfirm': 'Restore',
+    'backup.autoCopy': 'Automatic copy from {date}',
+    'backup.pickFile': 'Pick a file…',
     'backup.restoreDoneTitle': 'Backup restored',
     'backup.restoreDoneBody': 'Your data was replaced with the selected backup.',
     'backup.errorTitle': 'Backup',
@@ -1529,8 +1531,10 @@ export const translations = {
     'backup.restore': 'Restaurar respaldo…',
     'backup.restoreTitle': '¿Restaurar respaldo?',
     'backup.restoreMessage':
-      'Esto reemplaza tus movimientos, cuentas, deudas, topes y ajustes actuales con el archivo que elijas. No se puede deshacer.',
+      'Esto reemplaza tus movimientos, cuentas, deudas, topes y ajustes actuales con la copia o el archivo que elijas. Rumi guarda en este teléfono una copia de cada uno de los últimos 7 días.',
     'backup.restoreConfirm': 'Restaurar',
+    'backup.autoCopy': 'Copia automática del {date}',
+    'backup.pickFile': 'Elegir un archivo…',
     'backup.restoreDoneTitle': 'Respaldo restaurado',
     'backup.restoreDoneBody': 'Tus datos se reemplazaron con el respaldo seleccionado.',
     'backup.errorTitle': 'Respaldo',
