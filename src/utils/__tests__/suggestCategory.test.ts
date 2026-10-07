@@ -194,6 +194,29 @@ describe('suggestCategory', () => {
     expect(suggestCategory('veterinario', concepts, history)?.create?.sub).toBe('pets');
   });
 
+  it('never keeps a lunch in a Mercado category, even in a meals-like sub', () => {
+    const tree: SpendConcept[] = [
+      {
+        id: 'concept-mercado',
+        name: 'Mercado',
+        color: '#000000',
+        subs: [
+          { id: 'sub-m-general', name: 'General' },
+          { id: 'sub-m-comidas', name: 'Comidas' },
+          { id: 'sub-m-almuerzo', name: 'Almuerzo' },
+        ],
+      },
+      { id: 'concept-alimentacion', name: 'Alimentación', color: '#000000', subs: [{ id: 'sub-a-general', name: 'General' }] },
+    ];
+    const history = buildNoteHistory([tx('1', 'almuerzo', 'sub-m-comidas'), tx('2', 'almuerzo', 'sub-m-almuerzo')]);
+    expect(suggestCategory('almuerzo', tree, history)?.create).toMatchObject({
+      conceptId: 'concept-alimentacion',
+      sub: 'lunch',
+    });
+    // Groceries still go to the Mercado category.
+    expect(suggestCategory('mercado del mes', tree, empty)?.conceptId).toBe('concept-mercado');
+  });
+
   it('knows a lunch while it is being typed or fixed', () => {
     const noLunch: SpendConcept[] = [
       { id: 'concept-alimentacion', name: 'Alimentación', color: '#E07A5F', subs: [{ id: 'sub-mercado', name: 'Mercado' }] },

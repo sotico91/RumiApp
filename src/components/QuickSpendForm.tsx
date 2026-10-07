@@ -261,6 +261,17 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
           <Text style={styles.hint}>{t('quick.noCategories')}</Text>
         ) : null}
         <View style={styles.chipWrap}>
+          {autoCreate && hint.label ? (
+            // Where the description sends it, created on save: shown selected.
+            <View
+              accessible
+              accessibilityLabel={t('suggest.willCreate', { category: hint.label })}
+              accessibilityState={{ selected: true }}
+              style={[styles.chip, styles.chipOn]}>
+              <ConceptIcon icon={hint.concept?.icon} color={palette.white} size={16} />
+              <Text style={[styles.chipText, styles.chipTextOn]}>＋ {hint.label}</Text>
+            </View>
+          ) : null}
           {visibleChips.map((chip) => {
             const on = chip.id === categoryId;
             return (

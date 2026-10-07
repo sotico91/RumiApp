@@ -44,7 +44,7 @@ export function findMisfiledSpends(
       current &&
       targetConcept &&
       current.concept.id === targetConcept &&
-      noteFitsSub(tx.note, current.sub.name)
+      noteFitsSub(tx.note, current.concept.name, current.sub.name)
     ) {
       continue;
     }

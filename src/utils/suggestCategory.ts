@@ -586,18 +586,32 @@ function fitsAnyKind(subName: string): boolean {
  * of spend, or is the user's own name for something ("Donde Rosa"). No when
  * it means something else ("Mercado" for a lunch) or nothing ("General").
  */
-function subAccepts(subName: string, match: KindMatch): boolean {
+function subAccepts(conceptName: string, subName: string, match: KindMatch): boolean {
+  if (conceptMeansOther(conceptName, match)) return false;
   if (subHolds(subName, match)) return true;
   return !isGeneralSubName(subName) && !fitsAnyKind(subName);
+}
+
+/** The user's category for this kind of spend (Alimentación for a lunch). */
+function isHomeFor(conceptName: string, match: KindMatch): boolean {
+  return match.kind.concept.some((name) => phraseAt(noteWords(conceptName), conceptName, name) >= 0);
+}
+
+/**
+ * A category named after another kind of spend: "Mercado" is groceries, so
+ * nothing inside it (not even a "Comidas" sub) holds a lunch.
+ */
+function conceptMeansOther(conceptName: string, match: KindMatch): boolean {
+  return !isHomeFor(conceptName, match) && fitsAnyKind(conceptName);
 }
 
 /**
  * Whether a saved spend with this note already sits in a sub that fits it
  * (used by the category review). True for notes that name no known kind.
  */
-export function noteFitsSub(note: string, subName: string): boolean {
+export function noteFitsSub(note: string, conceptName: string, subName: string): boolean {
   const match = matchKind(noteWords(note), note);
-  return !match || subAccepts(subName, match);
+  return !match || subAccepts(conceptName, subName, match);
 }
 
 /**
@@ -606,12 +620,24 @@ export function noteFitsSub(note: string, subName: string): boolean {
  * when they have one).
  */
 function byKeyword(match: KindMatch, concepts: SpendConcept[]): CategorySuggestion {
-  // A sub named for this very word first, then one that holds the kind.
+  // A sub named for this very word first, then one that holds the kind; in
+  // the kind's own category before a neutral one, never in one that means
+  // something else ("Mercado · Comidas" does not hold a lunch).
+  const homes = concepts.filter((c) => isHomeFor(c.name, match));
+  const neutral = concepts.filter((c) => !homes.includes(c) && !conceptMeansOther(c.name, match));
   for (const test of [subNamedForWord, subHolds]) {
-    for (const concept of concepts) {
+    for (const concept of [...homes, ...neutral]) {
       for (const sub of concept.subs) {
         if (test(sub.name, match)) return { conceptId: concept.id, subId: sub.id, source: 'keyword' };
       }
+    }
+  }
+  // A category named for this very spend ("Mercado" for groceries): its
+  // General sub is the place, no need for "Mercado · Mercado".
+  for (const concept of homes) {
+    const general = concept.subs.find((sub) => isGeneralSubName(sub.name));
+    if (general && subHolds(concept.name, match)) {
+      return { conceptId: concept.id, subId: general.id, source: 'keyword' };
     }
   }
   const { kind, word } = match;
@@ -645,8 +671,8 @@ export function suggestCategory(
   // A sub named in the note wins, unless the note is about something it
   // does not hold ("mercado libre" is online shopping, not "Mercado").
   if (named && !named.create) {
-    const sub = findSpendSub(concepts, named.subId)?.sub;
-    if (!match || (sub && subAccepts(sub.name, match))) return named;
+    const hit = findSpendSub(concepts, named.subId);
+    if (!match || (hit && subAccepts(hit.concept.name, hit.sub.name, match))) return named;
   }
   const past = byHistory(words, concepts, history, ignoreTxId);
   if (!match) return past?.s ?? null;
@@ -654,8 +680,8 @@ export function suggestCategory(
 
   // Past spends only count where the sub can hold this spend: never
   // "Mercado" for a lunch, never a catch-all "General".
-  const pastSub = past && !past.s.create ? findSpendSub(concepts, past.s.subId)?.sub : undefined;
-  const pastOk = !!pastSub && subAccepts(pastSub.name, match);
+  const pastHit = past && !past.s.create ? findSpendSub(concepts, past.s.subId) : null;
+  const pastOk = !!pastHit && subAccepts(pastHit.concept.name, pastHit.sub.name, match);
 
   // The kind of spend picks the category ("almuerzo" is food); past spends
   // may pick the sub inside it.
