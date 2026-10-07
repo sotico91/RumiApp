@@ -973,7 +973,7 @@ export const translations = {
     'reminder.suggestAdd': 'Remind me',
     'reminder.suggestDismiss': 'Not now',
     'reminder.body':
-      'Pick one or more subcategories (e.g. Bills/Power). Each gets its own local notification with date and time. If you already logged it, Rumi skips that reminder, and it tells you the usual amount.',
+      'Pick one or more subcategories (e.g. Bills · Power). Each gets its own local notification with date and time. If you already logged it, Rumi skips that reminder, and it tells you the usual amount.',
     'reminder.pickHour': 'Hour',
     'reminder.pickMinute': 'Minutes',
     'reminder.pickSubs': 'Choose a subcategory',
@@ -2190,7 +2190,7 @@ export const translations = {
     'reminder.suggestAdd': 'Recordármelo',
     'reminder.suggestDismiss': 'Ahora no',
     'reminder.body':
-      'Elige una o varias subcategorías (ej. Recibos/Luz). Cada una tiene su notificación local con fecha y hora. Si ya lo registraste, Rumi no te lo recuerda, y te dice cuánto sueles pagar.',
+      'Elige una o varias subcategorías (ej. Recibos · Luz). Cada una tiene su notificación local con fecha y hora. Si ya lo registraste, Rumi no te lo recuerda, y te dice cuánto sueles pagar.',
     'reminder.pickHour': 'Hora',
     'reminder.pickMinute': 'Minutos',
     'reminder.pickSubs': 'Elige una subcategoría',

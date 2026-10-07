@@ -104,14 +104,18 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
   const [pickerOpen, setPickerOpen] = useState(false);
   // Until the user picks one, the description decides: an existing subcategory,
   // or one created on save ("fútbol" → Deporte · Fútbol).
-  const hint = useCategorySuggestion(note, spendConcepts);
+  // What is typed in the category search moves the selection too, ahead of
+  // the description: "almuerzo" there marks + Alimentación · Almuerzo.
+  const [categoryQuery, setCategoryQuery] = useState('');
+  const hintSource = categoryQuery.trim() ? categoryQuery : note;
+  const hint = useCategorySuggestion(hintSource, spendConcepts);
   const autoSubId =
     !pickedCategoryId && hint.suggestion && !hint.suggestion.create ? hint.suggestion.subId : null;
   const autoCreate = !pickedCategoryId && !!hint.suggestion?.create;
   // Otherwise, with history, preselect the last-used subcategory; on a fresh install let the user pick.
   // Once a description is typed it decides, never the last-used chip: an
   // unrecognized one leaves the pick to the user instead of keeping "Mercado".
-  const noteTyped = note.trim().length > 0;
+  const noteTyped = hintSource.trim().length > 0;
   const categoryId =
     pickedCategoryId ??
     autoSubId ??
@@ -251,8 +255,12 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
         {flattenSpendSubs(spendConcepts).length > CATEGORY_SEARCH_MIN_SUBS ? (
           <CategorySearch
             concepts={spendConcepts}
+            query={categoryQuery}
+            onQueryChange={setCategoryQuery}
+            inlineSuggestion={false}
             onPick={(_conceptId, subId) => {
               setCategoryId(subId);
+              setCategoryQuery('');
               Keyboard.dismiss();
             }}
           />
@@ -337,7 +345,7 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
           auto={!pickedCategoryId}
           onApply={(_conceptId, subId) => setCategoryId(subId)}
         />
-        {note.trim().length >= 4 && !pickedCategoryId && !hint.suggestion ? (
+        {hintSource.trim().length >= 4 && !pickedCategoryId && !hint.suggestion ? (
           <Text style={styles.hint}>{t('quick.pickForNote')}</Text>
         ) : null}
 

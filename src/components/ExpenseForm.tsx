@@ -138,7 +138,9 @@ export function ExpenseForm({
     defaultTransferDestinationId(accounts)
   );
   const [note, setNote] = useState(initialNote ?? '');
-  const hint = useCategorySuggestion(note, spendConcepts);
+  // Category search text moves the selection like the description does.
+  const [categoryQuery, setCategoryQuery] = useState('');
+  const hint = useCategorySuggestion(categoryQuery.trim() ? categoryQuery : note, spendConcepts);
   const autoCreate = type === 'expense' && !manualCategory && !!hint.suggestion?.create;
   useEffect(() => {
     const suggestion = hint.suggestion;
@@ -534,7 +536,11 @@ export function ExpenseForm({
           {flattenSpendSubs(spendConcepts).length > CATEGORY_SEARCH_MIN_SUBS ? (
             <CategorySearch
               concepts={spendConcepts}
+              query={categoryQuery}
+              onQueryChange={setCategoryQuery}
+              inlineSuggestion={false}
               onPick={(pickedConceptId, subId) => {
+                setCategoryQuery('');
                 setManualCategory(true);
                 setConceptId(pickedConceptId);
                 setCategoryId(subId);

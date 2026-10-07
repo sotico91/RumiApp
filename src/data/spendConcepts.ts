@@ -394,7 +394,7 @@ export function spendSubLabel(
     ) {
       return hit.concept.name;
     }
-    return `${hit.concept.name}/${hit.sub.name}`;
+    return `${hit.concept.name} · ${hit.sub.name}`;
   }
   return fallback?.(subId) ?? subId;
 }

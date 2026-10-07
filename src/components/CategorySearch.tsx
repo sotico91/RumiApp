@@ -27,15 +27,28 @@ const fold = (text: string) =>
 export function CategorySearch({
   concepts,
   onPick,
+  query: controlledQuery,
+  onQueryChange,
+  inlineSuggestion = true,
 }: {
   concepts: SpendConcept[];
   onPick: (conceptId: string, subId: string) => void;
+  /** Controlled text: the form uses what is typed here to move its selection. */
+  query?: string;
+  onQueryChange?: (query: string) => void;
+  /** False when the form itself shows (and selects) the suggestion. */
+  inlineSuggestion?: boolean;
 }) {
   const { t } = useLanguage();
-  const [query, setQuery] = useState('');
+  const [ownQuery, setOwnQuery] = useState('');
+  const query = controlledQuery ?? ownQuery;
+  const setQuery = (next: string) => {
+    setOwnQuery(next);
+    onQueryChange?.(next);
+  };
   // Names only find what exists; the description engine also finds where
   // "almuerzo" belongs, or what to create for it.
-  const hint = useCategorySuggestion(query, concepts);
+  const hint = useCategorySuggestion(inlineSuggestion ? query : '', concepts);
   const suggested = hint.suggestion;
 
   const results = useMemo(() => {
@@ -92,7 +105,10 @@ export function CategorySearch({
       ) : null}
       {query.trim() ? (
         results.length === 0 && !suggested ? (
-          <Text style={styles.empty}>{t('categorySearch.empty')}</Text>
+          // With the suggestion shown by the form, an empty name match says nothing.
+          inlineSuggestion ? (
+            <Text style={styles.empty}>{t('categorySearch.empty')}</Text>
+          ) : null
         ) : (
           <View style={styles.results}>
             {results.map((hit) => (
