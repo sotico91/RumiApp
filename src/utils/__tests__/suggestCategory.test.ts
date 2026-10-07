@@ -1,6 +1,12 @@
 import type { Transaction } from '@/src/types/finance';
 import type { SpendConcept } from '@/src/types/settings';
-import { buildNoteHistory, noteWords, suggestCategory } from '@/src/utils/suggestCategory';
+import { translations } from '@/src/i18n/translations';
+import {
+  buildNoteHistory,
+  noteWords,
+  SPEND_KINDS,
+  suggestCategory,
+} from '@/src/utils/suggestCategory';
 
 const concepts: SpendConcept[] = [
   {
@@ -59,15 +65,36 @@ describe('suggestCategory', () => {
     });
   });
 
-  it('sends rides to transport, preferring a matching sub', () => {
+  it('sends rides to the matching transport sub', () => {
     expect(suggestCategory('uber al trabajo', concepts, empty)?.subId).toBe('sub-taxi');
-    expect(suggestCategory('pasaje bus', concepts, empty)?.subId).toBe('sub-taxi');
   });
 
-  it('puts football under leisure when there is no sport category', () => {
-    expect(suggestCategory('saqué plata para fútbol', concepts, empty)).toMatchObject({
+  it('creates a missing sub inside the user category for it', () => {
+    expect(suggestCategory('pasaje bus', concepts, empty)).toEqual({
+      source: 'keyword',
+      create: { conceptId: 'concept-transporte', concept: 'transport', sub: 'transit', isAnt: false },
+    });
+    expect(suggestCategory('gasolina', concepts, empty)?.create).toMatchObject({
+      conceptId: 'concept-transporte',
+      sub: 'fuel',
+    });
+  });
+
+  it('puts football in leisure when there is no sport category', () => {
+    expect(suggestCategory('saqué plata para fútbol', concepts, empty)?.create).toEqual({
       conceptId: 'concept-ocio',
-      subId: 'sub-salidas',
+      concept: 'sport',
+      sub: 'football',
+      isAnt: false,
+    });
+  });
+
+  it('creates the category too when the user has none for it', () => {
+    expect(suggestCategory('veterinario', concepts, empty)?.create).toEqual({
+      conceptId: undefined,
+      concept: 'pets',
+      sub: 'pets',
+      isAnt: false,
     });
   });
 
@@ -108,7 +135,57 @@ describe('suggestCategory', () => {
 
   it('ignores past spends in subcategories that no longer exist', () => {
     const history = buildNoteHistory([tx('1', 'gym', 'sub-borrada'), tx('2', 'gym', 'sub-borrada')]);
-    expect(suggestCategory('gym', concepts, history)?.subId).toBe('sub-salidas');
+    expect(suggestCategory('gym', concepts, history)?.create?.sub).toBe('gym');
+  });
+});
+
+describe('what Rumi creates', () => {
+  // Creating once is enough: the next spend with the same word finds it.
+  it.each(['es', 'en'] as const)('is found again next time (%s)', (lang) => {
+    const copy = translations[lang] as Record<string, string>;
+    for (const kind of SPEND_KINDS) {
+      const conceptName = copy[`newCat.${kind.create.concept}`];
+      const subName = copy[`newSub.${kind.create.sub}`];
+      const tree: SpendConcept[] = [
+        { id: 'c-new', name: conceptName, color: '#000000', subs: [{ id: 's-new', name: subName }] },
+      ];
+      const word = kind.words.find((w) => !w.includes(' '))!;
+      const hit = suggestCategory(word, tree, empty);
+      expect({ word, subId: hit?.subId }).toEqual({ word, subId: 's-new' });
+    }
+  });
+
+  it.each(['es', 'en'] as const)('keeps every kind apart in a full tree (%s)', (lang) => {
+    const copy = translations[lang] as Record<string, string>;
+    const tree: SpendConcept[] = [];
+    for (const kind of SPEND_KINDS) {
+      const name = copy[`newCat.${kind.create.concept}`];
+      let concept = tree.find((c) => c.name === name);
+      if (!concept) {
+        concept = { id: `c-${kind.create.concept}`, name, color: '#000000', subs: [] };
+        tree.push(concept);
+      }
+      const subId = `s-${kind.create.sub}`;
+      if (!concept.subs.some((sub) => sub.id === subId)) {
+        concept.subs.push({ id: subId, name: copy[`newSub.${kind.create.sub}`] });
+      }
+    }
+    for (const kind of SPEND_KINDS) {
+      for (const word of kind.words.filter((w) => !w.includes(' '))) {
+        const hit = suggestCategory(word, tree, empty);
+        expect({ word, subId: hit?.subId }).toEqual({ word, subId: `s-${kind.create.sub}` });
+      }
+    }
+  });
+
+  it('has copy for every category and subcategory it creates', () => {
+    for (const lang of ['es', 'en'] as const) {
+      const copy = translations[lang] as Record<string, string>;
+      for (const kind of SPEND_KINDS) {
+        expect(copy[`newCat.${kind.create.concept}`]).toBeTruthy();
+        expect(copy[`newSub.${kind.create.sub}`]).toBeTruthy();
+      }
+    }
   });
 });
 

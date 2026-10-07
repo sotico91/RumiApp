@@ -22,6 +22,7 @@ import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { formatAmountTyping } from '@/src/utils/money';
 import { useSettings } from '@/src/hooks/useSettings';
+import { useCategorySuggestion } from '@/src/hooks/useCategorySuggestion';
 import { usePickableSpendConcepts } from '@/src/hooks/useSpendConcepts';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
@@ -119,6 +120,7 @@ export function FriendlyAddFlow({
     defaultTransferDestinationId(accounts, 'bank-main')
   );
   const [note, setNote] = useState('');
+  const hint = useCategorySuggestion(note, spendConcepts);
   const [saving, setSaving] = useState(false);
   const [fromTemplate, setFromTemplate] = useState(false);
   const [applyingTemplate, setApplyingTemplate] = useState(false);
@@ -1068,9 +1070,8 @@ export function FriendlyAddFlow({
             />
             {intent === 'spend' ? (
               <CategorySuggestionHint
-                note={note}
+                hint={hint}
                 selectedSubId={categoryId}
-                concepts={spendConcepts}
                 onApply={(nextConceptId, subId) => {
                   setConceptId(nextConceptId);
                   setCategoryId(subId);

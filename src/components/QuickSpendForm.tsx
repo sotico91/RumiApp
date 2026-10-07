@@ -13,6 +13,7 @@ import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { formatAmountTyping } from '@/src/utils/money';
 import { useSettings } from '@/src/hooks/useSettings';
+import { useCategorySuggestion } from '@/src/hooks/useCategorySuggestion';
 import { usePickableSpendConcepts } from '@/src/hooks/useSpendConcepts';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
@@ -94,10 +95,19 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
 
   const [amount, setAmount] = useState('');
   const [pickedCategoryId, setCategoryId] = useState<string | null>(null);
-  // With history, preselect the last-used subcategory; on a fresh install let the user pick.
-  const categoryId = pickedCategoryId ?? (hasRecent ? categoryChips[0]?.id ?? null : null);
-  const [pickedAccountId, setPickedAccountId] = useState<string | null>(null);
   const [note, setNote] = useState('');
+  // Until the user picks one, the description decides: an existing subcategory,
+  // or one created on save ("fútbol" → Deporte · Fútbol).
+  const hint = useCategorySuggestion(note, spendConcepts);
+  const autoSubId =
+    !pickedCategoryId && hint.suggestion && !hint.suggestion.create ? hint.suggestion.subId : null;
+  const autoCreate = !pickedCategoryId && !!hint.suggestion?.create;
+  // Otherwise, with history, preselect the last-used subcategory; on a fresh install let the user pick.
+  const categoryId =
+    pickedCategoryId ??
+    autoSubId ??
+    (autoCreate ? null : hasRecent ? categoryChips[0]?.id ?? null : null);
+  const [pickedAccountId, setPickedAccountId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const savingLock = useRef(false);
 
@@ -132,26 +142,29 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
   }, [categoryId, categoryChips, spendConcepts]);
 
   const parsed = parse(amount);
-  const canSave = !!parsed && !!categoryId && !!accountId && !saving;
+  const canSave = !!parsed && (!!categoryId || autoCreate) && !!accountId && !saving;
 
   async function save() {
-    if (savingLock.current || !parsed || !categoryId || !accountId) return;
+    if (savingLock.current || !parsed || (!categoryId && !autoCreate) || !accountId) return;
     savingLock.current = true;
     setSaving(true);
     try {
+      // A subcategory the description asked for is created only now, on save.
+      const subId = autoCreate ? (await hint.resolve())?.subId : categoryId;
+      if (!subId) throw new Error('no category');
       const beforeExpense = totalForPeriod('hoy', 'expense');
       const isCard = !!debtIdFromPayAccountId(accountId);
       await addTransaction({
         type: 'expense',
         amount: parsed,
-        categoryId,
+        categoryId: subId,
         paymentMethod: isCard
           ? 'credit'
           : paymentMethodForAccount(accounts.find((a) => a.id === accountId), 'debit'),
         accountId,
         note,
       });
-      await updateQuickTemplate({ categoryId, amount: parsed, note: note.trim() || undefined });
+      await updateQuickTemplate({ categoryId: subId, amount: parsed, note: note.trim() || undefined });
 
       if (settings.notifyOnExpense) {
         const copy = movementNotifyCopy({
@@ -161,13 +174,13 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
           transactions,
           spendConcepts,
           accounts,
-          categoryId,
+          categoryId: subId,
           accountId,
           note,
         });
         void notifyExpenseRegistered(copy.title, copy.body).catch(() => undefined);
       }
-      onSaved?.({ kind: 'expense', amount: beforeExpense + parsed, added: parsed, categoryId });
+      onSaved?.({ kind: 'expense', amount: beforeExpense + parsed, added: parsed, categoryId: subId });
     } catch {
       appAlert(t('add.invalidTitle'), t('add.saveError'), undefined, { tone: 'warning' });
     } finally {
@@ -282,9 +295,9 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
           returnKeyType="done"
         />
         <CategorySuggestionHint
-          note={note}
+          hint={hint}
           selectedSubId={categoryId}
-          concepts={spendConcepts}
+          auto={!pickedCategoryId}
           onApply={(_conceptId, subId) => setCategoryId(subId)}
         />
 

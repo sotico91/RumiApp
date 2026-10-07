@@ -31,6 +31,7 @@ import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { formatAmountTyping } from '@/src/utils/money';
 import { useSettings } from '@/src/hooks/useSettings';
+import { useCategorySuggestion } from '@/src/hooks/useCategorySuggestion';
 import { usePickableSpendConcepts } from '@/src/hooks/useSpendConcepts';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
@@ -133,6 +134,7 @@ export function ExpenseForm({
     defaultTransferDestinationId(accounts)
   );
   const [note, setNote] = useState(initialNote ?? '');
+  const hint = useCategorySuggestion(note, spendConcepts);
   const [saving, setSaving] = useState(false);
   const savingLock = useRef(false);
 
@@ -605,9 +607,8 @@ export function ExpenseForm({
       />
       {type === 'expense' ? (
         <CategorySuggestionHint
-          note={note}
+          hint={hint}
           selectedSubId={categoryId}
-          concepts={spendConcepts}
           onApply={(nextConceptId, subId) => {
             setConceptId(nextConceptId);
             setCategoryId(subId);

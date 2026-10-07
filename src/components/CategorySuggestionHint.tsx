@@ -1,65 +1,90 @@
-import { useMemo } from 'react';
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { ConceptIcon } from '@/src/components/ConceptIcon';
 import { SelectPressable } from '@/src/components/SelectPressable';
-import { isGeneralSubName, subColor } from '@/src/data/spendConcepts';
-import { useFinance } from '@/src/hooks/useFinance';
+import type { CategorySuggestionState } from '@/src/hooks/useCategorySuggestion';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { palette } from '@/src/theme/colors';
-import type { SpendConcept } from '@/src/types/settings';
-import { buildNoteHistory, suggestCategory } from '@/src/utils/suggestCategory';
 
 type Props = {
-  note: string;
+  hint: CategorySuggestionState;
   /** Subcategory picked right now. */
   selectedSubId: string | null | undefined;
-  concepts: SpendConcept[];
+  /**
+   * The form follows the suggestion on its own (quick add before the user
+   * picks): says where it went, or what it will create on save.
+   */
+  auto?: boolean;
   onApply: (conceptId: string, subId: string) => void;
 };
 
 /**
  * Under the description: where this spend seems to belong. Confirms when the
- * pick already fits; otherwise offers the subcategory with one tap. Ignoring
- * it simply saves the spend as picked.
+ * pick already fits; otherwise offers the subcategory with one tap, creating
+ * it when the user has none for that kind of spend. Ignoring it saves as picked.
  */
-export function CategorySuggestionHint({ note, selectedSubId, concepts, onApply }: Props) {
+export function CategorySuggestionHint({ hint, selectedSubId, auto, onApply }: Props) {
   const { t } = useLanguage();
-  const { transactions } = useFinance();
-  const history = useMemo(() => buildNoteHistory(transactions), [transactions]);
-  const suggestion = useMemo(
-    () => suggestCategory(note, concepts, history),
-    [note, concepts, history]
+  const [creating, setCreating] = useState(false);
+  const { suggestion, label, concept, isAnt } = hint;
+  if (!suggestion || !label) return null;
+
+  const ant = isAnt ? ` · ${t('plan.antBadge')}` : '';
+  const icon = (
+    <ConceptIcon icon={concept?.icon} color={concept?.color ?? palette.inkMuted} size={14} variant="bubble" />
   );
 
-  if (!suggestion) return null;
-  const concept = concepts.find((c) => c.id === suggestion.conceptId);
-  const sub = concept?.subs.find((s) => s.id === suggestion.subId);
-  if (!concept || !sub) return null;
-
-  const label = isGeneralSubName(sub.name) ? concept.name : `${concept.name} · ${sub.name}`;
-
-  if (suggestion.subId === selectedSubId) {
+  if (!suggestion.create && suggestion.subId === selectedSubId) {
     return (
       <Text style={styles.fits} accessibilityLiveRegion="polite">
-        {t('suggest.fits', { category: label })}
+        {t(auto ? 'suggest.placed' : 'suggest.fits', { category: label })}
+        {ant}
       </Text>
     );
   }
 
+  if (suggestion.create && auto) {
+    return (
+      <View style={styles.row} accessibilityLiveRegion="polite">
+        {icon}
+        <Text style={styles.text}>
+          {t('suggest.willCreate', { category: label })}
+          {ant}
+        </Text>
+      </View>
+    );
+  }
+
+  async function apply() {
+    if (creating) return;
+    setCreating(true);
+    try {
+      const ids = await hint.resolve();
+      if (ids) onApply(ids.conceptId, ids.subId);
+    } finally {
+      setCreating(false);
+    }
+  }
+
   return (
     <View style={styles.row} accessibilityLiveRegion="polite">
-      <ConceptIcon icon={concept.icon} color={subColor(concept, sub)} size={14} variant="bubble" />
+      {icon}
       <Text style={styles.text}>
-        {t('suggest.seems', { category: label })}
-        {sub.isAnt ? ` · ${t('plan.antBadge')}` : ''}
+        {t(suggestion.create ? 'suggest.new' : 'suggest.seems', { category: label })}
+        {ant}
       </Text>
       <SelectPressable
-        onPress={() => onApply(concept.id, sub.id)}
-        accessibilityLabel={t('suggest.useA11y', { category: label })}
+        onPress={() => void apply()}
+        disabled={creating}
+        accessibilityLabel={t(suggestion.create ? 'suggest.createA11y' : 'suggest.useA11y', {
+          category: label,
+        })}
         hitSlop={8}
         style={styles.useBtn}>
-        <Text style={styles.useText}>{t('suggest.use')}</Text>
+        <Text style={styles.useText}>
+          {t(suggestion.create ? 'suggest.create' : 'suggest.use')}
+        </Text>
       </SelectPressable>
     </View>
   );

@@ -1,92 +1,224 @@
 import { CREDITS_CONCEPT_ID, isGeneralSubName } from '@/src/data/spendConcepts';
 import type { Transaction } from '@/src/types/finance';
-import type { SpendConcept, SpendSub } from '@/src/types/settings';
+import type { SpendConcept } from '@/src/types/settings';
 import { normalize, tokenize } from '@/src/utils/ask/text';
+
+/** Category a new spend kind creates when the user has none for it (copy: `newCat.<id>`). */
+export type NewConceptId =
+  | 'food'
+  | 'transport'
+  | 'sport'
+  | 'leisure'
+  | 'health'
+  | 'bills'
+  | 'housing'
+  | 'education'
+  | 'shopping'
+  | 'pets'
+  | 'care';
+
+/** Subcategory a spend kind creates (copy: `newSub.<id>`). */
+export type NewSubId =
+  | 'meals'
+  | 'groceries'
+  | 'coffee'
+  | 'snacks'
+  | 'delivery'
+  | 'transit'
+  | 'rides'
+  | 'parking'
+  | 'fuel'
+  | 'football'
+  | 'gym'
+  | 'otherSport'
+  | 'outings'
+  | 'subscriptions'
+  | 'health'
+  | 'power'
+  | 'water'
+  | 'gas'
+  | 'internet'
+  | 'phone'
+  | 'rent'
+  | 'courses'
+  | 'clothes'
+  | 'online'
+  | 'pets'
+  | 'hair';
 
 /**
  * Where a spend probably belongs, read from its description ("almuerzo",
- * "cancha fútbol", "uber"). Only points at subcategories the user already has;
- * no match → no suggestion, and the spend is saved as picked.
+ * "cancha fútbol", "uber"). Either a subcategory the user already has, or
+ * one to create (`create`) when nothing fits that kind of spend yet.
  */
-export type CategorySuggestion = {
-  conceptId: string;
-  subId: string;
-  /** name = a subcategory is named in the note; history = past spends; keyword = common words. */
-  source: 'name' | 'history' | 'keyword';
+export type CategorySuggestion =
+  | {
+      conceptId: string;
+      subId: string;
+      /** name = a subcategory is named in the note; history = past spends; keyword = common words. */
+      source: 'name' | 'history' | 'keyword';
+      create?: undefined;
+    }
+  | {
+      source: 'keyword';
+      create: {
+        /** Existing category to add the subcategory to; absent = create the category too. */
+        conceptId?: string;
+        concept: NewConceptId;
+        sub: NewSubId;
+        isAnt: boolean;
+      };
+      conceptId?: undefined;
+      subId?: undefined;
+    };
+
+/**
+ * A kind of spend people describe. `words` include the names Rumi gives what
+ * it creates, so the next spend finds that subcategory instead of creating it again.
+ */
+type SpendKind = {
+  words: string[];
+  /** Words that find the user's own category for it, in order of preference. */
+  concept: string[];
+  create: { concept: NewConceptId; sub: NewSubId; isAnt?: boolean };
 };
 
-/** Kinds of spend people describe; `concept` words find the user's category for them. */
-type SpendKind = { words: string[]; concept: string[] };
+const FOOD = ['alimentacion', 'comida', 'comidas', 'food', 'restaurantes', 'mercado'];
+const TRANSPORT = ['transporte', 'transport', 'movilidad', 'carro', 'vehiculo'];
+const SPORT = ['deporte', 'deportes', 'sport', 'sports'];
+const LEISURE = ['ocio', 'entretenimiento', 'diversion', 'salidas', 'recreacion', 'leisure', 'entertainment', 'fun'];
+const BILLS = ['recibos', 'servicios', 'bills', 'utilities'];
 
-const KINDS: SpendKind[] = [
+export const SPEND_KINDS: SpendKind[] = [
   {
-    // Meals out.
-    words: ['almuerzo', 'almuerzos', 'desayuno', 'desayunos', 'cena', 'cenas', 'comida', 'corrientazo', 'ejecutivo', 'restaurante', 'restaurant', 'pizza', 'hamburguesa', 'empanada', 'empanadas', 'arepa', 'arepas', 'pollo', 'sushi', 'lunch', 'breakfast', 'dinner', 'brunch', 'meal'],
-    concept: ['alimentacion', 'comida', 'comidas', 'food', 'restaurantes', 'mercado'],
+    words: ['almuerzo', 'almuerzos', 'desayuno', 'desayunos', 'cena', 'cenas', 'comida', 'comidas', 'corrientazo', 'ejecutivo', 'restaurante', 'restaurant', 'pizza', 'hamburguesa', 'empanada', 'empanadas', 'arepa', 'arepas', 'pollo', 'sushi', 'lunch', 'breakfast', 'dinner', 'brunch', 'meal', 'meals'],
+    concept: FOOD,
+    create: { concept: 'food', sub: 'meals' },
   },
   {
-    words: ['mercado', 'supermercado', 'tienda', 'fruver', 'verduras', 'frutas', 'carne', 'huevos', 'leche', 'pan', 'panaderia', 'd1', 'ara', 'exito', 'carulla', 'olimpica', 'jumbo', 'groceries', 'grocery', 'supermarket', 'bakery'],
-    concept: ['alimentacion', 'comida', 'mercado', 'food', 'hogar'],
+    words: ['mercado', 'supermercado', 'tienda', 'fruver', 'verduras', 'frutas', 'carne', 'huevos', 'leche', 'pan', 'panaderia', 'ara', 'exito', 'carulla', 'olimpica', 'jumbo', 'groceries', 'grocery', 'supermarket', 'bakery'],
+    concept: [...FOOD, 'hogar'],
+    create: { concept: 'food', sub: 'groceries' },
   },
   {
     words: ['cafe', 'tinto', 'capuchino', 'latte', 'starbucks', 'coffee'],
-    concept: ['alimentacion', 'comida', 'food', 'antojos'],
+    concept: [...FOOD, 'antojos'],
+    create: { concept: 'food', sub: 'coffee', isAnt: true },
   },
   {
     words: ['mecato', 'snack', 'snacks', 'onces', 'antojo', 'antojos', 'gaseosa', 'dulce', 'dulces', 'helado', 'galletas', 'chocolatina', 'candy', 'soda'],
-    concept: ['antojos', 'alimentacion', 'comida', 'food'],
+    concept: ['antojos', ...FOOD],
+    create: { concept: 'food', sub: 'snacks', isAnt: true },
   },
   {
     words: ['domicilio', 'domicilios', 'rappi', 'ifood', 'delivery', 'didi food'],
-    concept: ['alimentacion', 'comida', 'food', 'domicilios'],
+    concept: [...FOOD, 'domicilios'],
+    create: { concept: 'food', sub: 'delivery', isAnt: true },
   },
   {
-    words: ['bus', 'buseta', 'transmilenio', 'metro', 'sitp', 'pasaje', 'pasajes', 'taxi', 'uber', 'didi', 'cabify', 'indriver', 'indrive', 'picap', 'moto', 'peaje', 'peajes', 'parqueadero', 'parqueo', 'ride', 'parking', 'toll', 'train', 'subway'],
-    concept: ['transporte', 'transport', 'movilidad', 'carro', 'vehiculo'],
+    words: ['bus', 'buseta', 'transmilenio', 'metro', 'sitp', 'pasaje', 'pasajes', 'train', 'subway', 'transit'],
+    concept: TRANSPORT,
+    create: { concept: 'transport', sub: 'transit' },
+  },
+  {
+    words: ['taxi', 'taxis', 'uber', 'didi', 'cabify', 'indriver', 'indrive', 'picap', 'ride', 'rides'],
+    concept: TRANSPORT,
+    create: { concept: 'transport', sub: 'rides', isAnt: true },
+  },
+  {
+    words: ['peaje', 'peajes', 'parqueadero', 'parqueo', 'parking', 'toll', 'tolls'],
+    concept: TRANSPORT,
+    create: { concept: 'transport', sub: 'parking' },
   },
   {
     words: ['gasolina', 'tanqueo', 'tanquear', 'combustible', 'acpm', 'diesel', 'gas station', 'fuel', 'petrol'],
-    concept: ['transporte', 'transport', 'movilidad', 'carro', 'vehiculo'],
+    concept: TRANSPORT,
+    create: { concept: 'transport', sub: 'fuel' },
   },
   {
-    words: ['futbol', 'cancha', 'partido', 'microfutbol', 'deporte', 'gimnasio', 'gym', 'natacion', 'piscina', 'tenis', 'padel', 'bici', 'ciclismo', 'crossfit', 'yoga', 'soccer', 'football', 'sport', 'sports'],
-    concept: ['deporte', 'deportes', 'ocio', 'entretenimiento', 'recreacion', 'diversion', 'salud', 'leisure', 'entertainment', 'fun'],
+    words: ['futbol', 'cancha', 'partido', 'microfutbol', 'soccer', 'football'],
+    concept: [...SPORT, ...LEISURE],
+    create: { concept: 'sport', sub: 'football' },
   },
   {
-    words: ['cine', 'pelicula', 'concierto', 'teatro', 'rumba', 'bar', 'cerveza', 'cervezas', 'trago', 'tragos', 'fiesta', 'discoteca', 'juego', 'videojuego', 'movie', 'cinema', 'concert', 'beer', 'drinks', 'party'],
-    concept: ['entretenimiento', 'ocio', 'diversion', 'salidas', 'recreacion', 'entertainment', 'leisure', 'fun'],
+    words: ['gimnasio', 'gym', 'crossfit', 'yoga', 'natacion', 'piscina'],
+    concept: [...SPORT, 'salud', 'health', ...LEISURE],
+    create: { concept: 'sport', sub: 'gym' },
   },
   {
-    words: ['farmacia', 'drogueria', 'medicamento', 'medicamentos', 'medicina', 'medico', 'cita', 'odontologo', 'dentista', 'examen', 'examenes', 'laboratorio', 'eps', 'pharmacy', 'doctor', 'dentist', 'medicine'],
+    words: ['deporte', 'deportes', 'tenis', 'padel', 'bici', 'ciclismo', 'sport', 'sports'],
+    concept: [...SPORT, ...LEISURE],
+    create: { concept: 'sport', sub: 'otherSport' },
+  },
+  {
+    words: ['cine', 'pelicula', 'concierto', 'teatro', 'rumba', 'bar', 'cerveza', 'cervezas', 'trago', 'tragos', 'fiesta', 'discoteca', 'videojuego', 'salidas', 'movie', 'cinema', 'concert', 'beer', 'drinks', 'party', 'going out'],
+    concept: LEISURE,
+    create: { concept: 'leisure', sub: 'outings' },
+  },
+  {
+    words: ['netflix', 'spotify', 'disney', 'youtube', 'prime', 'hbo', 'icloud', 'chatgpt', 'suscripcion', 'suscripciones', 'subscription', 'subscriptions'],
+    concept: ['suscripciones', 'subscriptions', ...LEISURE, ...BILLS],
+    create: { concept: 'leisure', sub: 'subscriptions', isAnt: true },
+  },
+  {
+    words: ['farmacia', 'drogueria', 'medicamento', 'medicamentos', 'medicina', 'medico', 'cita medica', 'odontologo', 'dentista', 'examen', 'examenes', 'laboratorio', 'eps', 'pharmacy', 'doctor', 'dentist', 'medicine'],
     concept: ['salud', 'health', 'medico'],
+    create: { concept: 'health', sub: 'health' },
   },
   {
-    words: ['luz', 'energia', 'agua', 'acueducto', 'gas', 'internet', 'wifi', 'celular', 'recarga', 'telefono', 'electricity', 'water', 'phone'],
-    concept: ['recibos', 'servicios', 'bills', 'utilities', 'hogar', 'vivienda'],
+    words: ['luz', 'energia', 'electricity', 'power'],
+    concept: [...BILLS, 'hogar', 'vivienda'],
+    create: { concept: 'bills', sub: 'power' },
+  },
+  {
+    words: ['agua', 'acueducto', 'water'],
+    concept: [...BILLS, 'hogar', 'vivienda'],
+    create: { concept: 'bills', sub: 'water' },
+  },
+  {
+    words: ['gas', 'gas natural'],
+    concept: [...BILLS, 'hogar', 'vivienda'],
+    create: { concept: 'bills', sub: 'gas' },
+  },
+  {
+    words: ['internet', 'wifi'],
+    concept: [...BILLS, 'hogar', 'vivienda'],
+    create: { concept: 'bills', sub: 'internet' },
+  },
+  {
+    words: ['celular', 'recarga', 'telefono', 'phone'],
+    concept: [...BILLS, 'hogar', 'vivienda'],
+    create: { concept: 'bills', sub: 'phone' },
   },
   {
     words: ['arriendo', 'alquiler', 'administracion', 'renta', 'rent'],
     concept: ['vivienda', 'hogar', 'casa', 'housing', 'home'],
+    create: { concept: 'housing', sub: 'rent' },
   },
   {
-    words: ['netflix', 'spotify', 'disney', 'youtube', 'prime', 'hbo', 'icloud', 'chatgpt', 'suscripcion', 'subscription'],
-    concept: ['suscripciones', 'subscriptions', 'entretenimiento', 'recibos', 'ocio'],
-  },
-  {
-    words: ['curso', 'colegio', 'universidad', 'matricula', 'libro', 'libros', 'pension', 'clase', 'clases', 'course', 'school', 'tuition', 'book'],
+    words: ['curso', 'cursos', 'colegio', 'universidad', 'matricula', 'libro', 'libros', 'pension', 'clase', 'clases', 'course', 'courses', 'school', 'tuition', 'book'],
     concept: ['educacion', 'estudio', 'estudios', 'education'],
+    create: { concept: 'education', sub: 'courses' },
   },
   {
-    words: ['ropa', 'zapatos', 'tenis nuevos', 'camisa', 'pantalon', 'amazon', 'mercadolibre', 'temu', 'shein', 'clothes', 'shoes'],
+    words: ['ropa', 'zapatos', 'camisa', 'pantalon', 'clothes', 'shoes'],
     concept: ['compras', 'ropa', 'shopping'],
+    create: { concept: 'shopping', sub: 'clothes' },
   },
   {
-    words: ['veterinario', 'veterinaria', 'concentrado', 'mascota', 'perro', 'gato', 'vet', 'pet', 'dog', 'cat'],
+    words: ['amazon', 'mercadolibre', 'temu', 'shein', 'online'],
+    concept: ['compras', 'shopping'],
+    create: { concept: 'shopping', sub: 'online' },
+  },
+  {
+    words: ['veterinario', 'veterinaria', 'concentrado', 'mascota', 'mascotas', 'perro', 'gato', 'vet', 'pet', 'pets', 'dog', 'cat'],
     concept: ['mascotas', 'mascota', 'pets', 'pet'],
+    create: { concept: 'pets', sub: 'pets' },
   },
   {
-    words: ['peluqueria', 'barberia', 'corte', 'unas', 'manicure', 'haircut', 'barber'],
+    words: ['peluqueria', 'barberia', 'corte de pelo', 'manicure', 'haircut', 'barber', 'hair'],
     concept: ['cuidado personal', 'personal', 'belleza', 'care'],
+    create: { concept: 'care', sub: 'hair' },
   },
 ];
 
@@ -104,15 +236,20 @@ export function noteWords(note: string): string[] {
 
 function wordMatches(a: string, b: string): boolean {
   if (a === b) return true;
-  // Plural / partial: "almuerzos" ~ "almuerzo", "futbolito" ~ "futbol".
-  return a.length >= 4 && b.length >= 4 && (a.startsWith(b) || b.startsWith(a));
+  // Plural / small endings: "almuerzos" ~ "almuerzo", "futbolito" ~ "futbol";
+  // not another word that only starts the same ("mercadolibre" is not "mercado").
+  if (a.length < 4 || b.length < 4 || Math.abs(a.length - b.length) > 4) return false;
+  return a.startsWith(b) || b.startsWith(a);
 }
 
-/** Does the text (a name or the note) contain this word or phrase? */
-function hasPhrase(words: string[], text: string, phrase: string): boolean {
+/** Position of the first word of `words` that names this phrase, or -1. */
+function phraseAt(words: string[], text: string, phrase: string): number {
   const p = normalize(phrase);
-  if (p.includes(' ')) return normalize(text).includes(p);
-  return words.some((w) => wordMatches(w, p));
+  if (p.includes(' ')) {
+    if (!normalize(text).includes(p)) return -1;
+    return words.findIndex((w) => p.startsWith(w));
+  }
+  return words.findIndex((w) => wordMatches(w, p));
 }
 
 function suggestible(concepts: SpendConcept[]): SpendConcept[] {
@@ -180,78 +317,50 @@ function byHistory(
   return { s: { conceptId: live.get(subId)!, subId, source: 'history' }, votes };
 }
 
-/** Best subcategory inside a category for these words. */
-function subInside(
-  concept: SpendConcept,
-  words: string[],
-  kind: SpendKind,
-  history: NoteHistory
-): SpendSub {
-  const named = concept.subs.find((sub) => {
-    const n = noteWords(sub.name);
-    return n.length > 0 && n.some((nw) => kind.words.some((k) => wordMatches(nw, normalize(k))));
-  });
-  if (named) return named;
-  const general = concept.subs.find((sub) => isGeneralSubName(sub.name));
-  if (general) return general;
-  // The sub of this category the user picks most for these words, else the first.
-  let best: { sub: SpendSub; n: number } | null = null;
-  for (const sub of concept.subs) {
-    let n = 0;
-    for (const w of words) n += history.get(w)?.get(sub.id) ?? 0;
-    if (n > 0 && (!best || n > best.n)) best = { sub, n };
-  }
-  return best?.sub ?? concept.subs[0];
+function subFitsKind(subName: string, kind: SpendKind): boolean {
+  const n = noteWords(subName);
+  return n.length > 0 && n.some((nw) => kind.words.some((k) => wordMatches(nw, normalize(k))));
 }
 
-/** Common words ("almuerzo", "uber", "cancha") → the user's category for that kind of spend. */
-function byKeyword(
-  words: string[],
-  note: string,
-  concepts: SpendConcept[],
-  history: NoteHistory
-): CategorySuggestion | null {
+/**
+ * Common words ("almuerzo", "uber", "cancha") → the user's subcategory for that
+ * kind of spend; if there is none, the one to create (in their category for it
+ * when they have one).
+ */
+function byKeyword(words: string[], note: string, concepts: SpendConcept[]): CategorySuggestion | null {
   // The kind named first wins: "café con pan" is a coffee, not groceries.
-  const firstAt = (kind: SpendKind): number => {
+  const ranked = SPEND_KINDS.map((kind) => {
     let at = Infinity;
     for (const k of kind.words) {
-      const p = normalize(k);
-      const i = p.includes(' ')
-        ? (normalize(note).includes(p) ? words.findIndex((w) => p.startsWith(w)) : -1)
-        : words.findIndex((w) => wordMatches(w, p));
+      const i = phraseAt(words, note, k);
       if (i >= 0) at = Math.min(at, i);
     }
-    return at;
-  };
-  const kinds = KINDS.map((kind) => ({ kind, at: firstAt(kind) }))
+    return { kind, at };
+  })
     .filter((k) => k.at < Infinity)
-    .sort((a, b) => a.at - b.at)
-    .map((k) => k.kind);
+    .sort((a, b) => a.at - b.at);
+  const first = ranked[0]?.kind;
+  if (!first) return null;
 
-  for (const kind of kinds) {
-
-    // A subcategory anywhere named like this kind of spend ("Almuerzos", "Fútbol").
-    for (const concept of concepts) {
-      for (const sub of concept.subs) {
-        const n = noteWords(sub.name);
-        if (n.length > 0 && n.some((nw) => kind.words.some((k) => wordMatches(nw, normalize(k))))) {
-          return { conceptId: concept.id, subId: sub.id, source: 'keyword' };
-        }
-      }
-    }
-    // Otherwise the category for it, in the kind's order of preference.
-    for (const name of kind.concept) {
-      const concept = concepts.find((c) => {
-        const cw = noteWords(c.name);
-        return hasPhrase(cw, c.name, name);
-      });
-      if (concept) {
-        const sub = subInside(concept, words, kind, history);
+  for (const concept of concepts) {
+    for (const sub of concept.subs) {
+      if (subFitsKind(sub.name, first)) {
         return { conceptId: concept.id, subId: sub.id, source: 'keyword' };
       }
     }
   }
-  return null;
+  const home = first.concept
+    .map((name) => concepts.find((c) => phraseAt(noteWords(c.name), c.name, name) >= 0))
+    .find(Boolean);
+  return {
+    source: 'keyword',
+    create: {
+      conceptId: home?.id,
+      concept: first.create.concept,
+      sub: first.create.sub,
+      isAnt: first.create.isAnt === true,
+    },
+  };
 }
 
 export function suggestCategory(
@@ -262,12 +371,13 @@ export function suggestCategory(
   const words = noteWords(note);
   if (words.length === 0) return null;
   const concepts = suggestible(spendConcepts);
-  if (concepts.length === 0) return null;
 
   const named = byName(words, concepts);
   if (named) return named;
   // What the user did twice or more beats generic words; once, it only fills a gap.
   const past = byHistory(words, concepts, history);
   if (past && past.votes >= 2) return past.s;
-  return byKeyword(words, note, concepts, history) ?? past?.s ?? null;
+  const keyword = byKeyword(words, note, concepts);
+  if (keyword?.create && past) return past.s;
+  return keyword ?? past?.s ?? null;
 }
