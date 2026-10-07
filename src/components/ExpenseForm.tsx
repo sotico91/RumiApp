@@ -12,6 +12,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 
+import { NoMoneyHint } from '@/src/components/NoMoneyHint';
 import { CategorySuggestionHint } from '@/src/components/CategorySuggestionHint';
 import { CategoryChip } from '@/src/components/CategoryChip';
 import { InlineSubAdd } from '@/src/components/InlineSubAdd';
@@ -473,7 +474,10 @@ export function ExpenseForm({
                 ? t('flow.whichAccountSpend')
                 : t('add.account')}
       </Text>
-      {accountChoices.length === 0 ? (
+      {accountChoices.length === 0 &&
+      (type === 'debt_payment' || (type === 'expense' && method !== 'credit')) ? (
+        <NoMoneyHint />
+      ) : accountChoices.length === 0 ? (
         <Text style={styles.preview}>{t('flow.payAccountsEmpty')}</Text>
       ) : (
         <AccountChoiceChips

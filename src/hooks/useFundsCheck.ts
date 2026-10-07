@@ -6,7 +6,7 @@ import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TransactionType } from '@/src/types/finance';
-import { fundsShortfall, spendableTotal } from '@/src/utils/accounts';
+import { accountDisplayName, fundsShortfall, spendableTotal } from '@/src/utils/accounts';
 
 /**
  * Before a spend or debt payment from your own money: is there money it can
@@ -22,12 +22,19 @@ export function useFundsCheck() {
   return useCallback(
     (input: { type: TransactionType; amount: number; accountId?: string }): boolean => {
       if (fundsShortfall(accounts, input) <= 0) return true;
-      const available = spendableTotal(accounts);
+      const account = accounts.find((a) => a.id === input.accountId);
+      const available = account ? Math.max(0, account.balance) : 0;
       appAlert(
         t('funds.title'),
-        available > 0
-          ? t('funds.bodyShort', { available: format(available), amount: format(input.amount) })
-          : t('funds.bodyEmpty'),
+        account && available > 0
+          ? t('funds.bodyShort', {
+              account: accountDisplayName(account, t),
+              available: format(available),
+              amount: format(input.amount),
+            })
+          : spendableTotal(accounts) > 0
+            ? t('funds.bodyOther')
+            : t('funds.bodyEmpty'),
         [
           { text: t('funds.later'), style: 'cancel' },
           {

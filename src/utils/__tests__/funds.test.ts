@@ -1,5 +1,10 @@
 import type { Account } from '@/src/types/finance';
-import { fundsShortfall, spendableTotal } from '@/src/utils/accounts';
+import {
+  accountsForExpenseSource,
+  fundsShortfall,
+  liquidPocketsForPay,
+  spendableTotal,
+} from '@/src/utils/accounts';
 import { payAccountIdForDebt } from '@/src/utils/debts';
 
 const accounts = (cash: number, bank = 0, savings = 0): Account[] => [
@@ -15,10 +20,11 @@ describe('fundsShortfall', () => {
     expect(fundsShortfall(accounts(0), { type: 'expense', amount: 15000, accountId: 'cash' })).toBe(15000);
   });
 
-  it('counts every pocket, not just the one picked (they cover each other)', () => {
+  it('counts only the pocket the spend comes from: it can not go below zero', () => {
     const list = accounts(5000, 20000, 0);
-    expect(fundsShortfall(list, { type: 'expense', amount: 25000, accountId: 'cash' })).toBe(0);
-    expect(fundsShortfall(list, { type: 'expense', amount: 30000, accountId: 'cash' })).toBe(5000);
+    expect(fundsShortfall(list, { type: 'expense', amount: 5000, accountId: 'cash' })).toBe(0);
+    expect(fundsShortfall(list, { type: 'expense', amount: 8000, accountId: 'cash' })).toBe(3000);
+    expect(fundsShortfall(list, { type: 'expense', amount: 8000, accountId: 'bank-main' })).toBe(0);
   });
 
   it('never counts investments as money to spend', () => {
@@ -44,5 +50,18 @@ describe('fundsShortfall', () => {
     const list = accounts(10.5);
     expect(fundsShortfall(list, { type: 'expense', amount: 10.5, accountId: 'cash' })).toBe(0);
     expect(fundsShortfall(list, { type: 'expense', amount: 12.25, accountId: 'cash' })).toBe(1.75);
+  });
+});
+
+describe('pockets offered for a spend', () => {
+  it('leaves out pockets with no money', () => {
+    const ids = liquidPocketsForPay(accounts(0, 20000, 0)).map((a) => a.id);
+    expect(ids).toEqual(['bank-main']);
+    expect(accountsForExpenseSource(accounts(0, 0, 0), 'debit')).toEqual([]);
+  });
+
+  it('keeps the pocket a movement being edited already uses', () => {
+    const ids = liquidPocketsForPay(accounts(0, 20000, 0), 'cash').map((a) => a.id);
+    expect(ids).toEqual(['cash', 'bank-main']);
   });
 });

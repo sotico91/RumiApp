@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { NoMoneyHint } from '@/src/components/NoMoneyHint';
 import { CategorySuggestionHint } from '@/src/components/CategorySuggestionHint';
 import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
 import { CategorySearch, CATEGORY_SEARCH_MIN_SUBS } from '@/src/components/CategorySearch';
@@ -282,6 +283,9 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
         </View>
 
         <Text style={styles.section}>{t('quick.from')}</Text>
+        {payAccounts.every((a) => a.type === 'credit') ? (
+          <NoMoneyHint cardsToo={payAccounts.length > 0} />
+        ) : null}
         <AccountChoiceChips
           accounts={payAccounts}
           selectedId={accountId}

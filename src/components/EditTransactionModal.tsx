@@ -111,8 +111,11 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
         type === 'investment' ? 'investment' : 'transfer'
       );
     }
-    if (type === 'debt_payment') return liquidPocketsForPay(accounts);
+    // The pocket this movement already uses stays listed even if it is empty now.
+    const keepId = transaction?.accountId;
+    if (type === 'debt_payment') return liquidPocketsForPay(accounts, keepId);
     return accountsForExpenseSource(accounts, method, {
+      keepId,
       debts,
       debtLabel: (debt) =>
         debt.nameKey
@@ -331,7 +334,7 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
                     }
                     setMethod('debit');
                     const nextId = firstAccountId(
-                      liquidPocketsForPay(accounts),
+                      liquidPocketsForPay(accounts, transaction?.accountId),
                       accountId
                     );
                     if (nextId) setAccountId(nextId);

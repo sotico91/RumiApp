@@ -34,6 +34,7 @@ import { incomeDestinationAccounts } from '@/src/utils/netWorth';
 import { notifyExpenseRegistered } from '@/src/utils/notifications';
 import { movementNotifyCopy } from '@/src/utils/movementNotify';
 import { tapFeedback } from '@/src/utils/selectFeedback';
+import { NoMoneyHint } from '@/src/components/NoMoneyHint';
 import { CategorySuggestionHint } from '@/src/components/CategorySuggestionHint';
 import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
 import { CategorySearch, CATEGORY_SEARCH_MIN_SUBS } from '@/src/components/CategorySearch';
@@ -927,7 +928,10 @@ export function FriendlyAddFlow({
                       ? t('flow.whichAccountSpend')
                       : t('flow.whichAccount')}
             </Text>
-            {accountChoices.length === 0 ? (
+            {accountChoices.length === 0 &&
+            (intent === 'debt' || (intent === 'spend' && method !== 'credit')) ? (
+              <NoMoneyHint />
+            ) : accountChoices.length === 0 ? (
               <Text style={styles.intentSub}>{t('flow.payAccountsEmpty')}</Text>
             ) : (
               <AccountChoiceChips

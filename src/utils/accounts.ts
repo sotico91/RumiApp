@@ -460,13 +460,18 @@ export function accountsForExpenseSource(
   opts?: {
     debts?: Debt[];
     debtLabel?: (debt: Debt) => string;
+    /** Shown even when empty: the account a movement being edited already uses. */
+    keepId?: string;
   }
 ): Account[] {
   if (method === 'credit') {
     return accountsForPaymentMethod(accounts, 'credit', opts);
   }
-  return sortAccountsByKind(accounts.filter((a) => isSpendableLiquid(a.type)));
+  return liquidPocketsForPay(accounts, opts?.keepId);
 }
+
+/** Below half a cent nothing is really there / missing (float residue). */
+const HALF_CENT_FUNDS = 0.005;
 
 /** Keep payment-method metadata aligned with the pocket the user picked. */
 export function paymentMethodForAccount(
@@ -485,8 +490,16 @@ export function firstAccountId(list: Account[], preferredId?: string): string | 
   return list[0]?.id;
 }
 
-export function liquidPocketsForPay(accounts: Account[]): Account[] {
-  return sortAccountsByKind(accounts.filter((a) => isSpendableLiquid(a.type)));
+/**
+ * Pockets a spend or payment can come from: only those with money in them.
+ * Paying from an empty one would leave it below zero.
+ */
+export function liquidPocketsForPay(accounts: Account[], keepId?: string): Account[] {
+  return sortAccountsByKind(
+    accounts.filter(
+      (a) => isSpendableLiquid(a.type) && (a.balance > HALF_CENT_FUNDS || a.id === keepId)
+    )
+  );
 }
 
 /** Cash, banks, wallets, savings, investments — not credit lines. */
@@ -558,8 +571,6 @@ export function defaultSpendAccountId(
   return resolveSpendAccountId(accounts, opts?.lastAccountId, opts?.amount);
 }
 
-/** Below half a cent nothing is really missing (float residue). */
-const HALF_CENT_FUNDS = 0.005;
 
 /** Money in cash, bank, wallets and savings together (never below zero). */
 export function spendableTotal(accounts: Account[]): number {
@@ -570,9 +581,9 @@ export function spendableTotal(accounts: Account[]): number {
 }
 
 /**
- * How much is missing to pay this from your own money: a spend or debt
- * payment bigger than everything in your pockets. Credit cards / cupos are
- * not your money, so they never fall short here.
+ * How much is missing in the pocket a spend or debt payment comes from (it
+ * would go below zero otherwise). Credit cards / cupos are not your money,
+ * so they never fall short here.
  */
 export function fundsShortfall(
   accounts: Account[],
@@ -580,8 +591,10 @@ export function fundsShortfall(
 ): number {
   if (input.type !== 'expense' && input.type !== 'debt_payment') return 0;
   if (isDebtPayAccountId(input.accountId)) return 0;
-  if (accounts.find((a) => a.id === input.accountId)?.type === 'credit') return 0;
-  const missing = roundMoney(input.amount - spendableTotal(accounts));
+  const account = accounts.find((a) => a.id === input.accountId);
+  if (account?.type === 'credit') return 0;
+  const available = account ? Math.max(0, account.balance) : 0;
+  const missing = roundMoney(input.amount - available);
   return missing > HALF_CENT_FUNDS ? missing : 0;
 }
 

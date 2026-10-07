@@ -12,12 +12,12 @@ import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { palette, radii } from '@/src/theme/colors';
+import type { TranslationKey } from '@/src/i18n/translations';
 import type { Account } from '@/src/types/finance';
 import {
   BANK_PRESETS,
   WALLET_PRESETS,
   accountDisplayName,
-  accountRoleKey,
   findBankByName,
   findInvestmentByName,
   findWalletByName,
@@ -29,74 +29,137 @@ type Props = {
   accounts: Account[];
   selectedId: string;
   onSelect: (id: string) => void;
+  /** Kept for callers; both render the same compact two-step picker. */
   variant?: 'chip' | 'card';
   allowAddWallet?: boolean;
 };
 
-/** Account picker: principal vs wallets/savings, plus one-tap extra wallets. */
+type Kind = Account['type'];
+
+/**
+ * Where the money comes from (or goes), in two small steps: first the kind
+ * (Cash, Bank, Wallets, Savings, Credit card); a kind with one account is that
+ * account, a kind with several opens one compact row to pick which.
+ */
 export function AccountChoiceChips({
   accounts,
   selectedId,
   onSelect,
-  variant = 'chip',
   allowAddWallet = true,
 }: Props) {
   const { t } = useLanguage();
   const { format } = useMoney();
-  const card = variant === 'card';
-  const ordered = sortAccountsByKind(accounts);
+  const [pickedKind, setPickedKind] = useState<Kind | null>(null);
   // Adding a wallet is rare while registering: one chip opens the form.
   const [addingWallet, setAddingWallet] = useState(false);
 
+  const groups: { kind: Kind; list: Account[] }[] = [];
+  for (const acc of sortAccountsByKind(accounts)) {
+    const group = groups.find((g) => g.kind === acc.type);
+    if (group) group.list.push(acc);
+    else groups.push({ kind: acc.type, list: [acc] });
+  }
+  if (allowAddWallet && !groups.some((g) => g.kind === 'wallet')) {
+    groups.push({ kind: 'wallet', list: [] });
+  }
+
+  const selected = accounts.find((a) => a.id === selectedId);
+  const activeKind = pickedKind ?? selected?.type ?? null;
+  const active = groups.find((g) => g.kind === activeKind);
+  // One kind only (e.g. just cards): skip the first step.
+  const single = groups.length === 1 ? groups[0] : null;
+  const second = single ?? (active && (active.list.length !== 1 || active.kind === 'wallet') ? active : null);
+
+  const amountText = (acc: Account) =>
+    acc.type === 'credit'
+      ? t('flow.cardAvailable', { amount: format(acc.balance) })
+      : format(acc.balance);
+
+  function pickKind(group: { kind: Kind; list: Account[] }) {
+    tapFeedback();
+    setPickedKind(group.kind);
+    setAddingWallet(false);
+    if (group.list.length === 1) onSelect(group.list[0].id);
+    else if (group.list.length > 1 && !group.list.some((a) => a.id === selectedId)) {
+      onSelect(group.list[0].id);
+    } else if (group.list.length === 0 && group.kind === 'wallet') {
+      setAddingWallet(true);
+    }
+  }
+
   return (
     <View style={styles.block}>
-      <View style={styles.wrap}>
-        {ordered.map((acc) => {
-          const on = acc.id === selectedId;
-          return (
+      {single ? null : (
+        <View style={styles.wrap} accessibilityRole="tablist">
+          {groups.map((group) => {
+            const on = group.kind === activeKind;
+            const only = group.list.length === 1 ? group.list[0] : null;
+            return (
+              <Pressable
+                key={group.kind}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: on }}
+                onPress={() => pickKind(group)}
+                style={[styles.chip, on && styles.chipOn]}>
+                <Text style={[styles.chipName, on && styles.onText]} numberOfLines={1}>
+                  {only
+                    ? accountDisplayName(only, t)
+                    : group.list.length === 0
+                      ? `+ ${t('accountKind.wallet_one')}`
+                      : t(`accountKind.${group.kind}` as TranslationKey)}
+                </Text>
+                <Text style={[styles.meta, on && styles.onText]} numberOfLines={1}>
+                  {only
+                    ? amountText(only)
+                    : group.list.length === 0
+                      ? t('accountKind.addHint')
+                      : t('accountKind.count', { count: group.list.length })}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
+
+      {second && second.list.length > 0 ? (
+        <View style={[styles.wrap, !single && styles.subRow]}>
+          {second.list.map((acc) => {
+            const on = acc.id === selectedId;
+            return (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ selected: on }}
+                key={acc.id}
+                onPress={() => {
+                  tapFeedback();
+                  onSelect(acc.id);
+                }}
+                style={[styles.subChip, on && styles.chipOn]}>
+                <Text style={[styles.subName, on && styles.onText]} numberOfLines={1}>
+                  {accountDisplayName(acc, t)} · {amountText(acc)}
+                </Text>
+              </Pressable>
+            );
+          })}
+          {allowAddWallet && second.kind === 'wallet' && !addingWallet ? (
             <Pressable
-              accessibilityRole="button"
-              key={acc.id}
               onPress={() => {
                 tapFeedback();
-                onSelect(acc.id);
+                setAddingWallet(true);
               }}
-              style={[
-                card ? styles.card : styles.chip,
-                on && (card ? styles.cardOn : styles.chipOn),
-              ]}>
-              <Text
-                style={[
-                  card ? styles.cardName : styles.chipName,
-                  on && styles.onText,
-                ]}>
-                {accountDisplayName(acc, t)}
-              </Text>
-              <Text style={[styles.meta, on && styles.onText]}>
-                {acc.type === 'credit'
-                  ? t('flow.cardAvailable', { amount: format(acc.balance) })
-                  : `${t(accountRoleKey(acc.type))} · ${format(acc.balance)}`}
-              </Text>
+              accessibilityRole="button"
+              style={[styles.subChip, styles.addChip]}>
+              <Text style={styles.presetText}>{t('flow.walletAddChip')}</Text>
             </Pressable>
-          );
-        })}
-        {allowAddWallet && !addingWallet ? (
-          <Pressable
-            onPress={() => {
-              tapFeedback();
-              setAddingWallet(true);
-            }}
-            accessibilityRole="button"
-            style={[card ? styles.card : styles.chip, styles.addChip]}>
-            <Text style={styles.presetText}>{t('flow.walletAddChip')}</Text>
-          </Pressable>
-        ) : null}
-      </View>
+          ) : null}
+        </View>
+      ) : null}
 
       {allowAddWallet && addingWallet ? (
         <WalletQuickAdd
           onAdded={(id) => {
             setAddingWallet(false);
+            setPickedKind('wallet');
             onSelect(id);
           }}
         />
@@ -365,25 +428,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: palette.ink,
   },
-  card: {
-    minWidth: '46%',
-    flexGrow: 1,
-    borderWidth: 1,
-    borderColor: palette.border,
-    borderRadius: radii.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    backgroundColor: '#F7FAFC',
-  },
-  cardOn: {
-    backgroundColor: palette.accent,
-    borderColor: palette.accent,
-  },
-  cardName: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 15,
-    color: palette.ink,
-  },
   meta: {
     marginTop: 2,
     fontFamily: 'DMSans_500Medium',
@@ -392,6 +436,24 @@ const styles = StyleSheet.create({
   },
   onText: {
     color: palette.white,
+  },
+  subRow: {
+    paddingLeft: 10,
+    borderLeftWidth: 2,
+    borderLeftColor: palette.border,
+  },
+  subChip: {
+    borderWidth: 1,
+    borderColor: palette.border,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    backgroundColor: '#F7FAFC',
+  },
+  subName: {
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 13,
+    color: palette.ink,
   },
   addChip: {
     borderStyle: 'dashed',
