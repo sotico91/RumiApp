@@ -109,10 +109,13 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
     !pickedCategoryId && hint.suggestion && !hint.suggestion.create ? hint.suggestion.subId : null;
   const autoCreate = !pickedCategoryId && !!hint.suggestion?.create;
   // Otherwise, with history, preselect the last-used subcategory; on a fresh install let the user pick.
+  // Once a description is typed it decides, never the last-used chip: an
+  // unrecognized one leaves the pick to the user instead of keeping "Mercado".
+  const noteTyped = note.trim().length > 0;
   const categoryId =
     pickedCategoryId ??
     autoSubId ??
-    (autoCreate ? null : hasRecent ? categoryChips[0]?.id ?? null : null);
+    (autoCreate || noteTyped ? null : hasRecent ? categoryChips[0]?.id ?? null : null);
   const [pickedAccountId, setPickedAccountId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const savingLock = useRef(false);
@@ -323,6 +326,9 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
           auto={!pickedCategoryId}
           onApply={(_conceptId, subId) => setCategoryId(subId)}
         />
+        {note.trim().length >= 4 && !pickedCategoryId && !hint.suggestion ? (
+          <Text style={styles.hint}>{t('quick.pickForNote')}</Text>
+        ) : null}
 
         <Pressable
           onPress={() => void save()}

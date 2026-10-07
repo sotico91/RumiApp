@@ -194,6 +194,15 @@ describe('suggestCategory', () => {
     expect(suggestCategory('veterinario', concepts, history)?.create?.sub).toBe('pets');
   });
 
+  it('knows a lunch while it is being typed or fixed', () => {
+    const noLunch: SpendConcept[] = [
+      { id: 'concept-alimentacion', name: 'Alimentación', color: '#E07A5F', subs: [{ id: 'sub-mercado', name: 'Mercado' }] },
+    ];
+    for (const partial of ['almu', 'almue', 'almuer', 'almuerz', 'almuerzo', 'almerzo', 'almuerso']) {
+      expect({ partial, sub: suggestCategory(partial, noLunch, empty)?.create?.sub }).toEqual({ partial, sub: 'lunch' });
+    }
+  });
+
   it('never suggests Credits for a spend', () => {
     expect(suggestCategory('tarjeta almuerzos', concepts, empty)?.conceptId).not.toBe(
       'concept-creditos'

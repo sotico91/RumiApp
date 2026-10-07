@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { isGeneralSubName } from '@/src/data/spendConcepts';
 import { useFinance } from '@/src/hooks/useFinance';
@@ -8,6 +8,7 @@ import type { TranslationKey } from '@/src/i18n/translations';
 import type { SpendConcept } from '@/src/types/settings';
 import {
   buildNoteHistory,
+  fold,
   suggestCategory,
   type CategorySuggestion,
 } from '@/src/utils/suggestCategory';
@@ -54,10 +55,24 @@ export function useCategorySuggestion(
   const { transactions } = useFinance();
   const { ensureSpendConceptSub: ensureSpendPath } = useSettings();
   const history = useMemo(() => buildNoteHistory(transactions), [transactions]);
-  const suggestion = useMemo(
+  const fresh = useMemo(
     () => suggestCategory(note, concepts, history),
     [note, concepts, history]
   );
+  // While the user fixes a typo or deletes a letter ("almuerzo" → "almuerz" →
+  // "alm"), keep the last suggestion instead of flickering to nothing.
+  const last = useRef<{ note: string; suggestion: CategorySuggestion } | null>(null);
+  const typed = fold(note);
+  const prev = last.current;
+  const suggestion =
+    fresh ??
+    (typed && prev && (prev.note.startsWith(typed) || typed.startsWith(prev.note))
+      ? prev.suggestion
+      : null);
+  useEffect(() => {
+    if (fresh) last.current = { note: typed, suggestion: fresh };
+    else if (!typed) last.current = null;
+  }, [fresh, typed]);
 
   const view = useMemo(() => describeSuggestion(suggestion, concepts, t), [suggestion, concepts, t]);
 
