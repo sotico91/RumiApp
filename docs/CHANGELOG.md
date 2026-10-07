@@ -12,6 +12,15 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-06
 
+- **Motor de sugerencias revisado con un banco de pruebas real** (`suggestCorpus.test.ts`, más de 120 descripciones en español colombiano e inglés):
+  - Más palabras, marcas y jerga: D1, Éxito, Juan Valdez, Frisby, Enel, Vanti, Claro, Smart Fit, SOAT, 4x1000, corrientazo, polas, guayos…
+  - Tipos nuevos: mantenimiento del carro, seguros, aseo y hogar, regalos, viajes, comisiones del banco, donaciones y juegos.
+  - Tolera un error de una letra ("almuerso", "gasolna") solo si ninguna palabra bien escrita coincide. "uñas" ya no se confunde con "unas".
+  - Ante un empate gana la frase más larga ("mercado libre" son compras online). Un nombre de subcategoría en la descripción solo gana si encaja con lo que describe.
+  - Palabras ambiguas con su sentido de todos los días: "tenis" son zapatos, "recarga tullave" es transporte, la empanada es un antojo.
+- **El formulario avanzado sigue la descripción** mientras no elijas a mano (como el rápido). Ya no deja marcada la primera subcategoría (por ejemplo "Mercado") cuando la sugerencia es otra.
+- **El buscador de categorías usa el motor:** "almuerzo" muestra "Sugerido: Alimentación · Almuerzo" o "+ Crear…".
+
 - **Sugerencias más cercanas a cómo piensa una persona:**
   - Una subcategoría que significa otra cosa nunca se queda con un gasto por historial: un almuerzo no va a "Mercado" (el mercado de la casa) ni a "General".
   - El historial solo cuenta en subcategorías que encajan con el gasto o en nombres propios del usuario ("Donde Rosa") (`subAccepts`).

@@ -121,6 +121,8 @@ export function ExpenseForm({
   const [conceptId, setConceptId] = useState(
     prefilledHit?.concept.id ?? spendConcepts[0]?.id ?? ''
   );
+  // Until the user picks a category, the description decides (as in quick add).
+  const [manualCategory, setManualCategory] = useState(!!initialCategoryId);
   const [categoryId, setCategoryId] = useState(
     initialCategoryId ?? spendConcepts[0]?.subs[0]?.id ?? 'otros'
   );
@@ -137,6 +139,18 @@ export function ExpenseForm({
   );
   const [note, setNote] = useState(initialNote ?? '');
   const hint = useCategorySuggestion(note, spendConcepts);
+  const autoCreate = type === 'expense' && !manualCategory && !!hint.suggestion?.create;
+  useEffect(() => {
+    const suggestion = hint.suggestion;
+    if (type !== 'expense' || manualCategory || !suggestion || suggestion.create) return;
+    setConceptId(suggestion.conceptId);
+    setCategoryId(suggestion.subId);
+  }, [hint.suggestion, manualCategory, type]);
+  // About to create a sub in an existing category: show that category open.
+  const createIn = autoCreate ? hint.suggestion?.create?.conceptId : undefined;
+  useEffect(() => {
+    if (createIn) setConceptId(createIn);
+  }, [createIn]);
   const [saving, setSaving] = useState(false);
   const savingLock = useRef(false);
   const checkFunds = useFundsCheck();
@@ -281,6 +295,8 @@ export function ExpenseForm({
     savingLock.current = true;
     setSaving(true);
     try {
+      // A subcategory the description asked for is created only now, on save.
+      const subId = autoCreate ? (await hint.resolve())?.subId ?? categoryId : categoryId;
       const beforeTodayExpense = totalForPeriod('hoy', 'expense');
       const beforeTodayIncome = totalForPeriod('hoy', 'income');
       const selectedDebt = debts.find((d) => d.id === debtId);
@@ -290,8 +306,8 @@ export function ExpenseForm({
         categoryId: isPocketMove(type)
           ? undefined
           : type === 'debt_payment'
-            ? selectedDebt?.categoryId ?? categoryId
-            : categoryId,
+            ? selectedDebt?.categoryId ?? subId
+            : subId,
         paymentMethod:
           type === 'income' || isPocketMove(type)
             ? undefined
@@ -310,7 +326,7 @@ export function ExpenseForm({
 
       if (type === 'expense') {
         await updateQuickTemplate({
-          categoryId,
+          categoryId: subId,
           amount: parsed,
           note: note.trim() || undefined,
         });
@@ -318,8 +334,8 @@ export function ExpenseForm({
 
       const resolvedCategoryId =
         type === 'debt_payment'
-          ? selectedDebt?.categoryId ?? categoryId
-          : categoryId;
+          ? selectedDebt?.categoryId ?? subId
+          : subId;
 
       if (settings.notifyOnExpense) {
         const debtName = selectedDebt
@@ -519,6 +535,7 @@ export function ExpenseForm({
             <CategorySearch
               concepts={spendConcepts}
               onPick={(pickedConceptId, subId) => {
+                setManualCategory(true);
                 setConceptId(pickedConceptId);
                 setCategoryId(subId);
               }}
@@ -531,6 +548,7 @@ export function ExpenseForm({
                 accessibilityRole="button"
                 key={concept.id}
                 onPress={() => {
+                  setManualCategory(true);
                   setConceptId(concept.id);
                   setCategoryId(concept.subs[0]?.id ?? categoryId);
                 }}
@@ -586,8 +604,12 @@ export function ExpenseForm({
                 key={category.id}
                 category={category}
                 label={subChipLabel(category.id)}
-                selected={category.id === categoryId}
-                onPress={() => setCategoryId(category.id)}
+                // A sub about to be created: none of the existing ones is the pick.
+                selected={!autoCreate && category.id === categoryId}
+                onPress={() => {
+                  setManualCategory(true);
+                  setCategoryId(category.id);
+                }}
               />
             ))}
           </View>
@@ -598,7 +620,10 @@ export function ExpenseForm({
         <InlineSubAdd
           collapsed
           conceptId={conceptId}
-          onAdded={(subId) => setCategoryId(subId)}
+          onAdded={(subId) => {
+            setManualCategory(true);
+            setCategoryId(subId);
+          }}
         />
       ) : null}
 
@@ -616,7 +641,9 @@ export function ExpenseForm({
         <CategorySuggestionHint
           hint={hint}
           selectedSubId={categoryId}
+          auto={!manualCategory}
           onApply={(nextConceptId, subId) => {
+            setManualCategory(true);
             setConceptId(nextConceptId);
             setCategoryId(subId);
           }}

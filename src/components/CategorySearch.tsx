@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { ConceptIcon } from '@/src/components/ConceptIcon';
 import { isGeneralSubName, subColor } from '@/src/data/spendConcepts';
+import { useCategorySuggestion } from '@/src/hooks/useCategorySuggestion';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { palette } from '@/src/theme/colors';
 import type { SpendConcept } from '@/src/types/settings';
@@ -32,6 +33,10 @@ export function CategorySearch({
 }) {
   const { t } = useLanguage();
   const [query, setQuery] = useState('');
+  // Names only find what exists; the description engine also finds where
+  // "almuerzo" belongs, or what to create for it.
+  const hint = useCategorySuggestion(query, concepts);
+  const suggested = hint.suggestion;
 
   const results = useMemo(() => {
     const q = fold(query);
@@ -65,8 +70,28 @@ export function CategorySearch({
         autoCorrect={false}
         returnKeyType="search"
       />
+      {suggested && hint.label && (suggested.create || !results.some((r) => r.subId === suggested.subId)) ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
+            tapFeedback();
+            void hint.resolve().then((ids) => {
+              if (!ids) return;
+              onPick(ids.conceptId, ids.subId);
+              setQuery('');
+            });
+          }}
+          style={[styles.result, styles.suggested]}>
+          <ConceptIcon icon={hint.concept?.icon} color={hint.concept?.color ?? palette.inkMuted} size={16} />
+          <Text style={styles.resultText}>
+            {t(suggested.create ? 'categorySearch.create' : 'categorySearch.suggested', {
+              category: hint.label,
+            })}
+          </Text>
+        </Pressable>
+      ) : null}
       {query.trim() ? (
-        results.length === 0 ? (
+        results.length === 0 && !suggested ? (
           <Text style={styles.empty}>{t('categorySearch.empty')}</Text>
         ) : (
           <View style={styles.results}>
@@ -120,6 +145,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 9,
   },
+  suggested: { alignSelf: 'flex-start', borderColor: palette.accentDeep },
   resultText: {
     fontFamily: 'DMSans_500Medium',
     fontSize: 14,
