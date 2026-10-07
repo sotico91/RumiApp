@@ -61,6 +61,8 @@ export function ConceptsPlanCard() {
   const [saving, setSaving] = useState(false);
   const [budgetsOpen, setBudgetsOpen] = useState(false);
   const [renamingConceptId, setRenamingConceptId] = useState<string | null>(null);
+  // Category actions live by its name, so a long list of subs never hides them.
+  const [conceptMenuId, setConceptMenuId] = useState<string | null>(null);
   const [nameDraft, setNameDraft] = useState('');
   const [subEditingId, setSubEditingId] = useState<string | null>(null);
   // Picking where things go: join a sub, or re-file what a deleted sub / category had.
@@ -389,7 +391,57 @@ export function ConceptsPlanCard() {
                     <Text style={styles.chevron}>{open ? '▾' : '▸'}</Text>
                   </Pressable>
                 )}
+                {renamingConceptId === concept.id ? null : (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityState={{ expanded: conceptMenuId === concept.id }}
+                    accessibilityLabel={t('plan.conceptEditA11y', { name: concept.name })}
+                    hitSlop={8}
+                    onPress={() => {
+                      tapFeedback();
+                      setConceptMenuId((prev) => (prev === concept.id ? null : concept.id));
+                      if (relocate?.kind === 'deleteConcept') setRelocate(null);
+                    }}
+                    style={[styles.conceptEditBtn, conceptMenuId === concept.id && styles.conceptEditBtnOn]}>
+                    <Text style={styles.editText}>{t('plan.subEdit')}</Text>
+                  </Pressable>
+                )}
               </View>
+
+              {conceptMenuId === concept.id ? (
+                <View style={styles.conceptMenu}>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => {
+                      setRenamingConceptId(concept.id);
+                      setNameDraft(concept.name);
+                      setConceptMenuId(null);
+                    }}
+                    style={styles.secondaryBtn}>
+                    <Text style={styles.secondaryText}>{t('plan.renameShort')}</Text>
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() =>
+                      setColorEditingId((prev) => (prev === concept.id ? null : concept.id))
+                    }
+                    style={[styles.secondaryBtn, editingColor && styles.secondaryBtnOn]}>
+                    <Text style={styles.secondaryText}>{t('plan.styleShort')}</Text>
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => askDeleteConcept(concept.id, concept.name)}
+                    style={styles.secondaryBtn}>
+                    <Text style={[styles.secondaryText, { color: palette.danger }]}>
+                      {t('plan.deleteSub')}
+                    </Text>
+                  </Pressable>
+                </View>
+              ) : null}
+
+              {relocate?.kind === 'deleteConcept' && relocate.conceptId === concept.id ? (
+                <View style={styles.conceptMenuPanel}>{relocatePanel([], concept.id)}</View>
+              ) : null}
 
               {editingColor ? (
                 <View style={styles.colorEditor}>
@@ -603,35 +655,6 @@ export function ConceptsPlanCard() {
                     </Pressable>
                   </View>
 
-                  <Pressable
-                    accessibilityRole="button"
-                    onPress={() => {
-                      setRenamingConceptId(concept.id);
-                      setNameDraft(concept.name);
-                    }}
-                    style={styles.styleEditBtn}>
-                    <Text style={styles.styleEditText}>{t('plan.renameConcept')}</Text>
-                  </Pressable>
-
-                  <Pressable
-                    accessibilityRole="button"
-                    onPress={() =>
-                      setColorEditingId((prev) => (prev === concept.id ? null : concept.id))
-                    }
-                    style={styles.styleEditBtn}>
-                    <Text style={styles.styleEditText}>{t('plan.conceptStyleEdit')}</Text>
-                  </Pressable>
-
-                  <Pressable
-                    accessibilityRole="button"
-                    onPress={() => askDeleteConcept(concept.id, concept.name)}
-                    style={styles.deleteConceptBtn}>
-                    <Text style={styles.deleteText}>{t('plan.deleteConcept')}</Text>
-                  </Pressable>
-
-                  {relocate?.kind === 'deleteConcept' && relocate.conceptId === concept.id
-                    ? relocatePanel([], concept.id)
-                    : null}
                 </View>
               ) : null}
             </View>
@@ -847,12 +870,6 @@ const styles = StyleSheet.create({
   iconPreviewOpen: {
     borderColor: palette.ink,
   },
-  styleEditBtn: { alignSelf: 'flex-start', marginTop: 4 },
-  styleEditText: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 12,
-    color: palette.accent,
-  },
   subRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -881,6 +898,25 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   renameRow: { flex: 1, marginTop: 0 },
+  conceptEditBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: palette.border,
+  },
+  conceptEditBtnOn: { borderColor: palette.accentDeep },
+  conceptMenu: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: palette.border,
+  },
+  conceptMenuPanel: { paddingHorizontal: 12, paddingBottom: 10 },
+  secondaryBtnOn: { borderColor: palette.accentDeep },
   editText: {
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 13,
@@ -963,12 +999,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: palette.inkMuted,
   },
-  deleteText: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 12,
-    color: palette.danger,
-  },
-  deleteConceptBtn: { alignSelf: 'flex-start', marginTop: 4 },
   limitEditor: {
     padding: 12,
     borderRadius: radii.sm,
