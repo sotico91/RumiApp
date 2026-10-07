@@ -12,6 +12,7 @@ import {
 import { getCategoryById } from '@/src/data/categories';
 import { flattenSpendSubs } from '@/src/data/spendConcepts';
 import { QuickRepeatSheet } from '@/src/components/QuickRepeatSheet';
+import { useFundsCheck } from '@/src/hooks/useFundsCheck';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useSettings } from '@/src/hooks/useSettings';
@@ -38,6 +39,7 @@ export function QuickAddBar() {
   const [sheetHabit, setSheetHabit] = useState<OneTapHabit | null>(null);
   const busyLock = useRef(false);
   const spendConcepts = settings.spendConcepts ?? [];
+  const checkFunds = useFundsCheck();
 
   const allowedIds = useMemo(
     () =>
@@ -63,6 +65,7 @@ export function QuickAddBar() {
 
   async function registerHabit(habit: OneTapHabit, amount: number, note: string, accountId: string) {
     if (busyLock.current) return;
+    if (!checkFunds({ type: 'expense', amount, accountId })) return;
 
     busyLock.current = true;
     setBusyId(habit.id);

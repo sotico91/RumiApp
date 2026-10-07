@@ -139,6 +139,45 @@ describe('suggestCategory', () => {
   });
 });
 
+describe('English categories', () => {
+  const en: SpendConcept[] = [
+    {
+      id: 'concept-food',
+      name: 'Food',
+      color: '#E07A5F',
+      subs: [
+        { id: 'sub-food-general', name: 'General' },
+        { id: 'sub-food-lunch', name: 'Lunch' },
+      ],
+    },
+    {
+      id: 'concept-transport',
+      name: 'Transport',
+      color: '#2EC4B6',
+      subs: [{ id: 'sub-transport-rides', name: 'Rides & taxis', isAnt: true }],
+    },
+  ];
+
+  it('reads English notes like Spanish ones', () => {
+    expect(suggestCategory('Lunch with Ana', en, empty)?.subId).toBe('sub-food-lunch');
+    expect(suggestCategory('breakfast', en, empty)?.subId).toBe('sub-food-lunch');
+    expect(suggestCategory('uber home', en, empty)?.subId).toBe('sub-transport-rides');
+    expect(suggestCategory('gas station', en, empty)?.create).toMatchObject({
+      conceptId: 'concept-transport',
+      sub: 'fuel',
+    });
+    expect(suggestCategory('soccer field', en, empty)?.create).toMatchObject({
+      conceptId: undefined,
+      concept: 'sport',
+      sub: 'football',
+    });
+  });
+
+  it('understands Spanish words in an English tree too', () => {
+    expect(suggestCategory('almuerzo', en, empty)?.subId).toBe('sub-food-lunch');
+  });
+});
+
 describe('what Rumi creates', () => {
   // Creating once is enough: the next spend with the same word finds it.
   it.each(['es', 'en'] as const)('is found again next time (%s)', (lang) => {

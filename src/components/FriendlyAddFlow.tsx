@@ -18,6 +18,7 @@ import {
 } from '@/src/data/friendlyTemplates';
 import { categoriesForKind, defaultCategoryIdForKind } from '@/src/data/categories';
 import { findConceptById, flattenSpendSubs } from '@/src/data/spendConcepts';
+import { useFundsCheck } from '@/src/hooks/useFundsCheck';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { formatAmountTyping } from '@/src/utils/money';
@@ -125,6 +126,7 @@ export function FriendlyAddFlow({
   const [fromTemplate, setFromTemplate] = useState(false);
   const [applyingTemplate, setApplyingTemplate] = useState(false);
   const savingLock = useRef(false);
+  const checkFunds = useFundsCheck();
   const scrollRef = useRef<ScrollView>(null);
 
   const lastSpendAccountId = useMemo(() => {
@@ -436,6 +438,7 @@ export function FriendlyAddFlow({
         return;
       }
     }
+    if (!checkFunds({ type: intentToType(intent), amount: parsed, accountId })) return;
 
     savingLock.current = true;
     setSaving(true);

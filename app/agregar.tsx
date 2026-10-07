@@ -47,7 +47,9 @@ export default function AgregarScreen() {
       ? ('debt' as const)
       : params.intent === 'spend'
         ? ('spend' as const)
-        : undefined;
+        : params.intent === 'earn'
+          ? ('earn' as const)
+          : undefined;
 
   // Spending is the most common entry, so "Add" opens the one-screen expense
   // form. Links that already know what they want (pay a debt, a reminder) skip it.

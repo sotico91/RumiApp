@@ -27,6 +27,7 @@ import {
   isGeneralSubName,
   spendSubsAsCategories,
 } from '@/src/data/spendConcepts';
+import { useFundsCheck } from '@/src/hooks/useFundsCheck';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { formatAmountTyping } from '@/src/utils/money';
@@ -137,6 +138,7 @@ export function ExpenseForm({
   const hint = useCategorySuggestion(note, spendConcepts);
   const [saving, setSaving] = useState(false);
   const savingLock = useRef(false);
+  const checkFunds = useFundsCheck();
 
   const categoryChoices = useMemo(() => {
     if (type === 'income') {
@@ -273,6 +275,7 @@ export function ExpenseForm({
       appAlert(t('add.invalidTitle'), t('flow.moveNeedDistinct'), undefined, { tone: 'warning' });
       return;
     }
+    if (!checkFunds({ type, amount: parsed, accountId })) return;
 
     savingLock.current = true;
     setSaving(true);

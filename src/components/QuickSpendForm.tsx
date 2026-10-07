@@ -9,6 +9,7 @@ import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
 import { ConceptIcon } from '@/src/components/ConceptIcon';
 import { findSpendSub, flattenSpendSubs, isGeneralSubName, subColor } from '@/src/data/spendConcepts';
 import type { FriendlyIntent } from '@/src/data/friendlyTemplates';
+import { useFundsCheck } from '@/src/hooks/useFundsCheck';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { formatAmountTyping } from '@/src/utils/money';
@@ -110,6 +111,7 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
   const [pickedAccountId, setPickedAccountId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const savingLock = useRef(false);
+  const checkFunds = useFundsCheck();
 
   // Until the user picks one, use the account last used for this subcategory.
   const accountId = useMemo(() => {
@@ -146,6 +148,7 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
 
   async function save() {
     if (savingLock.current || !parsed || (!categoryId && !autoCreate) || !accountId) return;
+    if (!checkFunds({ type: 'expense', amount: parsed, accountId })) return;
     savingLock.current = true;
     setSaving(true);
     try {

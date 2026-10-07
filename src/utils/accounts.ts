@@ -1,8 +1,14 @@
 import { DEFAULT_ACCOUNTS } from '@/src/data/financeDefaults';
 import { roundMoney } from '@/src/utils/money';
-import type { Account, AccountType, Debt, PaymentMethod } from '@/src/types/finance';
+import type {
+  Account,
+  AccountType,
+  Debt,
+  PaymentMethod,
+  TransactionType,
+} from '@/src/types/finance';
 import type { TranslationKey } from '@/src/i18n/translations';
-import { revolvingAsPayAccounts } from '@/src/utils/debts';
+import { isDebtPayAccountId, revolvingAsPayAccounts } from '@/src/utils/debts';
 
 export function isPrincipalLiquid(type: AccountType): boolean {
   return type === 'cash' || type === 'bank';
@@ -550,6 +556,33 @@ export function defaultSpendAccountId(
   opts?: { lastAccountId?: string; amount?: number }
 ): string {
   return resolveSpendAccountId(accounts, opts?.lastAccountId, opts?.amount);
+}
+
+/** Below half a cent nothing is really missing (float residue). */
+const HALF_CENT_FUNDS = 0.005;
+
+/** Money in cash, bank, wallets and savings together (never below zero). */
+export function spendableTotal(accounts: Account[]): number {
+  const total = accounts
+    .filter((a) => isSpendableLiquid(a.type))
+    .reduce((sum, a) => sum + a.balance, 0);
+  return Math.max(0, roundMoney(total));
+}
+
+/**
+ * How much is missing to pay this from your own money: a spend or debt
+ * payment bigger than everything in your pockets. Credit cards / cupos are
+ * not your money, so they never fall short here.
+ */
+export function fundsShortfall(
+  accounts: Account[],
+  input: { type: TransactionType; amount: number; accountId?: string }
+): number {
+  if (input.type !== 'expense' && input.type !== 'debt_payment') return 0;
+  if (isDebtPayAccountId(input.accountId)) return 0;
+  if (accounts.find((a) => a.id === input.accountId)?.type === 'credit') return 0;
+  const missing = roundMoney(input.amount - spendableTotal(accounts));
+  return missing > HALF_CENT_FUNDS ? missing : 0;
 }
 
 /**
