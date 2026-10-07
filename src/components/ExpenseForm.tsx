@@ -12,6 +12,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 
+import { CategorySuggestionHint } from '@/src/components/CategorySuggestionHint';
 import { CategoryChip } from '@/src/components/CategoryChip';
 import { InlineSubAdd } from '@/src/components/InlineSubAdd';
 import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
@@ -602,6 +603,17 @@ export function ExpenseForm({
         returnKeyType="done"
         blurOnSubmit
       />
+      {type === 'expense' ? (
+        <CategorySuggestionHint
+          note={note}
+          selectedSubId={categoryId}
+          concepts={spendConcepts}
+          onApply={(nextConceptId, subId) => {
+            setConceptId(nextConceptId);
+            setCategoryId(subId);
+          }}
+        />
+      ) : null}
 
       <AnimatedPressable
         onPress={handleSave}

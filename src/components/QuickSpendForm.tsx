@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { CategorySuggestionHint } from '@/src/components/CategorySuggestionHint';
 import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
 import { CategorySearch, CATEGORY_SEARCH_MIN_SUBS } from '@/src/components/CategorySearch';
 import type { SavedMovement } from '@/src/components/ExpenseForm';
@@ -279,6 +280,12 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
           placeholderTextColor={palette.inkMuted}
           style={styles.noteInput}
           returnKeyType="done"
+        />
+        <CategorySuggestionHint
+          note={note}
+          selectedSubId={categoryId}
+          concepts={spendConcepts}
+          onApply={(_conceptId, subId) => setCategoryId(subId)}
         />
 
         <Pressable

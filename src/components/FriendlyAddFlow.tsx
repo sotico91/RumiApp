@@ -32,6 +32,7 @@ import { incomeDestinationAccounts } from '@/src/utils/netWorth';
 import { notifyExpenseRegistered } from '@/src/utils/notifications';
 import { movementNotifyCopy } from '@/src/utils/movementNotify';
 import { tapFeedback } from '@/src/utils/selectFeedback';
+import { CategorySuggestionHint } from '@/src/components/CategorySuggestionHint';
 import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
 import { CategorySearch, CATEGORY_SEARCH_MIN_SUBS } from '@/src/components/CategorySearch';
 import { ConceptIcon } from '@/src/components/ConceptIcon';
@@ -1065,6 +1066,17 @@ export function FriendlyAddFlow({
                 }, 280);
               }}
             />
+            {intent === 'spend' ? (
+              <CategorySuggestionHint
+                note={note}
+                selectedSubId={categoryId}
+                concepts={spendConcepts}
+                onApply={(nextConceptId, subId) => {
+                  setConceptId(nextConceptId);
+                  setCategoryId(subId);
+                }}
+              />
+            ) : null}
           </Animated.View>
         ) : null}
       </KeyboardSafeScroll>
