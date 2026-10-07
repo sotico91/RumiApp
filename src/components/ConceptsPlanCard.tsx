@@ -19,6 +19,7 @@ import { guessConceptIcon } from '@/src/data/conceptIcons';
 import {
   conceptColorChoices,
   nextConceptColor,
+  paidDebtSubIds,
   subColor,
   subColorShades,
 } from '@/src/data/spendConcepts';
@@ -41,7 +42,7 @@ export function ConceptsPlanCard() {
     removeSpendConcept,
     removeSpendSub,
   } = useSettings();
-  const { budgetStatus, updateBudget, removeBudget, transactions } = useFinance();
+  const { budgetStatus, updateBudget, removeBudget, debts } = useFinance();
 
   const [conceptDraft, setConceptDraft] = useState('');
   // Until the user picks one, the icon follows the name being typed ("Gasolina" → ⛽).
@@ -61,18 +62,8 @@ export function ConceptsPlanCard() {
   const newConceptIcon =
     pickedIcon ?? guessConceptIcon({ id: '', name: conceptDraft || '' });
 
-  const spentByCategory = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const tx of transactions) {
-      if (
-        (tx.type !== 'expense' && tx.type !== 'debt_payment') ||
-        !tx.categoryId
-      )
-        continue;
-      map.set(tx.categoryId, (map.get(tx.categoryId) ?? 0) + tx.amount);
-    }
-    return map;
-  }, [transactions]);
+  // A credit paid off this month stays listed as paid; from next month it is gone.
+  const paidSubIds = useMemo(() => paidDebtSubIds(debts).paidThisMonth, [debts]);
 
   async function handleAddConcept() {
     if (!conceptDraft.trim()) return;
@@ -231,7 +222,7 @@ export function ConceptsPlanCard() {
                   ) : (
                     concept.subs.map((sub) => {
                       const budget = budgetStatus.find((b) => b.categoryId === sub.id);
-                      const spent = spentByCategory.get(sub.id) ?? budget?.spent ?? 0;
+                      const paidOff = paidSubIds.has(sub.id);
                       const antOn = sub.isAnt === true;
                       const editingSubColor = subColorEditing === sub.id;
                       const shades = subColorShades(concept.color);
@@ -261,11 +252,15 @@ export function ConceptsPlanCard() {
                               {antOn ? (
                                 <Text style={styles.antBadge}>{t('plan.antBadge')}</Text>
                               ) : null}
+                              {paidOff ? (
+                                <Text style={styles.paidBadge}>{t('plan.debtPaidBadge')}</Text>
+                              ) : null}
                             </View>
+                            {/* Only the limit here; what was spent lives in History, month by month. */}
                             <Text style={styles.limitMeta}>
                               {budget
-                                ? `${format(spent)} / ${format(budget.limit)}`
-                                : `${format(spent)} · ${t('plan.noLimit')}`}
+                                ? t('plan.limitValue', { amount: format(budget.limit) })
+                                : t('plan.noLimit')}
                             </Text>
                           </Pressable>
                           <Pressable
@@ -616,6 +611,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: palette.accentDeep,
     backgroundColor: '#FFF3EB',
+    overflow: 'hidden',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  paidBadge: {
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 12,
+    color: palette.success,
+    backgroundColor: palette.successSoft,
     overflow: 'hidden',
     paddingHorizontal: 6,
     paddingVertical: 2,

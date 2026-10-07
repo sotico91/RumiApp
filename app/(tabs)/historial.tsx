@@ -11,6 +11,7 @@ import { EmptyState } from '@/src/components/EmptyState';
 import { ExpenseRow } from '@/src/components/ExpenseRow';
 import { MoneyText } from '@/src/components/MoneyText';
 import { PeriodToggle } from '@/src/components/PeriodToggle';
+import { ConceptIcon } from '@/src/components/ConceptIcon';
 import { categoryVisual } from '@/src/data/spendConcepts';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
@@ -22,7 +23,7 @@ import type { Period, Transaction } from '@/src/types/finance';
 import { isPocketMove } from '@/src/types/finance';
 import { categoryLabel } from '@/src/utils/categoryLabel';
 import { closedDebts } from '@/src/utils/debts';
-import { shiftMonth, sumByType, sumSpendOut } from '@/src/utils/financeMath';
+import { shiftMonth, spendByConcept, sumByType, sumSpendOut } from '@/src/utils/financeMath';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import { appAlert } from '@/src/components/AppAlert';
 import { useSaveToast } from '@/src/components/SaveToast';
@@ -96,6 +97,10 @@ export default function HistorialScreen() {
   const expenseTotal =
     period === 'mes' ? sumSpendOut(items, debts) : totalForPeriod(period, 'expense', 'mine');
   const incomeTotal = sumByType(items, 'income');
+  const byConcept = useMemo(
+    () => (period === 'mes' ? spendByConcept(items, settings.spendConcepts ?? [], debts) : []),
+    [period, items, settings.spendConcepts, debts]
+  );
   const monthBalance = incomeTotal - expenseTotal;
 
   const periodLabel =
@@ -242,6 +247,30 @@ export default function HistorialScreen() {
                     {format(monthBalance)}
                   </MoneyText>
                 </View>
+              </View>
+            ) : null}
+
+            {byConcept.length > 0 ? (
+              <View style={styles.byConcept}>
+                <Text style={styles.byConceptTitle}>{t('history.byConceptTitle')}</Text>
+                {byConcept.map((row) => (
+                  <View key={row.id} style={styles.byConceptRow}>
+                    <ConceptIcon
+                      icon={row.concept?.icon}
+                      color={row.concept?.color ?? palette.inkMuted}
+                      size={14}
+                      variant="bubble"
+                    />
+                    <Text style={styles.byConceptName} numberOfLines={1}>
+                      {row.concept?.name ??
+                        categoryLabel(row.id, t, settings.spendConcepts ?? [])}
+                    </Text>
+                    <Text style={styles.byConceptCount}>
+                      {t('history.byConceptCount', { count: row.count })}
+                    </Text>
+                    <MoneyText style={styles.byConceptAmount}>{format(row.total)}</MoneyText>
+                  </View>
+                ))}
               </View>
             ) : null}
 
@@ -470,6 +499,36 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontFamily: 'Fraunces_600SemiBold',
     fontSize: 15,
+  },
+  byConcept: {
+    marginTop: 14,
+    gap: 8,
+  },
+  byConceptTitle: {
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 13,
+    color: palette.ink,
+  },
+  byConceptRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  byConceptName: {
+    flex: 1,
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 14,
+    color: palette.ink,
+  },
+  byConceptCount: {
+    fontFamily: 'DMSans_400Regular',
+    fontSize: 12,
+    color: palette.inkSoft,
+  },
+  byConceptAmount: {
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 14,
+    color: palette.ink,
   },
   income: { color: palette.success },
   expense: { color: palette.danger },

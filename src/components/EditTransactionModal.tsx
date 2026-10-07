@@ -84,7 +84,7 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
   const [saving, setSaving] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
-  const spendConcepts = usePickableSpendConcepts();
+  const spendConcepts = usePickableSpendConcepts(transaction?.categoryId);
   const showConcepts = type !== 'income' && spendConcepts.length > 0;
 
   // Spends pick a category first, then only that category's subs show.

@@ -168,6 +168,40 @@ export function sumSpendOut(transactions: Transaction[], debts: Pick<Debt, 'id' 
     .reduce((sum, t) => sum + t.amount, 0);
 }
 
+export type ConceptSpend = {
+  /** Category id, or the raw category id when it is not in the tree any more. */
+  id: string;
+  concept: SpendConcept | null;
+  total: number;
+  count: number;
+};
+
+/**
+ * Money out per category (Food, Transport…) — same movements as sumSpendOut,
+ * so the rows add up to the month total. Biggest first.
+ */
+export function spendByConcept(
+  transactions: Transaction[],
+  spendConcepts: SpendConcept[],
+  debts: Pick<Debt, 'id' | 'kind'>[] = []
+): ConceptSpend[] {
+  const revolving = revolvingDebtIds(debts);
+  const map = new Map<string, ConceptSpend>();
+  for (const t of transactions) {
+    if (!isMonthOutflow(t, revolving)) continue;
+    const concept =
+      (t.categoryId ? findSpendSub(spendConcepts, t.categoryId)?.concept : undefined) ??
+      spendConcepts.find((c) => c.id === t.categoryId) ??
+      null;
+    const id = concept?.id ?? t.categoryId ?? '__none__';
+    const row = map.get(id) ?? { id, concept, total: 0, count: 0 };
+    row.total += t.amount;
+    row.count += 1;
+    map.set(id, row);
+  }
+  return [...map.values()].sort((a, b) => b.total - a.total);
+}
+
 export type AccruedInstallment = {
   debtId: string;
   categoryId: string;

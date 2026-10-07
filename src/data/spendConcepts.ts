@@ -1,5 +1,5 @@
 import { CATEGORIES, expenseCategories, getCategoryById } from '@/src/data/financeDefaults';
-import type { Budget, Category } from '@/src/types/finance';
+import type { Budget, Category, Debt } from '@/src/types/finance';
 import { guessConceptIcon } from '@/src/data/conceptIcons';
 import { FRIENDLY_TEMPLATES } from '@/src/data/friendlyTemplates';
 import { translations, type Language } from '@/src/i18n/translations';
@@ -327,6 +327,56 @@ export function hideUnusedGeneralSubs(
     changed = true;
     return { ...concept, subs };
   });
+  return changed ? next : concepts;
+}
+
+/**
+ * Credit subcategories whose debts are all paid off. Paid this month: still
+ * shown, marked paid. Paid before this month: hidden (the debt stays in History).
+ */
+export function paidDebtSubIds(
+  debts: Pick<Debt, 'categoryId' | 'closedAt'>[],
+  now = new Date()
+): { hidden: Set<string>; paidThisMonth: Set<string> } {
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  const lastClose = new Map<string, number>();
+  const open = new Set<string>();
+  for (const debt of debts) {
+    if (!debt.categoryId) continue;
+    if (!debt.closedAt) {
+      open.add(debt.categoryId);
+      continue;
+    }
+    const at = new Date(debt.closedAt).getTime();
+    if (Number.isNaN(at)) continue;
+    lastClose.set(debt.categoryId, Math.max(lastClose.get(debt.categoryId) ?? 0, at));
+  }
+  const hidden = new Set<string>();
+  const paidThisMonth = new Set<string>();
+  for (const [subId, at] of lastClose) {
+    if (open.has(subId)) continue;
+    (at < monthStart ? hidden : paidThisMonth).add(subId);
+  }
+  return { hidden, paidThisMonth };
+}
+
+/** Drop the given subs; a category left with none of its subs is dropped too. */
+export function hideSpendSubs(
+  concepts: SpendConcept[],
+  hiddenSubIds: ReadonlySet<string>
+): SpendConcept[] {
+  if (hiddenSubIds.size === 0) return concepts;
+  let changed = false;
+  const next: SpendConcept[] = [];
+  for (const concept of concepts) {
+    const subs = concept.subs.filter((sub) => !hiddenSubIds.has(sub.id));
+    if (subs.length === concept.subs.length) {
+      next.push(concept);
+      continue;
+    }
+    changed = true;
+    if (subs.length > 0) next.push({ ...concept, subs });
+  }
   return changed ? next : concepts;
 }
 
