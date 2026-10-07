@@ -12,6 +12,13 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-06
 
+- **Revisar categorías en Historial:**
+  - Rumi lee las descripciones de los gastos guardados y muestra los que parecen mal ubicados, por ejemplo un almuerzo en "Gastos adicionales" (`findMisfiledSpends`).
+  - Cada uno ofrece Mover (o Crear y mover) y Dejar así. Lo que dejas así no vuelve a salir (`categoryReviewDismissed`).
+  - "Mover todos" crea cada subcategoría que falte una sola vez (`planReviewMoves`).
+  - No propone cambios dentro de la categoría correcta, ni en créditos ni en gastos sin descripción. La sección se oculta si no hay nada que revisar.
+- **El historial de descripciones cuenta gastos, no palabras:** un solo gasto "cancha de fútbol" ya no vale por dos votos. Al revisar, un gasto no cuenta como evidencia de sí mismo.
+
 - **La descripción ubica el gasto:**
   - Al escribir "almuerzo", "uber", "gasolina" o "fútbol", Rumi propone la subcategoría (`suggestCategory`, `src/utils/suggestCategory.ts`). En el registro rápido la aplica sola mientras no elijas una a mano, y si no existe la crea al guardar (por ejemplo *Deporte · Fútbol*). En el guiado y el avanzado aparece "Usar" o "Crear y usar".
   - El tipo de gasto decide la categoría y el historial solo elige la subcategoría dentro de ella. Así un almuerzo va a Alimentación aunque antes se hayan guardado almuerzos en "Gastos adicionales".

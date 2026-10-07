@@ -60,6 +60,8 @@ type SettingsContextValue = {
   setDebtReminder: (debtId: string, on: boolean) => Promise<void>;
   /** Stops suggesting a reminder for this subcategory. */
   dismissReminderSuggestion: (subId: string) => Promise<void>;
+  /** "Leave as is" in the category review: these spends are not suggested again. */
+  dismissCategoryReview: (txIds: string[]) => Promise<void>;
   /** Confirmation notification after each logged transaction. */
   updateNotifyOnExpense: (enabled: boolean) => Promise<boolean>;
   updateUserName: (userName: string) => Promise<void>;
@@ -262,6 +264,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       const dismissed = new Set(settings.reminderSuggestionsDismissed ?? []);
       dismissed.add(subId);
       await persist({ ...settings, reminderSuggestionsDismissed: [...dismissed] });
+    },
+    [settings, persist]
+  );
+
+  const dismissCategoryReview = useCallback(
+    async (txIds: string[]) => {
+      const dismissed = new Set(settings.categoryReviewDismissed ?? []);
+      for (const id of txIds) dismissed.add(id);
+      await persist({ ...settings, categoryReviewDismissed: [...dismissed] });
     },
     [settings, persist]
   );
@@ -641,6 +652,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       updateAppLock,
       setDebtReminder,
       dismissReminderSuggestion,
+      dismissCategoryReview,
       updateNotifyOnExpense,
       updateUserName,
       addSpendConcept,
@@ -677,6 +689,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       updateAppLock,
       setDebtReminder,
       dismissReminderSuggestion,
+      dismissCategoryReview,
       updateNotifyOnExpense,
       updateUserName,
       addSpendConcept,

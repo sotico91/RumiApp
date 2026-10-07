@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { AmountPrivacyToggle } from '@/src/components/AmountPrivacyToggle';
 import { BrandScreen, ScreenHeader } from '@/src/components/ui';
 import { colors, space } from '@/src/theme';
+import { CategoryReviewSection } from '@/src/components/CategoryReviewSection';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
 import { EditTransactionModal } from '@/src/components/EditTransactionModal';
 import { EmptyState } from '@/src/components/EmptyState';
@@ -278,6 +279,8 @@ export default function HistorialScreen() {
           </View>
         </CollapsibleSection>
       </View>
+
+      <CategoryReviewSection />
 
       <View>
         <CollapsibleSection

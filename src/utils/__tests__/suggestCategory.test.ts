@@ -140,6 +140,18 @@ describe('suggestCategory', () => {
     expect(suggestCategory('corrientazo', concepts, history)?.subId).toBe('sub-mercado');
   });
 
+  it('counts past spends, not words: one spend with two words is one vote', () => {
+    const bare: SpendConcept[] = [
+      concepts[1],
+      { id: 'concept-extra', name: 'Gastos adicionales', color: '#7A8790', subs: [{ id: 'sub-extra', name: 'General' }] },
+    ];
+    const history = buildNoteHistory([tx('1', 'cancha fútbol', 'sub-extra')]);
+    expect(suggestCategory('cancha fútbol', bare, history)?.create?.sub).toBe('football');
+    // Two different spends are a habit.
+    const twice = buildNoteHistory([tx('1', 'cancha fútbol', 'sub-extra'), tx('2', 'fútbol', 'sub-extra')]);
+    expect(suggestCategory('cancha fútbol', bare, twice)?.subId).toBe('sub-extra');
+  });
+
   it('follows a habit when there is no category for that kind of spend', () => {
     const history = buildNoteHistory([tx('1', 'veterinario', 'sub-salidas'), tx('2', 'veterinario', 'sub-salidas')]);
     expect(suggestCategory('veterinario', concepts, history)?.subId).toBe('sub-salidas');

@@ -23,6 +23,28 @@ export type CategorySuggestionState = {
   resolve: () => Promise<{ conceptId: string; subId: string } | null>;
 };
 
+type TFn = (key: TranslationKey, params?: Record<string, string | number>) => string;
+
+/** "Alimentación · Almuerzo" (or the names it would be created with), its category and ant flag. */
+export function describeSuggestion(
+  suggestion: CategorySuggestion | null,
+  concepts: SpendConcept[],
+  t: TFn
+): { label: string; concept: SpendConcept | null; isAnt: boolean } {
+  if (!suggestion) return { label: '', concept: null, isAnt: false };
+  if (suggestion.create) {
+    const parent = concepts.find((c) => c.id === suggestion.create.conceptId) ?? null;
+    const conceptName = parent?.name ?? t(`newCat.${suggestion.create.concept}` as TranslationKey);
+    const subName = t(`newSub.${suggestion.create.sub}` as TranslationKey);
+    return { label: `${conceptName} · ${subName}`, concept: parent, isAnt: suggestion.create.isAnt };
+  }
+  const concept = concepts.find((c) => c.id === suggestion.conceptId) ?? null;
+  const sub = concept?.subs.find((s) => s.id === suggestion.subId);
+  if (!concept || !sub) return { label: '', concept: null, isAnt: false };
+  const label = isGeneralSubName(sub.name) ? concept.name : `${concept.name} · ${sub.name}`;
+  return { label, concept, isAnt: sub.isAnt === true };
+}
+
 /** Where a spend with this description belongs (see suggestCategory). */
 export function useCategorySuggestion(
   note: string,
@@ -37,20 +59,7 @@ export function useCategorySuggestion(
     [note, concepts, history]
   );
 
-  const view = useMemo(() => {
-    if (!suggestion) return { label: '', concept: null, isAnt: false };
-    if (suggestion.create) {
-      const parent = concepts.find((c) => c.id === suggestion.create.conceptId) ?? null;
-      const conceptName = parent?.name ?? t(`newCat.${suggestion.create.concept}` as TranslationKey);
-      const subName = t(`newSub.${suggestion.create.sub}` as TranslationKey);
-      return { label: `${conceptName} · ${subName}`, concept: parent, isAnt: suggestion.create.isAnt };
-    }
-    const concept = concepts.find((c) => c.id === suggestion.conceptId) ?? null;
-    const sub = concept?.subs.find((s) => s.id === suggestion.subId);
-    if (!concept || !sub) return { label: '', concept: null, isAnt: false };
-    const label = isGeneralSubName(sub.name) ? concept.name : `${concept.name} · ${sub.name}`;
-    return { label, concept, isAnt: sub.isAnt === true };
-  }, [suggestion, concepts, t]);
+  const view = useMemo(() => describeSuggestion(suggestion, concepts, t), [suggestion, concepts, t]);
 
   const resolve = useCallback(async () => {
     if (!suggestion) return null;

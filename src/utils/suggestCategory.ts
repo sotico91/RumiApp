@@ -276,17 +276,19 @@ function byName(words: string[], concepts: SpendConcept[]): CategorySuggestion |
   return best?.s ?? null;
 }
 
-/** Word → subcategory votes from past spends that had a description. */
-export type NoteHistory = Map<string, Map<string, number>>;
+/** Word → subcategory → the past spends (ids) with that word filed there. */
+export type NoteHistory = Map<string, Map<string, Set<string>>>;
 
 export function buildNoteHistory(transactions: Transaction[]): NoteHistory {
   const index: NoteHistory = new Map();
   for (const tx of transactions) {
     if (tx.type !== 'expense' || !tx.categoryId || !tx.note) continue;
     for (const word of new Set(noteWords(tx.note))) {
-      const votes = index.get(word) ?? new Map<string, number>();
-      votes.set(tx.categoryId, (votes.get(tx.categoryId) ?? 0) + 1);
-      index.set(word, votes);
+      const bySub = index.get(word) ?? new Map<string, Set<string>>();
+      const ids = bySub.get(tx.categoryId) ?? new Set<string>();
+      ids.add(tx.id);
+      bySub.set(tx.categoryId, ids);
+      index.set(word, bySub);
     }
   }
   return index;
@@ -296,20 +298,28 @@ export function buildNoteHistory(transactions: Transaction[]): NoteHistory {
 function byHistory(
   words: string[],
   concepts: SpendConcept[],
-  history: NoteHistory
+  history: NoteHistory,
+  ignoreTxId?: string
 ): { s: CategorySuggestion; votes: number } | null {
   const live = new Map<string, string>();
   for (const c of concepts) for (const sub of c.subs) live.set(sub.id, c.id);
 
-  const tally = new Map<string, number>();
+  // Votes are spends, not words: "cancha de fútbol" once is one vote.
+  const spends = new Map<string, Set<string>>();
   for (const word of words) {
-    const votes = history.get(word);
-    if (!votes) continue;
-    for (const [subId, n] of votes) {
-      if (live.has(subId)) tally.set(subId, (tally.get(subId) ?? 0) + n);
+    const bySub = history.get(word);
+    if (!bySub) continue;
+    for (const [subId, ids] of bySub) {
+      if (!live.has(subId)) continue;
+      const set = spends.get(subId) ?? new Set<string>();
+      for (const id of ids) if (id !== ignoreTxId) set.add(id);
+      spends.set(subId, set);
     }
   }
-  const ranked = [...tally.entries()].sort((a, b) => b[1] - a[1]);
+  const ranked = [...spends.entries()]
+    .map(([subId, ids]) => [subId, ids.size] as const)
+    .filter(([, n]) => n > 0)
+    .sort((a, b) => b[1] - a[1]);
   if (ranked.length === 0) return null;
   const total = ranked.reduce((s, [, n]) => s + n, 0);
   const [subId, votes] = ranked[0];
@@ -366,7 +376,9 @@ function byKeyword(words: string[], note: string, concepts: SpendConcept[]): Cat
 export function suggestCategory(
   note: string,
   spendConcepts: SpendConcept[],
-  history: NoteHistory
+  history: NoteHistory,
+  /** Reviewing a saved spend: it is not evidence for itself. */
+  ignoreTxId?: string
 ): CategorySuggestion | null {
   const words = noteWords(note);
   if (words.length === 0) return null;
@@ -374,7 +386,7 @@ export function suggestCategory(
 
   const named = byName(words, concepts);
   if (named) return named;
-  const past = byHistory(words, concepts, history);
+  const past = byHistory(words, concepts, history, ignoreTxId);
   const keyword = byKeyword(words, note, concepts);
   if (!keyword) return past?.s ?? null;
 

@@ -71,6 +71,8 @@ export type UserSettings = {
   debtRemindersOff?: string[];
   /** Subcategories whose suggested reminder the user turned down. */
   reminderSuggestionsDismissed?: string[];
+  /** Saved spends the user chose to leave where they are in the category review. */
+  categoryReviewDismissed?: string[];
   /** @deprecated Prefer reminderRules.subId list. */
   reminderCategoryIds: string[];
   /** @deprecated */

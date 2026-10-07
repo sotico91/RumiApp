@@ -157,6 +157,8 @@ type FinanceContextValue = {
   removeTransaction: (id: string) => Promise<void>;
   /** Re-file everything under old sub ids (old → new): movements, limits, debts, subscriptions. */
   remapCategories: (remaps: Record<string, string>) => Promise<void>;
+  /** Move single movements to another subcategory (movement id → sub id); balances do not change. */
+  recategorizeTransactions: (changes: Record<string, string>) => Promise<void>;
   /** Puts a just-deleted transaction back (Undo), with its balances. */
   restoreTransaction: (tx: Transaction) => Promise<void>;
   canEditTransaction: (tx: Transaction) => boolean;
@@ -663,6 +665,16 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     [budgets, subscriptions]
   );
 
+  const recategorizeTransactions = useCallback(async (changes: Record<string, string>) => {
+    if (Object.keys(changes).length === 0) return;
+    const nextTx = transactionsRef.current.map((tx) =>
+      changes[tx.id] ? { ...tx, categoryId: changes[tx.id] } : tx
+    );
+    transactionsRef.current = nextTx;
+    setTransactions(nextTx);
+    await saveFinanceState({ transactions: nextTx });
+  }, []);
+
   const removeTransaction = useCallback(
     async (id: string) => {
       const existing = transactionsRef.current.find((t) => t.id === id);
@@ -1084,6 +1096,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       updateTransaction,
       removeTransaction,
       remapCategories,
+      recategorizeTransactions,
       restoreTransaction,
       canEditTransaction,
       resetFinance,
@@ -1133,6 +1146,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       updateTransaction,
       removeTransaction,
       remapCategories,
+      recategorizeTransactions,
       restoreTransaction,
       canEditTransaction,
       resetFinance,
