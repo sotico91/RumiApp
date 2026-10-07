@@ -57,12 +57,34 @@ describe('suggestCategory', () => {
     });
   });
 
-  it('places breakfast with meals, under the user food category', () => {
-    expect(suggestCategory('Desayuno', concepts, empty)).toMatchObject({
+  it('keeps breakfast apart from lunch, in the user food category', () => {
+    expect(suggestCategory('Desayuno', concepts, empty)?.create).toEqual({
       conceptId: 'concept-alimentacion',
-      subId: 'sub-almuerzo',
-      source: 'keyword',
+      concept: 'food',
+      sub: 'breakfast',
+      isAnt: false,
     });
+  });
+
+  it('never files a lunch under Mercado (groceries for home)', () => {
+    const noLunch: SpendConcept[] = [
+      {
+        id: 'concept-alimentacion',
+        name: 'Alimentación',
+        color: '#E07A5F',
+        subs: [{ id: 'sub-mercado', name: 'Mercado' }],
+      },
+    ];
+    const history = buildNoteHistory([tx('1', 'almuerzo', 'sub-mercado'), tx('2', 'almuerzo', 'sub-mercado')]);
+    expect(suggestCategory('almuerzo', noLunch, history)?.create).toMatchObject({
+      conceptId: 'concept-alimentacion',
+      sub: 'lunch',
+    });
+    // A category called Mercado is not a home for meals either.
+    const mercado: SpendConcept[] = [
+      { id: 'concept-mercado', name: 'Mercado', color: '#000000', subs: [{ id: 'sub-m', name: 'General' }] },
+    ];
+    expect(suggestCategory('almuerzo', mercado, empty)?.create?.conceptId).toBeUndefined();
   });
 
   it('sends rides to the matching transport sub', () => {
@@ -131,19 +153,25 @@ describe('suggestCategory', () => {
       tx('2', 'Almuerzo trabajo', 'sub-extra'),
       tx('3', 'almuerzo', 'sub-extra'),
     ]);
-    expect(suggestCategory('desayuno', withExtra, history)?.subId).toBe('sub-almuerzo');
-    expect(suggestCategory('corrientazo', withExtra, history)?.conceptId).toBe('concept-alimentacion');
+    expect(suggestCategory('almuerzo', withExtra, history)?.subId).toBe('sub-almuerzo');
+    expect(suggestCategory('corrientazo', withExtra, history)?.create).toMatchObject({
+      conceptId: 'concept-alimentacion',
+      sub: 'meals',
+    });
   });
 
-  it('uses past spends to pick the sub inside the right category', () => {
-    const history = buildNoteHistory([tx('1', 'corrientazo', 'sub-mercado'), tx('2', 'corrientazo', 'sub-mercado')]);
-    expect(suggestCategory('corrientazo', concepts, history)?.subId).toBe('sub-mercado');
+  it('uses past spends to pick the user own sub inside the right category', () => {
+    const withRosa: SpendConcept[] = concepts.map((c) =>
+      c.id === 'concept-alimentacion' ? { ...c, subs: [...c.subs, { id: 'sub-rosa', name: 'Donde Rosa' }] } : c
+    );
+    const history = buildNoteHistory([tx('1', 'corrientazo', 'sub-rosa'), tx('2', 'corrientazo', 'sub-rosa')]);
+    expect(suggestCategory('corrientazo', withRosa, history)?.subId).toBe('sub-rosa');
   });
 
   it('counts past spends, not words: one spend with two words is one vote', () => {
     const bare: SpendConcept[] = [
       concepts[1],
-      { id: 'concept-extra', name: 'Gastos adicionales', color: '#7A8790', subs: [{ id: 'sub-extra', name: 'General' }] },
+      { id: 'concept-extra', name: 'Gastos adicionales', color: '#7A8790', subs: [{ id: 'sub-extra', name: 'Grupo Juan' }] },
     ];
     const history = buildNoteHistory([tx('1', 'cancha fútbol', 'sub-extra')]);
     expect(suggestCategory('cancha fútbol', bare, history)?.create?.sub).toBe('football');
@@ -153,8 +181,17 @@ describe('suggestCategory', () => {
   });
 
   it('follows a habit when there is no category for that kind of spend', () => {
+    const withLuna: SpendConcept[] = [
+      ...concepts,
+      { id: 'concept-luna', name: 'Luna', color: '#000000', subs: [{ id: 'sub-luna', name: 'Cosas de Luna' }] },
+    ];
+    const history = buildNoteHistory([tx('1', 'veterinario', 'sub-luna'), tx('2', 'veterinario', 'sub-luna')]);
+    expect(suggestCategory('veterinario', withLuna, history)?.subId).toBe('sub-luna');
+  });
+
+  it('ignores a habit in a sub that means something else', () => {
     const history = buildNoteHistory([tx('1', 'veterinario', 'sub-salidas'), tx('2', 'veterinario', 'sub-salidas')]);
-    expect(suggestCategory('veterinario', concepts, history)?.subId).toBe('sub-salidas');
+    expect(suggestCategory('veterinario', concepts, history)?.create?.sub).toBe('pets');
   });
 
   it('never suggests Credits for a spend', () => {
@@ -196,7 +233,10 @@ describe('English categories', () => {
 
   it('reads English notes like Spanish ones', () => {
     expect(suggestCategory('Lunch with Ana', en, empty)?.subId).toBe('sub-food-lunch');
-    expect(suggestCategory('breakfast', en, empty)?.subId).toBe('sub-food-lunch');
+    expect(suggestCategory('breakfast', en, empty)?.create).toMatchObject({
+      conceptId: 'concept-food',
+      sub: 'breakfast',
+    });
     expect(suggestCategory('uber home', en, empty)?.subId).toBe('sub-transport-rides');
     expect(suggestCategory('gas station', en, empty)?.create).toMatchObject({
       conceptId: 'concept-transport',
@@ -250,6 +290,17 @@ describe('what Rumi creates', () => {
         const hit = suggestCategory(word, tree, empty);
         expect({ word, subId: hit?.subId }).toEqual({ word, subId: `s-${kind.create.sub}` });
       }
+    }
+  });
+
+  it.each(['es', 'en'] as const)('finds Lunch / Breakfast / Dinner again, by any of their words (%s)', (lang) => {
+    const copy = translations[lang] as Record<string, string>;
+    const meals = SPEND_KINDS.find((k) => k.create.subFor)!;
+    for (const [word, sub] of Object.entries(meals.create.subFor!)) {
+      const tree: SpendConcept[] = [
+        { id: 'c-food', name: copy['newCat.food'], color: '#000000', subs: [{ id: 's-x', name: copy[`newSub.${sub}`] }] },
+      ];
+      expect({ word, subId: suggestCategory(word, tree, empty)?.subId }).toEqual({ word, subId: 's-x' });
     }
   });
 

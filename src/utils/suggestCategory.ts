@@ -1,4 +1,4 @@
-import { CREDITS_CONCEPT_ID, isGeneralSubName } from '@/src/data/spendConcepts';
+import { CREDITS_CONCEPT_ID, findSpendSub, isGeneralSubName } from '@/src/data/spendConcepts';
 import type { Transaction } from '@/src/types/finance';
 import type { SpendConcept } from '@/src/types/settings';
 import { normalize, tokenize } from '@/src/utils/ask/text';
@@ -19,6 +19,9 @@ export type NewConceptId =
 
 /** Subcategory a spend kind creates (copy: `newSub.<id>`). */
 export type NewSubId =
+  | 'lunch'
+  | 'breakfast'
+  | 'dinner'
   | 'meals'
   | 'groceries'
   | 'coffee'
@@ -80,10 +83,19 @@ type SpendKind = {
   words: string[];
   /** Words that find the user's own category for it, in order of preference. */
   concept: string[];
-  create: { concept: NewConceptId; sub: NewSubId; isAnt?: boolean };
+  create: {
+    concept: NewConceptId;
+    sub: NewSubId;
+    isAnt?: boolean;
+    /**
+     * Words people keep apart (lunch vs breakfast): the sub is created and
+     * matched under that name, not the kind's general one.
+     */
+    subFor?: Record<string, NewSubId>;
+  };
 };
 
-const FOOD = ['alimentacion', 'comida', 'comidas', 'food', 'restaurantes', 'mercado'];
+const FOOD = ['alimentacion', 'comida', 'comidas', 'food', 'restaurantes'];
 const TRANSPORT = ['transporte', 'transport', 'movilidad', 'carro', 'vehiculo'];
 const SPORT = ['deporte', 'deportes', 'sport', 'sports'];
 const LEISURE = ['ocio', 'entretenimiento', 'diversion', 'salidas', 'recreacion', 'leisure', 'entertainment', 'fun'];
@@ -92,12 +104,27 @@ const BILLS = ['recibos', 'servicios', 'bills', 'utilities'];
 export const SPEND_KINDS: SpendKind[] = [
   {
     words: ['almuerzo', 'almuerzos', 'desayuno', 'desayunos', 'cena', 'cenas', 'comida', 'comidas', 'corrientazo', 'ejecutivo', 'restaurante', 'restaurant', 'pizza', 'hamburguesa', 'empanada', 'empanadas', 'arepa', 'arepas', 'pollo', 'sushi', 'lunch', 'breakfast', 'dinner', 'brunch', 'meal', 'meals'],
+    // Meals out are food, never "Mercado" (that is groceries for home).
     concept: FOOD,
-    create: { concept: 'food', sub: 'meals' },
+    create: {
+      concept: 'food',
+      sub: 'meals',
+      subFor: {
+        almuerzo: 'lunch',
+        almuerzos: 'lunch',
+        lunch: 'lunch',
+        desayuno: 'breakfast',
+        desayunos: 'breakfast',
+        breakfast: 'breakfast',
+        cena: 'dinner',
+        cenas: 'dinner',
+        dinner: 'dinner',
+      },
+    },
   },
   {
     words: ['mercado', 'supermercado', 'tienda', 'fruver', 'verduras', 'frutas', 'carne', 'huevos', 'leche', 'pan', 'panaderia', 'ara', 'exito', 'carulla', 'olimpica', 'jumbo', 'groceries', 'grocery', 'supermarket', 'bakery'],
-    concept: [...FOOD, 'hogar'],
+    concept: [...FOOD, 'mercado', 'hogar'],
     create: { concept: 'food', sub: 'groceries' },
   },
   {
@@ -327,9 +354,76 @@ function byHistory(
   return { s: { conceptId: live.get(subId)!, subId, source: 'history' }, votes };
 }
 
-function subFitsKind(subName: string, kind: SpendKind): boolean {
-  const n = noteWords(subName);
-  return n.length > 0 && n.some((nw) => kind.words.some((k) => wordMatches(nw, normalize(k))));
+/** The kind of spend a note names first, and the word that named it. */
+type KindMatch = { kind: SpendKind; word: string };
+
+function matchKind(words: string[], note: string): KindMatch | null {
+  // The kind named first wins: "café con pan" is a coffee, not groceries.
+  let best: { kind: SpendKind; word: string; at: number } | null = null;
+  for (const kind of SPEND_KINDS) {
+    for (const k of kind.words) {
+      const at = phraseAt(words, note, k);
+      if (at >= 0 && (!best || at < best.at)) best = { kind, word: normalize(k), at };
+    }
+  }
+  return best ? { kind: best.kind, word: best.word } : null;
+}
+
+const specificWord = (match: KindMatch, k: string) => !!match.kind.create.subFor?.[normalize(k)];
+
+/** Same thing in other words: "almuerzo", "almuerzos" and "lunch" are all lunch. */
+function sameAsWord(match: KindMatch, kw: string): boolean {
+  if (wordMatches(kw, match.word)) return true;
+  const subFor = match.kind.create.subFor;
+  return !!subFor && !!subFor[kw] && subFor[kw] === subFor[match.word];
+}
+
+/**
+ * Does a sub named like this hold this spend? "Almuerzos" holds a lunch,
+ * "Comidas" holds any meal, "Desayuno" does not hold a lunch.
+ */
+function subHolds(subName: string, match: KindMatch): boolean {
+  const names = noteWords(subName);
+  return names.some((nw) =>
+    match.kind.words.some((k) => {
+      const kw = normalize(k);
+      if (!wordMatches(nw, kw)) return false;
+      return !specificWord(match, kw) || sameAsWord(match, kw);
+    })
+  );
+}
+
+/** A sub named after this very word ("Almuerzo" for "almuerzo"). */
+function subNamedForWord(subName: string, match: KindMatch): boolean {
+  return noteWords(subName).some(
+    (nw) => wordMatches(nw, match.word) || match.kind.words.some((k) => wordMatches(nw, normalize(k)) && specificWord(match, k) && sameAsWord(match, normalize(k)))
+  );
+}
+
+function fitsAnyKind(subName: string): boolean {
+  const names = noteWords(subName);
+  return SPEND_KINDS.some((kind) =>
+    names.some((nw) => kind.words.some((k) => wordMatches(nw, normalize(k))))
+  );
+}
+
+/**
+ * Can past spends keep this one in that sub? Yes when the sub holds this kind
+ * of spend, or is the user's own name for something ("Donde Rosa"). No when
+ * it means something else ("Mercado" for a lunch) or nothing ("General").
+ */
+function subAccepts(subName: string, match: KindMatch): boolean {
+  if (subHolds(subName, match)) return true;
+  return !isGeneralSubName(subName) && !fitsAnyKind(subName);
+}
+
+/**
+ * Whether a saved spend with this note already sits in a sub that fits it
+ * (used by the category review). True for notes that name no known kind.
+ */
+export function noteFitsSub(note: string, subName: string): boolean {
+  const match = matchKind(noteWords(note), note);
+  return !match || subAccepts(subName, match);
 }
 
 /**
@@ -337,38 +431,26 @@ function subFitsKind(subName: string, kind: SpendKind): boolean {
  * kind of spend; if there is none, the one to create (in their category for it
  * when they have one).
  */
-function byKeyword(words: string[], note: string, concepts: SpendConcept[]): CategorySuggestion | null {
-  // The kind named first wins: "café con pan" is a coffee, not groceries.
-  const ranked = SPEND_KINDS.map((kind) => {
-    let at = Infinity;
-    for (const k of kind.words) {
-      const i = phraseAt(words, note, k);
-      if (i >= 0) at = Math.min(at, i);
-    }
-    return { kind, at };
-  })
-    .filter((k) => k.at < Infinity)
-    .sort((a, b) => a.at - b.at);
-  const first = ranked[0]?.kind;
-  if (!first) return null;
-
-  for (const concept of concepts) {
-    for (const sub of concept.subs) {
-      if (subFitsKind(sub.name, first)) {
-        return { conceptId: concept.id, subId: sub.id, source: 'keyword' };
+function byKeyword(match: KindMatch, concepts: SpendConcept[]): CategorySuggestion {
+  // A sub named for this very word first, then one that holds the kind.
+  for (const test of [subNamedForWord, subHolds]) {
+    for (const concept of concepts) {
+      for (const sub of concept.subs) {
+        if (test(sub.name, match)) return { conceptId: concept.id, subId: sub.id, source: 'keyword' };
       }
     }
   }
-  const home = first.concept
+  const { kind, word } = match;
+  const home = kind.concept
     .map((name) => concepts.find((c) => phraseAt(noteWords(c.name), c.name, name) >= 0))
     .find(Boolean);
   return {
     source: 'keyword',
     create: {
       conceptId: home?.id,
-      concept: first.create.concept,
-      sub: first.create.sub,
-      isAnt: first.create.isAnt === true,
+      concept: kind.create.concept,
+      sub: kind.create.subFor?.[word] ?? kind.create.sub,
+      isAnt: kind.create.isAnt === true,
     },
   };
 }
@@ -387,13 +469,19 @@ export function suggestCategory(
   const named = byName(words, concepts);
   if (named) return named;
   const past = byHistory(words, concepts, history, ignoreTxId);
-  const keyword = byKeyword(words, note, concepts);
-  if (!keyword) return past?.s ?? null;
+  const match = matchKind(words, note);
+  if (!match) return past?.s ?? null;
+  const keyword = byKeyword(match, concepts);
 
-  // The kind of spend picks the category ("almuerzo" is food, even if older
-  // lunches were filed under a catch-all); past spends only pick the sub in it.
+  // Past spends only count where the sub can hold this spend: never
+  // "Mercado" for a lunch, never a catch-all "General".
+  const pastSub = past && !past.s.create ? findSpendSub(concepts, past.s.subId)?.sub : undefined;
+  const pastOk = !!pastSub && subAccepts(pastSub.name, match);
+
+  // The kind of spend picks the category ("almuerzo" is food); past spends
+  // may pick the sub inside it.
   const home = keyword.create ? keyword.create.conceptId : keyword.conceptId;
-  if (home) return past && past.s.conceptId === home ? past.s : keyword;
+  if (home) return pastOk && past!.s.conceptId === home ? past!.s : keyword;
   // No category of that kind at all: a habit (twice or more) beats creating one.
-  return past && past.votes >= 2 ? past.s : keyword;
+  return pastOk && past!.votes >= 2 ? past!.s : keyword;
 }

@@ -12,6 +12,13 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-06
 
+- **Sugerencias más cercanas a cómo piensa una persona:**
+  - Una subcategoría que significa otra cosa nunca se queda con un gasto por historial: un almuerzo no va a "Mercado" (el mercado de la casa) ni a "General".
+  - El historial solo cuenta en subcategorías que encajan con el gasto o en nombres propios del usuario ("Donde Rosa") (`subAccepts`).
+  - Almuerzo, desayuno y cena se crean con su propio nombre (*Alimentación · Almuerzo*). Lo genérico (pizza, restaurante) va a *Comidas*. "lunch" y "almuerzo" cuentan como lo mismo.
+  - Una categoría llamada "Mercado" ya no se toma como lugar para comidas.
+  - La revisión de Historial propone sacar un almuerzo de *Alimentación · Mercado* (`noteFitsSub`).
+
 - **Revisar categorías en Historial:**
   - Rumi lee las descripciones de los gastos guardados y muestra los que parecen mal ubicados, por ejemplo un almuerzo en "Gastos adicionales" (`findMisfiledSpends`).
   - Cada uno ofrece Mover (o Crear y mover) y Dejar así. Lo que dejas así no vuelve a salir (`categoryReviewDismissed`).

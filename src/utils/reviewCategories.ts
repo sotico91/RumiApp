@@ -7,6 +7,7 @@ import {
   type CategorySuggestion,
   type NewConceptId,
   type NewSubId,
+  noteFitsSub,
 } from '@/src/utils/suggestCategory';
 
 export type MisfiledSpend = {
@@ -35,10 +36,18 @@ export function findMisfiledSpends(
     const suggestion = suggestCategory(tx.note, spendConcepts, history, tx.id);
     if (!suggestion) continue;
     if (!suggestion.create && suggestion.subId === tx.categoryId) continue;
-    // Already in the category it belongs to: which sub inside it is the user's call.
+    // Already in the right category, in a sub that can hold it (Almuerzo, or
+    // the user's own "Donde Rosa"): leave it. "Mercado" or "General" for a lunch is not.
     const current = tx.categoryId ? findSpendSub(spendConcepts, tx.categoryId) : null;
     const targetConcept = suggestion.create ? suggestion.create.conceptId : suggestion.conceptId;
-    if (current && targetConcept && current.concept.id === targetConcept) continue;
+    if (
+      current &&
+      targetConcept &&
+      current.concept.id === targetConcept &&
+      noteFitsSub(tx.note, current.sub.name)
+    ) {
+      continue;
+    }
     out.push({ tx, suggestion });
   }
   return out.sort((a, b) => b.tx.createdAt.localeCompare(a.tx.createdAt));

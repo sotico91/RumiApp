@@ -58,9 +58,17 @@ describe('findMisfiledSpends', () => {
     ]);
   });
 
-  it('leaves alone what is already in the right category, even in another sub', () => {
-    expect(findMisfiledSpends([tx('corrientazo', 'sub-mercado')], tree)).toEqual([]);
+  it('leaves alone what is already in a sub that holds it', () => {
+    const withRosa: SpendConcept[] = tree.map((c) =>
+      c.id === 'concept-alimentacion' ? { ...c, subs: [...c.subs, { id: 'sub-rosa', name: 'Donde Rosa' }] } : c
+    );
+    expect(findMisfiledSpends([tx('corrientazo', 'sub-rosa')], withRosa)).toEqual([]);
     expect(findMisfiledSpends([tx('almuerzo', 'sub-almuerzo')], tree)).toEqual([]);
+  });
+
+  it('moves a lunch out of Mercado, even inside Alimentación', () => {
+    const found = findMisfiledSpends([tx('almuerzo', 'sub-mercado')], tree);
+    expect(found[0]?.suggestion.subId).toBe('sub-almuerzo');
   });
 
   it('skips spends with no description, credits, income and dismissed ones', () => {
