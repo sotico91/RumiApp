@@ -10,6 +10,12 @@ El detalle de cada cambio está en `git log`.
 - **Comentarios de código en inglés:** todos los comentarios del código van en inglés.
   Los textos que ve el usuario van en `src/i18n/translations.ts` (es/en).
 
+## 2026-10-13
+
+- **Dependencias al día con el SDK 57:** paquetes de Expo en los parches que pide `expo install --check` y React Native 0.86.3. Jest se queda en 30.
+- **Vulnerabilidades:** `npm audit fix` quita la crítica (`shell-quote`) y otras; el audit de producción baja de 39 a 32, sin críticas.
+  Las que quedan (`braces`, `node-forge`, `image-size`, `uuid`, `decode-uri-component`) vienen de Metro y del CLI de Expo y no tienen arreglo publicado.
+
 ## 2026-10-06
 
 - **Idioma del teléfono desde el primer arranque (iPhone):** `CFBundleLocalizations` declara en/es. Antes, un iPhone en español abría en inglés.
