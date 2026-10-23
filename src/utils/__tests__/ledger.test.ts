@@ -9,6 +9,8 @@ import {
   applyAccountDelta,
   applyDebtPayment,
   applyTxDebts,
+  asDebtPayment,
+  linkDebtSubSpends,
   pocketMoveAccountsReady,
 } from '@/src/utils/ledger';
 
@@ -169,5 +171,55 @@ describe('named investments', () => {
     const funded = accounts.map((a) => (a.id === account.id ? { ...a, balance: 10 } : a));
     expect(removeInvestmentAccount(funded, account.id)).toEqual({ error: 'hasBalance' });
     expect(removeInvestmentAccount(accounts, account.id)).toEqual({ accounts: base });
+  });
+});
+
+describe('spends under a debt sub pay the debt', () => {
+  const mom: Debt = {
+    id: 'mom',
+    name: 'Mamá',
+    balance: 500000,
+    installment: 500000,
+    interestRate: 0,
+    termMonths: 0,
+    nextPaymentDate: '2026-10-20T12:00:00.000Z',
+    paidCapital: 0,
+    paidInterest: 0,
+    otherCharges: 0,
+    categoryId: 'sub-mama',
+    kind: 'installment',
+  };
+
+  it('turns a spend in the debt sub into a payment of that debt', () => {
+    const paid = asDebtPayment(tx({ amount: 500000, categoryId: 'sub-mama', accountId: 'bank' }), [mom]);
+    expect(paid.type).toBe('debt_payment');
+    expect(paid.debtId).toBe('mom');
+    const [after] = applyTxDebts([mom], paid, 1);
+    expect(after.balance).toBe(0);
+    expect(after.closedAt).toBeDefined();
+  });
+
+  it('leaves other spends, card charges and closed debts alone', () => {
+    const lunch = tx({ amount: 20000, categoryId: 'almuerzo' });
+    expect(asDebtPayment(lunch, [mom])).toBe(lunch);
+    const charge = tx({ amount: 20000, categoryId: 'sub-mama', creditDebtId: 'card' });
+    expect(asDebtPayment(charge, [mom])).toBe(charge);
+    const closed = { ...mom, balance: 0, closedAt: '2026-10-01T00:00:00.000Z' };
+    const late = tx({ amount: 1000, categoryId: 'sub-mama' });
+    expect(asDebtPayment(late, [closed])).toBe(late);
+  });
+
+  it('fixes spends already saved under the debt sub on load', () => {
+    const saved = [
+      tx({ id: 'b', amount: 300000, categoryId: 'sub-mama', createdAt: '2026-10-10T12:00:00.000Z' }),
+      tx({ id: 'a', amount: 200000, categoryId: 'sub-mama', createdAt: '2026-10-05T12:00:00.000Z' }),
+      tx({ id: 'c', amount: 9000, categoryId: 'cafe' }),
+    ];
+    const fixed = linkDebtSubSpends([mom], saved);
+    expect(fixed.changed).toBe(true);
+    expect(fixed.debts[0].balance).toBe(0);
+    expect(fixed.debts[0].closedAt).toBe('2026-10-10T12:00:00.000Z');
+    expect(fixed.transactions.map((t) => t.type)).toEqual(['debt_payment', 'debt_payment', 'expense']);
+    expect(linkDebtSubSpends(fixed.debts, fixed.transactions).changed).toBe(false);
   });
 });

@@ -66,7 +66,9 @@ import {
 import {
   applyAccountDelta,
   applyTxDebts,
+  asDebtPayment,
   isEditablePocketBalance,
+  linkDebtSubSpends,
   pocketMoveAccountsReady,
 } from '@/src/utils/ledger';
 import { computeNetWorth } from '@/src/utils/netWorth';
@@ -284,7 +286,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
     (async () => {
       setLoading(true);
-      const [tx, acc, bud, deb, sub] = await Promise.all([
+      let [tx, acc, bud, deb, sub] = await Promise.all([
         loadTransactions(),
         loadAccounts(),
         loadBudgets(),
@@ -292,7 +294,9 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
         loadSubscriptions(),
       ]);
       if (!mounted) return;
-      const settled = closePaidInstallments(deb, tx);
+      const linked = linkDebtSubSpends(deb, tx);
+      tx = linked.transactions;
+      const settled = closePaidInstallments(linked.debts, tx);
       // Keep stored pocket balances (opening stock + prior deltas). Never wipe
       // them by replaying the ledger — that invents a fake bank total.
       setTransactions(tx);
@@ -304,7 +308,11 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       debtsRef.current = settled.debts;
       setSubscriptions(sub);
       setLoading(false);
-      if (settled.changed) void saveDebts(settled.debts);
+      if (linked.changed) {
+        void saveFinanceState({ transactions: tx, accounts: acc, debts: settled.debts });
+      } else if (settled.changed) {
+        void saveDebts(settled.debts);
+      }
     })();
     return () => {
       mounted = false;
@@ -365,7 +373,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       const creditDebtId = isPocketMove(input.type)
         ? undefined
         : (input.creditDebtId ?? chargedFromPicker);
-      const tx: Transaction = {
+      let tx: Transaction = {
         id: createId(),
         type: input.type,
         amount: input.amount,
@@ -383,6 +391,8 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
         registeredById: settings.personId || undefined,
         registeredByName: settings.userName.trim() || undefined,
       };
+
+      tx = asDebtPayment(tx, baseDebts);
 
       if (isPocketMove(tx.type) && !pocketMoveAccountsReady(baseAccounts, tx)) {
         throw new Error('pocket_move_accounts');
@@ -754,7 +764,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       if (!existing) return null;
       if (!isRegisteredByMe(existing, settings.personId)) return null;
 
-      const updated: Transaction = {
+      let updated: Transaction = {
         ...existing,
         ...patch,
         registeredById: existing.registeredById,
@@ -782,6 +792,8 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
           updated.creditDebtId = undefined;
         }
       }
+
+      updated = asDebtPayment(updated, applyTxDebts(baseDebts, existing, -1));
 
       const chosenExists = baseAccounts.some((a) => a.id === updated.accountId);
       if (

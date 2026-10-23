@@ -1,6 +1,6 @@
 import type { Account, Debt, Transaction } from '@/src/types/finance';
 import { roundMoney } from '@/src/utils/money';
-import { applyRevolvingCharge, closedAtAfterBalance } from '@/src/utils/debts';
+import { applyRevolvingCharge, closedAtAfterBalance, isOpenDebt } from '@/src/utils/debts';
 import { dueBeforePayment, nextDueAfterPayment } from '@/src/utils/payDay';
 
 /**
@@ -109,4 +109,39 @@ export function applyDebtPayment(
 export function applyTxDebts(list: Debt[], tx: Transaction, direction: 1 | -1): Debt[] {
   const charged = applyRevolvingCharge(list, tx.creditDebtId, tx.amount, direction);
   return applyDebtPayment(charged, tx, direction);
+}
+
+/**
+ * A spend filed under an open debt's own sub (Créditos · Mamá) is paying that
+ * debt: record it as a debt payment so the balance goes down. Card charges stay spends.
+ */
+export function asDebtPayment(tx: Transaction, debts: Debt[]): Transaction {
+  if (tx.type !== 'expense' || tx.creditDebtId || !tx.categoryId) return tx;
+  const debt = debts.find((d) => d.categoryId === tx.categoryId && isOpenDebt(d));
+  if (!debt) return tx;
+  return { ...tx, type: 'debt_payment', debtId: debt.id };
+}
+
+/** Load fix: spends already saved under a debt's sub pay it down (oldest first). */
+export function linkDebtSubSpends(
+  debts: Debt[],
+  transactions: Transaction[]
+): { debts: Debt[]; transactions: Transaction[]; changed: boolean } {
+  let nextDebts = debts;
+  let changed = false;
+  const linked = new Map<string, Transaction>();
+  const oldestFirst = [...transactions].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  for (const tx of oldestFirst) {
+    const paid = asDebtPayment(tx, nextDebts);
+    if (paid === tx) continue;
+    changed = true;
+    linked.set(tx.id, paid);
+    nextDebts = applyDebtPayment(nextDebts, paid, 1);
+  }
+  if (!changed) return { debts, transactions, changed };
+  return {
+    debts: nextDebts,
+    transactions: transactions.map((tx) => linked.get(tx.id) ?? tx),
+    changed,
+  };
 }

@@ -10,6 +10,11 @@ El detalle de cada cambio está en `git log`.
 - **Comentarios de código en inglés:** todos los comentarios del código van en inglés.
   Los textos que ve el usuario van en `src/i18n/translations.ts` (es/en).
 
+## 2026-10-23
+
+- **Una deuda pagada sale de Patrimonio aunque el pago se haya anotado como gasto:** un gasto en la subcategoría de una deuda (Créditos · Mamá) ahora cuenta como pago de esa deuda y baja su saldo; al llegar a 0 se cierra.
+  Al abrir la app, los gastos ya guardados en esa subcategoría se convierten en pagos (del más antiguo al más reciente), así que las deudas ya pagadas se cierran solas.
+
 ## 2026-10-13
 
 - **Dependencias al día con el SDK 57:** paquetes de Expo en los parches que pide `expo install --check` y React Native 0.86.3. Jest se queda en 30.
