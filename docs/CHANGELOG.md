@@ -12,6 +12,13 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-23
 
+- **Mover dinero entre cualquier cuenta e inversión:** ahorros, bancos, efectivo, billeteras y cada inversión sirven de origen o destino; sale de una y entra a la otra.
+  El resumen dice si el disponible baja o sube mientras el patrimonio no cambia.
+- **El dinero solo sale de cuentas que lo tienen:** al mover, el origen lista solo cuentas con saldo (cualquiera puede recibir), y mover más de lo que hay se frena como un gasto.
+  "+ Billetera" solo aparece donde entra dinero (una billetera nueva está en 0).
+- **Navegación más fluida en Android:** las pestañas ocultas dejan de re-renderizar (`freezeOnBlur`), Actividad pinta antes de la revisión de categorías y esa revisión va ~6x más rápida (cachés en `suggestCategory`).
+- **Respuestas de Rumi coherentes con Inicio:** comparar meses y "% del ingreso" cuentan cuotas de préstamos y no pagos de tarjeta ni traslados.
+- **Pods de iOS sincronizados con el SDK 57:** el build de iOS volvía a fallar.
 - **Una deuda pagada sale de Patrimonio aunque el pago se haya anotado como gasto:** un gasto en la subcategoría de una deuda (Créditos · Mamá) ahora cuenta como pago de esa deuda y baja su saldo; al llegar a 0 se cierra.
   Al abrir la app, los gastos ya guardados en esa subcategoría se convierten en pagos (del más antiguo al más reciente), así que las deudas ya pagadas se cierran solas.
 

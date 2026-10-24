@@ -2,7 +2,7 @@
 
 Ideas para ir ejecutando poco a poco. Se revisa al empezar cada sesión: elegir una, hacerla, probarla en el simulador y marcarla aquí.
 
-Última revisión: 2026-10-06.
+Última revisión: 2026-10-23. Ninguno de los pendientes se ha empezado; lo hecho desde el 06 fueron arreglos pedidos en el uso diario (ver `CHANGELOG.md`).
 
 ## Hecho (2026-10-06)
 
