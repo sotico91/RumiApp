@@ -10,12 +10,12 @@ import { palette } from '@/src/theme/colors';
  * from somewhere, so offer to log the income first (it opens on top, and
  * saving it brings you back here).
  */
-export function NoMoneyHint({ cardsToo = false }: { cardsToo?: boolean }) {
+export function NoMoneyHint({ cardsToo = false, move = false }: { cardsToo?: boolean; move?: boolean }) {
   const { t } = useLanguage();
   return (
     <View style={styles.box} accessibilityLiveRegion="polite">
       <Text style={styles.title}>{t('funds.emptyTitle')}</Text>
-      <Text style={styles.body}>{t(cardsToo ? 'funds.emptyBodyCards' : 'funds.emptyBody')}</Text>
+      <Text style={styles.body}>{t(move ? 'funds.emptyBodyMove' : cardsToo ? 'funds.emptyBodyCards' : 'funds.emptyBody')}</Text>
       <SelectPressable
         onPress={() => router.push({ pathname: '/agregar', params: { intent: 'earn' } })}
         style={styles.btn}>

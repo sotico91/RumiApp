@@ -22,6 +22,8 @@ export default function TabLayout() {
         // Cream behind every tab while it mounts, instead of the petrol
         // navigation background flashing through on first open.
         sceneStyle: { backgroundColor: colors.bg.screen },
+        // Tabs out of view stop re-rendering on every ledger change (slow phones stutter otherwise).
+        freezeOnBlur: true,
       }}>
       <Tabs.Screen
         name="index"

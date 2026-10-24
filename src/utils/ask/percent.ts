@@ -1,6 +1,6 @@
-import type { Transaction } from '@/src/types/finance';
+import type { Debt, Transaction } from '@/src/types/finance';
 import type { SpendConcept } from '@/src/types/settings';
-import { antExpenseBreakdown, sumByType } from '@/src/utils/financeMath';
+import { antExpenseBreakdown, sumByType, sumSpendOut } from '@/src/utils/financeMath';
 import {
   INCOME_CATEGORY_IDS,
   isCreditsCategoryHit,
@@ -23,6 +23,8 @@ export type PercentQueryFlags = {
   wantsAnt: boolean;
   wantsIncome: boolean;
   cats: CategoryHit | null;
+  /** Same money-out rule as Home: loan installments count, card payments do not. */
+  debts?: Debt[];
 };
 
 /** Salary/income-based percentage answers — adaptive intent matching. */
@@ -67,7 +69,7 @@ export function tryAnswerPercentQuery(
   const income = sumByType(list, 'income');
   if (income <= 0) return t('search.answerNoIncome', { period: periodLabel });
 
-  const spendTotal = sumByType(list, 'expense');
+  const spendTotal = sumSpendOut(list, flags.debts);
 
   let cats = flags.cats;
   if (

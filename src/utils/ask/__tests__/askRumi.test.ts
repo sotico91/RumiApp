@@ -102,3 +102,26 @@ describe('askRumi result', () => {
     expect(ask('hola')).toMatchObject({ txs: [], followUps: [], understood: null });
   });
 });
+
+describe('spend totals match Home', () => {
+  const withLoan = [
+    ...data,
+    tx('debt_payment', 300_000, '2026-10-10T09:00', { debtId: 'loan' }),
+    tx('debt_payment', 500_000, '2026-10-11T09:00', { debtId: 'visa' }),
+    tx('transfer', 1_000_000, '2026-10-12T09:00', { toAccountId: 'investments' }),
+  ];
+  const debts = [
+    { id: 'loan', kind: 'installment' },
+    { id: 'visa', kind: 'revolving' },
+  ] as never;
+
+  it('compares months counting loan installments, not card payments or moves', () => {
+    const answer = askRumi('¿gasté más que el mes pasado?', withLoan, format, translator('es'), {
+      language: 'es',
+      debts,
+    });
+    // 12.000 + 45.000 + 9.000 + 15.000 + 300.000 installment = 381.000 this month.
+    expect(answer.text).toContain(format(381_000));
+    expect(answer.text).toContain(format(100_000));
+  });
+});

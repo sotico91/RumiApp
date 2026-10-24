@@ -72,6 +72,7 @@ const percent: Handler = (ctx) => {
     wantsAnt: parsed.wants.ant,
     wantsIncome: parsed.wants.income,
     cats: parsed.cats,
+    debts: ctx.options.debts,
   });
   return text ? { text } : null;
 };
@@ -343,11 +344,12 @@ const ant: Handler = ({ parsed, list, spendConcepts, format, t, categoryLabel })
   };
 };
 
-const comparePeriods: Handler = ({ parsed, list, transactions, format, t }) => {
+const comparePeriods: Handler = ({ parsed, list, transactions, options, format, t }) => {
   if (!parsed.wants.compare) return null;
   const prevRange = analogRange(parsed.period);
-  const nowSpend = sumByType(list, 'expense');
-  const prevSpend = sumByType(filterBetween(transactions, prevRange.from, prevRange.to), 'expense');
+  // Same money-out rule as Home and Activity, so both months read like the totals there.
+  const nowSpend = sumSpendOut(list, options.debts);
+  const prevSpend = sumSpendOut(filterBetween(transactions, prevRange.from, prevRange.to), options.debts);
   const diff = nowSpend - prevSpend;
   return {
     text: t('search.answerComparePeriods', {

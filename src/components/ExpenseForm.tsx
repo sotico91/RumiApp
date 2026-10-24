@@ -51,6 +51,7 @@ import {
   liquidPocketsForPay,
   paymentMethodForAccount,
   pocketMoveAccounts,
+  pocketMoveSources,
 } from '@/src/utils/accounts';
 import { notifyExpenseRegistered } from '@/src/utils/notifications';
 import { movementNotifyCopy } from '@/src/utils/movementNotify';
@@ -171,9 +172,7 @@ export function ExpenseForm({
 
   const accountChoices = useMemo(() => {
     if (type === 'income') return incomeDestinationAccounts(accounts);
-    if (isPocketMove(type)) {
-      return pocketMoveAccounts(accounts);
-    }
+    if (isPocketMove(type)) return pocketMoveSources(accounts);
     if (type === 'debt_payment') return liquidPocketsForPay(accounts);
     return accountsForExpenseSource(accounts, method, {
       debts,
@@ -253,7 +252,7 @@ export function ExpenseForm({
     } else if (isPocketMove(next)) {
       setCategoryId('');
       const fromId = firstAccountId(
-        pocketMoveAccounts(accounts)
+        pocketMoveSources(accounts)
       );
       if (fromId) setAccountId(fromId);
       setToAccountId(defaultTransferDestinationId(accounts, fromId));
@@ -492,8 +491,8 @@ export function ExpenseForm({
                 : t('add.account')}
       </Text>
       {accountChoices.length === 0 &&
-      (type === 'debt_payment' || (type === 'expense' && method !== 'credit')) ? (
-        <NoMoneyHint />
+      (type === 'debt_payment' || isPocketMove(type) || (type === 'expense' && method !== 'credit')) ? (
+        <NoMoneyHint move={isPocketMove(type)} />
       ) : accountChoices.length === 0 ? (
         <Text style={styles.preview}>{t('flow.payAccountsEmpty')}</Text>
       ) : (
@@ -507,12 +506,8 @@ export function ExpenseForm({
               setMethod(paymentMethodForAccount(acc, method));
             }
           }}
-          allowAddWallet={
-            type === 'income' ||
-            isPocketMove(type) ||
-            type === 'debt_payment' ||
-            (type === 'expense' && method !== 'credit')
-          }
+          // A new wallet starts at zero: it can receive money, not pay.
+          allowAddWallet={type === 'income'}
         />
       )}
         </>
@@ -522,7 +517,7 @@ export function ExpenseForm({
         <>
           <Text style={styles.label}>{t('flow.whichAccountTo')}</Text>
           <AccountChoiceChips
-            accounts={accountChoices.filter((a) => a.id !== accountId)}
+            accounts={pocketMoveAccounts(accounts).filter((a) => a.id !== accountId)}
             selectedId={toAccountId}
             onSelect={setToAccountId}
           />

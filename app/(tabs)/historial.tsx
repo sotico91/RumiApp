@@ -57,6 +57,12 @@ export default function HistorialScreen() {
   const [listOpen, setListOpen] = useState(true);
   const [settledOpen, setSettledOpen] = useState(false);
   const [page, setPage] = useState(0);
+  // The category review reads every saved spend: let the tab switch paint first.
+  const [reviewReady, setReviewReady] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setReviewReady(true), 250);
+    return () => clearTimeout(id);
+  }, []);
 
   const settled = useMemo(
     () =>
@@ -280,7 +286,7 @@ export default function HistorialScreen() {
         </CollapsibleSection>
       </View>
 
-      <CategoryReviewSection />
+      {reviewReady ? <CategoryReviewSection /> : null}
 
       <View>
         <CollapsibleSection

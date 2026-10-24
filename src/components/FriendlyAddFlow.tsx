@@ -55,6 +55,7 @@ import {
   liquidPocketsForPay,
   paymentMethodForAccount,
   pocketMoveAccounts,
+  pocketMoveSources,
 } from '@/src/utils/accounts';
 import {
   amountsMatch,
@@ -166,12 +167,13 @@ export function FriendlyAddFlow({
     () => pocketMoveAccounts(accounts),
     [accounts]
   );
+  const moveSources = useMemo(() => pocketMoveSources(accounts), [accounts]);
 
   const accountChoices =
     intent === 'earn'
       ? incomeAccounts
       : intent === 'move'
-        ? moveAccounts
+        ? moveSources
         : intent === 'debt'
           ? liquidPocketsForPay(accounts)
           : methodAccounts;
@@ -183,7 +185,7 @@ export function FriendlyAddFlow({
       return;
     }
     if (intent === 'move') {
-      const next = firstAccountId(moveAccounts, accountId);
+      const next = firstAccountId(moveSources, accountId);
       if (next && next !== accountId) setAccountId(next);
       const fromId = next && next !== accountId ? next : accountId;
       if (!toAccountId || toAccountId === fromId || !moveAccounts.some((a) => a.id === toAccountId)) {
@@ -202,7 +204,7 @@ export function FriendlyAddFlow({
     }
     const next = firstAccountId(methodAccounts, accountId);
     if (next && next !== accountId) setAccountId(next);
-  }, [intent, methodAccounts, incomeAccounts, moveAccounts, accountId, toAccountId, accounts]);
+  }, [intent, methodAccounts, incomeAccounts, moveAccounts, moveSources, accountId, toAccountId, accounts]);
 
   const incomeChoices = useMemo(
     () => categoriesForKind('income', settings.enabledCategoryIds),
@@ -937,8 +939,8 @@ export function FriendlyAddFlow({
                       : t('flow.whichAccount')}
             </Text>
             {accountChoices.length === 0 &&
-            (intent === 'debt' || (intent === 'spend' && method !== 'credit')) ? (
-              <NoMoneyHint />
+            (intent === 'debt' || intent === 'move' || (intent === 'spend' && method !== 'credit')) ? (
+              <NoMoneyHint move={intent === 'move'} />
             ) : accountChoices.length === 0 ? (
               <Text style={styles.intentSub}>{t('flow.payAccountsEmpty')}</Text>
             ) : (
@@ -953,12 +955,8 @@ export function FriendlyAddFlow({
                     setMethod(paymentMethodForAccount(acc, method));
                   }
                 }}
-                allowAddWallet={
-                  intent === 'earn' ||
-                  intent === 'move' ||
-                  intent === 'debt' ||
-                  (intent === 'spend' && method !== 'credit')
-                }
+                // A new wallet starts at zero: it can receive money, not pay.
+                allowAddWallet={intent === 'earn'}
               />
             )}
               </>

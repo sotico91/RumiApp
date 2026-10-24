@@ -218,7 +218,7 @@ export function QuickRepeatSheet({
                     accounts={spendSource === 'card' ? cardAccounts : pocketAccounts}
                     selectedId={accountId}
                     onSelect={setAccountId}
-                    allowAddWallet={spendSource === 'pocket'}
+                    allowAddWallet={false}
                   />
                 </>
               )}

@@ -3,6 +3,8 @@ import {
   accountsForExpenseSource,
   fundsShortfall,
   liquidPocketsForPay,
+  pocketMoveAccounts,
+  pocketMoveSources,
   spendableTotal,
 } from '@/src/utils/accounts';
 import { payAccountIdForDebt } from '@/src/utils/debts';
@@ -40,11 +42,13 @@ describe('fundsShortfall', () => {
     expect(fundsShortfall(list, { type: 'expense', amount: 80000, accountId: 'credit-card' })).toBe(0);
   });
 
-  it('applies to debt payments, not to income or moves', () => {
+  it('applies to debt payments and moves, not to income', () => {
     const list = accounts(0);
     expect(fundsShortfall(list, { type: 'debt_payment', amount: 100, accountId: 'bank-main' })).toBe(100);
     expect(fundsShortfall(list, { type: 'income', amount: 100, accountId: 'cash' })).toBe(0);
-    expect(fundsShortfall(list, { type: 'transfer', amount: 100, accountId: 'cash' })).toBe(0);
+    expect(fundsShortfall(list, { type: 'transfer', amount: 100, accountId: 'cash' })).toBe(100);
+    expect(fundsShortfall(list, { type: 'transfer', amount: 600000, accountId: 'investments' })).toBe(100000);
+    expect(fundsShortfall(list, { type: 'transfer', amount: 500000, accountId: 'investments' })).toBe(0);
   });
 
   it('works the same with dollars and cents', () => {
@@ -75,5 +79,19 @@ describe('editing a spend', () => {
     const undone = applyAccountDelta(list, original, -1);
     expect(fundsShortfall(undone, { type: 'expense', amount: 45000, accountId: 'cash' })).toBe(0);
     expect(fundsShortfall(undone, { type: 'expense', amount: 60000, accountId: 'cash' })).toBe(10000);
+  });
+});
+
+describe('pockets offered for a move', () => {
+  it('leaves from pockets with money only, and arrives at any pocket', () => {
+    const list = accounts(0, 20000, 0);
+    expect(pocketMoveSources(list).map((a) => a.id)).toEqual(['bank-main', 'investments']);
+    expect(pocketMoveAccounts(list).map((a) => a.id)).toEqual(
+      expect.arrayContaining(['cash', 'savings', 'investments'])
+    );
+  });
+
+  it('keeps the pocket a move being edited already uses', () => {
+    expect(pocketMoveSources(accounts(0), 'cash').map((a) => a.id)).toContain('cash');
   });
 });

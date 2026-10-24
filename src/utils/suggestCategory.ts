@@ -381,13 +381,22 @@ const NOISE = new Set([
  * Lowercase, no accents. "ñ" is kept apart as "nh" so "uñas" (nails) is not
  * "unas" (some).
  */
+// The same keywords and notes are folded thousands of times per review; NFD is slow on Hermes.
+const folded = new Map<string, string>();
+const FOLD_CACHE_MAX = 5000;
+
 export function fold(text: string): string {
-  return text
+  const hit = folded.get(text);
+  if (hit !== undefined) return hit;
+  const out = text
     .toLowerCase()
     .replace(/ñ/g, 'nh')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .trim();
+  if (folded.size >= FOLD_CACHE_MAX) folded.clear();
+  folded.set(text, out);
+  return out;
 }
 
 /** Meaningful words of a description: "Almuerzo con Juan 15.000" → ["almuerzo", "juan"]. */
@@ -524,7 +533,19 @@ function byHistory(
 /** The kind of spend a note names first, and the word that named it. */
 type KindMatch = { kind: SpendKind; word: string };
 
+// Keyed by the note: its words come from it, and the kinds never change.
+const matchKindCache = new Map<string, KindMatch | null>();
+
 function matchKind(words: string[], note: string): KindMatch | null {
+  const key = `${note}\u0000${words.join(' ')}`;
+  if (matchKindCache.has(key)) return matchKindCache.get(key)!;
+  const out = matchKindUncached(words, note);
+  if (matchKindCache.size >= FOLD_CACHE_MAX) matchKindCache.clear();
+  matchKindCache.set(key, out);
+  return out;
+}
+
+function matchKindUncached(words: string[], note: string): KindMatch | null {
   // Exact words first; only when nothing matches, allow a one-letter typo,
   // so a typo never beats a well-written word of another kind.
   for (const typos of [false, true]) {
@@ -575,11 +596,18 @@ function subNamedForWord(subName: string, match: KindMatch): boolean {
   );
 }
 
+const fitsAnyKindCache = new Map<string, boolean>();
+
 function fitsAnyKind(subName: string): boolean {
+  const hit = fitsAnyKindCache.get(subName);
+  if (hit !== undefined) return hit;
   const names = noteWords(subName);
-  return SPEND_KINDS.some((kind) =>
+  const out = SPEND_KINDS.some((kind) =>
     names.some((nw) => kind.words.some((k) => wordMatches(nw, fold(k))))
   );
+  if (fitsAnyKindCache.size >= FOLD_CACHE_MAX) fitsAnyKindCache.clear();
+  fitsAnyKindCache.set(subName, out);
+  return out;
 }
 
 /**

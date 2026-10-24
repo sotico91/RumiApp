@@ -5,12 +5,12 @@ import { appAlert } from '@/src/components/AppAlert';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useLanguage } from '@/src/i18n/LanguageContext';
-import type { Transaction, TransactionType } from '@/src/types/finance';
+import { isPocketMove, type Transaction, type TransactionType } from '@/src/types/finance';
 import { applyAccountDelta } from '@/src/utils/ledger';
 import { accountDisplayName, fundsShortfall, spendableTotal } from '@/src/utils/accounts';
 
 /**
- * Before a spend or debt payment from your own money: is there money it can
+ * Before a spend, debt payment or move from your own money: is there money it can
  * come from? If not, say so kindly and offer to log the income first. The add
  * screen for it opens on top, so after saving the income you are back here.
  * Returns true when the movement can be saved.
@@ -32,17 +32,21 @@ export function useFundsCheck() {
       if (fundsShortfall(accounts, input) <= 0) return true;
       const account = accounts.find((a) => a.id === input.accountId);
       const available = account ? Math.max(0, account.balance) : 0;
+      const move = isPocketMove(input.type);
+      const shortParams = account && {
+        account: accountDisplayName(account, t),
+        available: format(available),
+        amount: format(input.amount),
+      };
       appAlert(
         t('funds.title'),
-        account && available > 0
-          ? t('funds.bodyShort', {
-              account: accountDisplayName(account, t),
-              available: format(available),
-              amount: format(input.amount),
-            })
-          : spendableTotal(accounts) > 0
-            ? t('funds.bodyOther')
-            : t('funds.bodyEmpty'),
+        shortParams && available > 0
+          ? t(move ? 'funds.moveShort' : 'funds.bodyShort', shortParams)
+          : move
+            ? t('funds.emptyBodyMove')
+            : spendableTotal(accounts) > 0
+              ? t('funds.bodyOther')
+              : t('funds.bodyEmpty'),
         [
           { text: t('funds.later'), style: 'cancel' },
           {

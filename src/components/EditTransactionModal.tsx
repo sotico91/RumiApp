@@ -43,6 +43,7 @@ import {
   liquidPocketsForPay,
   paymentMethodForAccount,
   pocketMoveAccounts,
+  pocketMoveSources,
 } from '@/src/utils/accounts';
 import { payAccountIdForDebt } from '@/src/utils/debts';
 import { appAlert } from '@/src/components/AppAlert';
@@ -107,11 +108,9 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
 
   const accountChoices = useMemo(() => {
     if (type === 'income') return incomeDestinationAccounts(accounts);
-    if (isPocketMove(type)) {
-      return pocketMoveAccounts(accounts);
-    }
     // The pocket this movement already uses stays listed even if it is empty now.
     const keepId = transaction?.accountId;
+    if (isPocketMove(type)) return pocketMoveSources(accounts, keepId);
     if (type === 'debt_payment') return liquidPocketsForPay(accounts, keepId);
     return accountsForExpenseSource(accounts, method, {
       keepId,
@@ -392,12 +391,8 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
                     setMethod(paymentMethodForAccount(acc, method));
                   }
                 }}
-                allowAddWallet={
-                  type === 'income' ||
-                  isPocketMove(type) ||
-                  type === 'debt_payment' ||
-                  (type === 'expense' && method !== 'credit')
-                }
+                // A new wallet starts at zero: it can receive money, not pay.
+                allowAddWallet={type === 'income'}
               />
             )}
               </>
@@ -407,7 +402,7 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
               <>
                 <Text style={styles.label}>{t('flow.whichAccountTo')}</Text>
                 <AccountChoiceChips
-                  accounts={accountChoices.filter((a) => a.id !== accountId)}
+                  accounts={pocketMoveAccounts(accounts).filter((a) => a.id !== accountId)}
                   selectedId={toAccountId}
                   onSelect={setToAccountId}
                   allowAddWallet

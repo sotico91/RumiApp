@@ -522,6 +522,13 @@ export function pocketMoveAccounts(accounts: Account[]): Account[] {
   return accounts.filter((a) => isSpendableLiquid(a.type) || a.type === 'investment');
 }
 
+/** Where a move can leave from: only pockets with money (or the one being edited). */
+export function pocketMoveSources(accounts: Account[], keepId?: string): Account[] {
+  return pocketMoveAccounts(accounts).filter(
+    (a) => a.balance > HALF_CENT_FUNDS || a.id === keepId
+  );
+}
+
 function liquidWithFunds(accounts: Account[], minBalance: number): Account[] {
   return accounts
     .filter((a) => isSpendableLiquid(a.type) && a.balance >= minBalance)
@@ -573,7 +580,7 @@ export function spendableTotal(accounts: Account[]): number {
 }
 
 /**
- * How much is missing in the pocket a spend or debt payment comes from (it
+ * How much is missing in the pocket a spend, debt payment or move comes from (it
  * would go below zero otherwise). Credit cards / cupos are not your money,
  * so they never fall short here.
  */
@@ -581,7 +588,14 @@ export function fundsShortfall(
   accounts: Account[],
   input: { type: TransactionType; amount: number; accountId?: string }
 ): number {
-  if (input.type !== 'expense' && input.type !== 'debt_payment') return 0;
+  if (
+    input.type !== 'expense' &&
+    input.type !== 'debt_payment' &&
+    input.type !== 'transfer' &&
+    input.type !== 'investment'
+  ) {
+    return 0;
+  }
   if (isDebtPayAccountId(input.accountId)) return 0;
   const account = accounts.find((a) => a.id === input.accountId);
   if (account?.type === 'credit') return 0;
