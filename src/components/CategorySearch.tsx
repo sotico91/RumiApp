@@ -75,6 +75,7 @@ export function CategorySearch({
   return (
     <View style={styles.wrap}>
       <TextInput
+        testID="category-search"
         value={query}
         onChangeText={setQuery}
         placeholder={t('categorySearch.placeholder')}

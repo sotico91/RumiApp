@@ -1,0 +1,18 @@
+# A described spend gets its category from the text and leaves the bank.
+appId: com.sotico91.rumi
+---
+- runFlow: subflows/fresh-start.yaml
+- runFlow:
+    file: subflows/quick-spend.yaml
+    env:
+      AMOUNT: "15000"
+      NOTE: "almuerzo"
+- assertVisible: "Se creará Alimentación · Almuerzo al guardar"
+- tapOn: "Guardar \\$15\\.000"
+- extendedWaitUntil:
+    visible: "Inicio"
+    timeout: 10000
+- tapOn: "Actividad"
+- assertVisible: ".*Almuerzo.*15\\.000.*"
+- tapOn: "Patrimonio"
+- assertVisible: ".*Banco principal, \\$985\\.000"

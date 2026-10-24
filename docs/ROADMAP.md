@@ -1,53 +1,54 @@
-# Rumi — Plan de mejoras
+# Rumi — Plan por fases
 
-Ideas para ir ejecutando poco a poco. Se revisa al empezar cada sesión: elegir una, hacerla, probarla en el simulador y marcarla aquí.
+Se revisa al empezar cada sesión: tomar el siguiente punto de la fase actual, hacerlo, probarlo en el simulador y marcarlo aquí.
+Lo ya entregado, con detalle, está en `CHANGELOG.md`.
 
-Última revisión: 2026-10-23. Ninguno de los pendientes se ha empezado; lo hecho desde el 06 fueron arreglos pedidos en el uso diario (ver `CHANGELOG.md`).
+Última revisión: 2026-10-23. **Fase actual: 1 — Estabilidad.**
 
-## Hecho (2026-10-06)
+## Fase 1 — Estabilidad (en curso)
 
-- **Idioma del teléfono desde el primer arranque:** el paquete de iOS declara inglés y español (`CFBundleLocalizations`). Antes, un iPhone en español abría Rumi en inglés.
-- **Revisión del dinero al editar:** subir el monto de un gasto ya no deja una cuenta en negativo. Antes de revisar, se devuelve a la cuenta el dinero de ese mismo movimiento.
-- **El motor aprende de las correcciones:** elegir otra categoría a mano, cambiarla al editar o tocar "Dejar así" enseña esa descripción. Guarda hasta 300 enseñanzas, que siguen a las subcategorías cuando se juntan (`taughtCategories`, `teach`).
-- **Respaldo automático y silencioso en el teléfono:** una copia cifrada al día, se guardan las últimas 7 (`src/data/autoBackup.ts`). Se recupera en Ajustes → Restaurar respaldo. No necesita iCloud ni Drive.
-  - Protege de errores y datos dañados.
-  - Si se pierde el teléfono, solo la salva la copia del propio teléfono (copia de iCloud del iPhone o Copia de seguridad de Google), si está activada.
+Que lo que ya existe no se rompa al entregar y se sienta fluido.
 
-## Pendiente, por prioridad
+- [x] **Recorridos de Maestro en el repo (`e2e/`):** onboarding, registro rápido, buscador de categorías, aprender de una corrección, restaurar una copia automática y mover dinero.
+  Se corren antes de cada entrega con `npm run e2e` (ver `E2E.md`). Hecho el 2026-10-23.
+- [ ] **Fluidez en Android real:** confirmar en el teléfono que Actividad y el cambio de pestañas ya no se traban (arreglo del 2026-10-23).
+  Si sigue, perfilar en el teléfono antes de tocar más código.
 
-### 1. Gráfica de tendencia por categoría
-- Lo que pidió el usuario: que sea **legible y nada engorrosa**.
-- Propuesta: en Historial, al tocar una categoría de "Gastado por categoría", mostrar sus últimos 6 meses como barras simples con el monto encima.
-  - Una sola línea de texto arriba: "Alimentación: $X este mes, 20% más que el promedio".
-  - Sin ejes complicados ni leyendas. El mes actual resaltado.
-- Antes de escribirla, cargar la guía de gráficas (skill `dataviz`).
+## Fase 2 — Valor diario
 
-### 2. Recorridos de Maestro dentro del proyecto
-- Guardar en el repo (`e2e/`) los flujos que hoy se probaron a mano en el simulador:
-  - onboarding;
-  - registro rápido con descripción;
-  - buscador de categorías;
-  - aprender de una corrección;
-  - restaurar una copia automática.
-- Correrlos antes de cada entrega. Así fallos como el de "Mercado" no llegan al teléfono.
-- Receta del simulador: memoria `simulator-maestro`.
+Lo que hace que Rumi ahorre trabajo y explique mejor el dinero.
 
-### 3. Gastos repetidos automáticos
-- Netflix, arriendo o el plan del celular se registran solos el día que tocan, con confirmación de un toque.
-- Ya existen las reglas de recordatorio y la detección de pagos mensuales (`predictMonthlySpends`, `suggestReminders`); falta convertirlas en registros.
-- Cuidado: no agregar notificaciones nuevas. Usar las que ya existen.
+- [ ] **Gráfica de tendencia por categoría:** debe ser **legible y nada engorrosa**.
+  - En Actividad, al tocar una categoría de "Gastado por categoría": sus últimos 6 meses como barras simples con el monto encima, el mes actual resaltado.
+  - Una sola línea arriba: "Alimentación: $X este mes, 20% más que el promedio". Sin ejes complicados ni leyendas.
+  - Antes de escribirla, cargar la guía de gráficas (skill `dataviz`).
+- [ ] **Gastos repetidos que se registran solos:** Netflix, arriendo o el plan del celular, el día que tocan, con confirmación de un toque.
+  - Ya existe la detección (`predictMonthlySpends`, `suggestReminders`); falta convertirla en registros.
+  - Sin notificaciones nuevas: usar las que ya existen.
 
-### 4. Sincronizar dispositivos y hogar (proyecto grande)
-- Hoy cada teléfono tiene sus propios datos: el Android y el iPhone no comparten nada.
-- Para compartir un libro entre dispositivos o en pareja hace falta un servidor (cuentas, sincronización y conflictos). La base ya existe: cada movimiento guarda quién lo registró (`registeredById`).
-- Decidirlo pronto si se va a usar en pareja, porque cambia cómo se guardan los datos.
+## Fase 3 — Publicar
 
-### 5. Captura desde notificaciones del banco (solo Android, proyecto grande)
-- Leer "Bancolombia le informa compra por $45.000 en Éxito" y proponer el gasto ya categorizado con el motor de sugerencias.
-- Requiere un permiso sensible de lectura de notificaciones y cuidado con la privacidad. En iPhone no es posible.
+Pasos en `STORE_CHECKLIST.md`. Al empezar la fase, anotar aquí cuáles ya están hechos.
 
-### 6. Foto del recibo
-- Adjuntar una foto al gasto y, más adelante, leer el monto de la foto.
+- [ ] Cuenta de Apple Developer activa y Play Console registrada.
+- [ ] Página de privacidad publicada en GitHub Pages.
+- [ ] Builds de producción con EAS.
+- [ ] TestFlight y prueba interna de Play antes de producción.
+
+## Fase 4 — Proyectos grandes
+
+- [ ] **Sincronizar dispositivos y hogar:** hoy cada teléfono tiene sus propios datos.
+  - Hace falta un servidor (cuentas, sincronización, conflictos). La base existe: cada movimiento guarda quién lo registró (`registeredById`).
+  - **Decidir pronto** si se usará en pareja: cambia cómo se guardan los datos.
+- [ ] **Captura desde notificaciones del banco (solo Android):** leer "Bancolombia le informa compra por $45.000 en Éxito" y proponer el gasto ya categorizado.
+  Requiere un permiso sensible y cuidado con la privacidad; en iPhone no es posible.
+- [ ] **Foto del recibo:** adjuntarla al gasto y, más adelante, leer el monto de la foto.
+
+## Hecho
+
+- **2026-10-23:** mover dinero entre cuentas e inversiones; el dinero solo sale de cuentas con saldo; navegación más fluida en Android; respuestas de Rumi coherentes con Inicio.
+- **2026-10-13:** dependencias al día con el SDK 57.
+- **2026-10-06:** idioma del teléfono desde el primer arranque, revisar el dinero al editar, el motor aprende de las correcciones, respaldo automático en el teléfono.
 
 ## Descartado por ahora (decisión del usuario)
 

@@ -12,6 +12,8 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-23
 
+- **Recorridos de prueba en el repo (`e2e/`, `npm run e2e`):** seis flujos de Maestro que se corren solos en el simulador antes de cada entrega. Detalle en `E2E.md`.
+- **"Ver totales" muestra solo dónde hay dinero:** efectivo, billeteras, ahorros o bancos en 0 no aparecen, y las inversiones se ven debajo del total, aparte del disponible.
 - **Mover dinero entre cualquier cuenta e inversión:** ahorros, bancos, efectivo, billeteras y cada inversión sirven de origen o destino; sale de una y entra a la otra.
   El resumen dice si el disponible baja o sube mientras el patrimonio no cambia.
 - **El dinero solo sale de cuentas que lo tienen:** al mover, el origen lista solo cuentas con saldo (cualquiera puede recibir), y mover más de lo que hay se frena como un gasto.

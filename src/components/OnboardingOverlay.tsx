@@ -236,6 +236,7 @@ export function OnboardingOverlay() {
               <Text style={styles.copy}>{t('onboard.balanceBody')}</Text>
               <Text style={styles.fieldLabel}>{t('account.bankMain')}</Text>
               <TextInput
+                testID="onboard-bank"
                 value={bank}
                 onChangeText={(text) => setBank(formatAmountTyping(text, currency))}
                 placeholder="0"

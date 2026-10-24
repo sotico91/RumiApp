@@ -28,6 +28,7 @@ export function AddFab() {
         }}
         accessibilityRole="button"
         accessibilityLabel={t('fab.add')}
+        testID="add-fab"
         style={({ pressed }) => [styles.fab, pressed && styles.pressed]}>
         <AppSymbol
           ios="plus"

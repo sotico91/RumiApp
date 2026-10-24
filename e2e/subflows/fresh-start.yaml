@@ -1,0 +1,29 @@
+# Fresh app data, onboarding done in Spanish: every ant spend marked (it creates
+# their subcategories) and $1.000.000 in the main bank.
+appId: com.sotico91.rumi
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+- extendedWaitUntil:
+    visible: "Tu nombre"
+    timeout: 20000
+- tapOn: "Tu nombre"
+- inputText: "Prueba"
+- tapOn: "Suena bien"
+- tapOn: "Continuar"
+- tapOn: ".*Café"
+- tapOn: ".*Domicilio"
+- tapOn: ".*Snack"
+- tapOn: ".*Taxi y apps"
+- tapOn: ".*Suscripciones"
+- tapOn: "Continuar"
+- assertVisible: "¿Cuánta plata tienes hoy?"
+- tapOn:
+    id: "onboard-bank"
+- inputText: "1000000"
+- tapOn: "PASO 4 DE 4"
+- tapOn: "Listo, vamos"
+- extendedWaitUntil:
+    visible: "Inicio"
+    timeout: 10000

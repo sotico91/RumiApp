@@ -1,0 +1,24 @@
+# Picking another category by hand teaches that description: next time it goes there.
+appId: com.sotico91.rumi
+---
+- runFlow: subflows/fresh-start.yaml
+- runFlow:
+    file: subflows/quick-spend.yaml
+    env: { AMOUNT: "8000", NOTE: "almuerzo" }
+- assertVisible: "Se creará Alimentación · Almuerzo al guardar"
+- tapOn: ".*, Café"
+- tapOn: "Guardar \\$8\\.000"
+- extendedWaitUntil:
+    visible: "Inicio"
+    timeout: 10000
+- runFlow:
+    file: subflows/quick-spend.yaml
+    env: { AMOUNT: "9000", NOTE: "almuerzo" }
+- assertVisible: "Rumi lo ubicó en Alimentación · Café.*"
+- tapOn: "Guardar \\$9\\.000"
+- extendedWaitUntil:
+    visible: "Inicio"
+    timeout: 10000
+- tapOn: "Actividad"
+- assertVisible: ".*Café.*9\\.000.*"
+- assertNotVisible: ".*Almuerzo.*"

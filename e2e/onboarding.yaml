@@ -1,0 +1,7 @@
+# Onboarding leaves the opening balance in the main bank.
+appId: com.sotico91.rumi
+---
+- runFlow: subflows/fresh-start.yaml
+- tapOn: "Patrimonio"
+- assertVisible: ".*Banco principal, \\$1\\.000\\.000"
+- assertVisible: "Activos: \\$1\\.000\\.000"

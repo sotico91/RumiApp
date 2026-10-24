@@ -1,0 +1,28 @@
+# The day's silent copy is saved with the first movement; restoring it brings that state back.
+appId: com.sotico91.rumi
+---
+- runFlow: subflows/fresh-start.yaml
+- runFlow:
+    file: subflows/quick-spend.yaml
+    env: { AMOUNT: "3000", NOTE: "café" }
+- tapOn: "Guardar \\$3\\.000"
+- extendedWaitUntil:
+    visible: "Inicio"
+    timeout: 10000
+- runFlow:
+    file: subflows/quick-spend.yaml
+    env: { AMOUNT: "7000", NOTE: "uber" }
+- tapOn: "Guardar \\$7\\.000"
+- extendedWaitUntil:
+    visible: "Inicio"
+    timeout: 10000
+- tapOn: "Patrimonio"
+- assertVisible: ".*Banco principal, \\$990\\.000"
+- tapOn: "Inicio"
+- tapOn: "Ajustes"
+- tapOn: ".*Restaurar respaldo….*"
+- tapOn: "Copia automática del.*"
+- assertVisible: "Respaldo restaurado"
+- tapOn: "OK"
+- tapOn: "Patrimonio"
+- assertVisible: ".*Banco principal, \\$997\\.000"

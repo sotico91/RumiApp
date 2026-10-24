@@ -19,17 +19,16 @@ type Variant = 'light' | 'dark';
 export function PocketFlowList({ variant = 'light' }: { variant?: Variant }) {
   const { t } = useLanguage();
   const { format } = useMoney();
-  const { availableCash, availableByAccount, secondaryByAccount } = useFinance();
+  const { availableCash, availableByAccount, secondaryByAccount, accounts } = useFinance();
   const dark = variant === 'dark';
 
-  const cash = availableByAccount.filter((a) => a.type === 'cash');
-  const banks = availableByAccount.filter((a) => a.type === 'bank');
-  const wallets = secondaryByAccount.filter(
-    (a) =>
-      a.type === 'wallet' &&
-      (Boolean(a.name?.trim()) || Math.abs(a.balance) >= 0.01)
-  );
-  const savings = secondaryByAccount.filter((a) => a.type === 'savings');
+  // Only where there is money: an empty pocket is noise here (Wealth lists them all).
+  const withMoney = (a: PocketItem) => Math.abs(a.balance) >= 0.01;
+  const cash = availableByAccount.filter((a) => a.type === 'cash' && withMoney(a));
+  const banks = availableByAccount.filter((a) => a.type === 'bank' && withMoney(a));
+  const wallets = secondaryByAccount.filter((a) => a.type === 'wallet' && withMoney(a));
+  const savings = secondaryByAccount.filter((a) => a.type === 'savings' && withMoney(a));
+  const investments = accounts.filter((a) => a.type === 'investment' && withMoney(a));
 
   return (
     <View style={styles.wrap}>
@@ -51,6 +50,14 @@ export function PocketFlowList({ variant = 'light' }: { variant?: Variant }) {
           {format(availableCash)}
         </Text>
       </View>
+      {/* Investments are yours but not money to spend: shown apart from the total. */}
+      <Group
+        title={t('home.pocketInvestments')}
+        items={investments}
+        format={format}
+        t={t}
+        dark={dark}
+      />
     </View>
   );
 }

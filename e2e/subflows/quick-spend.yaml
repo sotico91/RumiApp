@@ -1,0 +1,15 @@
+# Quick add a spend: ${AMOUNT} with description ${NOTE}. The decimal pad has no Done key,
+# so a tap on a title closes it before the description.
+appId: com.sotico91.rumi
+---
+- tapOn: "Inicio"
+- tapOn:
+    id: "add-fab"
+- tapOn:
+    id: "quick-amount"
+- inputText: ${AMOUNT}
+- tapOn: "¿En qué?"
+- tapOn:
+    id: "quick-note"
+- inputText: ${NOTE}
+- tapOn: "¿En qué?"

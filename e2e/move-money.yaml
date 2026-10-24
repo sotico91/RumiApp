@@ -1,0 +1,38 @@
+# Moving money: it leaves only pockets that have it, reaches investments, and the
+# totals panel lists only pockets with money, investments apart from the available.
+appId: com.sotico91.rumi
+---
+- runFlow: subflows/fresh-start.yaml
+- tapOn:
+    id: "add-fab"
+- tapOn: "Mover"
+- tapOn:
+    id: "flow-amount"
+- inputText: "200000"
+- tapOn: "¿De cuánto fue?"
+- tapOn: "Continuar"
+- assertVisible: "¿Desde qué cuenta?"
+# Only the bank has money: no empty pocket offered as the source.
+- assertNotVisible: "Efectivo · .*"
+- assertNotVisible: "Billetera virtual · .*"
+# The destination's "Change" (the source has nothing to change to).
+- tapOn: "Cambiar la cuenta"
+- tapOn: "Inversiones · .*"
+- tapOn: "Continuar"
+- assertVisible: "Tu disponible baja \\$200\\.000; tu patrimonio no cambia\\."
+- tapOn: "Sí, guardar"
+- extendedWaitUntil:
+    visible: "Inicio"
+    timeout: 10000
+- tapOn: "Patrimonio"
+- assertVisible: ".*Banco principal, \\$800\\.000"
+- assertVisible: "Activos: \\$1\\.000\\.000"
+- tapOn: "Inicio"
+- tapOn: ".*VER TOTALES"
+- assertVisible: "DÓNDE ESTÁ"
+- assertVisible: "Banco principal"
+- assertNotVisible: "EFECTIVO"
+- assertNotVisible: "BILLETERAS"
+- assertNotVisible: "AHORROS"
+- assertVisible: "INVERSIONES \\(APARTE DEL DISPONIBLE\\)"
+- takeScreenshot: totals-panel

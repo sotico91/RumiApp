@@ -1,0 +1,44 @@
+# Typing in the category search picks the destination it suggests.
+appId: com.sotico91.rumi
+---
+- runFlow: subflows/fresh-start.yaml
+# More than 10 subcategories turn the search on: each new kind of spend adds one.
+- runFlow:
+    file: subflows/quick-spend.yaml
+    env: { AMOUNT: "5000", NOTE: "gasolina" }
+- tapOn: "Guardar \\$5\\.000"
+- runFlow:
+    file: subflows/quick-spend.yaml
+    env: { AMOUNT: "5000", NOTE: "cine" }
+- tapOn: "Guardar \\$5\\.000"
+- runFlow:
+    file: subflows/quick-spend.yaml
+    env: { AMOUNT: "5000", NOTE: "farmacia" }
+- tapOn: "Guardar \\$5\\.000"
+- runFlow:
+    file: subflows/quick-spend.yaml
+    env: { AMOUNT: "5000", NOTE: "arriendo" }
+- tapOn: "Guardar \\$5\\.000"
+- runFlow:
+    file: subflows/quick-spend.yaml
+    env: { AMOUNT: "5000", NOTE: "gimnasio" }
+- tapOn: "Guardar \\$5\\.000"
+- tapOn:
+    id: "add-fab"
+- tapOn:
+    id: "quick-amount"
+- inputText: "20000"
+- tapOn: "¿En qué?"
+- tapOn:
+    id: "category-search"
+- inputText: "almuerzo"
+- tapOn: "¿En qué?"
+- assertVisible: "Se creará Alimentación · Almuerzo al guardar"
+- scrollUntilVisible:
+    element: "Guardar \\$20\\.000"
+- tapOn: "Guardar \\$20\\.000"
+- extendedWaitUntil:
+    visible: "Inicio"
+    timeout: 10000
+- tapOn: "Actividad"
+- assertVisible: ".*Almuerzo.*20\\.000.*"

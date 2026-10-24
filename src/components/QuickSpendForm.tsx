@@ -241,6 +241,7 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
             $
           </Text>
           <TextInput
+            testID="quick-amount"
             value={formatAmountTyping(amount, currency)}
             onChangeText={(text) => setAmount(formatAmountTyping(text, currency))}
             placeholder="0"
@@ -334,6 +335,7 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
         />
 
         <TextInput
+          testID="quick-note"
           value={note}
           onChangeText={setNote}
           placeholder={t('add.notePlaceholder')}

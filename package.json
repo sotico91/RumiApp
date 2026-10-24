@@ -66,6 +66,7 @@
     "eas:submit:ios": "eas submit --platform ios --profile production",
     "test": "jest",
     "typecheck": "tsc --noEmit",
+    "e2e": "bash scripts/e2e.sh",
     "version:bump": "node scripts/bump-version.js"
   },
   "jest": {

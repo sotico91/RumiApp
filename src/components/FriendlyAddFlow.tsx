@@ -671,6 +671,7 @@ export function FriendlyAddFlow({
                 $
               </Text>
               <TextInput
+                testID="flow-amount"
                 value={formatAmountTyping(amount, currency)}
                 onChangeText={(text) => setAmount(formatAmountTyping(text, currency))}
                 keyboardType="decimal-pad"
@@ -1077,6 +1078,7 @@ export function FriendlyAddFlow({
             </View>
             <Text style={styles.noteLabel}>{t('flow.noteOptional')}</Text>
             <TextInput
+              testID="flow-note"
               value={note}
               onChangeText={setNote}
               placeholder={t('add.notePlaceholder')}
