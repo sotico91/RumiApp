@@ -2,6 +2,7 @@ import type { Account, Debt, Transaction } from '@/src/types/finance';
 import {
   accountDisplayName,
   ensureInvestmentAccount,
+  pocketMoveAccounts,
   removeInvestmentAccount,
   renameInvestmentAccount,
 } from '@/src/utils/accounts';
@@ -221,5 +222,38 @@ describe('spends under a debt sub pay the debt', () => {
     expect(fixed.debts[0].closedAt).toBe('2026-10-10T12:00:00.000Z');
     expect(fixed.transactions.map((t) => t.type)).toEqual(['debt_payment', 'debt_payment', 'expense']);
     expect(linkDebtSubSpends(fixed.debts, fixed.transactions).changed).toBe(false);
+  });
+});
+
+describe('moves between pockets and investments', () => {
+  const withSavings: Account[] = [
+    ...accounts,
+    { id: 'savings', nameKey: 'account.savings', type: 'savings', balance: 200000 },
+    { id: 'inv-cdt', nameKey: '', name: 'CDT', type: 'investment', balance: 300000 },
+    { id: 'credit-card', nameKey: 'account.creditCard', type: 'credit', balance: 0 },
+  ];
+
+  it('lists savings and every investment as move pockets, never credit', () => {
+    const ids = pocketMoveAccounts(withSavings).map((a) => a.id);
+    expect(ids).toEqual(expect.arrayContaining(['cash', 'bank', 'savings', 'investments', 'inv-cdt']));
+    expect(ids).not.toContain('credit-card');
+  });
+
+  it('takes from the source and adds to the destination, both ways', () => {
+    const tx = (accountId: string, toAccountId: string): Transaction => ({
+      id: 't',
+      type: 'transfer',
+      amount: 50000,
+      accountId,
+      toAccountId,
+      createdAt: '2026-10-23T12:00:00.000Z',
+    });
+    const into = applyAccountDelta(withSavings, tx('savings', 'inv-cdt'));
+    expect(into.find((a) => a.id === 'savings')?.balance).toBe(150000);
+    expect(into.find((a) => a.id === 'inv-cdt')?.balance).toBe(350000);
+    const back = applyAccountDelta(into, tx('inv-cdt', 'bank'));
+    expect(back.find((a) => a.id === 'inv-cdt')?.balance).toBe(300000);
+    expect(back.find((a) => a.id === 'bank')?.balance).toBe(550000);
+    expect(pocketMoveAccountsReady(withSavings, tx('inv-cdt', 'investments'))).toBe(true);
   });
 });

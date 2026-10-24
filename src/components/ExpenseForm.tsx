@@ -172,10 +172,7 @@ export function ExpenseForm({
   const accountChoices = useMemo(() => {
     if (type === 'income') return incomeDestinationAccounts(accounts);
     if (isPocketMove(type)) {
-      return pocketMoveAccounts(
-        accounts,
-        type === 'investment' ? 'investment' : 'transfer'
-      );
+      return pocketMoveAccounts(accounts);
     }
     if (type === 'debt_payment') return liquidPocketsForPay(accounts);
     return accountsForExpenseSource(accounts, method, {
@@ -256,7 +253,7 @@ export function ExpenseForm({
     } else if (isPocketMove(next)) {
       setCategoryId('');
       const fromId = firstAccountId(
-        pocketMoveAccounts(accounts, next === 'investment' ? 'investment' : 'transfer')
+        pocketMoveAccounts(accounts)
       );
       if (fromId) setAccountId(fromId);
       setToAccountId(defaultTransferDestinationId(accounts, fromId));

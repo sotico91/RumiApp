@@ -108,10 +108,7 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
   const accountChoices = useMemo(() => {
     if (type === 'income') return incomeDestinationAccounts(accounts);
     if (isPocketMove(type)) {
-      return pocketMoveAccounts(
-        accounts,
-        type === 'investment' ? 'investment' : 'transfer'
-      );
+      return pocketMoveAccounts(accounts);
     }
     // The pocket this movement already uses stays listed even if it is empty now.
     const keepId = transaction?.accountId;

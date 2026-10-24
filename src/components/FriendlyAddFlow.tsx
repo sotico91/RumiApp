@@ -163,7 +163,7 @@ export function FriendlyAddFlow({
   );
 
   const moveAccounts = useMemo(
-    () => pocketMoveAccounts(accounts, 'transfer'),
+    () => pocketMoveAccounts(accounts),
     [accounts]
   );
 
@@ -1063,7 +1063,16 @@ export function FriendlyAddFlow({
                     })}
                   </Text>
                   <Text style={[styles.intentSub, { marginTop: 6 }]}>
-                    {t('flow.moveAvailableSame')}
+                    {(() => {
+                      const fromInvest =
+                        accounts.find((a) => a.id === accountId)?.type === 'investment';
+                      const toInvest =
+                        accounts.find((a) => a.id === toAccountId)?.type === 'investment';
+                      const shown = formatPlain(parse(amount) ?? 0);
+                      if (toInvest && !fromInvest) return t('flow.moveToInvest', { amount: shown });
+                      if (fromInvest && !toInvest) return t('flow.moveFromInvest', { amount: shown });
+                      return t('flow.moveAvailableSame');
+                    })()}
                   </Text>
                 </>
               ) : null}
