@@ -1,5 +1,6 @@
 import {
   AbsoluteFill,
+  Audio,
   Img,
   interpolate,
   OffthreadVideo,
@@ -11,20 +12,28 @@ import {
 } from 'remotion';
 import { brand, fonts } from './brand';
 
+/** Seconds into the screen recording; mapped through the kept segments. */
 export type Caption = { at: number; text: string };
+
+export type Sfx = {
+  at: number;
+  sound: 'click' | 'type' | 'success';
+  /** Seconds of the recording it lasts (typing bursts). */
+  length?: number;
+};
 
 export type AdProps = {
   /** Opening line, alone on screen before the phone appears. */
   hook: string;
   /** Screen recording in public/clips/. */
   clip: string;
-  /** Seconds to skip at the start of the recording. */
-  clipStart: number;
-  /** Seconds of the recording to show. */
-  clipLength: number;
+  /** Parts of the recording to keep, [from, to] in seconds; dead time in between is cut. */
+  segments: [number, number][];
   playbackRate: number;
-  /** Lines above the phone, each from `at` seconds into the recording. */
+  /** Lines above the phone, each from `at` (recording seconds). */
   captions: Caption[];
+  /** Taps, typing and saves, in recording seconds. */
+  sfx: Sfx[];
   /** Last card: what Rumi is, and the promise. */
   endTitle: string;
   endLine: string;
@@ -34,10 +43,26 @@ export type AdProps = {
 export const HOOK_SECONDS = 2.2;
 export const END_SECONDS = 3;
 
-export const adSeconds = (p: AdProps) => HOOK_SECONDS + p.clipLength / p.playbackRate + END_SECONDS;
+const keptSeconds = (p: AdProps) => p.segments.reduce((sum, [from, to]) => sum + (to - from), 0);
+
+export const bodySeconds = (p: AdProps) => keptSeconds(p) / p.playbackRate;
+
+export const adSeconds = (p: AdProps) => HOOK_SECONDS + bodySeconds(p) + END_SECONDS;
+
+/** Recording seconds → seconds into the phone part of the ad. */
+function toBody(p: AdProps, at: number): number {
+  let before = 0;
+  for (const [from, to] of p.segments) {
+    if (at < from) return before / p.playbackRate;
+    if (at <= to) return (before + at - from) / p.playbackRate;
+    before += to - from;
+  }
+  return before / p.playbackRate;
+}
 
 const SCREEN_W = 600;
 const SCREEN_H = Math.round((SCREEN_W * 2622) / 1206);
+const SFX_VOLUME = { click: 0.9, type: 0.45, success: 0.7 } as const;
 
 function Background() {
   const frame = useCurrentFrame();
@@ -78,7 +103,7 @@ function Hook({ text }: { text: string }) {
   );
 }
 
-function Phone({ clip, clipStart, playbackRate }: Pick<AdProps, 'clip' | 'clipStart' | 'playbackRate'>) {
+function Phone({ p }: { p: AdProps }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const enter = spring({ frame, fps, config: { damping: 16 } });
@@ -95,26 +120,33 @@ function Phone({ clip, clipStart, playbackRate }: Pick<AdProps, 'clip' | 'clipSt
         transform: `translateY(${(1 - enter) * 900}px) rotate(${(1 - enter) * 6}deg)`,
       }}>
       <div style={{ width: SCREEN_W, height: SCREEN_H, borderRadius: 80, overflow: 'hidden', position: 'relative' }}>
-        <OffthreadVideo
-          src={staticFile(`clips/${clip}`)}
-          startFrom={Math.round(clipStart * fps)}
-          playbackRate={playbackRate}
-          muted
-          style={{ width: '100%', height: '100%' }}
-        />
+        {p.segments.map(([from, to], i) => (
+          <Sequence
+            key={from}
+            from={Math.round(toBody(p, from) * fps)}
+            durationInFrames={i === p.segments.length - 1 ? undefined : Math.round(((to - from) / p.playbackRate) * fps)}
+            layout="none">
+            <OffthreadVideo
+              src={staticFile(`clips/${p.clip}`)}
+              startFrom={Math.round(from * fps)}
+              playbackRate={p.playbackRate}
+              muted
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+            />
+          </Sequence>
+        ))}
       </div>
     </div>
   );
 }
 
-function Captions({ captions, playbackRate }: Pick<AdProps, 'captions' | 'playbackRate'>) {
+function Captions({ p }: { p: AdProps }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const t = (frame / fps) * playbackRate;
-  const index = captions.reduce((acc, c, i) => (t >= c.at ? i : acc), -1);
+  const starts = p.captions.map((c) => Math.round(toBody(p, c.at) * fps));
+  const index = starts.reduce((acc, start, i) => (frame >= start ? i : acc), -1);
   if (index < 0) return null;
-  const startFrame = Math.round((captions[index].at / playbackRate) * fps);
-  const pop = spring({ frame: frame - startFrame, fps, config: { damping: 15 } });
+  const pop = spring({ frame: frame - starts[index], fps, config: { damping: 15 } });
   return (
     <div
       style={{
@@ -138,7 +170,7 @@ function Captions({ captions, playbackRate }: Pick<AdProps, 'captions' | 'playba
           opacity: pop,
           transform: `translateY(${(1 - pop) * 30}px)`,
         }}>
-        {captions[index].text}
+        {p.captions[index].text}
       </div>
     </div>
   );
@@ -187,25 +219,72 @@ function EndCard({ title, line, cta }: { title: string; line: string; cta: strin
   );
 }
 
-export function Ad(props: AdProps) {
+/** One sound at `from` (ad frames), optionally cut after `frames`. */
+function Sound({ from, src, volume, frames }: { from: number; src: string; volume: number; frames?: number }) {
+  return (
+    <Sequence from={from} durationInFrames={frames} layout="none">
+      <Audio src={staticFile(src)} volume={volume} />
+    </Sequence>
+  );
+}
+
+function Soundtrack({ p, total }: { p: AdProps; total: number }) {
   const { fps } = useVideoConfig();
   const hook = Math.round(HOOK_SECONDS * fps);
-  const body = Math.round((props.clipLength / props.playbackRate) * fps);
+  const end = hook + Math.round(bodySeconds(p) * fps);
+  const at = (s: number) => hook + Math.round(toBody(p, s) * fps);
+  return (
+    <>
+      <Audio
+        src={staticFile('music/bed.wav')}
+        volume={(f) =>
+          0.5 *
+          interpolate(f, [0, 8, total - 24, total - 1], [0, 1, 1, 0], {
+            extrapolateLeft: 'clamp',
+            extrapolateRight: 'clamp',
+          })
+        }
+      />
+      <Sound from={0} src="sfx/pop.wav" volume={0.6} />
+      <Sound from={hook - 10} src="sfx/whoosh.wav" volume={0.7} />
+      {p.captions.slice(1).map((c) => (
+        <Sound key={c.at} from={at(c.at) - 4} src="sfx/whoosh.wav" volume={0.35} />
+      ))}
+      {p.sfx.map((s) => (
+        <Sound
+          key={`${s.sound}-${s.at}`}
+          from={at(s.at)}
+          src={`sfx/${s.sound}.wav`}
+          volume={SFX_VOLUME[s.sound]}
+          frames={s.length ? Math.round((s.length / p.playbackRate) * fps) : undefined}
+        />
+      ))}
+      <Sound from={end - 6} src="sfx/whoosh.wav" volume={0.6} />
+      <Sound from={end} src="sfx/chime.wav" volume={0.7} />
+    </>
+  );
+}
+
+export function Ad(props: AdProps) {
+  const { fps, durationInFrames } = useVideoConfig();
+  const hook = Math.round(HOOK_SECONDS * fps);
+  const body = Math.round(bodySeconds(props) * fps);
   return (
     <AbsoluteFill style={{ backgroundColor: brand.petrol900 }}>
       <Background />
       <Sequence durationInFrames={hook}>
         <Hook text={props.hook} />
       </Sequence>
-      <Sequence from={hook - 8} durationInFrames={body + 8}>
-        <Phone clip={props.clip} clipStart={props.clipStart} playbackRate={props.playbackRate} />
+      <Sequence from={hook} durationInFrames={body}>
+        <Phone p={props} />
       </Sequence>
       <Sequence from={hook} durationInFrames={body}>
-        <Captions captions={props.captions} playbackRate={props.playbackRate} />
+        <Captions p={props} />
       </Sequence>
       <Sequence from={hook + body}>
         <EndCard title={props.endTitle} line={props.endLine} cta={props.cta} />
       </Sequence>
+      <Soundtrack p={props} total={durationInFrames} />
     </AbsoluteFill>
   );
 }

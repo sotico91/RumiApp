@@ -7,48 +7,72 @@ const end = {
   cta: 'Muy pronto',
 };
 
-// Clip timings (seconds into each recording) come from marketing/ads/record.sh output.
+// Every time is seconds into the recording (public/clips/), read from its frames.
 export const ads: Record<string, AdProps> = {
   'anota-es': {
     hook: '¿En qué se te va la plata?',
     clip: 'quick.mp4',
-    clipStart: 19.5,
-    clipLength: 18.5,
-    playbackRate: 1.6,
+    segments: [[19.5, 34.5]],
+    playbackRate: 1.5,
     captions: [
-      { at: 0, text: 'Anota un gasto en segundos' },
-      { at: 3.5, text: 'Escribe cuánto…' },
-      { at: 8, text: '…y en qué: «almuerzo»' },
-      { at: 11.5, text: 'Rumi lo ubica solo' },
-      { at: 14.5, text: 'Listo. Sin hojas de cálculo.' },
+      { at: 19.5, text: 'Anota un gasto en segundos' },
+      { at: 23.2, text: 'Escribe cuánto…' },
+      { at: 27.8, text: '…y en qué: «almuerzo»' },
+      { at: 30.0, text: 'Rumi lo ubica solo' },
+      { at: 32.8, text: 'Listo. Sin hojas de cálculo.' },
+    ],
+    sfx: [
+      { at: 20.3, sound: 'click' },
+      { at: 23.2, sound: 'click' },
+      { at: 24.0, sound: 'type', length: 1.0 },
+      { at: 26.3, sound: 'click' },
+      { at: 27.8, sound: 'click' },
+      { at: 28.5, sound: 'type', length: 1.5 },
+      { at: 32.2, sound: 'click' },
+      { at: 32.8, sound: 'success' },
     ],
     ...end,
   },
   'pregunta-es': {
     hook: '¿Cuánto gasté en café este mes?',
     clip: 'ask.mp4',
-    clipStart: 34.5,
-    clipLength: 21,
-    playbackRate: 1.6,
+    segments: [
+      [34.5, 41.2],
+      [48.2, 55.5],
+    ],
+    playbackRate: 1.3,
     captions: [
-      { at: 0, text: 'Pregúntale a Rumi como hablas' },
-      { at: 15, text: '$19.500 en 3 cafés. Con tus números.' },
+      { at: 34.5, text: 'Pregúntale a Rumi como hablas' },
+      { at: 48.9, text: '$19.500 en 3 cafés. Con tus números.' },
+    ],
+    sfx: [
+      { at: 35.8, sound: 'click' },
+      { at: 39.2, sound: 'type', length: 1.6 },
+      { at: 48.6, sound: 'click' },
+      { at: 48.9, sound: 'success' },
     ],
     ...end,
   },
   'hormiga-es': {
     hook: '$5.800 no es nada… ¿o sí?',
     clip: 'onetap.mp4',
-    clipStart: 19.5,
-    clipLength: 9,
+    segments: [
+      [19.5, 20.6],
+      [22.4, 28.5],
+    ],
     playbackRate: 1,
     captions: [
-      { at: 0, text: 'Tus gastos de siempre, a un toque' },
-      { at: 3, text: 'Cambia el valor y listo' },
-      { at: 7, text: 'Cada cafecito, contado' },
+      { at: 19.5, text: 'Tus gastos de siempre, a un toque' },
+      { at: 23.6, text: 'Cambia el valor y listo' },
+      { at: 26.5, text: 'Cada cafecito, contado' },
     ],
-    endTitle: 'Rumi',
+    sfx: [
+      { at: 22.7, sound: 'click' },
+      { at: 23.8, sound: 'type', length: 1.0 },
+      { at: 26.2, sound: 'click' },
+      { at: 26.5, sound: 'success' },
+    ],
+    ...end,
     endLine: 'Ve cuánto suman tus gastos hormiga, sin conectar tu banco.',
-    cta: end.cta,
   },
 };
