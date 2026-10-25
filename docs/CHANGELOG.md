@@ -10,6 +10,14 @@ El detalle de cada cambio está en `git log`.
 - **Comentarios de código en inglés:** todos los comentarios del código van en inglés.
   Los textos que ve el usuario van en `src/i18n/translations.ts` (es/en).
 
+## 2026-10-25
+
+- **"¿Gasté más que el mes pasado?" ya no responde por "Mascota":** el motor de preguntas leía "más" como el comienzo de una subcategoría (Mascota). Ahora las coincidencias parciales piden al menos 4 letras en la palabra de la pregunta.
+- **Gastos en un toque dicen qué es:** cada botón muestra primero el concepto (Café, Netflix) y debajo, más pequeña, su categoría, con el color de la subcategoría; antes se cortaba en "Alimentaci…".
+  Bajo una subcategoría "General", cada descripción es su propio botón (Almuerzo y Desayuno por separado).
+- **Repetir un gasto es tocar, cambiar el valor y listo:** la hoja abre con el teclado en el monto y "Registrar $X" justo debajo, por encima del teclado; vacío registra el último monto (que se ve en gris) y lo escrito lo reemplaza. Sale el paso "Cambiar monto"; la cuenta y la observación opcional siguen abajo. Nuevo recorrido `one-tap`.
+- **Análisis sin selector de periodo:** se quita Hoy / Esta semana / Este mes; la pantalla muestra el mes, y otros periodos se le preguntan a Rumi ("¿cuánto gasté esta semana?").
+
 ## 2026-10-23
 
 - **Recorridos de prueba en el repo (`e2e/`, `npm run e2e`):** seis flujos de Maestro que se corren solos en el simulador antes de cada entrega. Detalle en `E2E.md`.

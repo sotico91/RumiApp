@@ -1,0 +1,31 @@
+# One-tap spend: the chip names the concept (Café) and its category, the amount is
+# ready to type over, and an empty field logs the last amount.
+appId: com.sotico91.rumi
+---
+- runFlow: subflows/fresh-start.yaml
+- runFlow:
+    file: subflows/quick-spend.yaml
+    env: { AMOUNT: "6500", NOTE: "café" }
+- tapOn: "Guardar \\$6\\.500"
+- extendedWaitUntil:
+    visible: "Inicio"
+    timeout: 10000
+- scrollUntilVisible:
+    element: "Gastos en un toque"
+    direction: DOWN
+- scroll
+- assertVisible: "Café.*Alimentación.*"
+- tapOn: "Café.*"
+- assertVisible: "Registrar \\$6\\.500"
+- inputText: "8000"
+- tapOn: "Registrar \\$8\\.000"
+- extendedWaitUntil:
+    visible: "Gastos en un toque"
+    timeout: 5000
+- tapOn: "Café.*"
+- tapOn: "Registrar \\$8\\.000"
+- extendedWaitUntil:
+    visible: "Gastos en un toque"
+    timeout: 5000
+- tapOn: "Patrimonio"
+- assertVisible: ".*Banco principal, \\$977\\.500"

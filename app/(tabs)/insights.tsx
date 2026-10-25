@@ -11,7 +11,6 @@ import { ExpenseRow } from '@/src/components/ExpenseRow';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
 import { HowToGuideButton } from '@/src/components/HowToGuideButton';
 import { MoneyText } from '@/src/components/MoneyText';
-import { PeriodToggle } from '@/src/components/PeriodToggle';
 import { PocketBreakdown } from '@/src/components/PocketBreakdown';
 import { SavingsDecor } from '@/src/components/SavingsDecor';
 import { useFinance } from '@/src/hooks/useFinance';
@@ -43,7 +42,8 @@ export default function InsightsScreen() {
   const spendConcepts = settings.spendConcepts ?? [];
   const { insightsForPeriod, totalForPeriod, transactions, transactionsForPeriod, budgetStatus, debts, availableCash, accounts } =
     useFinance();
-  const [period, setPeriod] = useState<Period>('mes');
+  // The month on screen; other windows (today, a week, last month) are asked to Rumi.
+  const period: Period = 'mes';
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<AskResult | null>(null);
   const [showTxs, setShowTxs] = useState(false);
@@ -128,20 +128,17 @@ export default function InsightsScreen() {
     <BrandScreen
       gap={space.md}
       header={
-        <>
-          <ScreenHeader
-            title={t('insights.title')}
-            subtitle={t('insights.subtitle')}
-            actions={
-              <View style={styles.heroActions}>
-                <HowToGuideButton light />
-                <AmountPrivacyToggle />
-                <SavingsDecor size="md" />
-              </View>
-            }
-          />
-          <PeriodToggle value={period} onChange={setPeriod} />
-        </>
+        <ScreenHeader
+          title={t('insights.title')}
+          subtitle={t('insights.subtitle')}
+          actions={
+            <View style={styles.heroActions}>
+              <HowToGuideButton light />
+              <AmountPrivacyToggle />
+              <SavingsDecor size="md" />
+            </View>
+          }
+        />
       }>
       <View>
         <Text style={styles.searchTitle}>{t('insights.searchTitle')}</Text>

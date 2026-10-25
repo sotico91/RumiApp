@@ -25,8 +25,7 @@ export const translations = {
     'home.quickConfirmAmount': 'Amount',
     'home.quickConfirmNote': 'Note (optional)',
     'home.quickConfirmYes': 'Log',
-    'home.quickConfirmChange': 'Change amount',
-    'home.quickConfirmSave': 'Log this amount',
+    'home.quickConfirmLog': 'Log {amount}',
     'home.quickConfirmFull': 'Open full form (account, note…)',
     'home.quickConfirmClose': 'Close',
     'home.quickConfirmHint':
@@ -224,7 +223,7 @@ export const translations = {
     'insights.pocketsUnknown': 'No account',
     'insights.smartTitle': 'Smart notes',
     'insights.smartHint':
-      'Automatic notes for the period you pick above.',
+      'Automatic notes about this month.',
     'insights.smartCollapsed': '{count} {count|note|notes} — tap to open',
     'insights.expense': 'expense',
     'insights.expenses': 'expenses',
@@ -965,7 +964,7 @@ export const translations = {
       'Buying with a card is an expense. Paying the card later is not a new one — Rumi counts the purchase once. Loans: log each installment when you pay it. Rumi reminds you the day before each due date; turn it off per debt in Plan.',
     'guide.step6Title': 'Insights — the analysis engine',
     'guide.step6Body':
-      'Ask in your own words: “coffee last week”, “coffee vs last month”, “how much do I have left?”, “can I buy 200k?”. Rumi shows what it understood and the movements behind the answer. Smart notes below summarize the period.',
+      'Ask in your own words: “coffee last week”, “coffee vs last month”, “how much do I have left?”, “can I buy 200k?”. Rumi shows what it understood and the movements behind the answer. Smart notes below summarize the month.',
     'guide.step7Title': 'Home and Activity',
     'guide.step7Body':
       'Home: what you have, how the month is going and what is due. Activity: every transaction, to edit or delete.',
@@ -1245,8 +1244,7 @@ export const translations = {
     'home.quickConfirmAmount': 'Monto',
     'home.quickConfirmNote': 'Observación (opcional)',
     'home.quickConfirmYes': 'Registrar',
-    'home.quickConfirmChange': 'Cambiar monto',
-    'home.quickConfirmSave': 'Registrar este monto',
+    'home.quickConfirmLog': 'Registrar {amount}',
     'home.quickConfirmFull': 'Formulario completo (cuenta, nota…)',
     'home.quickConfirmClose': 'Cerrar',
     'home.quickConfirmHint':
@@ -1445,7 +1443,7 @@ export const translations = {
     'insights.pocketsUnknown': 'Sin cuenta',
     'insights.smartTitle': 'Notas inteligentes',
     'insights.smartHint':
-      'Notas automáticas del periodo que elijas arriba.',
+      'Notas automáticas sobre este mes.',
     'insights.smartCollapsed': '{count} {count|nota|notas} — toca para abrir',
     'insights.expense': 'gasto',
     'insights.expenses': 'gastos',
@@ -2189,7 +2187,7 @@ export const translations = {
       'Comprar con tarjeta es un gasto. Pagar la tarjeta después no es otro: Rumi cuenta la compra una sola vez. Préstamos: registra cada cuota cuando la pagues. Rumi te avisa un día antes de cada vencimiento; puedes apagarlo por deuda en Plan.',
     'guide.step6Title': 'Análisis: el motor de preguntas',
     'guide.step6Body':
-      'Pregunta como hablas: “café la semana pasada”, “café vs el mes pasado”, “¿cuánto me queda?”, “¿puedo comprar algo de 200 mil?”. Rumi te muestra qué entendió y los movimientos detrás de la respuesta. Abajo, las notas resumen el periodo.',
+      'Pregunta como hablas: “café la semana pasada”, “café vs el mes pasado”, “¿cuánto me queda?”, “¿puedo comprar algo de 200 mil?”. Rumi te muestra qué entendió y los movimientos detrás de la respuesta. Abajo, las notas resumen el mes.',
     'guide.step7Title': 'Inicio y Actividad',
     'guide.step7Body':
       'Inicio: lo que tienes, cómo va el mes y qué viene. Actividad: todos tus movimientos, para editar o borrar.',

@@ -76,3 +76,17 @@ describe.each([
     expect(ask(fuel, lang).txs.map((x) => x.id)).toEqual(['4']);
   });
 });
+
+describe('short question words are not category names', () => {
+  const pets: SpendConcept[] = [
+    { id: 'concept-home', name: 'Hogar', color: '#000', subs: [{ id: 'sub-pet', name: 'Mascota' }] },
+  ];
+  it('"más" in "¿Gasté más que el mes pasado?" is not Mascota', () => {
+    const r = askRumi('¿Gasté más que el mes pasado?', data, format, translator('es'), {
+      language: 'es',
+      spendConcepts: pets,
+    });
+    expect(r.intent).toBe('comparePeriods');
+    expect(r.understood?.concept).toBeUndefined();
+  });
+});

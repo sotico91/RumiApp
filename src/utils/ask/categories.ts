@@ -127,10 +127,11 @@ export function scorePhraseInQuery(q: string, phrase: string): number {
       hits += 1;
       continue;
     }
-    // Prefix match for partial typing (cafe → cafeteria) only if token is long enough.
+    // Prefix match for partial typing (cafe → cafeteria) only if both words are long
+    // enough: "más" must not read as "Mascota", nor "mes" as "Mesada".
     if (token.length >= 4) {
       for (const qt of qTokens) {
-        if (qt.startsWith(token) || token.startsWith(qt)) {
+        if (qt.length >= 4 && (qt.startsWith(token) || token.startsWith(qt))) {
           hits += 0.6;
           break;
         }

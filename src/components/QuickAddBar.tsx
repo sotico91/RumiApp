@@ -59,9 +59,9 @@ export function QuickAddBar() {
     return null;
   }
 
-  const sheetLabel = sheetHabit
-    ? categoryLabel(sheetHabit.categoryId, t, spendConcepts)
-    : '';
+  const habitLabel = (habit: OneTapHabit) =>
+    habit.title ?? categoryLabel(habit.categoryId, t, spendConcepts);
+  const sheetLabel = sheetHabit ? habitLabel(sheetHabit) : '';
 
   async function registerHabit(habit: OneTapHabit, amount: number, note: string, accountId: string) {
     if (busyLock.current) return;
@@ -134,7 +134,8 @@ export function QuickAddBar() {
           {habits.map((habit) => {
             const category = getCategoryById(habit.categoryId);
             const busy = busyId === habit.id;
-            const label = categoryLabel(habit.categoryId, t, spendConcepts);
+            const label = habitLabel(habit);
+            const color = habit.color ?? category.color;
             return (
               <Pressable
                 key={habit.id}
@@ -148,8 +149,8 @@ export function QuickAddBar() {
                 }}
                 delayLongPress={400}
                 disabled={!!busyId}
-                style={[styles.chip, { borderColor: category.color }]}>
-                <View style={[styles.dot, { backgroundColor: category.color }]} />
+                style={[styles.chip, { borderColor: color }]}>
+                <View style={[styles.dot, { backgroundColor: color }]} />
                 <View style={styles.chipBody}>
                   <View style={styles.chipTitleRow}>
                     <Text style={styles.chipTitle} numberOfLines={1}>
@@ -161,6 +162,11 @@ export function QuickAddBar() {
                       </View>
                     ) : null}
                   </View>
+                  {habit.group ? (
+                    <Text style={styles.chipGroup} numberOfLines={1}>
+                      {habit.group}
+                    </Text>
+                  ) : null}
                   <Text style={styles.chipAmount}>
                     {t('home.quickLastAmount', { amount: format(habit.amount) })}
                   </Text>
@@ -176,6 +182,7 @@ export function QuickAddBar() {
         visible={sheetHabit != null}
         habit={sheetHabit}
         label={sheetLabel}
+        group={sheetHabit?.group}
         format={format}
         currency={currency}
         parse={parse}
@@ -248,7 +255,7 @@ const styles = StyleSheet.create({
   },
   chipTitle: {
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 13,
+    fontSize: 15,
     color: palette.ink,
     flexShrink: 1,
   },
@@ -257,6 +264,11 @@ const styles = StyleSheet.create({
   },
   antDotText: {
     fontSize: 11,
+  },
+  chipGroup: {
+    fontFamily: 'DMSans_400Regular',
+    fontSize: 12,
+    color: palette.inkMuted,
   },
   chipAmount: {
     fontFamily: 'DMSans_500Medium',

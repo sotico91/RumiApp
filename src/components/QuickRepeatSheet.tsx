@@ -15,6 +15,7 @@ import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
 import { palette, radii } from '@/src/theme/colors';
 import type { Account, Debt } from '@/src/types/finance';
+import type { Currency } from '@/src/types/settings';
 import type { OneTapHabit } from '@/src/utils/oneTapHabits';
 import {
   defaultSpendAccountId,
@@ -22,6 +23,7 @@ import {
   liquidPocketsForPay,
 } from '@/src/utils/accounts';
 import { isDebtPayAccountId, revolvingAsPayAccounts } from '@/src/utils/debts';
+import { formatAmountTyping } from '@/src/utils/money';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import { AppModal } from '@/src/components/AppModal';
 import { AccountChoiceChips } from '@/src/components/AccountChoiceChips';
@@ -35,8 +37,10 @@ type Props = {
   visible: boolean;
   habit: OneTapHabit | null;
   label: string;
+  /** Category of the label, shown under it ("Alimentación" under "Desayuno"). */
+  group?: string;
   format: (n: number) => string;
-  currency: string;
+  currency: Currency;
   parse: (raw: string) => number | null;
   busy?: boolean;
   accounts: Account[];
@@ -50,7 +54,9 @@ export function QuickRepeatSheet({
   visible,
   habit,
   label,
+  group,
   format,
+  currency,
   parse,
   busy,
   accounts,
@@ -62,7 +68,6 @@ export function QuickRepeatSheet({
   const insets = useSafeAreaInsets();
   const { t } = useLanguage();
   const keyboardHeight = useKeyboardHeight();
-  const [editing, setEditing] = useState(false);
   const [amountText, setAmountText] = useState('');
   const [noteText, setNoteText] = useState('');
   const [accountId, setAccountId] = useState('cash');
@@ -81,8 +86,7 @@ export function QuickRepeatSheet({
 
   useEffect(() => {
     if (!visible || !habit) return;
-    setEditing(false);
-    setAmountText(String(habit.amount));
+    setAmountText('');
     setNoteText(habit.note ?? '');
     const fromCard =
       isDebtPayAccountId(habit.accountId) || habit.paymentMethod === 'credit';
@@ -111,11 +115,12 @@ export function QuickRepeatSheet({
   if (!habit) return null;
 
   const lastAmount = habit.amount;
-  const parsed = parse(amountText);
+  // Empty field = the last amount (shown as its placeholder); typing replaces it.
+  const typed = parse(amountText);
+  const amount = typed != null && typed > 0 ? typed : amountText.trim() ? null : lastAmount;
   const sourceAccounts = spendSource === 'card' ? cardAccounts : pocketAccounts;
   const canConfirm =
-    parsed != null &&
-    parsed > 0 &&
+    amount != null &&
     !busy &&
     Boolean(accountId) &&
     sourceAccounts.some((a) => a.id === accountId);
@@ -129,15 +134,9 @@ export function QuickRepeatSheet({
   }
 
   function handleConfirm() {
-    if (!canConfirm || parsed == null) return;
+    if (!canConfirm || amount == null) return;
     tapFeedback();
-    onConfirm(parsed, resolvedNote, accountId);
-  }
-
-  function currentAmount() {
-    if (!editing) return lastAmount;
-    const amt = parse(amountText);
-    return amt != null && amt > 0 ? amt : lastAmount;
+    onConfirm(amount, resolvedNote, accountId);
   }
 
   const keyboardOpen = keyboardHeight > 0;
@@ -185,11 +184,42 @@ export function QuickRepeatSheet({
                 </Pressable>
               </View>
               <Text style={styles.label}>{label}</Text>
+              {group ? <Text style={styles.group}>{group}</Text> : null}
               {habit.isAnt ? (
                 <View style={styles.antBadge}>
                   <Text style={styles.antBadgeText}>{t('home.quickAntBadge')}</Text>
                 </View>
               ) : null}
+
+              {/* Amount and Log first, above the keyboard: tap, change the value, done. */}
+              <Text style={styles.fieldLabel}>{t('home.quickConfirmAmount')}</Text>
+              <View style={styles.amountRow}>
+                <Text style={styles.amountCurrency}>$</Text>
+                <TextInput
+                  testID="repeat-amount"
+                  value={amountText}
+                  onChangeText={(text) => setAmountText(formatAmountTyping(text, currency))}
+                  keyboardType="decimal-pad"
+                  autoFocus
+                  placeholder={formatAmountTyping(String(lastAmount), currency)}
+                  placeholderTextColor={palette.inkMuted}
+                  style={styles.amountInput}
+                  maxFontSizeMultiplier={1.2}
+                  accessibilityLabel={t('home.quickConfirmAmount')}
+                />
+              </View>
+
+              <Pressable
+                accessibilityRole="button"
+                onPress={handleConfirm}
+                disabled={!canConfirm}
+                style={[styles.primaryBtn, !canConfirm && styles.btnDisabled]}>
+                <Text style={styles.primaryText}>
+                  {amount != null
+                    ? t('home.quickConfirmLog', { amount: format(amount) })
+                    : t('home.quickConfirmYes')}
+                </Text>
+              </Pressable>
 
               <Text style={styles.fieldLabel}>{t('flow.howPaid')}</Text>
               <SpendSourcePicker
@@ -223,23 +253,6 @@ export function QuickRepeatSheet({
                 </>
               )}
 
-              {editing ? (
-                <>
-                  <Text style={styles.fieldLabel}>{t('home.quickConfirmAmount')}</Text>
-                  <TextInput
-                    value={amountText}
-                    onChangeText={setAmountText}
-                    keyboardType="decimal-pad"
-                    autoFocus
-                    placeholder="0"
-                    placeholderTextColor={palette.inkSoft}
-                    style={styles.input}
-                  />
-                </>
-              ) : (
-                <Text style={styles.amount}>{format(habit.amount)}</Text>
-              )}
-
               <View>
                 <Text style={styles.fieldLabel}>{t('home.quickConfirmNote')}</Text>
                 <TextInput
@@ -259,53 +272,11 @@ export function QuickRepeatSheet({
               )}
 
               <View style={styles.actions}>
-                {!editing ? (
-                  <>
-                    <Pressable
-                      accessibilityRole="button"
-                      onPress={handleConfirm}
-                      disabled={!canConfirm}
-                      style={[styles.primaryBtn, !canConfirm && styles.btnDisabled]}>
-                      <Text style={styles.primaryText}>{t('home.quickConfirmYes')}</Text>
-                    </Pressable>
-                    <Pressable
-                      accessibilityRole="button"
-                      onPress={() => {
-                        tapFeedback();
-                        setEditing(true);
-                      }}
-                      style={styles.secondaryBtn}>
-                      <Text style={styles.secondaryText}>
-                        {t('home.quickConfirmChange')}
-                      </Text>
-                    </Pressable>
-                  </>
-                ) : (
-                  <>
-                    <Pressable
-                      accessibilityRole="button"
-                      onPress={handleConfirm}
-                      disabled={!canConfirm}
-                      style={[styles.primaryBtn, !canConfirm && styles.btnDisabled]}>
-                      <Text style={styles.primaryText}>{t('home.quickConfirmSave')}</Text>
-                    </Pressable>
-                    <Pressable
-                      accessibilityRole="button"
-                      onPress={() => {
-                        tapFeedback();
-                        setEditing(false);
-                        setAmountText(String(habit.amount));
-                      }}
-                      style={styles.secondaryBtn}>
-                      <Text style={styles.secondaryText}>{t('onboard.back')}</Text>
-                    </Pressable>
-                  </>
-                )}
                 <Pressable
                   accessibilityRole="button"
                   onPress={() => {
                     tapFeedback();
-                    onEditFull(currentAmount(), resolvedNote);
+                    onEditFull(amount ?? lastAmount, resolvedNote);
                   }}
                   style={styles.linkBtn}>
                   <Text style={styles.linkText}>{t('home.quickConfirmFull')}</Text>
@@ -390,6 +361,12 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: palette.ink,
   },
+  group: {
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 14,
+    color: palette.inkMuted,
+    marginTop: -6,
+  },
   antBadge: {
     alignSelf: 'flex-start',
     backgroundColor: '#FFF4E6',
@@ -402,28 +379,33 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#B45309',
   },
-  amount: {
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 32,
-    color: palette.ink,
-    marginTop: 4,
-  },
   fieldLabel: {
     fontFamily: 'DMSans_500Medium',
     fontSize: 13,
     color: palette.inkMuted,
     marginTop: 4,
   },
-  input: {
-    fontFamily: 'Fraunces_600SemiBold',
-    fontSize: 28,
-    color: palette.ink,
-    borderWidth: 1,
-    borderColor: palette.border,
+  amountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1.5,
+    borderColor: palette.accent,
     borderRadius: radii.md,
     paddingHorizontal: 14,
-    paddingVertical: 10,
     backgroundColor: '#F7FAFC',
+  },
+  amountCurrency: {
+    fontFamily: 'Fraunces_600SemiBold',
+    fontSize: 28,
+    color: palette.inkMuted,
+  },
+  amountInput: {
+    flex: 1,
+    fontFamily: 'Fraunces_700Bold',
+    fontSize: 32,
+    color: palette.ink,
+    paddingVertical: 10,
   },
   noteInput: {
     fontFamily: 'DMSans_400Regular',
@@ -457,19 +439,6 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_700Bold',
     fontSize: 16,
     color: '#fff',
-  },
-  secondaryBtn: {
-    backgroundColor: '#F7FAFC',
-    borderRadius: radii.md,
-    paddingVertical: 14,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: palette.border,
-  },
-  secondaryText: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 15,
-    color: palette.ink,
   },
   linkBtn: {
     paddingVertical: 8,
