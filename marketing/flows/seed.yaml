@@ -1,0 +1,35 @@
+# Demo data for the ads: fresh onboarding as "Sofía" with $2.500.000 in the bank
+# and a few everyday spends, so every screen looks lived in.
+appId: com.sotico91.rumi
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+- extendedWaitUntil:
+    visible: "Tu nombre"
+    timeout: 20000
+- tapOn: "Tu nombre"
+- inputText: "Sofía"
+- tapOn: "Suena bien"
+- tapOn: "Continuar"
+- tapOn: ".*Café"
+- tapOn: ".*Domicilio"
+- tapOn: ".*Taxi y apps"
+- tapOn: ".*Suscripciones"
+- tapOn: "Continuar"
+- tapOn:
+    id: "onboard-bank"
+- inputText: "2500000"
+- tapOn: "PASO 4 DE 4"
+- tapOn: "Listo, vamos"
+- extendedWaitUntil:
+    visible: "Inicio"
+    timeout: 10000
+- runFlow: { file: spend.yaml, env: { AMOUNT: "185000", NOTE: "mercado", SAVE: "185\\.000" } }
+- runFlow: { file: spend.yaml, env: { AMOUNT: "6500", NOTE: "café", SAVE: "6\\.500" } }
+- runFlow: { file: spend.yaml, env: { AMOUNT: "24000", NOTE: "almuerzo", SAVE: "24\\.000" } }
+- runFlow: { file: spend.yaml, env: { AMOUNT: "16800", NOTE: "uber", SAVE: "16\\.800" } }
+- runFlow: { file: spend.yaml, env: { AMOUNT: "7200", NOTE: "café", SAVE: "7\\.200" } }
+- runFlow: { file: spend.yaml, env: { AMOUNT: "42000", NOTE: "domicilio", SAVE: "42\\.000" } }
+- runFlow: { file: spend.yaml, env: { AMOUNT: "26900", NOTE: "netflix", SAVE: "26\\.900" } }
+- runFlow: { file: spend.yaml, env: { AMOUNT: "5800", NOTE: "café", SAVE: "5\\.800" } }

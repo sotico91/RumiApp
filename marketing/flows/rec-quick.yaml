@@ -1,0 +1,15 @@
+# Ad scene: a lunch logged from its description, filed by Rumi on its own.
+appId: com.sotico91.rumi
+---
+- launchApp: { stopApp: true }
+- extendedWaitUntil: { visible: "Inicio", timeout: 20000 }
+- tapOn: { id: "add-fab" }
+- tapOn: { id: "quick-amount" }
+- inputText: "24000"
+- tapOn: "¿En qué?"
+- tapOn: { id: "quick-note" }
+- inputText: "almuerzo"
+- tapOn: "¿En qué?"
+- extendedWaitUntil: { visible: "Guardar \\$24\\.000", timeout: 5000 }
+- tapOn: "Guardar \\$24\\.000"
+- extendedWaitUntil: { visible: "Inicio", timeout: 10000 }

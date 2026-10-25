@@ -1,0 +1,10 @@
+# Ad scene: asking Rumi how much went to coffee this month.
+appId: com.sotico91.rumi
+---
+- launchApp: { stopApp: true }
+- extendedWaitUntil: { visible: "Inicio", timeout: 20000 }
+- tapOn: ".*Análisis"
+- tapOn: "¿Cuánto gasté en julio\\?"
+- inputText: "¿Cuánto gasté en café este mes?"
+- pressKey: Enter
+- tapOn: "Pregúntale a Rumi"

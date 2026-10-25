@@ -1,0 +1,12 @@
+# Ad scene: repeating the usual coffee from Home: tap, change the value, done.
+appId: com.sotico91.rumi
+---
+- launchApp: { stopApp: true }
+- extendedWaitUntil: { visible: "Inicio", timeout: 20000 }
+- scrollUntilVisible: { element: "Gastos en un toque", direction: DOWN }
+- scroll
+- tapOn: "Café.*"
+- extendedWaitUntil: { visible: "Registrar \\$5\\.800", timeout: 5000 }
+- inputText: "7000"
+- tapOn: "Registrar \\$7\\.000"
+- extendedWaitUntil: { visible: "Gastos en un toque", timeout: 5000 }

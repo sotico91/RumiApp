@@ -1,0 +1,10 @@
+# One quick spend: ${AMOUNT} described as ${NOTE}, saved with the "Guardar $${SAVE}" button.
+appId: com.sotico91.rumi
+---
+- runFlow:
+    file: ../../e2e/subflows/quick-spend.yaml
+    env: { AMOUNT: "${AMOUNT}", NOTE: "${NOTE}" }
+- tapOn: "Guardar \\$${SAVE}"
+- extendedWaitUntil:
+    visible: "Inicio"
+    timeout: 10000
