@@ -13,7 +13,7 @@ pause() { python3 -c "import time; time.sleep($1)"; }
 xcrun simctl status_bar "$SIM" override --time 9:41 --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3
 [[ "${SKIP_SEED:-}" == 1 ]] || "$MAESTRO" --device "$SIM" test "$FLOWS/seed.yaml"
 
-for scene in ${SCENES:-quick ask onetap}; do
+for scene in ${SCENES:-quick ask onetap todo}; do
   xcrun simctl io "$SIM" recordVideo --codec h264 --force "$HERE/public/clips/$scene.mp4" &
   rec=$!
   pause 1.5

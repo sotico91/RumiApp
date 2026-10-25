@@ -17,7 +17,7 @@ export type Caption = { at: number; text: string };
 
 export type Sfx = {
   at: number;
-  sound: 'click' | 'type' | 'success';
+  sound: 'tap' | 'type' | 'success';
   /** Seconds of the recording it lasts (typing bursts). */
   length?: number;
 };
@@ -34,6 +34,8 @@ export type AdProps = {
   captions: Caption[];
   /** Taps, typing and saves, in recording seconds. */
   sfx: Sfx[];
+  /** Track in public/music/, from `from` seconds (past a quiet intro); `volume` evens out quieter masters. */
+  music: { file: string; from: number; volume?: number };
   /** Last card: what Rumi is, and the promise. */
   endTitle: string;
   endLine: string;
@@ -62,7 +64,9 @@ function toBody(p: AdProps, at: number): number {
 
 const SCREEN_W = 600;
 const SCREEN_H = Math.round((SCREEN_W * 2622) / 1206);
-const SFX_VOLUME = { click: 0.9, type: 0.45, success: 0.7 } as const;
+const SFX_VOLUME = { tap: 0.8, type: 0.5, success: 0.7 } as const;
+// The stock tracks are mastered loud; this keeps taps and dings on top.
+const MUSIC_VOLUME = 0.28;
 
 function Background() {
   const frame = useCurrentFrame();
@@ -236,31 +240,32 @@ function Soundtrack({ p, total }: { p: AdProps; total: number }) {
   return (
     <>
       <Audio
-        src={staticFile('music/bed.wav')}
+        src={staticFile(`music/${p.music.file}`)}
+        startFrom={Math.round(p.music.from * fps)}
         volume={(f) =>
-          0.5 *
+          (p.music.volume ?? MUSIC_VOLUME) *
           interpolate(f, [0, 8, total - 24, total - 1], [0, 1, 1, 0], {
             extrapolateLeft: 'clamp',
             extrapolateRight: 'clamp',
           })
         }
       />
-      <Sound from={0} src="sfx/pop.wav" volume={0.6} />
-      <Sound from={hook - 10} src="sfx/whoosh.wav" volume={0.7} />
+      <Sound from={2} src="sfx/pop.mp3" volume={0.7} />
+      <Sound from={hook - 12} src="sfx/whoosh.mp3" volume={0.6} />
       {p.captions.slice(1).map((c) => (
-        <Sound key={c.at} from={at(c.at) - 4} src="sfx/whoosh.wav" volume={0.35} />
+        <Sound key={c.at} from={at(c.at) - 2} src="sfx/caption.mp3" volume={0.6} />
       ))}
       {p.sfx.map((s) => (
         <Sound
           key={`${s.sound}-${s.at}`}
           from={at(s.at)}
-          src={`sfx/${s.sound}.wav`}
+          src={`sfx/${s.sound}.mp3`}
           volume={SFX_VOLUME[s.sound]}
           frames={s.length ? Math.round((s.length / p.playbackRate) * fps) : undefined}
         />
       ))}
-      <Sound from={end - 6} src="sfx/whoosh.wav" volume={0.6} />
-      <Sound from={end} src="sfx/chime.wav" volume={0.7} />
+      <Sound from={end - 12} src="sfx/whoosh.mp3" volume={0.6} />
+      <Sound from={end + 2} src="sfx/end.mp3" volume={0.6} />
     </>
   );
 }

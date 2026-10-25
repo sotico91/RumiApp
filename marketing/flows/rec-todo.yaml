@@ -1,0 +1,54 @@
+# Ad scene: everything in one app. Salary in, a spend, a motorbike loan and its
+# installment paid, ending on Wealth (debt lowered) and Home (the month at a glance).
+appId: com.sotico91.rumi
+---
+- launchApp: { stopApp: true }
+- tapOn: { text: "Permitir", optional: true }
+- extendedWaitUntil: { visible: "Inicio", timeout: 20000 }
+# Income
+- tapOn: { id: "add-fab" }
+- tapOn: "Ingreso"
+- tapOn: { id: "flow-amount" }
+- inputText: "3500000"
+- tapOn: "¿De cuánto fue?"
+- tapOn: "Continuar"
+- tapOn: "Salario"
+- tapOn: "Continuar"
+- tapOn: "Continuar"
+- tapOn: "Sí, guardar"
+- extendedWaitUntil: { visible: "Inicio", timeout: 10000 }
+# Spend
+- runFlow:
+    file: ../../e2e/subflows/quick-spend.yaml
+    env: { AMOUNT: "120000", NOTE: "mercado" }
+- tapOn: "Guardar \\$120\\.000"
+- extendedWaitUntil: { visible: "Inicio", timeout: 10000 }
+# Debt: a loan, then its installment
+- tapOn: "Patrimonio"
+- scrollUntilVisible: { element: "Agregar crédito", direction: DOWN }
+- tapOn: "Agregar crédito"
+- swipe: { start: "50%,80%", end: "50%,20%" }
+- tapOn: "Cuota apto, cuota carro…"
+- inputText: "Moto"
+- tapOn: { below: "Saldo que aún debes" }
+- inputText: "4800000"
+- tapOn: "Saldo que aún debes"
+- tapOn: { below: "Cuota mensual fija" }
+- inputText: "320000"
+- tapOn: "Cuota mensual fija"
+- swipe: { start: "50%,80%", end: "50%,20%" }
+- tapOn: "Guardar"
+- tapOn: { text: "Permitir", optional: true }
+- scrollUntilVisible: { element: "Pagar cuota", direction: DOWN }
+- tapOn: "Pagar cuota"
+- tapOn: "¿De cuánto fue?"
+- repeat:
+    while: { notVisible: "Sí, guardar" }
+    times: 4
+    commands:
+      - tapOn: "Continuar"
+- tapOn: "Sí, guardar"
+- extendedWaitUntil: { visible: ".*Patrimonio.*", timeout: 10000 }
+- scrollUntilVisible: { element: "Saldo restante", direction: DOWN }
+- tapOn: "Inicio"
+- swipe: { start: "50%,30%", end: "50%,80%" }
