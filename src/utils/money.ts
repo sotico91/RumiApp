@@ -34,15 +34,15 @@ export function formatMoney(amount: number, currency: Currency): string {
     );
   }
 
-  // Empty / zero tiles should read as money ($0,00), not a bare 0.
-  const isZero = !Number.isFinite(amount) || amount === 0;
+  // Zero reads as money ($0) like every other COP figure, without decimals.
+  const safe = Number.isFinite(amount) ? Math.round(amount) : 0;
   return keepMoneyOnOneLine(
     new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',
-      minimumFractionDigits: isZero ? 2 : 0,
-      maximumFractionDigits: isZero ? 2 : 0,
-    }).format(isZero ? 0 : Math.round(amount))
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(safe === 0 ? 0 : safe)
   );
 }
 

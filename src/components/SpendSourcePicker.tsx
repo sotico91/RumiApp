@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
 import { useLanguage } from '@/src/i18n/LanguageContext';
-import { colors, shadow } from '@/src/theme';
+import { colors, radius, shadow } from '@/src/theme';
 import { palette, radii } from '@/src/theme/colors';
 import type { PaymentMethod } from '@/src/types/finance';
 import { tapFeedback } from '@/src/utils/selectFeedback';
@@ -100,13 +100,13 @@ const styles = StyleSheet.create({
   segmented: {
     flexDirection: 'row',
     padding: 3,
-    borderRadius: 12,
+    borderRadius: radius.md,
     backgroundColor: colors.bg.surfaceMuted,
   },
   segment: {
     flex: 1,
     minHeight: 44,
-    borderRadius: 10,
+    borderRadius: radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.bg.surface,
-    borderRadius: 20,
+    borderRadius: radius.lg,
     padding: space.xl,
     gap: space.sm,
     ...shadow.e3,
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   actionsStacked: { flexDirection: 'column' },
   button: {
     minHeight: 48,
-    borderRadius: 12,
+    borderRadius: radius.md,
     paddingHorizontal: space.md,
     paddingVertical: space.sm,
     alignItems: 'center',

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -152,16 +153,7 @@ export function ConceptGlanceSheet({ visible, onClose, kind, items, total }: Pro
           </View>
 
           <View style={styles.totalCard}>
-            <Text style={styles.totalLabel}>
-              {t(isExpense ? 'home.expenses' : 'home.income')}
-            </Text>
-            <MoneyText
-              style={[
-                styles.totalValue,
-                isExpense ? styles.textDanger : styles.textGood,
-              ]}>
-              {format(displayTotal)}
-            </MoneyText>
+            <MoneyText style={styles.totalValue}>{format(displayTotal)}</MoneyText>
           </View>
 
           <Text style={styles.section}>
@@ -214,15 +206,13 @@ export function ConceptGlanceSheet({ visible, onClose, kind, items, total }: Pro
                         </View>
                       </View>
                       <View style={styles.conceptRight}>
-                        <MoneyText
-                          style={[
-                            styles.conceptAmount,
-                            isExpense ? styles.textDanger : styles.textGood,
-                          ]}>
-                          {format(group.total)}
-                        </MoneyText>
+                        <MoneyText style={styles.conceptAmount}>{format(group.total)}</MoneyText>
                         {expandable ? (
-                          <Text style={styles.rowChevron}>{open ? '▾' : '▸'}</Text>
+                          <MaterialCommunityIcons
+                            name={open ? 'chevron-up' : 'chevron-down'}
+                            size={20}
+                            color={palette.inkMuted}
+                          />
                         ) : null}
                       </View>
                     </Pressable>
@@ -305,13 +295,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.border.strong,
   },
-  totalLabel: {
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 14,
-    color: palette.inkMuted,
-  },
   totalValue: {
-    marginTop: 2,
     fontFamily: 'Fraunces_700Bold',
     fontSize: 34,
     color: palette.ink,
@@ -356,8 +340,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   conceptRight: {
-    alignItems: 'flex-end',
-    gap: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   swatch: {
     width: 12,
@@ -379,10 +364,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Fraunces_600SemiBold',
     fontSize: 16,
     color: palette.ink,
-  },
-  rowChevron: {
-    fontSize: 12,
-    color: palette.inkMuted,
   },
   subList: {
     paddingBottom: 10,
@@ -411,6 +392,4 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: palette.ink,
   },
-  textGood: { color: palette.success },
-  textDanger: { color: palette.danger },
 });

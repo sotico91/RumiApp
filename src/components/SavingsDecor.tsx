@@ -272,10 +272,8 @@ const styles = StyleSheet.create({
   caption: {
     marginTop: 4,
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 11,
+    fontSize: 12,
     color: palette.brand,
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
   },
   modalRoot: {
     flex: 1,
@@ -328,8 +326,6 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 13,
     color: 'rgba(255,255,255,0.9)',
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
   },
   closeBtn: {
     width: 28,
@@ -351,10 +347,8 @@ const styles = StyleSheet.create({
   },
   section: {
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.55)',
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.72)',
     marginBottom: 8,
   },
   sectionGap: {

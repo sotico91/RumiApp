@@ -10,6 +10,10 @@ El detalle de cada cambio está en `git log`.
 - **Comentarios de código en inglés:** todos los comentarios del código van en inglés.
   Los textos que ve el usuario van en `src/i18n/translations.ts` (es/en).
 
+## 2026-10-26
+
+- **Pulido para que nada se vea genérico:** Inicio sin etiquetas en mayúsculas (Disponible hoy, Este mes, Ingresos, Ver totales; el estilo `overline` ahora es frase normal en toda la app). Cero en pesos se muestra "$0" como las demás cifras, no "$0,00". Actividad dice "Octubre de 2026", no "Octubre De 2026". La guía no deja hueco en el primer ítem y no lleva emoji. En "Todos los gastos" las cifras van en tinta (no todo en rojo), sin la etiqueta "Gastos" repetida y con la flecha junto al monto. "Corregir movimiento" ya no repite el monto en pequeño. Los radios de hojas, avisos y selectores salen de la escala de `tokens.ts`, y la hoja de repetir gasto usa `sheetStyles`.
+
 ## 2026-10-25
 
 - **Resto de modales con el mismo estilo:** "Corregir movimiento", "Todos los gastos/ingresos" y "Cómo usar Rumi" son hojas pegadas abajo con agarradera, títulos en frase normal (sin mayúsculas forzadas) y la opción elegida con borde en vez de relleno coral. El total del resumen es una cifra sobre la página, sin caja de color; la guía es una lista numerada con separadores en vez de tarjetas grises. Los avisos llevan el ícono pequeño junto al título en vez de un círculo encima. Estilos compartidos en `src/components/ui/sheet.ts`.

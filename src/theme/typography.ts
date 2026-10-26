@@ -53,12 +53,11 @@ export const type = {
     fontSize: 13,
     lineHeight: 18,
   },
+  /** Small sentence-case label above a figure or a group. */
   overline: {
-    fontFamily: fonts.semiBold,
-    fontSize: 12,
-    lineHeight: 16,
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
+    fontFamily: fonts.medium,
+    fontSize: 13,
+    lineHeight: 18,
   },
   label: {
     fontFamily: fonts.semiBold,

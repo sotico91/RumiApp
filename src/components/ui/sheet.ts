@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { colors } from '@/src/theme';
+import { colors, radius } from '@/src/theme';
 
 /**
  * Shared look for bottom sheets: pinned to the bottom edge with a grabber,
@@ -15,8 +15,8 @@ export const sheetStyles = StyleSheet.create({
   },
   sheet: {
     backgroundColor: colors.bg.surface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
     paddingHorizontal: 20,
     paddingTop: 8,
   },
@@ -24,7 +24,7 @@ export const sheetStyles = StyleSheet.create({
     alignSelf: 'center',
     width: 36,
     height: 5,
-    borderRadius: 3,
+    borderRadius: radius.full,
     backgroundColor: colors.border.strong,
     marginBottom: 12,
   },
@@ -65,7 +65,7 @@ export const sheetStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border.subtle,
     backgroundColor: colors.bg.surfaceMuted,
-    borderRadius: 12,
+    borderRadius: radius.md,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
@@ -80,7 +80,7 @@ export const sheetStyles = StyleSheet.create({
   },
   primary: {
     backgroundColor: colors.action.primary,
-    borderRadius: 14,
+    borderRadius: radius.md,
     paddingVertical: 15,
     alignItems: 'center',
   },
@@ -91,7 +91,7 @@ export const sheetStyles = StyleSheet.create({
   },
   secondary: {
     backgroundColor: colors.bg.surfaceMuted,
-    borderRadius: 14,
+    borderRadius: radius.md,
     paddingVertical: 15,
     alignItems: 'center',
   },

@@ -110,12 +110,17 @@ export default function HistorialScreen() {
   );
   const monthBalance = incomeTotal - expenseTotal;
 
-  const periodLabel =
+  // Only the first letter goes up: "Octubre de 2026", not "Octubre De 2026".
+  const monthName =
     period === 'mes'
       ? new Date(monthCursor.year, monthCursor.monthIndex, 1).toLocaleDateString(
           language === 'es' ? 'es-CO' : 'en-US',
           { month: 'long', year: 'numeric' }
         )
+      : '';
+  const periodLabel =
+    period === 'mes'
+      ? monthName.charAt(0).toUpperCase() + monthName.slice(1)
       : t(`period.${period}` as TranslationKey);
 
   /** Deletes at once and offers Undo on the toast, instead of asking first. */
@@ -465,7 +470,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Fraunces_600SemiBold',
     fontSize: 16,
     color: palette.brand,
-    textTransform: 'capitalize',
   },
   summary: {
     backgroundColor: palette.surfaceSolid,

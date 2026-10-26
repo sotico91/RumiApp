@@ -59,7 +59,7 @@ export function HowToGuideSheet({ visible, onClose }: Props) {
             {/* A numbered list on the page, not a stack of cards. */}
             {SECTIONS.map((section, i) => (
               <View key={section.title} style={[styles.item, i > 0 && styles.itemDivider]}>
-                <Text style={styles.stepNumber}>{section.step ?? ''}</Text>
+                {section.step ? <Text style={styles.stepNumber}>{section.step}</Text> : null}
                 <View style={styles.itemTexts}>
                   <Text style={styles.cardTitle}>{t(section.title)}</Text>
                   <Text style={styles.cardBody}>{t(section.body)}</Text>

@@ -13,7 +13,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardHeight } from '@/src/hooks/useKeyboardVisible';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
-import { colors } from '@/src/theme';
+import { sheetStyles } from '@/src/components/ui';
+import { colors, radius } from '@/src/theme';
 import { palette } from '@/src/theme/colors';
 import type { Account, Debt } from '@/src/types/finance';
 import type { Currency } from '@/src/types/settings';
@@ -174,8 +175,8 @@ export function QuickRepeatSheet({
               avoidKeyboard={false}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.sheetInner}>
-              <View style={styles.grabber} />
-              <View style={styles.headerRow}>
+              <View style={[sheetStyles.grabber, styles.grabberInGap]} />
+              <View style={sheetStyles.headerRow}>
                 <View style={styles.headerTexts} accessibilityRole="header">
                   <Text style={styles.label} accessibilityLabel={`${t('home.quickConfirmTitle')}: ${label}`}>
                     {label}
@@ -192,10 +193,10 @@ export function QuickRepeatSheet({
                   onPress={handleClose}
                   disabled={busy}
                   hitSlop={12}
-                  style={styles.closeBtn}
+                  style={sheetStyles.close}
                   accessibilityRole="button"
                   accessibilityLabel={t('home.quickConfirmClose')}>
-                  <Text style={styles.closeBtnText}>✕</Text>
+                  <Text style={sheetStyles.closeText}>✕</Text>
                 </Pressable>
               </View>
 
@@ -223,15 +224,15 @@ export function QuickRepeatSheet({
                 accessibilityRole="button"
                 onPress={handleConfirm}
                 disabled={!canConfirm}
-                style={[styles.primaryBtn, !canConfirm && styles.btnDisabled]}>
-                <Text style={styles.primaryText}>
+                style={[sheetStyles.primary, !canConfirm && styles.btnDisabled]}>
+                <Text style={sheetStyles.primaryText}>
                   {amount != null
                     ? t('home.quickConfirmLog', { amount: format(amount) })
                     : t('home.quickConfirmYes')}
                 </Text>
               </Pressable>
 
-              <Text style={styles.fieldLabel}>{t('flow.howPaid')}</Text>
+              <Text style={sheetStyles.label}>{t('flow.howPaid')}</Text>
               <SpendSourcePicker
                 value={spendSource}
                 onChange={(source) => {
@@ -250,7 +251,7 @@ export function QuickRepeatSheet({
 
               {spendSource === 'card' && cardAccounts.length === 0 ? null : (
                 <>
-                  <Text style={styles.fieldLabel}>
+                  <Text style={sheetStyles.label}>
                     {spendSource === 'card'
                       ? t('flow.whichCard')
                       : t('home.quickConfirmAccount')}
@@ -268,7 +269,7 @@ export function QuickRepeatSheet({
               )}
 
               <View>
-                <Text style={styles.fieldLabel}>{t('home.quickConfirmNote')}</Text>
+                <Text style={sheetStyles.label}>{t('home.quickConfirmNote')}</Text>
                 <TextInput
                   value={noteText}
                   onChangeText={setNoteText}
@@ -331,8 +332,8 @@ const styles = StyleSheet.create({
   },
   sheet: {
     backgroundColor: palette.surfaceSolid,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
   },
   sheetInner: {
     paddingHorizontal: 20,
@@ -340,31 +341,9 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     gap: 12,
   },
-  grabber: {
-    alignSelf: 'center',
-    width: 36,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: colors.border.strong,
-    marginBottom: 4,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
-  },
+  // The content gap already spaces the grabber from the title.
+  grabberInGap: { marginBottom: 0 },
   headerTexts: { flex: 1, gap: 2 },
-  closeBtn: {
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  closeBtnText: {
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 18,
-    color: palette.inkMuted,
-  },
   label: {
     fontFamily: 'Fraunces_600SemiBold',
     fontSize: 26,
@@ -403,19 +382,13 @@ const styles = StyleSheet.create({
     color: palette.inkMuted,
     marginTop: -4,
   },
-  fieldLabel: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 14,
-    color: palette.ink,
-    marginTop: 8,
-  },
   noteInput: {
     fontFamily: 'DMSans_400Regular',
     fontSize: 16,
     color: palette.ink,
     borderWidth: 1,
     borderColor: palette.border,
-    borderRadius: 12,
+    borderRadius: radius.md,
     paddingHorizontal: 14,
     paddingVertical: 12,
     backgroundColor: colors.bg.surfaceMuted,
@@ -431,17 +404,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 4,
-  },
-  primaryBtn: {
-    backgroundColor: palette.accent,
-    borderRadius: 14,
-    paddingVertical: 15,
-    alignItems: 'center',
-  },
-  primaryText: {
-    fontFamily: 'DMSans_700Bold',
-    fontSize: 16,
-    color: palette.white,
   },
   textBtn: {
     minHeight: 44,

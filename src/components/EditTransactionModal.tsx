@@ -26,6 +26,7 @@ import { usePickableSpendConcepts } from '@/src/hooks/useSpendConcepts';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
 import { sheetStyles } from '@/src/components/ui';
+import { radius } from '@/src/theme';
 import { palette } from '@/src/theme/colors';
 import type { PaymentMethod, Transaction, TransactionType } from '@/src/types/finance';
 import { isPocketMove } from '@/src/types/finance';
@@ -231,7 +232,6 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
                 maxFontSizeMultiplier={1.2}
               />
             </View>
-            <Text style={styles.hint}>{format(parse(amount) ?? 0, { reveal: true })}</Text>
             <Text style={styles.hint}>{t('add.amountDecimalHint')}</Text>
 
             <Text style={styles.label}>{t('add.type')}</Text>
@@ -515,7 +515,7 @@ const styles = StyleSheet.create({
   note: {
     borderWidth: 1,
     borderColor: palette.border,
-    borderRadius: 12,
+    borderRadius: radius.md,
     paddingHorizontal: 14,
     paddingVertical: 12,
     backgroundColor: palette.surfaceSolid,
