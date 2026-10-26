@@ -3,7 +3,7 @@
 Videos verticales (1080x1920, 15 s aprox.) hechos con [Remotion](https://remotion.dev) a partir de grabaciones reales de la app.
 
 1. `npm install`, `./sound/fetch.sh` y `node --experimental-strip-types voice/make.ts` (voz)
-2. `./record.sh` graba las escenas en el simulador de iOS encendido (con la app instalada y en español). **Borra los datos de la app en ese simulador** y carga datos de demo (`../flows/seed.yaml`). `SCENES="ask"` graba solo una; `SKIP_SEED=1` no recarga los datos.
+2. `./record.sh` graba las escenas en el simulador de iOS encendido (con la app instalada y en español). **Borra los datos de la app en ese simulador** y carga datos de demo (`../flows/seed.yaml`). `SCENES="ask"` graba solo una; `SKIP_SEED=1` no recarga los datos. `privacidad` va al final porque empieza de cero (muestra el registro sin cuenta) y se graba con `../flows/rec-privacidad.sh`, que responde Face ID en el simulador entre las partes de Maestro.
 3. `npm run studio` para ver y ajustar; `npm run render` deja los videos en `out/`.
 
 **Sonido:** música y efectos de [Mixkit](https://mixkit.co) (licencia gratuita de Mixkit: permite anuncios en línea, sin atribución obligatoria; no se pueden redistribuir sueltos, por eso no están en git). `./sound/fetch.sh` los descarga en `public/music/` y `public/sfx/`.

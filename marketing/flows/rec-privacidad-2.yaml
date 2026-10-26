@@ -1,0 +1,4 @@
+# Ad scene, part 2: closes the "lock on" notice.
+appId: com.sotico91.rumi
+---
+- tapOn: "OK"

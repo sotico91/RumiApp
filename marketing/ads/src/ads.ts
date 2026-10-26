@@ -178,4 +178,132 @@ export const ads: Record<string, AdProps> = {
     ...end,
     endLine: 'Ingresos, gastos y deudas en un solo lugar. No necesitas nada más.',
   },
+
+  'billeteras-es': {
+    hook: '¿Tu plata está en el banco, en Nequi y en un CDT?',
+    hookSay: '¿Tu plata está en el banco, en Nequi, y en un CDT?',
+    clip: 'billeteras.mp4',
+    music: { file: 'happy-times.mp3', from: 6 },
+    segments: [
+      // Wealth: + Nequi, + CDT
+      [22.4, 27.4],
+      // Bank → Nequi
+      [38.6, 41.0],
+      [43.6, 46.6],
+      [47.6, 49.6],
+      [50.6, 52.6],
+      [53.6, 55.5],
+      // Bank → CDT
+      [62.6, 65.4],
+      [67.6, 69.6],
+      [71.6, 72.6],
+      [73.6, 77.6],
+      [78.6, 80.5],
+      // Totals: spendable, investments apart
+      [88.6, 93.0],
+      // Wealth: every peso in its place
+      [104.6, 108.7],
+    ],
+    playbackRate: 1.5,
+    captions: [
+      {
+        at: 22.4,
+        text: 'Agrega Nequi, Daviplata o tu CDT',
+        say: 'En Patrimonio agregas tus billeteras virtuales, como Nequi, y tus inversiones, como un CDT.',
+      },
+      {
+        at: 38.6,
+        text: 'Del banco a Nequi',
+        say: '¿Pasaste plata del banco a Nequi? La registras como un movimiento entre tus cuentas.',
+      },
+      { at: 62.6, text: '…o a tu inversión', say: 'Y lo mismo cuando inviertes: un millón de pesos al CDT.' },
+      {
+        at: 88.6,
+        text: 'Tu disponible, y lo invertido aparte',
+        say: 'Rumi te muestra cuánto tienes disponible, y tus inversiones aparte.',
+      },
+      { at: 104.6, text: 'Cada peso, en su lugar', say: 'Cada peso, en su lugar.' },
+    ],
+    sfx: [
+      { at: 22.6, sound: 'tap' },
+      { at: 23.2, sound: 'tap' },
+      { at: 24.0, sound: 'tap' },
+      { at: 25.0, sound: 'tap' },
+      { at: 25.8, sound: 'tap' },
+      { at: 38.8, sound: 'tap' },
+      { at: 44.0, sound: 'type', length: 1.2 },
+      { at: 47.8, sound: 'tap' },
+      { at: 48.8, sound: 'tap' },
+      { at: 50.8, sound: 'tap' },
+      { at: 51.8, sound: 'tap' },
+      { at: 53.8, sound: 'tap' },
+      { at: 54.1, sound: 'success' },
+      { at: 62.8, sound: 'tap' },
+      { at: 68.0, sound: 'type', length: 1.4 },
+      { at: 71.8, sound: 'tap' },
+      { at: 73.8, sound: 'tap' },
+      { at: 75.0, sound: 'tap' },
+      { at: 76.0, sound: 'tap' },
+      { at: 78.8, sound: 'tap' },
+      { at: 79.1, sound: 'success' },
+      { at: 88.8, sound: 'tap' },
+      { at: 104.8, sound: 'tap' },
+    ],
+    ...end,
+    endLine: 'Bancos, billeteras e inversiones, en un solo lugar.',
+  },
+  'privacidad-es': {
+    hook: '¿Quién más ve tus finanzas?',
+    hookSay: '¿Quién más ve tus finanzas?',
+    clip: 'privacidad.mp4',
+    music: { file: 'im-fine.mp3', from: 8, volume: 0.6 },
+    segments: [
+      // Onboarding: only a name
+      [21.4, 25.8],
+      // The eye hides the amounts
+      [97.6, 100.5],
+      // App lock on: Settings, Face ID, done
+      [118.6, 119.8],
+      [120.6, 122.0],
+      [127.6, 131.0],
+      // Reopened: Face ID first
+      [149.2, 151.6],
+      [152.6, 154.8],
+      // The privacy policy's summary
+      [177.6, 186.3],
+    ],
+    playbackRate: 1,
+    captions: [
+      {
+        at: 21.4,
+        text: 'Sin cuenta, sin correo, sin contraseña',
+        say: 'Con Rumi, nadie. No creas una cuenta ni das tu correo: solo tu nombre.',
+      },
+      {
+        at: 97.6,
+        text: 'Oculta tus montos con un toque',
+        say: '¿Alguien mira tu pantalla? Con un toque, tus montos se ocultan.',
+      },
+      { at: 118.6, text: 'Bloquéala con tu rostro o huella', say: 'Y si quieres, la bloqueas con tu rostro o tu huella.' },
+      { at: 149.2, text: 'Solo tú la abres', say: 'Así, solo tú la abres.' },
+      {
+        at: 177.6,
+        text: 'Sin servidor. Nada sale de tu teléfono.',
+        say: 'Rumi no tiene servidor: tus datos se guardan cifrados en tu teléfono, y no se comparten con nadie.',
+      },
+    ],
+    sfx: [
+      { at: 21.8, sound: 'tap' },
+      { at: 23.0, sound: 'type', length: 1.6 },
+      { at: 98.6, sound: 'tap' },
+      { at: 118.8, sound: 'tap' },
+      { at: 119.6, sound: 'tap' },
+      { at: 128.2, sound: 'success' },
+      { at: 154.0, sound: 'success' },
+      { at: 177.8, sound: 'tap' },
+      { at: 178.6, sound: 'tap' },
+    ],
+    ...end,
+    endLine: 'Tus datos son tuyos. Se quedan en tu teléfono.',
+  },
 };

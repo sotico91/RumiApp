@@ -82,5 +82,53 @@
   "Y en Inicio ves todo tu mes, en una sola app.": {
     "file": "voice/9ac03985568c.mp3",
     "seconds": 3.38
+  },
+  "¿Tu plata está en el banco, en Nequi, y en un CDT?": {
+    "file": "voice/72a4d3ceeb49.mp3",
+    "seconds": 3.83
+  },
+  "En Patrimonio agregas tus billeteras virtuales, como Nequi, y tus inversiones, como un CDT.": {
+    "file": "voice/bffc2fb638a4.mp3",
+    "seconds": 7.12
+  },
+  "¿Pasaste plata del banco a Nequi? La registras como un movimiento entre tus cuentas.": {
+    "file": "voice/4a065b403f60.mp3",
+    "seconds": 5.91
+  },
+  "Y lo mismo cuando inviertes: un millón de pesos al CDT.": {
+    "file": "voice/3f65e2509faa.mp3",
+    "seconds": 3.99
+  },
+  "Rumi te muestra cuánto tienes disponible, y tus inversiones aparte.": {
+    "file": "voice/c6271b88ce3a.mp3",
+    "seconds": 4.61
+  },
+  "Cada peso, en su lugar.": {
+    "file": "voice/e21b9d7ac894.mp3",
+    "seconds": 2.05
+  },
+  "¿Quién más ve tus finanzas?": {
+    "file": "voice/7d17ce641e2f.mp3",
+    "seconds": 1.64
+  },
+  "Con Rumi, nadie. No creas una cuenta ni das tu correo: solo tu nombre.": {
+    "file": "voice/227972022d6c.mp3",
+    "seconds": 6.18
+  },
+  "¿Alguien mira tu pantalla? Con un toque, tus montos se ocultan.": {
+    "file": "voice/acfd720343d1.mp3",
+    "seconds": 4.88
+  },
+  "Y si quieres, la bloqueas con tu rostro o tu huella.": {
+    "file": "voice/2133723d2760.mp3",
+    "seconds": 3.52
+  },
+  "Así, solo tú la abres.": {
+    "file": "voice/fdac31c45fa7.mp3",
+    "seconds": 2.15
+  },
+  "Rumi no tiene servidor: tus datos se guardan cifrados en tu teléfono, y no se comparten con nadie.": {
+    "file": "voice/458c252b0e94.mp3",
+    "seconds": 6.69
   }
 }

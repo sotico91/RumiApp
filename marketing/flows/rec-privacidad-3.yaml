@@ -1,0 +1,10 @@
+# Ad scene, part 3: unlocked by Face ID after a relaunch, then the privacy policy's summary.
+appId: com.sotico91.rumi
+---
+- extendedWaitUntil: { visible: "Inicio", timeout: 20000 }
+- waitForAnimationToEnd
+- tapOn: { point: "90%,10%" }
+- scrollUntilVisible: { element: ".*Política de privacidad.*", direction: DOWN }
+- tapOn: ".*Política de privacidad.*"
+- extendedWaitUntil: { visible: "1. Resumen", timeout: 5000 }
+- swipe: { start: "50%,70%", end: "50%,55%", duration: 800 }

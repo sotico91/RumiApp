@@ -1,0 +1,26 @@
+# Ad scene, part 1: a fresh start asks only for a name (no account, email or password),
+# the eye hides the amounts, and the app lock is switched on (rec-privacidad.sh answers Face ID).
+appId: com.sotico91.rumi
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+- extendedWaitUntil: { visible: "Tu nombre", timeout: 20000 }
+- tapOn: "Tu nombre"
+- inputText: "Sofía"
+- tapOn: "Suena bien"
+- tapOn: "Continuar"
+- tapOn: ".*Café"
+- tapOn: ".*Domicilio"
+- tapOn: "Continuar"
+- tapOn: { id: "onboard-bank" }
+- inputText: "2500000"
+- tapOn: "PASO 4 DE 4"
+- tapOn: "Listo, vamos"
+- extendedWaitUntil: { visible: "Inicio", timeout: 10000 }
+- tapOn: { text: "Permitir", optional: true }
+- waitForAnimationToEnd
+- tapOn: "Ocultar montos"
+- waitForAnimationToEnd
+- tapOn: { point: "90%,10%" }
+- tapOn: ".*Bloquear la app.*"

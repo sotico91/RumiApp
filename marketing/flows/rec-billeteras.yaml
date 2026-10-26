@@ -1,0 +1,44 @@
+# Ad scene: Nequi and a CDT next to the bank. Both are added in Wealth, money moves
+# from the bank into each, and the totals keep investments apart from what's spendable.
+appId: com.sotico91.rumi
+---
+- launchApp: { stopApp: true }
+- extendedWaitUntil: { visible: "Inicio", timeout: 20000 }
+# Add the wallet and the investment
+- tapOn: "Patrimonio"
+- tapOn: "\\+ Billetera"
+- tapOn: "\\+ Nequi"
+- tapOn: "\\+ Inversión"
+- tapOn: "\\+ CDT"
+# Bank → Nequi
+- tapOn: "Inicio"
+- tapOn: { id: "add-fab" }
+- tapOn: "Mover"
+- tapOn: { id: "flow-amount" }
+- inputText: "300000"
+- tapOn: "¿De cuánto fue?"
+- tapOn: "Continuar"
+- tapOn: { text: "Cambiar la cuenta", below: "¿A qué cuenta\\?" }
+- tapOn: "Nequi · .*"
+- tapOn: "Continuar"
+- tapOn: "Sí, guardar"
+- extendedWaitUntil: { visible: "Inicio", timeout: 10000 }
+# Bank → CDT
+- tapOn: { id: "add-fab" }
+- tapOn: "Mover"
+- tapOn: { id: "flow-amount" }
+- inputText: "1000000"
+- tapOn: "¿De cuánto fue?"
+- tapOn: "Continuar"
+- tapOn: { text: "Cambiar la cuenta", below: "¿A qué cuenta\\?" }
+- tapOn: "Inversiones .*"
+- tapOn: "CDT · .*"
+- tapOn: "Continuar"
+- tapOn: "Sí, guardar"
+- extendedWaitUntil: { visible: "Inicio", timeout: 10000 }
+# Where the money is now
+- tapOn: "(?i).*ver totales.*"
+- waitForAnimationToEnd
+- tapOn: { point: "50%,95%", optional: true }
+- tapOn: "Patrimonio"
+- swipe: { start: "50%,75%", end: "50%,40%", duration: 900 }
