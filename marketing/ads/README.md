@@ -20,3 +20,7 @@ Videos verticales (1080x1920, 15 s aprox.) hechos con [Remotion](https://remotio
 Efectos: Select click, Smartphone typing, Explainer video pops whoosh light pop, Fast whoosh transition, Confirmation tone, Bubble pop up alert notification, Happy bells notification.
 
 Textos, tramos de la grabación y momentos de cada sonido: `src/ads.ts` (en segundos de la grabación). Diseño: `src/Ad.tsx`, con los colores y fuentes de la app (`src/brand.ts`).
+
+## Rumi habla (`rumi-habla-es`)
+
+Animación sin grabación: el billete coral del icono como personaje que habla a cámara (parpadea, saluda y mueve la boca al ritmo de su voz) y presenta, escena por escena, anotar en segundos, topes al mes, gastos hormiga, Pregúntale a Rumi, el pronóstico de fin de mes y la privacidad. Textos y frases: `src/mascot-scenes.ts`; diseño: `src/Mascot.tsx`. `node --experimental-strip-types voice/mascot.ts` genera la voz y la apertura de la boca por cuadro (`src/mascot-voice.json`); `npm run render -- rumi-habla-es` → `out/rumi-habla-es.mp4` (~56 s).
