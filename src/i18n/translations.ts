@@ -953,7 +953,7 @@ export const translations = {
       'Your bank and cash are already there. Add what is missing: Nequi or another bank, savings, and credit cards, so each expense comes from the right place.',
     'guide.step2Title': 'Plan — what you’ll find there',
     'guide.step2Body':
-      'Your categories (Food, Bills…) and their subcategories (Coffee, Power…). Tap a subcategory to give it a monthly limit; Edit renames, moves or joins it without losing movements. Mark small spends to watch. In Reminders, Rumi suggests the payments you make every month and stays quiet once you logged them.',
+      'Your categories (Food, Bills…) and their subcategories (Coffee, Power…). Tap a subcategory to give it a monthly limit; Edit renames, moves or joins it without losing movements. Mark small spends 🐜 to watch. In Reminders, Rumi suggests the payments you make every month and stays quiet once you logged them.',
     'guide.step3Title': 'Log an expense',
     'guide.step3Body':
       'Tap + → I spent. Type the amount and a description (lunch, uber…): Rumi files it in its category, or creates it. Pick the account or card it came from (only accounts with money show). Save.',
@@ -2177,7 +2177,7 @@ export const translations = {
       'Tu banco y tu efectivo ya están. Agrega lo que falte: Nequi u otro banco, ahorros y tarjetas de crédito, para que cada gasto salga de donde es.',
     'guide.step2Title': 'Plan: qué encuentras ahí',
     'guide.step2Body':
-      'Tus categorías (Alimentación, Recibos…) y sus subcategorías (Café, Luz…). Toca una subcategoría para ponerle tope al mes; con Editar la renombras, la mueves o la juntas sin perder movimientos. Marca gastos hormiga para vigilarlos. En Recordatorios, Rumi te sugiere los pagos que haces cada mes y no te avisa si ya los registraste.',
+      'Tus categorías (Alimentación, Recibos…) y sus subcategorías (Café, Luz…). Toca una subcategoría para ponerle tope al mes; con Editar la renombras, la mueves o la juntas sin perder movimientos. Marca gastos hormiga 🐜 para vigilarlos. En Recordatorios, Rumi te sugiere los pagos que haces cada mes y no te avisa si ya los registraste.',
     'guide.step3Title': 'Registra un gasto',
     'guide.step3Body':
       'Toca + → Gasté. Escribe el monto y una descripción (almuerzo, uber…): Rumi lo ubica en su categoría o la crea. Elige la cuenta o tarjeta de donde salió (solo aparecen cuentas con dinero). Guarda.',

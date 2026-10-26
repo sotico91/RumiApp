@@ -12,7 +12,7 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-26
 
-- **Pulido para que nada se vea genérico:** Inicio sin etiquetas en mayúsculas (Disponible hoy, Este mes, Ingresos, Ver totales; el estilo `overline` ahora es frase normal en toda la app). Cero en pesos se muestra "$0" como las demás cifras, no "$0,00". Actividad dice "Octubre de 2026", no "Octubre De 2026". La guía no deja hueco en el primer ítem y no lleva emoji. En "Todos los gastos" las cifras van en tinta (no todo en rojo), sin la etiqueta "Gastos" repetida y con la flecha junto al monto. "Corregir movimiento" ya no repite el monto en pequeño. Los radios de hojas, avisos y selectores salen de la escala de `tokens.ts`, y la hoja de repetir gasto usa `sheetStyles`.
+- **Pulido para que nada se vea genérico:** Inicio sin etiquetas en mayúsculas (Disponible hoy, Este mes, Ingresos, Ver totales; el estilo `overline` ahora es frase normal en toda la app). Cero en pesos se muestra "$0" como las demás cifras, no "$0,00". Actividad dice "Octubre de 2026", no "Octubre De 2026". La guía no deja hueco en el primer ítem. En "Todos los gastos" las cifras van en tinta (no todo en rojo), sin la etiqueta "Gastos" repetida y con la flecha junto al monto. "Corregir movimiento" ya no repite el monto en pequeño. Los radios de hojas, avisos y selectores salen de la escala de `tokens.ts`, y la hoja de repetir gasto usa `sheetStyles`.
 
 ## 2026-10-25
 
