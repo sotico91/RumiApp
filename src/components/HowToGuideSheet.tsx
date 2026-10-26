@@ -4,7 +4,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppModal } from '@/src/components/AppModal';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
-import { palette, radii } from '@/src/theme/colors';
+import { sheetStyles } from '@/src/components/ui';
+import { colors } from '@/src/theme';
+import { palette } from '@/src/theme/colors';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 
 type Section = {
@@ -39,31 +41,29 @@ export function HowToGuideSheet({ visible, onClose }: Props) {
       transparent
       animationType="slide"
       onRequestClose={onClose}>
-      <View style={styles.backdrop}>
+      <View style={sheetStyles.scrim}>
         <Pressable style={styles.dismiss} onPress={onClose} />
         <View
           style={[
+            sheetStyles.sheet,
             styles.sheet,
             { paddingBottom: Math.max(insets.bottom, 16) + 8 },
           ]}>
-          <View style={styles.handle} />
+          <View style={sheetStyles.grabber} />
           <Text style={styles.kicker}>{t('guide.kicker')}</Text>
           <Text style={styles.title}>{t('guide.title')}</Text>
           <ScrollView
             style={styles.scroll}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}>
-            {SECTIONS.map((section) => (
-              <View key={section.title} style={styles.card}>
-                <View style={styles.cardHead}>
-                  {section.step ? (
-                    <View style={styles.stepBadge}>
-                      <Text style={styles.stepBadgeText}>{section.step}</Text>
-                    </View>
-                  ) : null}
+            {/* A numbered list on the page, not a stack of cards. */}
+            {SECTIONS.map((section, i) => (
+              <View key={section.title} style={[styles.item, i > 0 && styles.itemDivider]}>
+                <Text style={styles.stepNumber}>{section.step ?? ''}</Text>
+                <View style={styles.itemTexts}>
                   <Text style={styles.cardTitle}>{t(section.title)}</Text>
+                  <Text style={styles.cardBody}>{t(section.body)}</Text>
                 </View>
-                <Text style={styles.cardBody}>{t(section.body)}</Text>
               </View>
             ))}
             <Text style={styles.hint}>{t('guide.hint')}</Text>
@@ -74,8 +74,8 @@ export function HowToGuideSheet({ visible, onClose }: Props) {
               tapFeedback();
               onClose();
             }}
-            style={styles.done}>
-            <Text style={styles.doneText}>{t('guide.close')}</Text>
+            style={[sheetStyles.primary, styles.done]}>
+            <Text style={sheetStyles.primaryText}>{t('guide.close')}</Text>
           </Pressable>
         </View>
       </View>
@@ -84,106 +84,67 @@ export function HowToGuideSheet({ visible, onClose }: Props) {
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(8,20,28,0.55)',
-    justifyContent: 'flex-end',
-  },
   dismiss: {
     flex: 1,
   },
   sheet: {
-    backgroundColor: palette.surfaceSolid,
-    borderTopLeftRadius: radii.xl,
-    borderTopRightRadius: radii.xl,
-    paddingHorizontal: 20,
-    paddingTop: 10,
     maxHeight: '88%',
   },
-  handle: {
-    alignSelf: 'center',
-    width: 40,
-    height: 4,
-    borderRadius: 999,
-    backgroundColor: palette.border,
-    marginBottom: 12,
-  },
   kicker: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 12,
-    color: palette.inkSoft,
-    letterSpacing: 0.7,
-    textTransform: 'uppercase',
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 14,
+    color: palette.inkMuted,
   },
   title: {
-    marginTop: 4,
-    fontFamily: 'Fraunces_700Bold',
+    marginTop: 2,
+    fontFamily: 'Fraunces_600SemiBold',
     fontSize: 28,
     color: palette.ink,
-    letterSpacing: -0.6,
+    letterSpacing: -0.4,
   },
   scroll: {
-    marginTop: 14,
+    marginTop: 8,
   },
   scrollContent: {
-    gap: 10,
     paddingBottom: 12,
   },
-  card: {
-    backgroundColor: '#F3F7F9',
-    borderRadius: radii.md,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  cardHead: {
+  item: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
+    gap: 12,
+    paddingVertical: 14,
   },
-  stepBadge: {
+  itemDivider: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border.strong,
+  },
+  stepNumber: {
     width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: palette.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 1,
+    fontFamily: 'Fraunces_600SemiBold',
+    fontSize: 20,
+    lineHeight: 22,
+    color: palette.accentDeep,
   },
-  stepBadgeText: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 12,
-    color: palette.white,
-  },
+  itemTexts: { flex: 1 },
   cardTitle: {
-    flex: 1,
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 15,
+    fontSize: 16,
     color: palette.ink,
   },
   cardBody: {
-    marginTop: 6,
+    marginTop: 4,
     fontFamily: 'DMSans_400Regular',
     fontSize: 14,
     lineHeight: 21,
     color: palette.inkMuted,
   },
   hint: {
-    marginTop: 4,
+    marginTop: 8,
     fontFamily: 'DMSans_400Regular',
     fontSize: 13,
     lineHeight: 18,
-    color: palette.inkSoft,
+    color: palette.inkMuted,
   },
   done: {
     marginTop: 8,
-    backgroundColor: palette.accent,
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  doneText: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 16,
-    color: palette.white,
   },
 });

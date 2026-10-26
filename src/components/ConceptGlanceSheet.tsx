@@ -8,7 +8,9 @@ import { findSpendSub, isGeneralSubName } from '@/src/data/spendConcepts';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
-import { palette, radii } from '@/src/theme/colors';
+import { sheetStyles } from '@/src/components/ui';
+import { colors } from '@/src/theme';
+import { palette } from '@/src/theme/colors';
 import { categoryLabel } from '@/src/utils/categoryLabel';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 
@@ -125,10 +127,11 @@ export function ConceptGlanceSheet({ visible, onClose, kind, items, total }: Pro
       animationType="fade"
       onRequestClose={onClose}
       statusBarTranslucent>
-      <View style={styles.backdrop} pointerEvents={visible ? 'auto' : 'none'}>
+      <View style={sheetStyles.scrim} pointerEvents={visible ? 'auto' : 'none'}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
         <View
-          style={[styles.panel, { marginBottom: Math.max(insets.bottom, 12) + 24 }]}>
+          style={[sheetStyles.sheet, styles.panel, { paddingBottom: Math.max(insets.bottom, 12) + 8 }]}>
+          <View style={sheetStyles.grabber} />
           <View style={styles.panelHeader}>
             <View style={{ flex: 1, paddingRight: 12 }}>
               <Text style={styles.panelEyebrow}>{t('home.glanceMonth')}</Text>
@@ -142,12 +145,13 @@ export function ConceptGlanceSheet({ visible, onClose, kind, items, total }: Pro
                 tapFeedback();
                 onClose();
               }}
-              hitSlop={12}>
-              <Text style={styles.close}>✕</Text>
+              hitSlop={12}
+              style={sheetStyles.close}>
+              <Text style={sheetStyles.closeText}>✕</Text>
             </Pressable>
           </View>
 
-          <View style={[styles.totalCard, isExpense ? styles.totalExpense : styles.totalIncome]}>
+          <View style={styles.totalCard}>
             <Text style={styles.totalLabel}>
               {t(isExpense ? 'home.expenses' : 'home.income')}
             </Text>
@@ -173,11 +177,11 @@ export function ConceptGlanceSheet({ visible, onClose, kind, items, total }: Pro
                 {t(isExpense ? 'home.glanceExpensesEmpty' : 'home.glanceIncomeEmpty')}
               </Text>
             ) : (
-              groups.map((group) => {
+              groups.map((group, index) => {
                 const expandable = hasExpandableSubs(group);
                 const open = expandedKey === group.key;
                 return (
-                  <View key={group.key} style={styles.group}>
+                  <View key={group.key} style={[styles.group, index > 0 && styles.groupDivider]}>
                     <Pressable
                       accessibilityRole="button"
                       onPress={() => {
@@ -274,19 +278,8 @@ export function ConceptGlanceSheet({ visible, onClose, kind, items, total }: Pro
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(8,20,28,0.55)',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 14,
-  },
   panel: {
-    backgroundColor: palette.surfaceSolid,
-    borderRadius: radii.xl,
-    padding: 18,
     maxHeight: '82%',
-    borderWidth: 1,
-    borderColor: palette.border,
   },
   panelHeader: {
     flexDirection: 'row',
@@ -295,54 +288,39 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   panelEyebrow: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 12,
-    color: palette.inkSoft,
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 14,
+    color: palette.inkMuted,
   },
   panelTitle: {
     marginTop: 2,
-    fontFamily: 'Fraunces_700Bold',
-    fontSize: 24,
+    fontFamily: 'Fraunces_600SemiBold',
+    fontSize: 26,
     color: palette.ink,
   },
-  close: {
-    fontSize: 18,
-    color: palette.inkMuted,
-    padding: 4,
-  },
+  // The total as a figure on the page, not a tinted box.
   totalCard: {
-    borderRadius: 14,
-    padding: 12,
-    borderWidth: 1,
+    paddingBottom: 14,
     marginBottom: 12,
-  },
-  totalExpense: {
-    backgroundColor: palette.dangerSoft,
-    borderColor: 'rgba(214,69,69,0.3)',
-  },
-  totalIncome: {
-    backgroundColor: palette.successSoft,
-    borderColor: 'rgba(31,157,108,0.3)',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border.strong,
   },
   totalLabel: {
     fontFamily: 'DMSans_500Medium',
-    fontSize: 12,
-    color: palette.inkSoft,
-    textTransform: 'uppercase',
+    fontSize: 14,
+    color: palette.inkMuted,
   },
   totalValue: {
-    marginTop: 4,
+    marginTop: 2,
     fontFamily: 'Fraunces_700Bold',
-    fontSize: 26,
+    fontSize: 34,
     color: palette.ink,
   },
   section: {
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 13,
-    color: palette.inkMuted,
-    marginBottom: 4,
+    fontSize: 14,
+    color: palette.ink,
+    marginBottom: 2,
   },
   sectionHint: {
     fontFamily: 'DMSans_400Regular',
@@ -359,19 +337,17 @@ const styles = StyleSheet.create({
     color: palette.inkSoft,
     paddingVertical: 12,
   },
-  group: {
-    marginBottom: 10,
-    borderRadius: 12,
-    backgroundColor: '#F7FAFC',
-    overflow: 'hidden',
+  group: {},
+  groupDivider: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border.strong,
   },
   conceptRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 10,
+    paddingVertical: 12,
   },
   conceptLeft: {
     flexDirection: 'row',
@@ -409,11 +385,7 @@ const styles = StyleSheet.create({
     color: palette.inkMuted,
   },
   subList: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: palette.border,
-    paddingHorizontal: 10,
-    paddingBottom: 8,
-    paddingTop: 4,
+    paddingBottom: 10,
     gap: 4,
   },
   subRow: {

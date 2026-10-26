@@ -25,7 +25,8 @@ import { useSettings } from '@/src/hooks/useSettings';
 import { usePickableSpendConcepts } from '@/src/hooks/useSpendConcepts';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
-import { palette, radii } from '@/src/theme/colors';
+import { sheetStyles } from '@/src/components/ui';
+import { palette } from '@/src/theme/colors';
 import type { PaymentMethod, Transaction, TransactionType } from '@/src/types/finance';
 import { isPocketMove } from '@/src/types/finance';
 import { categoryLabel } from '@/src/utils/categoryLabel';
@@ -206,8 +207,9 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
   return (
     <AppModal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardSafeOverlay>
-        <View style={[styles.backdrop, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 8 }]}>
-          <View style={styles.sheet}>
+        <View style={[sheetStyles.scrim, { paddingTop: insets.top + 12 }]}>
+          <View style={[sheetStyles.sheet, styles.sheet, { paddingBottom: insets.bottom + 8 }]}>
+            <View style={sheetStyles.grabber} />
             <Text style={styles.title}>{t('history.editTitle')}</Text>
             <Text style={styles.copy}>{t('history.editBody')}</Text>
 
@@ -283,7 +285,7 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
                             style={[styles.chip, styles.chipWithIcon, on && styles.chipOn]}>
                             <ConceptIcon
                               icon={concept.icon}
-                              color={on ? palette.white : concept.color}
+                              color={concept.color}
                               size={16}
                             />
                             <Text style={[styles.chipText, on && styles.chipTextOn]}>
@@ -344,6 +346,7 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
                     if (nextId) setAccountId(nextId);
                   }}
                   showNoCards={method === 'credit' && accountChoices.length === 0}
+                  quiet
                 />
               </>
             ) : type !== 'income' && !isPocketMove(type) && type !== 'debt_payment' ? (
@@ -393,6 +396,7 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
                 }}
                 // A new wallet starts at zero: it can receive money, not pay.
                 allowAddWallet={type === 'income'}
+                quiet
               />
             )}
               </>
@@ -406,6 +410,7 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
                   selectedId={toAccountId}
                   onSelect={setToAccountId}
                   allowAddWallet
+                  quiet
                 />
               </>
             ) : null}
@@ -460,20 +465,9 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(8,20,28,0.72)',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 12,
-  },
-  sheet: {
-    backgroundColor: palette.surfaceSolid,
-    borderRadius: radii.xl,
-    padding: 18,
-    maxHeight: '92%',
-  },
+  sheet: { maxHeight: '100%' },
   title: {
-    fontFamily: 'Fraunces_700Bold',
+    fontFamily: 'Fraunces_600SemiBold',
     fontSize: 26,
     color: palette.ink,
   },
@@ -485,25 +479,18 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   body: { gap: 10, paddingBottom: 28 },
-  label: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 12,
-    color: palette.inkMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginTop: 6,
-  },
+  label: sheetStyles.label,
   amountRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     borderBottomWidth: 2,
-    borderBottomColor: palette.accent,
+    borderBottomColor: palette.ink,
     gap: 4,
   },
   currency: {
     fontFamily: 'Fraunces_700Bold',
     fontSize: 28,
-    color: palette.accent,
+    color: palette.inkMuted,
     marginBottom: 6,
   },
   amountInput: {
@@ -521,56 +508,26 @@ const styles = StyleSheet.create({
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   conceptRow: { flexDirection: 'row', gap: 8, paddingRight: 8 },
   chipWithIcon: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  chip: {
-    borderWidth: 1,
-    borderColor: palette.border,
-    backgroundColor: '#F7FAFC',
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  chipOn: {
-    backgroundColor: palette.accent,
-    borderColor: palette.accent,
-  },
-  chipText: {
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 13,
-    color: palette.ink,
-  },
-  chipTextOn: { color: palette.white },
+  chip: sheetStyles.option,
+  chipOn: sheetStyles.optionOn,
+  chipText: sheetStyles.optionText,
+  chipTextOn: { fontFamily: 'DMSans_600SemiBold' },
   note: {
     borderWidth: 1,
     borderColor: palette.border,
-    borderRadius: 14,
+    borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
+    backgroundColor: palette.surfaceSolid,
     fontFamily: 'DMSans_400Regular',
+    fontSize: 16,
     color: palette.ink,
   },
   actions: { flexDirection: 'row', gap: 10, marginTop: 8 },
-  secondary: {
-    flex: 1,
-    backgroundColor: '#EEF3F6',
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  secondaryText: {
-    fontFamily: 'DMSans_600SemiBold',
-    color: palette.inkMuted,
-  },
-  primary: {
-    flex: 1.3,
-    backgroundColor: palette.accent,
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  primaryText: {
-    fontFamily: 'DMSans_600SemiBold',
-    color: palette.white,
-  },
+  secondary: { ...sheetStyles.secondary, flex: 1 },
+  secondaryText: sheetStyles.secondaryText,
+  primary: { ...sheetStyles.primary, flex: 1.3 },
+  primaryText: sheetStyles.primaryText,
   deleteBtn: { alignSelf: 'center', marginTop: 14, paddingVertical: 6 },
   deleteText: {
     fontFamily: 'DMSans_600SemiBold',

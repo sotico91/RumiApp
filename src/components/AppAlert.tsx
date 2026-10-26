@@ -173,11 +173,11 @@ function Dialog({
         accessibilityViewIsModal
         accessibilityRole="alert"
         style={[styles.card, { width: Math.min(width - space.gutter * 2, 380) }]}>
-        <View style={[styles.iconWrap, { backgroundColor: tone.bg }]}>
-          <MaterialCommunityIcons name={icon} size={26} color={tone.fg} />
+        {/* The tone is a small glyph by the title, not a badge above it. */}
+        <View style={styles.titleRow}>
+          <MaterialCommunityIcons name={icon} size={22} color={tone.fg} style={styles.titleIcon} />
+          <Text style={styles.title}>{req.title}</Text>
         </View>
-
-        <Text style={styles.title}>{req.title}</Text>
         {req.message ? <Text style={styles.message}>{req.message}</Text> : null}
 
         {detail ? (
@@ -262,20 +262,14 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.bg.surface,
-    borderRadius: radius.xl,
+    borderRadius: 20,
     padding: space.xl,
     gap: space.sm,
     ...shadow.e3,
   },
-  iconWrap: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: space.xxs,
-  },
-  title: { ...type.h2, color: colors.text.primary },
+  titleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: space.xs },
+  titleIcon: { marginTop: 3 },
+  title: { ...type.h2, color: colors.text.primary, flex: 1 },
   message: { ...type.body, color: colors.text.secondary },
   detail: {
     flexDirection: 'row',
@@ -307,7 +301,7 @@ const styles = StyleSheet.create({
   actionsStacked: { flexDirection: 'column' },
   button: {
     minHeight: 48,
-    borderRadius: radius.md,
+    borderRadius: 12,
     paddingHorizontal: space.md,
     paddingVertical: space.sm,
     alignItems: 'center',
