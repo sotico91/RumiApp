@@ -12,6 +12,7 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-26
 
+- **Intérprete de gastos dictados (primer paso del registro por voz):** `src/utils/dictation.ts` lee una frase como "gasté veinte mil en almuerzo con Nequi ayer" y saca tipo (gasto o ingreso), monto (cifras, "20 mil", palabras, "lucas", "palos", "un millón doscientos", "20 000", dólares con centavos), cuenta (nombre propio o "efectivo", "con la tarjeta", "débito"), fecha ("ayer", "antier", "hace 3 días", "el sábado") y la nota limpia para que `suggestCategory` elija la categoría. Todavía no hay micrófono ni pantalla; eso viene después.
 - **Pulido para que nada se vea genérico:** Inicio sin etiquetas en mayúsculas (Disponible hoy, Este mes, Ingresos, Ver totales; el estilo `overline` ahora es frase normal en toda la app). Cero en pesos se muestra "$0" como las demás cifras, no "$0,00". Actividad dice "Octubre de 2026", no "Octubre De 2026". La guía no deja hueco en el primer ítem. En "Todos los gastos" las cifras van en tinta (no todo en rojo), sin la etiqueta "Gastos" repetida y con la flecha junto al monto. "Corregir movimiento" ya no repite el monto en pequeño. Los radios de hojas, avisos y selectores salen de la escala de `tokens.ts`, y la hoja de repetir gasto usa `sheetStyles`.
 
 ## 2026-10-25
