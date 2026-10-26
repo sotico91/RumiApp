@@ -84,6 +84,8 @@ export const colors = {
     success: '#1A8158',
     successSoft: '#E3F7EE',
     warning: '#C27C0E',
+    /** Amber for text on light surfaces (AA); the brighter warning is for fills and icons. */
+    warningText: '#B45309',
     warningSoft: '#FFF4E0',
     danger: '#B3263F',
     dangerSoft: '#FDE8E8',

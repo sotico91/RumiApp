@@ -12,6 +12,7 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-25
 
+- **Hoja "Repetir gasto" con diseño propio:** pegada al borde de abajo (ya no flota ni tapa la barra de estado), con agarradera. Sale la etiqueta en mayúsculas "REPETIR GASTO"; "Gasto hormiga" pasa de píldora a texto ámbar junto a la categoría. El monto va grande, sin caja, sobre una línea como en un recibo, con "La última vez $X" debajo. Solo "Registrar" es coral: "Con plata / Con tarjeta" es un selector segmentado y el bolsillo ya conocido se ve como una línea. Las variantes `quiet` de `SpendSourcePicker` y `AccountChoiceChips` lo hacen posible sin tocar otras pantallas todavía.
 - **"¿Gasté más que el mes pasado?" ya no responde por "Mascota":** el motor de preguntas leía "más" como el comienzo de una subcategoría (Mascota). Ahora las coincidencias parciales piden al menos 4 letras en la palabra de la pregunta.
 - **Gastos en un toque dicen qué es:** cada botón muestra primero el concepto (Café, Netflix) y debajo, más pequeña, su categoría, con el color de la subcategoría; antes se cortaba en "Alimentaci…".
   Bajo una subcategoría "General", cada descripción es su propio botón (Almuerzo y Desayuno por separado).

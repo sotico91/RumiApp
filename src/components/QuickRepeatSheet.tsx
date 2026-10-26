@@ -13,7 +13,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardHeight } from '@/src/hooks/useKeyboardVisible';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
-import { palette, radii } from '@/src/theme/colors';
+import { colors } from '@/src/theme';
+import { palette } from '@/src/theme/colors';
 import type { Account, Debt } from '@/src/types/finance';
 import type { Currency } from '@/src/types/settings';
 import type { OneTapHabit } from '@/src/utils/oneTapHabits';
@@ -140,10 +141,12 @@ export function QuickRepeatSheet({
   }
 
   const keyboardOpen = keyboardHeight > 0;
-  const bottomPad = keyboardOpen ? keyboardHeight + 8 : Math.max(insets.bottom, 16);
-  const sheetMaxHeight = keyboardOpen
-    ? Math.max(240, Dimensions.get('window').height - keyboardHeight - 16)
-    : Dimensions.get('window').height * 0.88;
+  // Pinned to the bottom edge (on the keyboard when it is up), never under the status bar.
+  const bottomPad = keyboardOpen ? 0 : insets.bottom;
+  const sheetMaxHeight = Math.max(
+    240,
+    Dimensions.get('window').height - insets.top - 12 - (keyboardOpen ? keyboardHeight : 0)
+  );
 
   return (
     <AppModal
@@ -161,18 +164,30 @@ export function QuickRepeatSheet({
           accessibilityLabel={t('home.quickConfirmClose')}
         />
         <View
-          style={[styles.keyboardWrap, { paddingBottom: bottomPad }]}
+          style={[styles.keyboardWrap, { paddingBottom: keyboardOpen ? keyboardHeight : 0 }]}
           pointerEvents="box-none">
           <View
-            style={[styles.sheet, { maxHeight: sheetMaxHeight }]}
+            style={[styles.sheet, { maxHeight: sheetMaxHeight, paddingBottom: bottomPad }]}
             onStartShouldSetResponder={() => true}>
             {/* Lifts whichever field has focus, including the inline new-wallet one. */}
             <KeyboardSafeScroll
               avoidKeyboard={false}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.sheetInner}>
+              <View style={styles.grabber} />
               <View style={styles.headerRow}>
-                <Text style={styles.eyebrow}>{t('home.quickConfirmTitle')}</Text>
+                <View style={styles.headerTexts} accessibilityRole="header">
+                  <Text style={styles.label} accessibilityLabel={`${t('home.quickConfirmTitle')}: ${label}`}>
+                    {label}
+                  </Text>
+                  {group || habit.isAnt ? (
+                    <Text style={styles.group}>
+                      {group}
+                      {group && habit.isAnt ? ' · ' : ''}
+                      {habit.isAnt ? <Text style={styles.ant}>{t('home.quickAntBadge')}</Text> : null}
+                    </Text>
+                  ) : null}
+                </View>
                 <Pressable
                   onPress={handleClose}
                   disabled={busy}
@@ -183,16 +198,8 @@ export function QuickRepeatSheet({
                   <Text style={styles.closeBtnText}>✕</Text>
                 </Pressable>
               </View>
-              <Text style={styles.label}>{label}</Text>
-              {group ? <Text style={styles.group}>{group}</Text> : null}
-              {habit.isAnt ? (
-                <View style={styles.antBadge}>
-                  <Text style={styles.antBadgeText}>{t('home.quickAntBadge')}</Text>
-                </View>
-              ) : null}
 
               {/* Amount and Log first, above the keyboard: tap, change the value, done. */}
-              <Text style={styles.fieldLabel}>{t('home.quickConfirmAmount')}</Text>
               <View style={styles.amountRow}>
                 <Text style={styles.amountCurrency}>$</Text>
                 <TextInput
@@ -202,12 +209,15 @@ export function QuickRepeatSheet({
                   keyboardType="decimal-pad"
                   autoFocus
                   placeholder={formatAmountTyping(String(lastAmount), currency)}
-                  placeholderTextColor={palette.inkMuted}
+                  placeholderTextColor={palette.inkSoft}
                   style={styles.amountInput}
                   maxFontSizeMultiplier={1.2}
                   accessibilityLabel={t('home.quickConfirmAmount')}
                 />
               </View>
+              <Text style={styles.lastAmount}>
+                {t('home.quickRepeatLast', { amount: format(lastAmount) })}
+              </Text>
 
               <Pressable
                 accessibilityRole="button"
@@ -235,6 +245,7 @@ export function QuickRepeatSheet({
                   if (next) setAccountId(next);
                 }}
                 showNoCards={spendSource === 'card' && cardAccounts.length === 0}
+                quiet
               />
 
               {spendSource === 'card' && cardAccounts.length === 0 ? null : (
@@ -245,6 +256,9 @@ export function QuickRepeatSheet({
                       : t('home.quickConfirmAccount')}
                   </Text>
                   <AccountChoiceChips
+                    // Remount once the account is resolved so a known one shows as a line, not a chip.
+                    key={accountId}
+                    quiet
                     accounts={spendSource === 'card' ? cardAccounts : pocketAccounts}
                     selectedId={accountId}
                     onSelect={setAccountId}
@@ -278,14 +292,14 @@ export function QuickRepeatSheet({
                     tapFeedback();
                     onEditFull(amount ?? lastAmount, resolvedNote);
                   }}
-                  style={styles.linkBtn}>
+                  style={styles.textBtn}>
                   <Text style={styles.linkText}>{t('home.quickConfirmFull')}</Text>
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
                   onPress={handleClose}
                   disabled={busy}
-                  style={styles.cancelBtn}>
+                  style={styles.textBtn}>
                   <Text style={styles.cancelText}>{t('home.quickConfirmClose')}</Text>
                 </Pressable>
               </View>
@@ -301,7 +315,7 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: colors.bg.scrim,
   },
   backdropTap: {
     position: 'absolute',
@@ -313,99 +327,87 @@ const styles = StyleSheet.create({
   keyboardWrap: {
     flex: 1,
     justifyContent: 'flex-end',
-    paddingHorizontal: 16,
     width: '100%',
   },
   sheet: {
     backgroundColor: palette.surfaceSolid,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: palette.border,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
   sheetInner: {
-    padding: 20,
-    gap: 10,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 16,
+    gap: 12,
+  },
+  grabber: {
+    alignSelf: 'center',
+    width: 36,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.border.strong,
+    marginBottom: 4,
   },
   headerRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    alignItems: 'flex-start',
     gap: 12,
   },
+  headerTexts: { flex: 1, gap: 2 },
   closeBtn: {
     width: 32,
     height: 32,
-    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F7FAFC',
-    borderWidth: 1,
-    borderColor: palette.border,
   },
   closeBtnText: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 16,
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 18,
     color: palette.inkMuted,
-    lineHeight: 18,
-  },
-  eyebrow: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 12,
-    color: palette.inkMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    flex: 1,
   },
   label: {
     fontFamily: 'Fraunces_600SemiBold',
-    fontSize: 22,
+    fontSize: 26,
     color: palette.ink,
   },
   group: {
     fontFamily: 'DMSans_500Medium',
     fontSize: 14,
     color: palette.inkMuted,
-    marginTop: -6,
   },
-  antBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#FFF4E6',
-    borderRadius: radii.sm,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  antBadgeText: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 12,
-    color: '#B45309',
-  },
-  fieldLabel: {
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 13,
-    color: palette.inkMuted,
-    marginTop: 4,
-  },
+  ant: { color: colors.status.warningText },
+  // A receipt line: the figure on a rule, no box.
   amountRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'baseline',
     gap: 6,
-    borderWidth: 1.5,
-    borderColor: palette.accent,
-    borderRadius: radii.md,
-    paddingHorizontal: 14,
-    backgroundColor: '#F7FAFC',
+    marginTop: 8,
+    borderBottomWidth: 2,
+    borderBottomColor: palette.ink,
   },
   amountCurrency: {
     fontFamily: 'Fraunces_600SemiBold',
-    fontSize: 28,
+    fontSize: 30,
     color: palette.inkMuted,
   },
   amountInput: {
     flex: 1,
     fontFamily: 'Fraunces_700Bold',
-    fontSize: 32,
+    fontSize: 44,
     color: palette.ink,
-    paddingVertical: 10,
+    paddingVertical: 4,
+  },
+  lastAmount: {
+    fontFamily: 'DMSans_400Regular',
+    fontSize: 13,
+    color: palette.inkMuted,
+    marginTop: -4,
+  },
+  fieldLabel: {
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 14,
+    color: palette.ink,
+    marginTop: 8,
   },
   noteInput: {
     fontFamily: 'DMSans_400Regular',
@@ -413,10 +415,10 @@ const styles = StyleSheet.create({
     color: palette.ink,
     borderWidth: 1,
     borderColor: palette.border,
-    borderRadius: radii.md,
+    borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    backgroundColor: '#F7FAFC',
+    backgroundColor: colors.bg.surfaceMuted,
     minHeight: 48,
   },
   hint: {
@@ -426,36 +428,33 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   actions: {
-    gap: 10,
-    marginTop: 8,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 4,
   },
   primaryBtn: {
     backgroundColor: palette.accent,
-    borderRadius: radii.md,
-    paddingVertical: 14,
+    borderRadius: 14,
+    paddingVertical: 15,
     alignItems: 'center',
   },
   primaryText: {
     fontFamily: 'DMSans_700Bold',
     fontSize: 16,
-    color: '#fff',
+    color: palette.white,
   },
-  linkBtn: {
-    paddingVertical: 8,
-    alignItems: 'center',
+  textBtn: {
+    minHeight: 44,
+    justifyContent: 'center',
   },
   linkText: {
-    fontFamily: 'DMSans_500Medium',
+    fontFamily: 'DMSans_600SemiBold',
     fontSize: 14,
-    color: palette.accent,
-  },
-  cancelBtn: {
-    paddingVertical: 10,
-    alignItems: 'center',
+    color: palette.accentDeep,
   },
   cancelText: {
     fontFamily: 'DMSans_500Medium',
-    fontSize: 15,
+    fontSize: 14,
     color: palette.inkMuted,
   },
   btnDisabled: {

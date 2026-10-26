@@ -32,6 +32,8 @@ type Props = {
   /** Kept for callers; both render the same compact two-step picker. */
   variant?: 'chip' | 'card';
   allowAddWallet?: boolean;
+  /** Left-aligned, and the chosen chip outlined instead of filled coral. */
+  quiet?: boolean;
 };
 
 type Kind = Account['type'];
@@ -47,6 +49,7 @@ export function AccountChoiceChips({
   selectedId,
   onSelect,
   allowAddWallet = true,
+  quiet = false,
 }: Props) {
   const { t } = useLanguage();
   const { format } = useMoney();
@@ -96,7 +99,7 @@ export function AccountChoiceChips({
   if (selected && !browsing) {
     const several = (groups.find((g) => g.kind === selected.type)?.list.length ?? 0) > 1;
     return (
-      <View style={styles.summaryRow}>
+      <View style={[styles.summaryRow, quiet && styles.start]}>
         <Text style={styles.summaryText} numberOfLines={1}>
           {several ? `${kindLabel(selected.type)} › ` : ''}
           <Text style={styles.summaryName}>{accountDisplayName(selected, t)}</Text>
@@ -136,7 +139,7 @@ export function AccountChoiceChips({
               <Text style={styles.backText}>‹ {kindLabel(kindGroup.kind)}</Text>
             </Pressable>
           )}
-          <View style={styles.wrap}>
+          <View style={[styles.wrap, quiet && styles.start]}>
             {kindGroup.list.map((acc) => {
               const on = acc.id === selectedId;
               return (
@@ -145,8 +148,8 @@ export function AccountChoiceChips({
                   accessibilityState={{ selected: on }}
                   key={acc.id}
                   onPress={() => choose(acc.id)}
-                  style={[styles.pill, on && styles.pillOn]}>
-                  <Text style={[styles.pillText, on && styles.onText]} numberOfLines={1}>
+                  style={[styles.pill, on && (quiet ? styles.pillOnQuiet : styles.pillOn)]}>
+                  <Text style={[styles.pillText, on && !quiet && styles.onText]} numberOfLines={1}>
                     {accountDisplayName(acc, t)} · {amountText(acc)}
                   </Text>
                 </Pressable>
@@ -166,7 +169,7 @@ export function AccountChoiceChips({
           </View>
         </>
       ) : (
-        <View style={styles.wrap}>
+        <View style={[styles.wrap, quiet && styles.start]}>
           {groups.map((group) => {
             const only = group.list.length === 1 ? group.list[0] : null;
             const on = group.kind === selected?.type;
@@ -176,8 +179,8 @@ export function AccountChoiceChips({
                 accessibilityRole="button"
                 accessibilityState={{ selected: on }}
                 onPress={() => pickKind(group)}
-                style={[styles.pill, on && styles.pillOn]}>
-                <Text style={[styles.pillText, on && styles.onText]} numberOfLines={1}>
+                style={[styles.pill, on && (quiet ? styles.pillOnQuiet : styles.pillOn)]}>
+                <Text style={[styles.pillText, on && !quiet && styles.onText]} numberOfLines={1}>
                   {only
                     ? `${accountDisplayName(only, t)} · ${amountText(only)}`
                     : group.list.length === 0
@@ -456,6 +459,11 @@ const styles = StyleSheet.create({
     backgroundColor: palette.accent,
     borderColor: palette.accent,
   },
+  pillOnQuiet: {
+    backgroundColor: palette.white,
+    borderColor: palette.ink,
+  },
+  start: { justifyContent: 'flex-start' },
   pillText: {
     fontFamily: 'DMSans_500Medium',
     fontSize: 13,

@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
 import { useLanguage } from '@/src/i18n/LanguageContext';
+import { colors, shadow } from '@/src/theme';
 import { palette, radii } from '@/src/theme/colors';
 import type { PaymentMethod } from '@/src/types/finance';
 import { tapFeedback } from '@/src/utils/selectFeedback';
@@ -17,15 +18,20 @@ type Props = {
   onChange: (source: SpendSource) => void;
   /** Show the empty-card hint under the picker. */
   showNoCards?: boolean;
+  /** Segmented look (the chosen side lifts in white) so the screen's only coral is its main action. */
+  quiet?: boolean;
 };
 
 /** Pocket money vs credit-line charge — not mixed with Nequi. */
-export function SpendSourcePicker({ value, onChange, showNoCards }: Props) {
+export function SpendSourcePicker({ value, onChange, showNoCards, quiet }: Props) {
   const { t } = useLanguage();
+  const optStyle = (on: boolean) =>
+    quiet ? [styles.segment, on && styles.segmentOn] : [styles.opt, on && styles.optOn];
+  const textStyle = (on: boolean) => [styles.title, on && !quiet && styles.onText];
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.row}>
+      <View style={quiet ? styles.segmented : styles.row}>
         <Pressable
           accessibilityRole="button"
           accessibilityState={{ selected: value === 'pocket' }}
@@ -33,8 +39,8 @@ export function SpendSourcePicker({ value, onChange, showNoCards }: Props) {
             tapFeedback();
             onChange('pocket');
           }}
-          style={[styles.opt, value === 'pocket' && styles.optOn]}>
-          <Text style={[styles.title, value === 'pocket' && styles.onText]}>
+          style={optStyle(value === 'pocket')}>
+          <Text style={textStyle(value === 'pocket')}>
             {t('flow.paidWithMoney')}
           </Text>
         </Pressable>
@@ -45,8 +51,8 @@ export function SpendSourcePicker({ value, onChange, showNoCards }: Props) {
             tapFeedback();
             onChange('card');
           }}
-          style={[styles.opt, value === 'card' && styles.optOn]}>
-          <Text style={[styles.title, value === 'card' && styles.onText]}>
+          style={optStyle(value === 'card')}>
+          <Text style={textStyle(value === 'card')}>
             {t('flow.paidWithCard')}
           </Text>
         </Pressable>
@@ -90,6 +96,23 @@ const styles = StyleSheet.create({
   optOn: {
     backgroundColor: palette.accent,
     borderColor: palette.accent,
+  },
+  segmented: {
+    flexDirection: 'row',
+    padding: 3,
+    borderRadius: 12,
+    backgroundColor: colors.bg.surfaceMuted,
+  },
+  segment: {
+    flex: 1,
+    minHeight: 44,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  segmentOn: {
+    backgroundColor: palette.white,
+    ...shadow.e1,
   },
   title: {
     fontFamily: 'DMSans_700Bold',

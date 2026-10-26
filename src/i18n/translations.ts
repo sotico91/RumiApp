@@ -26,6 +26,7 @@ export const translations = {
     'home.quickConfirmNote': 'Note (optional)',
     'home.quickConfirmYes': 'Log',
     'home.quickConfirmLog': 'Log {amount}',
+    'home.quickRepeatLast': 'Last time {amount}. Type another amount if it changed.',
     'home.quickConfirmFull': 'Open full form (account, note…)',
     'home.quickConfirmClose': 'Close',
     'home.quickConfirmHint':
@@ -1245,6 +1246,7 @@ export const translations = {
     'home.quickConfirmNote': 'Observación (opcional)',
     'home.quickConfirmYes': 'Registrar',
     'home.quickConfirmLog': 'Registrar {amount}',
+    'home.quickRepeatLast': 'La última vez {amount}. Escribe otro valor si cambió.',
     'home.quickConfirmFull': 'Formulario completo (cuenta, nota…)',
     'home.quickConfirmClose': 'Cerrar',
     'home.quickConfirmHint':
