@@ -1,6 +1,7 @@
 import {
   AbsoluteFill,
   Audio,
+  Freeze,
   Img,
   interpolate,
   OffthreadVideo,
@@ -11,9 +12,13 @@ import {
   useVideoConfig,
 } from 'remotion';
 import { brand, fonts } from './brand';
+import voice from './voice.json';
 
-/** Seconds into the screen recording; mapped through the kept segments. */
-export type Caption = { at: number; text: string };
+/**
+ * One step of the ad: a line on screen from `at` (seconds into the recording) and, optionally,
+ * what the voice says. The step lasts until the next caption, longer if its line needs it.
+ */
+export type Caption = { at: number; text: string; say?: string };
 
 export type Sfx = {
   at: number;
@@ -25,6 +30,7 @@ export type Sfx = {
 export type AdProps = {
   /** Opening line, alone on screen before the phone appears. */
   hook: string;
+  hookSay?: string;
   /** Screen recording in public/clips/. */
   clip: string;
   /** Parts of the recording to keep, [from, to] in seconds; dead time in between is cut. */
@@ -38,28 +44,77 @@ export type AdProps = {
   music: { file: string; from: number; volume?: number };
   /** Last card: what Rumi is, and the promise. */
   endTitle: string;
+  /** Slogan under the name. */
+  tagline: string;
   endLine: string;
+  endSay?: string;
   cta: string;
 };
 
-export const HOOK_SECONDS = 2.2;
-export const END_SECONDS = 3;
+const HOOK_SECONDS = 2.2;
+const END_SECONDS = 3;
+// Breath after a voice line before the next step starts.
+const VOICE_GAP = 0.45;
+const VOICE_LEAD = 0.15;
 
-const keptSeconds = (p: AdProps) => p.segments.reduce((sum, [from, to]) => sum + (to - from), 0);
+const voiceOf = (text?: string) => (text ? (voice as Record<string, { file: string; seconds: number }>)[text] : undefined);
+const voiced = (text: string | undefined, min: number) =>
+  Math.max(min, (voiceOf(text)?.seconds ?? 0) + VOICE_LEAD + VOICE_GAP);
 
-export const bodySeconds = (p: AdProps) => keptSeconds(p) / p.playbackRate;
+export const hookSeconds = (p: AdProps) => voiced(p.hookSay, HOOK_SECONDS);
+const endSeconds = (p: AdProps) => voiced(p.endSay, END_SECONDS);
 
-export const adSeconds = (p: AdProps) => HOOK_SECONDS + bodySeconds(p) + END_SECONDS;
+/** What the phone shows, in order: a stretch of the recording, or its frame at `at` held still. */
+type Piece = { start: number; seconds: number } & ({ from: number; to: number } | { hold: number });
 
-/** Recording seconds → seconds into the phone part of the ad. */
+/**
+ * Lays the kept segments out step by step. A step whose voice line outlasts its footage holds
+ * its last frame until the line ends, so nothing on screen moves on before it is explained.
+ */
+function timeline(p: AdProps): { pieces: Piece[]; stepStarts: number[]; seconds: number } {
+  const pieces: Piece[] = [];
+  const stepStarts: number[] = [];
+  let t = 0;
+  const bounds = [...p.captions.map((c) => c.at), Infinity];
+  const firstAt = p.segments[0][0];
+  // Footage before the first caption plays as a silent step.
+  const steps = bounds[0] > firstAt ? [{ from: firstAt, to: bounds[0] }] : [];
+  p.captions.forEach((c, i) => steps.push({ from: c.at, to: bounds[i + 1] }));
+  steps.forEach((step, i) => {
+    const caption = p.captions[i - (steps.length - p.captions.length)];
+    if (caption) stepStarts.push(t);
+    const begin = t;
+    let last = step.from;
+    for (const [from, to] of p.segments) {
+      const a = Math.max(from, step.from);
+      const b = Math.min(to, step.to);
+      if (b <= a) continue;
+      const seconds = (b - a) / p.playbackRate;
+      pieces.push({ start: t, seconds, from: a, to: b });
+      t += seconds;
+      last = b;
+    }
+    const need = caption?.say ? voiced(caption.say, 0) : 0;
+    if (t - begin < need) {
+      pieces.push({ start: t, seconds: need - (t - begin), hold: last });
+      t = begin + need;
+    }
+  });
+  return { pieces, stepStarts, seconds: t };
+}
+
+export const bodySeconds = (p: AdProps) => timeline(p).seconds;
+
+export const adSeconds = (p: AdProps) => hookSeconds(p) + bodySeconds(p) + endSeconds(p);
+
+/** Recording seconds → seconds into the phone part of the ad (the first time that moment shows). */
 function toBody(p: AdProps, at: number): number {
-  let before = 0;
-  for (const [from, to] of p.segments) {
-    if (at < from) return before / p.playbackRate;
-    if (at <= to) return (before + at - from) / p.playbackRate;
-    before += to - from;
+  for (const piece of timeline(p).pieces) {
+    if (!('from' in piece)) continue;
+    if (at < piece.from) return piece.start;
+    if (at <= piece.to) return piece.start + (at - piece.from) / p.playbackRate;
   }
-  return before / p.playbackRate;
+  return timeline(p).seconds;
 }
 
 const SCREEN_W = 600;
@@ -67,6 +122,7 @@ const SCREEN_H = Math.round((SCREEN_W * 2622) / 1206);
 const SFX_VOLUME = { tap: 0.8, type: 0.5, success: 0.7 } as const;
 // The stock tracks are mastered loud; this keeps taps and dings on top.
 const MUSIC_VOLUME = 0.28;
+const VOICE_MUSIC = 0.45;
 
 function Background() {
   const frame = useCurrentFrame();
@@ -80,11 +136,11 @@ function Background() {
   );
 }
 
-function Hook({ text }: { text: string }) {
+function Hook({ text, seconds }: { text: string; seconds: number }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const pop = spring({ frame, fps, config: { damping: 14 } });
-  const out = interpolate(frame, [HOOK_SECONDS * fps - 10, HOOK_SECONDS * fps], [1, 0], {
+  const out = interpolate(frame, [seconds * fps - 10, seconds * fps], [1, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
@@ -124,21 +180,30 @@ function Phone({ p }: { p: AdProps }) {
         transform: `translateY(${(1 - enter) * 900}px) rotate(${(1 - enter) * 6}deg)`,
       }}>
       <div style={{ width: SCREEN_W, height: SCREEN_H, borderRadius: 80, overflow: 'hidden', position: 'relative' }}>
-        {p.segments.map(([from, to], i) => (
-          <Sequence
-            key={from}
-            from={Math.round(toBody(p, from) * fps)}
-            durationInFrames={i === p.segments.length - 1 ? undefined : Math.round(((to - from) / p.playbackRate) * fps)}
-            layout="none">
+        {timeline(p).pieces.map((piece) => {
+          const video = (startFrom: number, rate: number) => (
             <OffthreadVideo
               src={staticFile(`clips/${p.clip}`)}
-              startFrom={Math.round(from * fps)}
-              playbackRate={p.playbackRate}
+              startFrom={startFrom}
+              playbackRate={rate}
               muted
               style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
             />
-          </Sequence>
-        ))}
+          );
+          return (
+            <Sequence
+              key={piece.start}
+              from={Math.round(piece.start * fps)}
+              durationInFrames={Math.max(1, Math.round(piece.seconds * fps))}
+              layout="none">
+              {'from' in piece ? (
+                video(Math.round(piece.from * fps), p.playbackRate)
+              ) : (
+                <Freeze frame={0}>{video(Math.max(0, Math.round(piece.hold * fps) - 1), 1)}</Freeze>
+              )}
+            </Sequence>
+          );
+        })}
       </div>
     </div>
   );
@@ -147,7 +212,7 @@ function Phone({ p }: { p: AdProps }) {
 function Captions({ p }: { p: AdProps }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const starts = p.captions.map((c) => Math.round(toBody(p, c.at) * fps));
+  const starts = timeline(p).stepStarts.map((s) => Math.round(s * fps));
   const index = starts.reduce((acc, start, i) => (frame >= start ? i : acc), -1);
   if (index < 0) return null;
   const pop = spring({ frame: frame - starts[index], fps, config: { damping: 15 } });
@@ -180,7 +245,7 @@ function Captions({ p }: { p: AdProps }) {
   );
 }
 
-function EndCard({ title, line, cta }: { title: string; line: string; cta: string }) {
+function EndCard({ title, tagline, line, cta }: { title: string; tagline: string; line: string; cta: string }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const pop = spring({ frame, fps, config: { damping: 13 } });
@@ -191,7 +256,12 @@ function EndCard({ title, line, cta }: { title: string; line: string; cta: strin
         src={staticFile('icon.png')}
         style={{ width: 260, height: 260, borderRadius: 60, transform: `scale(${0.6 + pop * 0.4})` }}
       />
-      <div style={{ fontFamily: fonts.display, fontWeight: 700, fontSize: 120, color: brand.cream }}>{title}</div>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontFamily: fonts.display, fontWeight: 700, fontSize: 120, color: brand.cream }}>{title}</div>
+        <div style={{ fontFamily: fonts.display, fontWeight: 600, fontSize: 64, color: brand.gold, marginTop: 8, textWrap: 'balance' }}>
+          {tagline}
+        </div>
+      </div>
       <div
         style={{
           fontFamily: fonts.body,
@@ -234,9 +304,18 @@ function Sound({ from, src, volume, frames }: { from: number; src: string; volum
 
 function Soundtrack({ p, total }: { p: AdProps; total: number }) {
   const { fps } = useVideoConfig();
-  const hook = Math.round(HOOK_SECONDS * fps);
+  const hook = Math.round(hookSeconds(p) * fps);
   const end = hook + Math.round(bodySeconds(p) * fps);
   const at = (s: number) => hook + Math.round(toBody(p, s) * fps);
+  const steps = timeline(p).stepStarts;
+  const lead = Math.round(VOICE_LEAD * fps);
+  const lines = [
+    { from: 0, text: p.hookSay },
+    ...p.captions.map((c, i) => ({ from: hook + Math.round(steps[i] * fps), text: c.say })),
+    { from: end, text: p.endSay },
+  ];
+  // The music steps back while she speaks.
+  const speaking = p.hookSay || p.endSay || p.captions.some((c) => c.say);
   return (
     <>
       <Audio
@@ -244,6 +323,7 @@ function Soundtrack({ p, total }: { p: AdProps; total: number }) {
         startFrom={Math.round(p.music.from * fps)}
         volume={(f) =>
           (p.music.volume ?? MUSIC_VOLUME) *
+          (speaking ? VOICE_MUSIC : 1) *
           interpolate(f, [0, 8, total - 24, total - 1], [0, 1, 1, 0], {
             extrapolateLeft: 'clamp',
             extrapolateRight: 'clamp',
@@ -252,9 +332,13 @@ function Soundtrack({ p, total }: { p: AdProps; total: number }) {
       />
       <Sound from={2} src="sfx/pop.mp3" volume={0.7} />
       <Sound from={hook - 12} src="sfx/whoosh.mp3" volume={0.6} />
-      {p.captions.slice(1).map((c) => (
-        <Sound key={c.at} from={at(c.at) - 2} src="sfx/caption.mp3" volume={0.6} />
+      {steps.slice(1).map((s) => (
+        <Sound key={s} from={hook + Math.round(s * fps) - 2} src="sfx/caption.mp3" volume={0.6} />
       ))}
+      {lines.map(({ from, text }) => {
+        const line = voiceOf(text);
+        return line ? <Sound key={`voice-${from}`} from={from + lead} src={line.file} volume={1} /> : null;
+      })}
       {p.sfx.map((s) => (
         <Sound
           key={`${s.sound}-${s.at}`}
@@ -272,13 +356,13 @@ function Soundtrack({ p, total }: { p: AdProps; total: number }) {
 
 export function Ad(props: AdProps) {
   const { fps, durationInFrames } = useVideoConfig();
-  const hook = Math.round(HOOK_SECONDS * fps);
+  const hook = Math.round(hookSeconds(props) * fps);
   const body = Math.round(bodySeconds(props) * fps);
   return (
     <AbsoluteFill style={{ backgroundColor: brand.petrol900 }}>
       <Background />
       <Sequence durationInFrames={hook}>
-        <Hook text={props.hook} />
+        <Hook text={props.hook} seconds={hookSeconds(props)} />
       </Sequence>
       <Sequence from={hook} durationInFrames={body}>
         <Phone p={props} />
@@ -287,7 +371,7 @@ export function Ad(props: AdProps) {
         <Captions p={props} />
       </Sequence>
       <Sequence from={hook + body}>
-        <EndCard title={props.endTitle} line={props.endLine} cta={props.cta} />
+        <EndCard title={props.endTitle} tagline={props.tagline} line={props.endLine} cta={props.cta} />
       </Sequence>
       <Soundtrack p={props} total={durationInFrames} />
     </AbsoluteFill>

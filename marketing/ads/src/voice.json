@@ -1,0 +1,86 @@
+{
+  "¿En qué se te va la plata?": {
+    "file": "voice/db1eb074a713.mp3",
+    "seconds": 1.39
+  },
+  "Rumi. Cuentas claras, mente tranquila.": {
+    "file": "voice/07d5678af8d7.mp3",
+    "seconds": 4.08
+  },
+  "Con Rumi, anotar un gasto toma segundos. Toca el botón más.": {
+    "file": "voice/decda1541891.mp3",
+    "seconds": 5.45
+  },
+  "Escribe cuánto gastaste.": {
+    "file": "voice/3d111c16db67.mp3",
+    "seconds": 1.82
+  },
+  "Y en qué lo gastaste. Por ejemplo: almuerzo.": {
+    "file": "voice/140a8490e844.mp3",
+    "seconds": 4.15
+  },
+  "Rumi reconoce la categoría por ti.": {
+    "file": "voice/e14c3db8a147.mp3",
+    "seconds": 2.48
+  },
+  "Guardas, y listo. Sin hojas de cálculo.": {
+    "file": "voice/a8a384d9b559.mp3",
+    "seconds": 4.01
+  },
+  "¿Cuánto gasté en café este mes?": {
+    "file": "voice/1149cc6e613a.mp3",
+    "seconds": 1.86
+  },
+  "En Análisis, le preguntas a Rumi como le preguntarías a una amiga. Escribes tu pregunta y la envías.": {
+    "file": "voice/346d5485e6ce.mp3",
+    "seconds": 7.59
+  },
+  "Y te responde con tus números: diecinueve mil quinientos pesos, en tres cafés.": {
+    "file": "voice/6efa113fd2d9.mp3",
+    "seconds": 6.05
+  },
+  "Cinco mil ochocientos pesos no es nada… ¿o sí?": {
+    "file": "voice/8663406e9dac.mp3",
+    "seconds": 3.11
+  },
+  "Tus gastos de siempre aparecen en Inicio, a un toque.": {
+    "file": "voice/c7f17de403db.mp3",
+    "seconds": 3.57
+  },
+  "Tocas el café, cambias el valor si quieres, y lo registras.": {
+    "file": "voice/8ab3c3c9ef47.mp3",
+    "seconds": 4.56
+  },
+  "Así, cada cafecito queda contado.": {
+    "file": "voice/e38fab91f102.mp3",
+    "seconds": 2.62
+  },
+  "¿Gastos en una app, deudas en otra, y el sueldo en Excel?": {
+    "file": "voice/7f160d786360.mp3",
+    "seconds": 4.01
+  },
+  "Primero, registras tu sueldo como un ingreso.": {
+    "file": "voice/9bf9758abdf0.mp3",
+    "seconds": 3.28
+  },
+  "Luego, tus gastos: escribes el valor y en qué, y se guarda.": {
+    "file": "voice/2df77c50f89d.mp3",
+    "seconds": 5.34
+  },
+  "En Patrimonio agregas tus créditos, con el total y la cuota del mes.": {
+    "file": "voice/b2f2a7c3fa6a.mp3",
+    "seconds": 4.67
+  },
+  "Cuando pagas la cuota, la registras con un toque…": {
+    "file": "voice/078587dacbd1.mp3",
+    "seconds": 3.48
+  },
+  "…y la deuda baja sola.": {
+    "file": "voice/0e39755e73fe.mp3",
+    "seconds": 1.53
+  },
+  "Y en Inicio ves todo tu mes, en una sola app.": {
+    "file": "voice/9ac03985568c.mp3",
+    "seconds": 3.38
+  }
+}
