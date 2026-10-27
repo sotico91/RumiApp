@@ -20,7 +20,7 @@
 New **personal** developer accounts can't publish to production straight away:
 
 1. **Internal testing** — upload the first AAB, check it installs (up to 100 testers, no review wait).
-2. **Closed testing with at least 12 testers opted in for 14 days in a row.** Start gathering testers (their Google account emails or a Google Group) as soon as the account exists; this is the slowest step.
+2. **Closed testing with at least 12 testers opted in for 14 days in a row.** Testers join the Google Group https://groups.google.com/g/rumiapptester (add `rumiapptester@googlegroups.com` under Closed testing → Testers); docs/probar.html and the `rumi-pruebame-es` video send people there. This is the slowest step.
 3. **Apply for production** in the Dashboard (Play asks a few questions about the test), then wait for the review (usually a few days).
 
 Signing: only the **EAS AAB** goes to Play. Turn on **Play App Signing** and let EAS keep the upload key. The local LAN APK (`npm run android:apk`) is signed with the debug keystore and is for testers only. Never commit `*.jks` / `*.keystore`.
