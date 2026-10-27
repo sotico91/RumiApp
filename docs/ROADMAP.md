@@ -34,6 +34,12 @@ Pasos en `STORE_CHECKLIST.md`. Al empezar la fase, anotar aquí cuáles ya está
 - [ ] Página de privacidad publicada en GitHub Pages.
 - [ ] Builds de producción con EAS.
 - [ ] TestFlight y prueba interna de Play antes de producción.
+- [ ] Prueba cerrada de Play: 12 testers durante 14 días. Invitación lista: `docs/probar.html` (QR) y el video `rumi-pruebame-es`. Falta crear el grupo de Google de testers y pegar su enlace en `GROUP_URL` de la página.
+- [ ] **Listo para dólares (ejercicio en inglés + USD del 2026-10-27):** sumas, centavos, topes, cuotas y "Ask Rumi" funcionan en USD. Ajustar antes de mostrarla a gente que maneja dólares:
+  - El onboarding preselecciona pesos aunque el teléfono esté en inglés o en región de EE. UU.; preseleccionar USD según la región.
+  - Billeteras sugeridas solo colombianas (Nequi, Daviplata); en USD ofrecer PayPal, Venmo, Cash App.
+  - Textos en inglés con términos colombianos: "CDT" en Investments y "credicheque" en Cards; y el ejemplo de Ask "can I buy 200k?" (en USD lee $200,000).
+  - La política de privacidad dice "Reportar un problema"; en la app el botón es "Reportar un error".
 
 ## Fase 4 — Proyectos grandes
 

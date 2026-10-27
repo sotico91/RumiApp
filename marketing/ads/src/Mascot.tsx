@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import {
   AbsoluteFill,
   Audio,
+  Img,
   interpolate,
   Sequence,
   spring,
@@ -10,7 +11,7 @@ import {
   useVideoConfig,
 } from 'remotion';
 import { brand, fonts, FPS } from './brand';
-import { mascotScenes, type Scene } from './mascot-scenes';
+import { mascotVideos, type MascotVideo, type Scene } from './mascot-scenes';
 import voice from './mascot-voice.json';
 
 // The front bill of the app icon (assets/images/icon.png), lighter than the UI coral.
@@ -26,10 +27,10 @@ type Voice = { file: string; seconds: number; mouth: number[] };
 const voiceOf = (s: Scene) => (voice as Record<string, Voice>)[s.say];
 
 /** Scene start and length in frames; the voice of each starts LEAD seconds in. */
-export function mascotTimeline() {
+export function mascotTimeline(list: Scene[]) {
   let t = INTRO * FPS;
-  const scenes = mascotScenes.map((scene, i) => {
-    const extra = i === mascotScenes.length - 1 ? OUTRO : 0;
+  const scenes = list.map((scene, i) => {
+    const extra = i === list.length - 1 ? OUTRO : 0;
     const frames = Math.round((LEAD + voiceOf(scene).seconds + GAP + extra) * FPS);
     const start = i === 0 ? 0 : t;
     const length = i === 0 ? frames + t : frames;
@@ -40,8 +41,8 @@ export function mascotTimeline() {
 }
 
 /** How open the mouth is (0–1) at `frame`, from the voice that is playing. */
-function mouthAt(frame: number): number {
-  for (const s of mascotTimeline().scenes) {
+function mouthAt(frame: number, list: Scene[]): number {
+  for (const s of mascotTimeline(list).scenes) {
     const m = voiceOf(s.scene).mouth;
     const i = Math.round(frame - s.voiceAt);
     if (i >= 0 && i < m.length) return ((m[i - 1] ?? 0) + m[i] * 2 + (m[i + 1] ?? 0)) / 4;
@@ -409,16 +410,305 @@ function Flying() {
   );
 }
 
-const CARDS: Partial<Record<Scene['kind'], () => ReactNode>> = {
+function Row({ delay, icon, title, detail }: { delay: number; icon: ReactNode; title: string; detail?: string }) {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const p = pop(frame, fps, delay);
+  return (
+    <div
+      style={{
+        display: 'flex',
+        gap: 26,
+        alignItems: 'center',
+        padding: '18px 0',
+        opacity: p,
+        transform: `translateX(${(1 - p) * 40}px)`,
+      }}
+    >
+      <div style={{ width: 64, textAlign: 'center', fontSize: 50, flexShrink: 0 }}>{icon}</div>
+      <div>
+        <div style={{ fontSize: 42, fontWeight: 700 }}>{title}</div>
+        {detail ? <div style={{ ...label, marginTop: 4 }}>{detail}</div> : null}
+      </div>
+    </div>
+  );
+}
+
+const dot = (color: string) => (
+  <span
+    style={{
+      display: 'inline-block',
+      width: 26,
+      height: 26,
+      borderRadius: 13,
+      background: color,
+    }}
+  />
+);
+const check = <span style={{ color: '#13635B', fontWeight: 700 }}>✓</span>;
+
+function RemindSetupCard() {
+  return (
+    <Card>
+      <div style={{ ...label, marginBottom: 14 }}>Recordatorios de gastos</div>
+      <Row delay={20} icon={dot(brand.gold)} title="Luz" detail="Día 10 de cada mes a las 9:00" />
+      <Row delay={34} icon={dot(brand.teal)} title="Internet" detail="Día 15 de cada mes a las 9:00" />
+      <Row delay={48} icon={dot(brand.petrol500)} title="Arriendo" detail="Último día de cada mes a las 8:00" />
+    </Card>
+  );
+}
+
+function DebtDueCard() {
+  return (
+    <Card>
+      <div style={{ ...label, marginBottom: 14 }}>Cuotas y deudas</div>
+      <Row delay={20} icon={dot(brand.coral)} title="Carro" detail={`Vence el día 5 · ${cop(850000)}`} />
+      <Row delay={34} icon={dot(BILL)} title="Tarjeta" detail={`Vence el día 20 · ${cop(240000)}`} />
+      <div style={{ ...label, fontSize: 32, marginTop: 18 }}>
+        Te avisamos un día antes de cada vencimiento, a las 9:00.
+      </div>
+    </Card>
+  );
+}
+
+/** A phone notification banner, as iOS shows Rumi's local reminders. */
+function Banner({ delay, title, body }: { delay: number; title: string; body: string }) {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const p = pop(frame, fps, delay);
+  return (
+    <div
+      style={{
+        display: 'flex',
+        gap: 26,
+        padding: 30,
+        marginBottom: 26,
+        borderRadius: 40,
+        background: 'rgba(242,242,247,0.96)',
+        boxShadow: '0 18px 44px rgba(11,31,41,0.18)',
+        transform: `translateY(${(1 - p) * -160}px)`,
+        opacity: p,
+        fontFamily: fonts.body,
+        color: brand.ink,
+      }}
+    >
+      <Img src={staticFile('icon.png')} style={{ width: 84, height: 84, borderRadius: 20, flexShrink: 0 }} />
+      <div style={{ flex: 1 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontSize: 34,
+            fontWeight: 700,
+          }}
+        >
+          <span>{title}</span>
+          <span style={{ color: '#5B6B73', fontWeight: 500 }}>ahora</span>
+        </div>
+        <div style={{ fontSize: 34, marginTop: 6, lineHeight: 1.3 }}>{body}</div>
+      </div>
+    </div>
+  );
+}
+
+function PushCard() {
+  return (
+    <div style={{ position: 'absolute', left: 70, right: 70, top: 1060 }}>
+      <Banner
+        delay={14}
+        title="Pago por vencer"
+        body={`Mañana vence el pago de Carro: ${cop(850000)}. Toca para registrarlo.`}
+      />
+      <Banner
+        delay={44}
+        title="Recordatorio Rumi"
+        body={`¿Ya pagaste Luz? Suele ser ${cop(95000)}. Toca para registrarlo.`}
+      />
+    </div>
+  );
+}
+
+function SuggestCard() {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const b = pop(frame, fps, 40);
+  const press = interpolate(frame, [70, 76, 84], [1, 0.92, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+  return (
+    <Card>
+      <div style={{ ...label, marginBottom: 14 }}>Te sugerimos</div>
+      <Row delay={20} icon="📺" title="Netflix" detail={`Sueles pagarlo el día 12 · ${cop(26900)}`} />
+      <div
+        style={{
+          display: 'flex',
+          gap: 24,
+          marginTop: 24,
+          opacity: b,
+          transform: `scale(${0.9 + b * 0.1})`,
+        }}
+      >
+        <div
+          style={{
+            padding: '22px 40px',
+            borderRadius: 999,
+            background: brand.coral,
+            color: '#fff',
+            fontSize: 38,
+            fontWeight: 700,
+            transform: `scale(${press})`,
+          }}
+        >
+          Recordármelo
+        </div>
+        <div
+          style={{
+            padding: '22px 30px',
+            fontSize: 38,
+            color: '#5B6B73',
+            fontWeight: 700,
+          }}
+        >
+          Ahora no
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function NeedsCard() {
+  return (
+    <Card>
+      <Row delay={20} icon="📱" title="Un celular Android" />
+      <Row delay={34} icon="🔑" title="Tu cuenta de Google" detail="La misma de Gmail y Play Store" />
+      <Row delay={48} icon="📅" title="14 días con Rumi" detail="Instalada, y úsala cuando quieras" />
+    </Card>
+  );
+}
+
+function Qr({ file, size }: { file: string; size: number }) {
+  return (
+    <div
+      style={{
+        padding: 18,
+        borderRadius: 28,
+        background: '#fff',
+        boxShadow: '0 0 0 4px #EEF1F2',
+      }}
+    >
+      <Img src={staticFile(file)} style={{ width: size, height: size, display: 'block' }} />
+    </div>
+  );
+}
+
+function StepsCard({ qr }: { qr?: string }) {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const q = pop(frame, fps, 14);
+  const steps = [
+    'Escanea el código',
+    'Entra con tu cuenta de Google y acepta la invitación',
+    'Instala Rumi desde Google Play',
+  ];
+  return (
+    <Card>
+      <div style={{ display: 'flex', gap: 40, alignItems: 'center' }}>
+        {qr ? (
+          <div style={{ transform: `scale(${q})` }}>
+            <Qr file={qr} size={250} />
+          </div>
+        ) : null}
+        <div style={{ flex: 1 }}>
+          {steps.map((step, i) => (
+            <Row
+              key={step}
+              delay={30 + i * 16}
+              icon={
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    width: 58,
+                    height: 58,
+                    borderRadius: 29,
+                    background: brand.petrol700,
+                    color: '#fff',
+                    fontSize: 34,
+                    fontWeight: 700,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {i + 1}
+                </span>
+              }
+              title={step}
+            />
+          ))}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function PlayCard() {
+  return (
+    <Card>
+      <Row delay={20} icon={check} title="Política de privacidad pública" />
+      <Row
+        delay={32}
+        icon={check}
+        title="Seguridad de los datos declarada"
+        detail="Rumi no recopila ni comparte tus datos"
+      />
+      <Row delay={44} icon={check} title="Sin anuncios ni rastreo" />
+      <Row delay={56} icon={check} title="Datos cifrados en tu teléfono" />
+    </Card>
+  );
+}
+
+function FeedbackCard() {
+  return (
+    <Card>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <Bubble me delay={18}>
+          Algo no me cuadra en el resumen 🤔
+        </Bubble>
+        <Bubble delay={46}>¡Gracias! Lo reviso para la próxima versión.</Bubble>
+      </div>
+      <div style={{ ...label, marginTop: 10 }}>Ajustes → Reportar un error</div>
+    </Card>
+  );
+}
+
+function IphoneCard() {
+  return (
+    <Card>
+      <Row delay={20} icon="🤖" title="Android · Google Play" detail="En prueba ahora" />
+      <Row delay={36} icon="🍎" title="iPhone · App Store" detail="Muy pronto" />
+    </Card>
+  );
+}
+
+const CARDS: Partial<Record<Scene['kind'], (p: { qr?: string }) => ReactNode>> = {
   quick: QuickCard,
   limit: LimitCard,
   ants: AntsCard,
   ask: AskCard,
   forecast: ForecastCard,
   privacy: PrivacyCard,
+  remindSetup: RemindSetupCard,
+  debtDue: DebtDueCard,
+  push: PushCard,
+  suggest: SuggestCard,
+  needs: NeedsCard,
+  steps: StepsCard,
+  play: PlayCard,
+  feedback: FeedbackCard,
+  iphone: IphoneCard,
 };
 
-function SceneView({ scene }: { scene: Scene }) {
+function SceneView({ scene, video }: { scene: Scene; video: MascotVideo }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const t = pop(frame, fps, 2);
@@ -445,43 +735,70 @@ function SceneView({ scene }: { scene: Scene }) {
       >
         {scene.title}
       </div>
-      {scene.kind === 'end' ? <EndCard /> : null}
-      {Body ? <Body /> : null}
+      {scene.kind === 'end' ? <EndCard video={video} /> : null}
+      {Body ? <Body qr={video.qr} /> : null}
     </AbsoluteFill>
   );
 }
 
-function EndCard() {
+function EndCard({ video }: { video: MascotVideo }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const a = pop(frame, fps, 25);
   const b = pop(frame, fps, 45);
   return (
-    <div style={{ position: 'absolute', left: 0, right: 0, top: 1420, textAlign: 'center', fontFamily: fonts.body }}>
-      <div style={{ fontSize: 48, color: brand.petrol700, opacity: a }}>Cuentas claras, mente tranquila.</div>
+    <div
+      style={{
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 1420,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        fontFamily: fonts.body,
+      }}
+    >
+      <div style={{ fontSize: 48, color: brand.petrol700, opacity: a }}>{video.tagline}</div>
       <div
         style={{
-          display: 'inline-block',
-          marginTop: 56,
-          padding: '28px 64px',
-          borderRadius: 999,
-          background: brand.coral,
-          color: '#fff',
-          fontSize: 46,
-          fontWeight: 700,
-          transform: `scale(${b})`,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 40,
+          marginTop: video.qr ? 40 : 0,
         }}
       >
-        Muy pronto en tu tienda
+        <div
+          style={{
+            display: 'inline-block',
+            marginTop: video.qr ? 0 : 56,
+            padding: '28px 64px',
+            borderRadius: 999,
+            background: brand.coral,
+            color: '#fff',
+            fontSize: 46,
+            fontWeight: 700,
+            transform: `scale(${b})`,
+          }}
+        >
+          {video.cta}
+        </div>
+        {video.qr ? (
+          <div style={{ transform: `scale(${b})` }}>
+            <Qr file={video.qr} size={230} />
+          </div>
+        ) : null}
       </div>
     </div>
   );
 }
 
-export function Mascot() {
+export function Mascot({ id }: { id: string }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const { scenes } = mascotTimeline();
+  const video = mascotVideos[id];
+  const list = video.scenes;
+  const { scenes } = mascotTimeline(list);
   const current = [...scenes].reverse().find((s) => frame >= s.start) ?? scenes[0];
   const solo = current.scene.kind === 'hello' || current.scene.kind === 'end';
   // Rumi glides between center stage (hello, end) and the top while a card explains.
@@ -496,7 +813,7 @@ export function Mascot() {
   const y = from.y + (to.y - from.y) * move;
   const s = from.s + (to.s - from.s) * move;
   const enter = spring({ frame, fps, config: { damping: 11 } });
-  const talk = mouthAt(frame);
+  const talk = mouthAt(frame, list);
   const bob = Math.sin(frame / 11) * 10;
   const wave =
     current.scene.kind === 'hello'
@@ -519,9 +836,9 @@ export function Mascot() {
           background: 'radial-gradient(circle, #F7E6D6 0%, rgba(251,247,241,0) 65%)',
         }}
       />
-      {scenes.map((s) => (
-        <Sequence key={s.scene.kind} from={s.start} durationInFrames={s.length}>
-          <SceneView scene={s.scene} />
+      {scenes.map((s, i) => (
+        <Sequence key={`s${i}`} from={s.start} durationInFrames={s.length}>
+          <SceneView scene={s.scene} video={video} />
         </Sequence>
       ))}
       <div
@@ -535,7 +852,7 @@ export function Mascot() {
         <Rumi talk={talk} wave={wave} look={look} />
       </div>
 
-      <Audio src={staticFile('music/happy-times.mp3')} volume={(f) => (mouthAt(f) > 0 ? 0.1 : 0.16)} />
+      <Audio src={staticFile('music/happy-times.mp3')} volume={(f) => (mouthAt(f, list) > 0 ? 0.1 : 0.16)} />
       {scenes.map((s, i) => (
         <Sequence key={`v${i}`} from={Math.round(s.voiceAt)}>
           <Audio src={staticFile(voiceOf(s.scene).file)} />
@@ -574,4 +891,4 @@ export function Mascot() {
   );
 }
 
-export const mascotFrames = () => mascotTimeline().frames;
+export const mascotFrames = (id: string) => mascotTimeline(mascotVideos[id].scenes).frames;

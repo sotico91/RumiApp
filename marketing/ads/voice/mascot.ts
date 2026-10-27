@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { mascotScenes } from '../src/mascot-scenes.ts';
+import { mascotVideos } from '../src/mascot-scenes.ts';
 
 const VOICE = process.env.VOICE ?? 'es-CO-SalomeNeural';
 const RATE = process.env.RATE ?? '-4%';
@@ -39,7 +39,8 @@ function envelope(mp3: string): number[] {
 
 mkdirSync('public/voice', { recursive: true });
 const out: Record<string, { file: string; seconds: number; mouth: number[] }> = {};
-for (const { say } of mascotScenes) {
+for (const { say } of Object.values(mascotVideos).flatMap((v) => v.scenes)) {
+  if (out[say]) continue;
   const file = `voice/${createHash('sha1').update(`${VOICE}|${RATE}|${say}`).digest('hex').slice(0, 12)}.mp3`;
   if (!existsSync(`public/${file}`)) {
     execFileSync(tts, ['--voice', VOICE, `--rate=${RATE}`, '--text', say, '--write-media', `public/${file}`]);

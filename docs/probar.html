@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rumi — Pruébala en Android</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --ink: #0f1c24;
+      --muted: #5a6b75;
+      --bg: #f4f7f9;
+      --card: #ffffff;
+      --accent: #1b3a4b;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #eef4f7;
+        --muted: #a8b6be;
+        --bg: #0c161c;
+        --card: #13232c;
+        --accent: #7eb6c9;
+      }
+    }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.55;
+    }
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 28px 24px;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+    }
+    h1 { font-size: 1.75rem; margin: 0 0 8px; }
+    h2 { font-size: 1.15rem; margin: 28px 0 8px; }
+    p, li { color: var(--muted); }
+    .meta { font-size: 0.9rem; margin-bottom: 20px; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main>
+    <article class="card">
+      <h1>Prueba Rumi en Android</h1>
+      <p class="meta">Prueba cerrada en Google Play · Desarrollador: Sotico91</p>
+      <p>
+        Rumi es una app de finanzas personales: anotas tus gastos en segundos, pones topes al mes,
+        te recuerda tus pagos y te responde cuánto llevas gastado. Antes de publicarla para todos,
+        Google Play pide que al menos 12 personas la prueben durante 14 días seguidos. ¡Gracias por ayudar!
+      </p>
+
+      <h2>Lo que necesitas</h2>
+      <ul>
+        <li>Un celular Android.</li>
+        <li>Una cuenta de Google (la misma de Gmail y Play Store).</li>
+        <li>Dejar Rumi instalada 14 días y usarla cuando quieras.</li>
+      </ul>
+
+      <h2>Cómo unirte</h2>
+      <ol>
+        <li id="step-join"></li>
+        <li>
+          Abre <a href="https://play.google.com/apps/testing/com.rumi.app">la invitación de Google Play</a>
+          desde el celular, con esa misma cuenta, y acepta ser parte de la prueba.
+        </li>
+        <li>
+          Instala Rumi desde <a href="https://play.google.com/store/apps/details?id=com.rumi.app">Google Play</a>.
+          Puede tardar unos minutos en aparecer después de aceptar.
+        </li>
+      </ol>
+
+      <h2>Tus datos</h2>
+      <p>
+        Rumi no pide crear cuenta ni conectar tu banco. Tus movimientos se guardan cifrados en tu teléfono
+        y no se envían a ningún servidor. Detalles en la <a href="privacy-policy.html">política de privacidad</a>.
+      </p>
+
+      <h2>¿Algo falla?</h2>
+      <p>
+        En la app, toca tu inicial en Inicio → <strong>Reportar un error</strong>, o escribe a
+        <a href="mailto:edavidvelascop@gmail.com">edavidvelascop@gmail.com</a>.
+      </p>
+
+      <h2>¿Tienes iPhone?</h2>
+      <p>Muy pronto en la App Store.</p>
+    </article>
+  </main>
+  <script>
+    // Google Group whose members are the closed-test testers. Paste its link here once created;
+    // until then people send their Gmail address and the developer adds them to the test.
+    const GROUP_URL = '';
+    const join = document.getElementById('step-join');
+    join.innerHTML = GROUP_URL
+      ? 'Únete al <a href="' + GROUP_URL + '">grupo de testers de Rumi</a> con tu cuenta de Google.'
+      : 'Escríbenos tu correo de Gmail a <a href="mailto:edavidvelascop@gmail.com?subject=Quiero%20probar%20Rumi">edavidvelascop@gmail.com</a> para agregarte a la prueba. Te avisamos cuando estés.';
+  </script>
+</body>
+</html>
