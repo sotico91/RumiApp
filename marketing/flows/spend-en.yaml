@@ -1,0 +1,14 @@
+# One quick spend in English: ${AMOUNT} described as ${NOTE}, saved with the "Save $${SAVE}" button.
+appId: com.sotico91.rumi
+---
+- tapOn: { id: "add-fab" }
+- tapOn: { id: "quick-amount" }
+- inputText: "${AMOUNT}"
+- tapOn: "What for?"
+- tapOn: { id: "quick-note" }
+- inputText: "${NOTE}"
+- tapOn: "What for?"
+- tapOn: "Save \\$${SAVE}"
+- extendedWaitUntil:
+    visible: "Home"
+    timeout: 10000

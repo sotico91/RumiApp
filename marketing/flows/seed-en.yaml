@@ -1,0 +1,36 @@
+# Demo data in English and US dollars (simulator in en-US): fresh onboarding as
+# "Sofia" with $2,450.75 in the bank and everyday spends with cents.
+appId: com.sotico91.rumi
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+- extendedWaitUntil:
+    visible: "Your first name"
+    timeout: 20000
+- tapOn: "Your first name"
+- inputText: "Sofia"
+- tapOn: "Sounds good"
+- tapOn: "US dollars (USD)"
+- tapOn: "Continue"
+- tapOn: ".*Coffee"
+- tapOn: ".*Delivery"
+- tapOn: ".*Rides & taxis"
+- tapOn: ".*Subscriptions"
+- tapOn: "Continue"
+- tapOn:
+    id: "onboard-bank"
+- inputText: "2450.75"
+- tapOn: "STEP 4 OF 4"
+- tapOn: "I'm ready"
+- extendedWaitUntil:
+    visible: "Home"
+    timeout: 10000
+- runFlow: { file: spend-en.yaml, env: { AMOUNT: "86.40", NOTE: "groceries", SAVE: "86\\.40" } }
+- runFlow: { file: spend-en.yaml, env: { AMOUNT: "4.75", NOTE: "coffee", SAVE: "4\\.75" } }
+- runFlow: { file: spend-en.yaml, env: { AMOUNT: "12.50", NOTE: "lunch", SAVE: "12\\.50" } }
+- runFlow: { file: spend-en.yaml, env: { AMOUNT: "14.80", NOTE: "uber", SAVE: "14\\.80" } }
+- runFlow: { file: spend-en.yaml, env: { AMOUNT: "5.25", NOTE: "coffee", SAVE: "5\\.25" } }
+- runFlow: { file: spend-en.yaml, env: { AMOUNT: "23.90", NOTE: "delivery", SAVE: "23\\.90" } }
+- runFlow: { file: spend-en.yaml, env: { AMOUNT: "15.49", NOTE: "netflix", SAVE: "15\\.49" } }
+- runFlow: { file: spend-en.yaml, env: { AMOUNT: "4.50", NOTE: "coffee", SAVE: "4\\.50" } }
