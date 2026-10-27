@@ -3,6 +3,7 @@ import { Ad, adSeconds, type AdProps } from './Ad';
 import { FPS } from './brand';
 import { ads } from './ads';
 import { Mascot, mascotFrames } from './Mascot';
+import { StoreShot, storeShots } from './StoreShot';
 
 export function RemotionRoot() {
   return (
@@ -20,6 +21,9 @@ export function RemotionRoot() {
         />
       ))}
       <Composition id="rumi-habla-es" component={Mascot} width={1080} height={1920} fps={FPS} durationInFrames={mascotFrames()} />
+      {Object.entries(storeShots).map(([id, props]) => (
+        <Composition key={id} id={id} component={StoreShot} defaultProps={props} width={1080} height={1920} fps={FPS} durationInFrames={1} />
+      ))}
     </>
   );
 }
