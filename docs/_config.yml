@@ -1,0 +1,8 @@
+# GitHub Pages publishes this folder. Only the site pages go out (index, privacy policy,
+# tester page); the working docs below stay in the repo but are not served.
+exclude:
+  - ANDROID.md
+  - CHANGELOG.md
+  - E2E.md
+  - ROADMAP.md
+  - STORE_CHECKLIST.md
