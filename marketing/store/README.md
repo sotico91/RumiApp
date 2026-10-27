@@ -14,4 +14,6 @@ for id in $(grep -oE "'play-[a-z0-9-]+'" src/StoreShot.tsx | tr -d "'"); do
 done
 ```
 
-Faltan: gráfico destacado de Play (1024×500) y, si se mantiene `supportsTablet`, las de iPad 13".
+- `play-feature-es.png` / `play-feature-en.png` — gráfico destacado de Play (1024×500): ícono, nombre, lema y la parte de arriba de Inicio (`FeatureGraphic` en `../ads/src/StoreShot.tsx`, usa `icon.png` de esta carpeta). Se generan con el mismo bucle cambiando el patrón a `'play-feature-[a-z]+'` y la salida a `../store/$id.png`.
+
+Faltan: si se mantiene `supportsTablet`, las de iPad 13".

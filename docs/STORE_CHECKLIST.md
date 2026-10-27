@@ -37,7 +37,7 @@ Signing: only the **EAS AAB** goes to Play. Turn on **Play App Signing** and let
 ## Play Console fields
 
 - **Upload an AAB** (production EAS profile).
-- **Store listing (es + en):** title ≤30 characters, short description ≤80, full description ≤4000, icon 512×512, **feature graphic 1024×500**, 2–8 phone screenshots (1080×1920, in `marketing/store/play/`).
+- **Store listing (es + en):** title ≤30 characters, short description ≤80, full description ≤4000, icon 512×512, **feature graphic 1024×500** (`marketing/store/play-feature-es.png` / `-en.png`), 2–8 phone screenshots (1080×1920, in `marketing/store/play/`).
 - **Data safety:**
   - Collected / shared: **No data collected, no data shared** (financial info, name and settings stay on the device and never reach a server).
   - Encrypted: Yes (on the device). Way to delete: “Borrar todos los datos” in Settings, or uninstall.

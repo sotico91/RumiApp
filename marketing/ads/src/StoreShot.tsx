@@ -57,3 +57,60 @@ export function StoreShot({ image, title, subtitle }: StoreShotProps) {
     </AbsoluteFill>
   );
 }
+
+// Google Play feature graphic (1024×500): name, tagline and the top of Home on a phone.
+// Play may crop the edges or lay a play button over the center, so the text sits left and clear.
+export type FeatureProps = { image: string; tagline: string; line: string };
+
+export const featureGraphics: Record<string, FeatureProps> = {
+  'play-feature-es': {
+    image: 'ios/1-inicio.png',
+    tagline: 'Cuentas claras, mente tranquila.',
+    line: 'Gastos, topes y deudas en un solo lugar. Tus datos se quedan en tu teléfono.',
+  },
+  'play-feature-en': {
+    image: 'ios-en/1-home.png',
+    tagline: 'Clear money, calm mind.',
+    line: 'Spending, limits and loans in one place. Your data stays on your phone.',
+  },
+};
+
+const FEATURE_PHONE_W = 300;
+
+export function FeatureGraphic({ image, tagline, line }: FeatureProps) {
+  return (
+    <AbsoluteFill
+      style={{
+        background: `radial-gradient(circle at 78% 30%, ${brand.petrol500} 0%, ${brand.petrol700} 45%, ${brand.petrol900} 100%)`,
+        overflow: 'hidden',
+      }}
+    >
+      <div style={{ position: 'absolute', left: 64, top: 0, bottom: 0, width: 560, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 26 }}>
+          <Img src={staticFile('icon.png')} style={{ width: 112, height: 112, borderRadius: 26 }} />
+          <div style={{ fontFamily: fonts.display, fontWeight: 700, fontSize: 104, color: brand.cream, lineHeight: 1 }}>Rumi</div>
+        </div>
+        <div style={{ fontFamily: fonts.display, fontWeight: 600, fontSize: 40, color: brand.gold, marginTop: 28, lineHeight: 1.15 }}>
+          {tagline}
+        </div>
+        <div style={{ fontFamily: fonts.body, fontWeight: 500, fontSize: 24, color: brand.cream, opacity: 0.85, marginTop: 16, lineHeight: 1.35 }}>
+          {line}
+        </div>
+      </div>
+      <div
+        style={{
+          position: 'absolute',
+          left: 680,
+          top: 56,
+          padding: 10,
+          borderRadius: 52,
+          background: brand.ink,
+          boxShadow: '0 30px 70px rgba(0,0,0,0.45)',
+          transform: 'rotate(-6deg)',
+        }}
+      >
+        <Img src={staticFile(image)} style={{ width: FEATURE_PHONE_W, borderRadius: 44, display: 'block' }} />
+      </div>
+    </AbsoluteFill>
+  );
+}
