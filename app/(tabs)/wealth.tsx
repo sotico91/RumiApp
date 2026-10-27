@@ -13,6 +13,7 @@ import { styles } from '@/src/components/wealth/styles';
 import { useDebtForm } from '@/src/components/wealth/useDebtForm';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
+import { currencyCopyKey } from '@/src/i18n/translations';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { colors, space } from '@/src/theme';
 import type { Debt } from '@/src/types/finance';
@@ -20,7 +21,7 @@ import { creditAvailable, debtKind, openDebts } from '@/src/utils/debts';
 
 export default function WealthScreen() {
   const { t } = useLanguage();
-  const { format } = useMoney();
+  const { format, currency } = useMoney();
   const { debts, netWorth, transactionsForPeriod } = useFinance();
 
   const [cardsOpen, setCardsOpen] = useState(true);
@@ -157,7 +158,7 @@ export default function WealthScreen() {
 
           {revolvingDebts.length === 0 && !(showForm && kind === 'revolving') ? (
             <View style={styles.card}>
-              <Text style={styles.empty}>{t('wealth.cardsEmpty')}</Text>
+              <Text style={styles.empty}>{t(currencyCopyKey('wealth.cardsEmpty', currency))}</Text>
             </View>
           ) : null}
 

@@ -10,6 +10,7 @@ import {
   sumSpendOut,
 } from '@/src/utils/financeMath';
 import { projectMonth } from '@/src/utils/projection';
+import { currencyCopyKey } from '@/src/i18n/translations';
 import { DAY_MS, type QueryPeriod } from './period';
 import { parseQueryAmount } from './signals';
 import { includesAny } from './text';
@@ -25,6 +26,7 @@ export function answerAfford(
 ): string {
   const amount = parseQueryAmount(q);
   const available = options.availableCash;
+  const needAmount = currencyCopyKey('search.answerAffordNeedAmount', options.currency ?? 'COP');
   const p = projectMonth(transactions, options.debts, now, options.spendConcepts);
   if (amount == null) {
     // "¿Cuánto puedo gastar?" → a daily budget for the rest of the month.
@@ -39,11 +41,11 @@ export function answerAfford(
           })
         : t('search.answerDailyBudgetNone', { short: format(-left) });
     }
-    return t('search.answerAffordNeedAmount');
+    return t(needAmount);
   }
 
   if (p.income <= 0) {
-    if (available == null) return t('search.answerAffordNeedAmount');
+    if (available == null) return t(needAmount);
     return available >= amount
       ? t('search.answerAffordCash', {
           amount: format(amount),

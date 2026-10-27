@@ -24,7 +24,7 @@ import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
 import { palette, radii } from '@/src/theme/colors';
 import type { Currency } from '@/src/types/settings';
-import { formatAmountTyping, parseAmountInput } from '@/src/utils/money';
+import { deviceCurrency, formatAmountTyping, parseAmountInput } from '@/src/utils/money';
 import { appAlert } from '@/src/components/AppAlert';
 
 /** Name, currency, ant spends, today's money. Notifications and reminders
@@ -58,7 +58,8 @@ export function OnboardingOverlay() {
   const { setAmountsVisible } = useAmountPrivacy();
   const [step, setStep] = useState(0);
   const [userName, setUserName] = useState('');
-  const [currency, setCurrency] = useState<Currency>('COP');
+  // Preselected from the phone's region; the person still confirms it on this step.
+  const [currency, setCurrency] = useState<Currency>(deviceCurrency);
   const [bank, setBank] = useState('');
   const [cash, setCash] = useState('');
   const [antPicks, setAntPicks] = useState<string[]>([]);

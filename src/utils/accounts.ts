@@ -8,6 +8,7 @@ import type {
   TransactionType,
 } from '@/src/types/finance';
 import type { TranslationKey } from '@/src/i18n/translations';
+import type { Currency } from '@/src/types/settings';
 import { isDebtPayAccountId, revolvingAsPayAccounts } from '@/src/utils/debts';
 
 export function isPrincipalLiquid(type: AccountType): boolean {
@@ -104,8 +105,15 @@ export function accountGroupKey(
   return 'account.role.other';
 }
 
-/** One-tap shortcuts. Any other name is a separate wallet with its own balance. */
-export const WALLET_PRESETS = ['Nequi', 'Daviplata'] as const;
+/** One-tap shortcuts per currency. Any other name is a separate wallet with its own balance. */
+const WALLET_PRESETS: Record<Currency, readonly string[]> = {
+  COP: ['Nequi', 'Daviplata'],
+  USD: ['PayPal', 'Venmo', 'Cash App'],
+};
+
+export function walletPresets(currency: Currency): readonly string[] {
+  return WALLET_PRESETS[currency];
+}
 
 export function slugWalletId(name: string): string {
   const slug = name

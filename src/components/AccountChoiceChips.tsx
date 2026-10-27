@@ -12,11 +12,11 @@ import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { palette, radii } from '@/src/theme/colors';
-import type { TranslationKey } from '@/src/i18n/translations';
+import { currencyCopyKey, type TranslationKey } from '@/src/i18n/translations';
 import type { Account } from '@/src/types/finance';
 import {
   BANK_PRESETS,
-  WALLET_PRESETS,
+  walletPresets,
   accountDisplayName,
   findBankByName,
   findInvestmentByName,
@@ -210,6 +210,7 @@ export function WalletQuickAdd({
   onInputBlur?: () => void;
 }) {
   const { t } = useLanguage();
+  const { currency } = useMoney();
   const { accounts, addWallet } = useFinance();
   const [custom, setCustom] = useState('');
   const [busy, setBusy] = useState(false);
@@ -229,7 +230,7 @@ export function WalletQuickAdd({
     }
   }
 
-  const unusedPresets = WALLET_PRESETS.filter(
+  const unusedPresets = walletPresets(currency).filter(
     (name) => !findWalletByName(accounts, name)
   );
 
@@ -250,7 +251,7 @@ export function WalletQuickAdd({
         </View>
       ) : null}
       <Text style={styles.addLabel}>{t('flow.walletAdd')}</Text>
-      <Text style={styles.addHint}>{t('flow.walletAddHint')}</Text>
+      <Text style={styles.addHint}>{t(currencyCopyKey('flow.walletAddHint', currency))}</Text>
       <View style={styles.row}>
         <TextInput
           value={custom}
@@ -368,6 +369,7 @@ const INVESTMENT_PRESET_KEYS = [
 /** Add a named investment (CDT, fund, stocks…) so Wealth says where it is. */
 export function InvestmentQuickAdd({ onAdded }: { onAdded?: (id: string) => void }) {
   const { t } = useLanguage();
+  const { currency } = useMoney();
   const { accounts, addInvestment } = useFinance();
   const [custom, setCustom] = useState('');
   const [busy, setBusy] = useState(false);
@@ -387,7 +389,7 @@ export function InvestmentQuickAdd({ onAdded }: { onAdded?: (id: string) => void
     }
   }
 
-  const unusedPresets = INVESTMENT_PRESET_KEYS.map((key) => t(key)).filter(
+  const unusedPresets = INVESTMENT_PRESET_KEYS.map((key) => t(currencyCopyKey(key, currency))).filter(
     (name) => !findInvestmentByName(accounts, name)
   );
 
@@ -408,12 +410,12 @@ export function InvestmentQuickAdd({ onAdded }: { onAdded?: (id: string) => void
         </View>
       ) : null}
       <Text style={styles.addLabel}>{t('invest.add')}</Text>
-      <Text style={styles.addHint}>{t('invest.addHint')}</Text>
+      <Text style={styles.addHint}>{t(currencyCopyKey('invest.addHint', currency))}</Text>
       <View style={styles.row}>
         <TextInput
           value={custom}
           onChangeText={setCustom}
-          placeholder={t('invest.namePlaceholder')}
+          placeholder={t(currencyCopyKey('invest.namePlaceholder', currency))}
           placeholderTextColor={palette.inkSoft}
           style={styles.input}
           editable={!busy}

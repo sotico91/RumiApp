@@ -17,7 +17,7 @@ import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
-import type { TranslationKey } from '@/src/i18n/translations';
+import { currencyCopyKey, type TranslationKey } from '@/src/i18n/translations';
 import { palette, radii } from '@/src/theme/colors';
 import type { Period } from '@/src/types/finance';
 import { categoryLabel } from '@/src/utils/categoryLabel';
@@ -142,7 +142,7 @@ export default function InsightsScreen() {
       }>
       <View>
         <Text style={styles.searchTitle}>{t('insights.searchTitle')}</Text>
-        <Text style={styles.searchHint}>{t('insights.searchHint')}</Text>
+        <Text style={styles.searchHint}>{t(currencyCopyKey('insights.searchHint', settings.currency))}</Text>
         <TextInput
           value={query}
           onChangeText={(text) => {

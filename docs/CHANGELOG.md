@@ -10,6 +10,11 @@ El detalle de cada cambio está en `git log`.
 - **Comentarios de código en inglés:** todos los comentarios del código van en inglés.
   Los textos que ve el usuario van en `src/i18n/translations.ts` (es/en).
 
+## 2026-10-27
+
+- **Listo para dólares:** un ejercicio completo en inglés y USD (cuenta nueva, saldo y gastos con centavos, salario, crédito con su cuota, topes y preguntas a Rumi) cuadró al centavo, y se ajustó lo que sonaba a Colombia. El onboarding preselecciona la moneda según la región del teléfono (USD en EE. UU., Ecuador, Panamá, El Salvador, Puerto Rico…; pesos en el resto), y la persona la confirma igual. En USD, "+ Billetera" sugiere PayPal, Venmo y Cash App en vez de Nequi y Daviplata, la inversión sugerida es "CD" ("Depósito a plazo" en español) en vez de CDT, las tarjetas no mencionan credicheque y los ejemplos de Pregúntale a Rumi dicen "$200" en vez de "200k" / "200 mil". `currencyCopyKey` elige la versión en dólares de esos textos. La política de privacidad (web y en la app) dice "Reportar un error", como el botón.
+- **Tiendas:** checklist de Play y App Store al día (prueba cerrada de 12 testers por 14 días, Data safety, cifrado), capturas en español e inglés/USD para las dos tiendas (`marketing/store/`), dos videos de la mascota (recordatorios e invitación a la prueba) y la página `docs/probar.html` a la que lleva su QR.
+
 ## 2026-10-26
 
 - **Dictar cualquier movimiento:** el micrófono pasa a una barra "Díctaselo a Rumi" arriba en Agregar, encima de Gasto/Ingreso/Mover/Deuda. Un gasto llena el formulario rápido; lo demás abre su flujo guiado ya lleno y salta al primer paso que falte. Ingreso: "me pagaron la quincena" elige Salario (también Bonos, Reembolsos, Freelance). Mover: "pasé 200 mil de Nequi a ahorros" (de dónde y a dónde), "saqué 100 mil del cajero" (banco → efectivo), "ahorré", "invertí". Deuda: "aboné 300 mil a la tarjeta", "pagué la cuota del carro" (por el nombre de la deuda; si hay una sola, esa); "pagué con la tarjeta", "gasolina del carro" y "cuota de administración" siguen siendo gastos. La fecha dictada vale para todos los tipos y se ve en el resumen. Si escuchar falla al arrancar, Rumi prueba otra forma (en el teléfono → reconocedor del sistema → sin procesamiento de voz) y solo pide permisos cuando de verdad faltan.

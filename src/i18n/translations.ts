@@ -1233,6 +1233,20 @@ export const translations = {
     'search.answerObligationsEmpty': 'No obligation payments logged ({period}).',
     'search.answerExpensesVsObligations':
       'Spend ({period}): {expenses} across {expenseCount} {expenseCount|transaction|transactions}. Obligations paid: {obligations} in {obligationCount} (card/installments, not new spend). Highest spend: {detail}.',
+    // Copy for people who keep their money in US dollars (see currencyCopyKey).
+    'insights.searchHintUsd':
+      'Ask in your own words: “July”, “coffee this month”, “can I buy something for $200?”',
+    'guide.step6BodyUsd':
+      'Ask in your own words: “coffee last week”, “coffee vs last month”, “how much do I have left?”, “can I buy something for $200?”. Rumi shows what it understood and the movements behind the answer. Smart notes below summarize the month.',
+    'search.answerAffordNeedAmountUsd':
+      'Tell me the amount — e.g. “Can I afford 500?” or “Can I buy something for $200?”',
+    'flow.walletAddHintUsd': 'PayPal, Venmo… add as many as you use.',
+    'invest.presetCdtUsd': 'CD',
+    'invest.addHintUsd': 'Name it after where it is, e.g. “12-month CD”.',
+    'invest.namePlaceholderUsd': 'CD, fund, stocks…',
+    'invest.whereHintUsd': 'Where is it? Tap “Rename”: CD, fund, stocks…',
+    'wealth.cardsEmptyUsd':
+      'Visa, a store card or a bank credit line. A charge uses available credit. Pay card uses cash.',
   },
   es: {
     'brand.mark': 'RUMI',
@@ -2472,7 +2486,38 @@ export const translations = {
     'search.answerObligationsEmpty': 'No hay pagos de obligaciones ({period}).',
     'search.answerExpensesVsObligations':
       'Gastos ({period}): {expenses} en {expenseCount} {expenseCount|movimiento|movimientos}. Obligaciones pagadas: {obligations} en {obligationCount} (tarjeta/cuotas, no es gasto nuevo). Mayor gasto: {detail}.',
+    'insights.searchHintUsd':
+      'Pregunta como hablas: “julio”, “café este mes”, “¿puedo comprar algo de 200 dólares?”',
+    'guide.step6BodyUsd':
+      'Pregunta como hablas: “café la semana pasada”, “café vs el mes pasado”, “¿cuánto me queda?”, “¿puedo comprar algo de 200 dólares?”. Rumi te muestra qué entendió y los movimientos detrás de la respuesta. Abajo, las notas resumen el mes.',
+    'search.answerAffordNeedAmountUsd':
+      'Dime el monto, por ejemplo: “¿Me alcanza para 500 dólares?” o “¿Puedo comprar algo de 200 dólares?”',
+    'flow.walletAddHintUsd': 'PayPal, Venmo… agrega todas las que uses.',
+    'invest.presetCdtUsd': 'Depósito a plazo',
+    'invest.addHintUsd': 'Ponle el nombre de dónde está, ej. “Depósito a 12 meses”.',
+    'invest.namePlaceholderUsd': 'Depósito, fondo, acciones…',
+    'invest.whereHintUsd': '¿Dónde está? Toca “Cambiar nombre”: depósito, fondo, acciones…',
+    'wealth.cardsEmptyUsd':
+      'Visa, una tarjeta de almacén o un cupo del banco. Cargar gasto usa cupo. Pagar tarjeta usa plata.',
   },
 } as const;
 
 export type TranslationKey = keyof typeof translations.en;
+
+/** Texts whose examples are in pesos (CDT, credicheque, "200 mil"), and their dollar version. */
+const USD_COPY: Partial<Record<TranslationKey, TranslationKey>> = {
+  'insights.searchHint': 'insights.searchHintUsd',
+  'guide.step6Body': 'guide.step6BodyUsd',
+  'search.answerAffordNeedAmount': 'search.answerAffordNeedAmountUsd',
+  'flow.walletAddHint': 'flow.walletAddHintUsd',
+  'invest.presetCdt': 'invest.presetCdtUsd',
+  'invest.addHint': 'invest.addHintUsd',
+  'invest.namePlaceholder': 'invest.namePlaceholderUsd',
+  'invest.whereHint': 'invest.whereHintUsd',
+  'wealth.cardsEmpty': 'wealth.cardsEmptyUsd',
+};
+
+/** The key to show for this currency: the dollar wording when the person uses USD. */
+export function currencyCopyKey(key: TranslationKey, currency: 'COP' | 'USD'): TranslationKey {
+  return currency === 'USD' ? (USD_COPY[key] ?? key) : key;
+}

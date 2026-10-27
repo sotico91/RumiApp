@@ -11,6 +11,23 @@ function keepMoneyOnOneLine(formatted: string): string {
     .replace(/[\s\u00A0]+/g, '\u00A0');
 }
 
+/** Regions whose everyday money is the US dollar. */
+const USD_REGIONS = new Set(['US', 'PR', 'EC', 'SV', 'PA', 'GU', 'VI', 'AS', 'MP', 'TL', 'ZW', 'FM', 'MH', 'PW']);
+
+/** The currency a new user most likely uses, read from the phone's region (en-US → USD, es-CO → COP). */
+export function currencyForLocale(tag: string): Currency {
+  const region = tag.replace('_', '-').split('-').find((part, i) => i > 0 && /^[A-Za-z]{2}$/.test(part));
+  return region && USD_REGIONS.has(region.toUpperCase()) ? 'USD' : 'COP';
+}
+
+export function deviceCurrency(): Currency {
+  try {
+    return currencyForLocale(Intl.DateTimeFormat().resolvedOptions().locale || '');
+  } catch {
+    return 'COP';
+  }
+}
+
 /**
  * Round to cents. Float math leaves residues (0.30 - 0.10 - 0.20 is not 0),
  * which show as "-$0.00" and look like overdrafts. COP amounts are whole

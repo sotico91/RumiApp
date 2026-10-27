@@ -77,7 +77,7 @@ export default function PrivacyPolicyScreen() {
             <Text style={styles.h}>6. Servicios de terceros</Text>
             <Text style={styles.p}>
               No incluye publicidad, analítica ni SDKs de seguimiento. Las notificaciones son
-              locales y se programan en el dispositivo. “Reportar un problema” abre tu app de
+              locales y se programan en el dispositivo. “Reportar un error” abre tu app de
               correo y solo se envía lo que tú escribas. Apple y Google pueden procesar datos
               de instalación según sus propias políticas.
             </Text>

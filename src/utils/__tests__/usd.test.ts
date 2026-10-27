@@ -1,9 +1,10 @@
 import type { Account, Transaction } from '@/src/types/finance';
-import { settleLiquidOverdrafts } from '@/src/utils/accounts';
+import { settleLiquidOverdrafts, walletPresets } from '@/src/utils/accounts';
 import { buildAntSpendTips } from '@/src/utils/antSpendTips';
 import { detectRecurring } from '@/src/utils/financeMath';
 import { applyAccountDelta } from '@/src/utils/ledger';
-import { formatMoney, roundMoney } from '@/src/utils/money';
+import { currencyCopyKey, translations, type TranslationKey } from '@/src/i18n/translations';
+import { currencyForLocale, formatMoney, roundMoney } from '@/src/utils/money';
 
 let seq = 0;
 function expense(amount: number, createdAt: string, categoryId = 'cafe'): Transaction {
@@ -98,5 +99,36 @@ describe('cent rounding', () => {
     expect(changed).toBe(true);
     expect(next.find((a) => a.id === 'cash')?.balance).toBe(0);
     expect(next.find((a) => a.id === 'bank')?.balance).toBe(94.75);
+  });
+});
+
+describe('starting in dollars', () => {
+  it('preselects the currency of the phone region', () => {
+    expect(currencyForLocale('en-US')).toBe('USD');
+    expect(currencyForLocale('es-EC')).toBe('USD');
+    expect(currencyForLocale('es_PR')).toBe('USD');
+    expect(currencyForLocale('es-CO')).toBe('COP');
+    expect(currencyForLocale('en-CO')).toBe('COP');
+    expect(currencyForLocale('zh-Hant-US')).toBe('USD');
+    expect(currencyForLocale('en')).toBe('COP');
+    expect(currencyForLocale('')).toBe('COP');
+  });
+
+  it('suggests wallets people use with that currency', () => {
+    expect(walletPresets('COP')).toEqual(['Nequi', 'Daviplata']);
+    expect(walletPresets('USD')).toEqual(['PayPal', 'Venmo', 'Cash App']);
+  });
+
+  it('swaps peso examples for dollar ones in both languages', () => {
+    const keys: TranslationKey[] = ['insights.searchHint', 'wealth.cardsEmpty', 'invest.presetCdt', 'flow.walletAddHint'];
+    for (const key of keys) {
+      const usd = currencyCopyKey(key, 'USD');
+      expect(currencyCopyKey(key, 'COP')).toBe(key);
+      for (const lang of ['en', 'es'] as const) {
+        const text: string = translations[lang][usd];
+        expect(text).toBeTruthy();
+        expect(text).not.toMatch(/CDT|credicheque|200k|200 mil|Nequi|Daviplata/);
+      }
+    }
   });
 });

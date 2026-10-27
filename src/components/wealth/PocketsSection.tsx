@@ -13,6 +13,7 @@ import { AppText } from '@/src/components/ui';
 import { styles } from '@/src/components/wealth/styles';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
+import { currencyCopyKey } from '@/src/i18n/translations';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { palette } from '@/src/theme/colors';
 import type { Account } from '@/src/types/finance';
@@ -39,7 +40,7 @@ const ADD_KIND_LABEL = {
 /** Money pockets (cash, banks, wallets, investments): add, rename, set balance, remove. */
 export function PocketsSection() {
   const { t } = useLanguage();
-  const { format, parse } = useMoney();
+  const { format, parse, currency } = useMoney();
   const {
     accounts,
     renameWallet,
@@ -294,7 +295,7 @@ export function PocketsSection() {
                         {label}
                       </Text>
                       {acc.type === 'investment' && !acc.name ? (
-                        <Text style={styles.cardHint}>{t('invest.whereHint')}</Text>
+                        <Text style={styles.cardHint}>{t(currencyCopyKey('invest.whereHint', currency))}</Text>
                       ) : null}
                     </View>
                     <MoneyText

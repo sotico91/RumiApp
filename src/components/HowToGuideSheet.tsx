@@ -3,7 +3,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppModal } from '@/src/components/AppModal';
 import { useLanguage } from '@/src/i18n/LanguageContext';
-import type { TranslationKey } from '@/src/i18n/translations';
+import { useMoney } from '@/src/hooks/useMoney';
+import { currencyCopyKey, type TranslationKey } from '@/src/i18n/translations';
 import { sheetStyles } from '@/src/components/ui';
 import { colors } from '@/src/theme';
 import { palette } from '@/src/theme/colors';
@@ -34,6 +35,7 @@ type Props = {
 export function HowToGuideSheet({ visible, onClose }: Props) {
   const insets = useSafeAreaInsets();
   const { t } = useLanguage();
+  const { currency } = useMoney();
 
   return (
     <AppModal
@@ -62,7 +64,7 @@ export function HowToGuideSheet({ visible, onClose }: Props) {
                 {section.step ? <Text style={styles.stepNumber}>{section.step}</Text> : null}
                 <View style={styles.itemTexts}>
                   <Text style={styles.cardTitle}>{t(section.title)}</Text>
-                  <Text style={styles.cardBody}>{t(section.body)}</Text>
+                  <Text style={styles.cardBody}>{t(currencyCopyKey(section.body, currency))}</Text>
                 </View>
               </View>
             ))}
