@@ -540,3 +540,60 @@ export function parseDictation(text: string, options: DictationOptions = {}): Di
     daysAgo,
   };
 }
+
+/**
+ * The day it happened, counted back from `now` and keeping the time of day:
+ * said on Monday 26 Oct, "ayer" is Sunday 25 Oct and "el sábado" Saturday 24.
+ */
+export function dictatedDate(daysAgo: number, now: Date = new Date()): Date {
+  const d = new Date(now);
+  d.setDate(d.getDate() - Math.max(0, Math.floor(daysAgo)));
+  return d;
+}
+
+export type HeardAlternative = { transcript: string; confidence?: number };
+
+/**
+ * Recognizers return a few guesses; with noise around, the first one is not
+ * always the one that makes sense as a movement. Prefer the guess that has an
+ * amount, then a description and an account, then the recognizer's confidence;
+ * on a tie keep the recognizer's order.
+ */
+export function bestDictation(
+  alternatives: HeardAlternative[],
+  options: DictationOptions = {}
+): { text: string; movement: DictatedMovement } | null {
+  let best: { text: string; movement: DictatedMovement; score: number } | null = null;
+  for (const alt of alternatives) {
+    const text = alt.transcript?.trim();
+    if (!text) continue;
+    const movement = parseDictation(text, options);
+    const confidence = alt.confidence !== undefined && alt.confidence > 0 ? alt.confidence : 0;
+    const score =
+      (movement.amount !== null ? 4 : 0) +
+      (movement.note ? 2 : 0) +
+      (movement.accountId ? 1 : 0) +
+      confidence;
+    if (!best || score > best.score) best = { text, movement, score };
+  }
+  return best && { text: best.text, movement: best.movement };
+}
+
+/**
+ * Words Rumi expects to hear (account and category names, money slang), given
+ * to the recognizer so it leans toward them instead of similar-sounding words.
+ */
+export function dictationVocabulary(names: string[]): string[] {
+  const base = ['mil', 'millones', 'lucas', 'pesos', 'efectivo', 'tarjeta de crédito', 'débito', 'Nequi', 'Daviplata'];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const w of [...names, ...base]) {
+    const v = w.trim();
+    const key = normalize(v);
+    if (!v || seen.has(key) || /^general$/i.test(v)) continue;
+    seen.add(key);
+    out.push(v);
+  }
+  // Recognizers take a short list; keep the user's own names first.
+  return out.slice(0, 100);
+}

@@ -1,0 +1,26 @@
+# The mic next to the amount opens the listening panel; Cancel closes it and
+# leaves the form empty. (What a sentence fills in is covered by jest:
+# src/utils/__tests__/dictation.test.ts; Maestro cannot speak.)
+appId: com.sotico91.rumi
+---
+- runFlow: subflows/fresh-start.yaml
+- launchApp:
+    stopApp: true
+    permissions:
+      microphone: allow
+      speech: allow
+- extendedWaitUntil:
+    visible: "Inicio"
+    timeout: 10000
+- tapOn:
+    point: "88%,83%"
+- tapOn:
+    id: "quick-dictate"
+- extendedWaitUntil:
+    visible: "Te escucho…"
+    timeout: 5000
+- assertVisible: ".*20 mil en almuerzo con Nequi ayer.*"
+- tapOn: "Cancelar"
+- assertNotVisible: "Te escucho…"
+- assertNotVisible: "Escuché:.*"
+- assertVisible: "Guardar gasto"

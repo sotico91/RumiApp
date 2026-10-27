@@ -1,6 +1,6 @@
 import type { Account } from '@/src/types/finance';
 import type { SpendConcept } from '@/src/types/settings';
-import { parseDictation } from '@/src/utils/dictation';
+import { bestDictation, dictatedDate, dictationVocabulary, parseDictation } from '@/src/utils/dictation';
 import { suggestCategory } from '@/src/utils/suggestCategory';
 
 const accounts: Account[] = [
@@ -180,5 +180,59 @@ describe('parseDictation: the note finds its category', () => {
   ])('%s → %s', (text, subId) => {
     const { note } = parse(text);
     expect(suggestCategory(note, concepts, new Map())?.subId).toBe(subId);
+  });
+});
+
+describe('dictatedDate', () => {
+  it('counts back from today and keeps the time', () => {
+    const at = new Date(2026, 9, 26, 9, 30);
+    expect(dictatedDate(0, at)).toEqual(at);
+    const yesterday = dictatedDate(1, at);
+    expect([yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate()]).toEqual([2026, 9, 25]);
+    expect(yesterday.getHours()).toBe(9);
+    // Across a month: 1 Nov minus 2 days → 30 Oct.
+    const back = dictatedDate(2, new Date(2026, 10, 1, 12));
+    expect([back.getMonth(), back.getDate()]).toEqual([9, 30]);
+  });
+
+  it('turns "el sábado" said on Monday into Saturday', () => {
+    const { daysAgo } = parse('el sábado gasté 60 mil en cine');
+    expect(dictatedDate(daysAgo, now).getDay()).toBe(6);
+    expect(dictatedDate(daysAgo, now).getDate()).toBe(24);
+  });
+});
+
+describe('bestDictation', () => {
+  it('picks the guess that reads as a movement over a noisy first guess', () => {
+    const best = bestDictation(
+      [
+        { transcript: 'gaste veinte mi en el muerzo', confidence: 0.6 },
+        { transcript: 'gasté veinte mil en almuerzo', confidence: 0.5 },
+      ],
+      { accounts, now }
+    );
+    expect(best?.text).toBe('gasté veinte mil en almuerzo');
+    expect(best?.movement.amount).toBe(20000);
+  });
+
+  it('keeps the recognizer order on a tie', () => {
+    const best = bestDictation(
+      [{ transcript: '20 mil en taxi' }, { transcript: '20 mil en taxis' }],
+      { accounts, now }
+    );
+    expect(best?.text).toBe('20 mil en taxi');
+  });
+
+  it('is null when nothing was heard', () => {
+    expect(bestDictation([{ transcript: '  ' }], { now })).toBeNull();
+  });
+});
+
+describe('dictationVocabulary', () => {
+  it('puts the user names first, without repeats or "General"', () => {
+    const v = dictationVocabulary(['Nequi', 'Almuerzo', 'General', 'almuerzo']);
+    expect(v.slice(0, 2)).toEqual(['Nequi', 'Almuerzo']);
+    expect(v).not.toContain('General');
+    expect(v.filter((w) => w.toLowerCase() === 'nequi')).toHaveLength(1);
   });
 });

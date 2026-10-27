@@ -30,7 +30,7 @@
 
 ## Already handled in the repo
 
-- No microphone / background audio entitlement for store builds (`expo-audio` playback-only).
+- Microphone + speech recognition only for dictating an expense (`expo-speech-recognition`, tap to talk, nothing recorded); no background audio (`expo-audio` playback-only). Store privacy forms (App Privacy, Play Data safety) must match docs/privacy-policy.html §3.
 - Privacy policy HTML + in-app link (profile menu + Plan footer).
 - Face ID usage string.
 - EAS production Android = `app-bundle`; iOS production profile added.

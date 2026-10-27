@@ -87,7 +87,6 @@
         "android.permission.RECEIVE_BOOT_COMPLETED"
       ],
       "blockedPermissions": [
-        "android.permission.RECORD_AUDIO",
         "android.permission.SYSTEM_ALERT_WINDOW",
         "android.permission.USE_EXACT_ALARM",
         "android.permission.FOREGROUND_SERVICE",
@@ -137,7 +136,15 @@
           "faceIDPermission": "Rumi uses Face ID to unlock your money data on this device."
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Rumi listens only while you dictate an expense, to fill it in for you.",
+          "speechRecognitionPermission": "Rumi turns what you dictate into an expense. When your phone supports it, this happens on the device.",
+          "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox", "com.google.android.as"]
+        }
+      ]
     ],
     "extra": {
       "privacyPolicyUrl": "https://sotico91.github.io/RumiApp/privacy-policy.html",
