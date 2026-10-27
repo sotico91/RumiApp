@@ -4,87 +4,133 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Rumi — Cuentas claras, mente tranquila</title>
-  <style>
-    :root {
-      color-scheme: light dark;
-      --ink: #0f1c24;
-      --muted: #5a6b75;
-      --bg: #f4f7f9;
-      --card: #ffffff;
-      --accent: #1b3a4b;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --ink: #eef4f7;
-        --muted: #a8b6be;
-        --bg: #0c161c;
-        --card: #13232c;
-        --accent: #7eb6c9;
-      }
-    }
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--bg);
-      color: var(--ink);
-      line-height: 1.55;
-    }
-    main {
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 32px 20px 64px;
-    }
-    .card {
-      background: var(--card);
-      border-radius: 16px;
-      padding: 28px 24px;
-      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
-    }
-    h1 { font-size: 1.75rem; margin: 0 0 8px; }
-    h2 { font-size: 1.15rem; margin: 28px 0 8px; }
-    p, li { color: var(--muted); }
-    .meta { font-size: 0.9rem; margin-bottom: 20px; }
-    a { color: var(--accent); }
-  </style>
+  <meta name="description" content="Rumi es una app de finanzas personales: anota gastos en segundos, pon topes, recibe recordatorios de pagos y pregúntale cuánto gastaste. Tus datos se quedan en tu teléfono." />
+  <meta name="theme-color" content="#1B3A4B" />
+  <meta property="og:title" content="Rumi — Cuentas claras, mente tranquila" />
+  <meta property="og:description" content="Anota gastos en segundos, pon topes y mira tu mes. Tus datos se quedan en tu teléfono." />
+  <meta property="og:image" content="https://sotico91.github.io/RumiApp/assets/icon.png" />
+  <link rel="icon" href="assets/icon.png" />
+  <link rel="stylesheet" href="assets/site.css" />
 </head>
 <body>
-  <main>
-    <article class="card">
-      <h1>Rumi</h1>
-      <p class="meta">Cuentas claras, mente tranquila · Desarrollador: Sotico91</p>
-      <p>
-        Rumi es una app de finanzas personales. Anotas un gasto en segundos y Rumi lo pone en su
-        categoría, pones topes al mes, te recuerda tus recibos y cuotas, ves tus gastos hormiga y le
-        preguntas como hablas: “¿cuánto gasté en café este mes?”. Funciona en pesos y en dólares.
+  <header class="hero">
+    <div class="wrap">
+      <nav class="nav">
+        <a class="brand" href="./"><img src="assets/icon.png" alt="" /><span>Rumi</span></a>
+        <div class="nav-links">
+          <a href="probar.html">Pruébala</a>
+          <a href="privacy-policy.html">Privacidad</a>
+        </div>
+      </nav>
+      <div class="hero-grid">
+        <div>
+          <span class="eyebrow">Finanzas personales · Android y iPhone</span>
+          <h1>Cuentas claras, <em>mente tranquila.</em></h1>
+          <p class="lead">
+            Anota un gasto en segundos, ponle tope a lo que quieres cuidar y pregúntale a Rumi cuánto llevas.
+            Sin hojas de cálculo y sin conectar tu banco.
+          </p>
+          <div class="actions">
+            <a class="btn btn-primary" href="probar.html">Pruébala en Android</a>
+            <a class="btn btn-ghost" href="#que-hace">Qué hace</a>
+          </div>
+          <p class="fine">iPhone: muy pronto en la App Store.</p>
+        </div>
+        <div class="phone"><img src="assets/1-inicio.jpg" alt="Pantalla de Inicio de Rumi con el saldo disponible y el resumen del mes" /></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="que-hace">
+      <h2 class="section-title">Todo tu dinero, sin complicarte</h2>
+      <p class="section-lead">Funciona en pesos colombianos y en dólares.</p>
+      <div class="cards">
+        <div class="card">
+          <div class="icon">✍️</div>
+          <h3>Anota en segundos</h3>
+          <p>Escribe cuánto y en qué —“almuerzo”, “uber”— y Rumi lo pone en su categoría. También se lo puedes dictar.</p>
+        </div>
+        <div class="card">
+          <div class="icon teal">🎯</div>
+          <h3>Topes que te cuidan</h3>
+          <p>Ponle un tope al mes a cada gasto y mira cuánto te queda antes de pasarte.</p>
+        </div>
+        <div class="card">
+          <div class="icon coral">🐜</div>
+          <h3>Gastos hormiga</h3>
+          <p>El café, el domicilio, la suscripción: ve cuánto suman los gastos pequeños que se repiten.</p>
+        </div>
+        <div class="card">
+          <div class="icon">💬</div>
+          <h3>Pregúntale a Rumi</h3>
+          <p>“¿Cuánto gasté en café este mes?” Te responde con tus números y los movimientos detrás.</p>
+        </div>
+        <div class="card">
+          <div class="icon teal">🔔</div>
+          <h3>Recordatorios de pagos</h3>
+          <p>Te avisa el día de pagar la luz o el arriendo, y un día antes de cada cuota de tus créditos.</p>
+        </div>
+        <div class="card">
+          <div class="icon coral">📈</div>
+          <h3>Cómo cierras el mes</h3>
+          <p>Tu patrimonio, tus cuentas y deudas en un lugar, con el pronóstico de fin de mes.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="shots">
+        <figure><img src="assets/1-inicio.jpg" alt="Inicio: saldo y resumen del mes" loading="lazy" /><figcaption>Tu mes, de un vistazo</figcaption></figure>
+        <figure><img src="assets/2-agregar.jpg" alt="Agregar un gasto con su categoría" loading="lazy" /><figcaption>Anota en segundos</figcaption></figure>
+        <figure><img src="assets/3-plan.jpg" alt="Topes del mes por categoría" loading="lazy" /><figcaption>Topes que te cuidan</figcaption></figure>
+        <figure><img src="assets/4-pregunta.jpg" alt="Pregúntale a Rumi cuánto gastaste en café" loading="lazy" /><figcaption>Pregúntale a Rumi</figcaption></figure>
+      </div>
+    </section>
+
+    <section>
+      <div class="card">
+        <div class="icon teal">🔒</div>
+        <h3>Tus datos son tuyos</h3>
+        <ul class="check">
+          <li>Sin cuenta ni correo, y sin conectar tu banco.</li>
+          <li>Todo se guarda cifrado en tu teléfono; no hay servidor.</li>
+          <li>Sin anuncios ni rastreo. Bloqueo con huella o rostro.</li>
+        </ul>
+        <p style="margin-top: 14px"><a href="privacy-policy.html">Leer la política de privacidad</a></p>
+      </div>
+    </section>
+
+    <div class="band">
+      <h2>Ayúdanos a llegar a Google Play</h2>
+      <p>Rumi está en prueba cerrada. Únete con tu celular Android y tu cuenta de Google.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="probar.html">Quiero probarla</a>
+      </div>
+    </div>
+
+    <section lang="en">
+      <h2 class="section-title">In English</h2>
+      <p class="section-lead">
+        Rumi is a personal finance app: log a spend in seconds, set monthly limits, get reminders for bills
+        and loan payments, and ask in your own words how much you spent. Works in US dollars and Colombian
+        pesos. No account, no bank connection, no server: your data stays encrypted on your phone. Android is
+        in closed testing on Google Play (<a href="probar.html">join the test</a>, page in Spanish); iPhone is
+        coming soon.
       </p>
-
-      <h2>Tus datos</h2>
-      <p>
-        Sin cuenta, sin conectar tu banco y sin servidor: tus movimientos se guardan cifrados en tu
-        teléfono. Sin anuncios ni rastreo.
-      </p>
-
-      <h2>Descárgala</h2>
-      <ul>
-        <li><strong>Android:</strong> en prueba cerrada en Google Play. <a href="probar.html">Únete a la prueba</a>.</li>
-        <li><strong>iPhone:</strong> muy pronto en la App Store.</li>
-      </ul>
-
-      <h2>Más</h2>
-      <ul>
-        <li><a href="privacy-policy.html">Política de privacidad</a></li>
-        <li>Soporte: <a href="mailto:edavidvelascop@gmail.com">edavidvelascop@gmail.com</a></li>
-      </ul>
-
-      <h2>English</h2>
-      <p>
-        Rumi is a personal finance app: log a spend in seconds, set monthly limits, get reminders for
-        bills and loan payments, and ask in your own words how much you spent. Works in pesos and US
-        dollars. No account, no bank connection, no server: your data stays encrypted on your phone.
-        Android is in closed testing on Google Play (<a href="probar.html">join the test</a>, page in
-        Spanish); iPhone is coming soon. <a href="privacy-policy.html">Privacy policy</a>.
-      </p>
-    </article>
+    </section>
   </main>
+
+  <footer>
+    <div class="wrap">
+      <a class="brand" href="./"><img src="assets/icon.png" alt="" /><span>Rumi</span></a>
+      <nav>
+        <a href="probar.html">Pruébala</a>
+        <a href="privacy-policy.html">Política de privacidad</a>
+        <a href="mailto:edavidvelascop@gmail.com">Soporte</a>
+      </nav>
+      <span>© 2026 Sotico91</span>
+    </div>
+  </footer>
 </body>
 </html>
