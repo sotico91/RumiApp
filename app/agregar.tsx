@@ -1,8 +1,9 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppAlertHost } from '@/src/components/AppAlert';
+import { DictationBar } from '@/src/components/DictationPanel';
 import { ExpenseForm, type SavedMovement } from '@/src/components/ExpenseForm';
 import { FriendlyAddFlow } from '@/src/components/FriendlyAddFlow';
 import { QuickSpendForm } from '@/src/components/QuickSpendForm';
@@ -10,16 +11,22 @@ import type { FriendlyIntent } from '@/src/data/friendlyTemplates';
 import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
 import { useSaveToast } from '@/src/components/SaveToast';
 import { categoryVisual } from '@/src/data/spendConcepts';
+import { useDictation } from '@/src/hooks/useDictation';
+import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { colors, radius, shadow, space, type } from '@/src/theme';
 import { categoryLabel } from '@/src/utils/categoryLabel';
+import { openDebts } from '@/src/utils/debts';
+import { dictationVocabulary, type DictatedMovement } from '@/src/utils/dictation';
+import type { TranslationKey } from '@/src/i18n/translations';
 
 export default function AgregarScreen() {
   const { t } = useLanguage();
-  const { format } = useMoney();
+  const { format, currency } = useMoney();
   const { settings } = useSettings();
+  const { accounts, debts } = useFinance();
   const toast = useSaveToast();
   const params = useLocalSearchParams<{
     categoryId?: string;
@@ -64,6 +71,50 @@ export default function AgregarScreen() {
   // Amount typed in the quick form travels to the guided flow.
   const [guidedAmount, setGuidedAmount] = useState<string | undefined>(undefined);
 
+  // Dictation at the top serves every kind: a spend fills the quick form,
+  // anything else opens its guided steps with what was said.
+  const [dictatedSpend, setDictatedSpend] = useState<{ id: number; movement: DictatedMovement }>();
+  const [guidedDictation, setGuidedDictation] = useState<{ id: number; movement: DictatedMovement }>();
+  const [heard, setHeard] = useState<{ text: string; noAmount: boolean } | null>(null);
+  const liveDebts = useMemo(() => openDebts(debts), [debts]);
+  const dictationDebts = useMemo(
+    () =>
+      liveDebts.map((d) => ({
+        id: d.id,
+        names: [d.name ?? '', d.nameKey ? t(d.nameKey as TranslationKey) : ''].filter(Boolean),
+        card: d.kind === 'revolving' && (d.revolvingProduct ?? 'card') === 'card',
+      })),
+    [liveDebts, t]
+  );
+  const vocabulary = useMemo(() => {
+    const concepts = settings.spendConcepts ?? [];
+    return dictationVocabulary([
+      ...accounts.map((a) => a.name ?? '').filter(Boolean),
+      ...dictationDebts.flatMap((d) => d.names),
+      ...concepts.flatMap((c) => [c.name, ...c.subs.map((sub) => sub.name)]),
+    ]);
+  }, [accounts, dictationDebts, settings.spendConcepts]);
+  const dictation = useDictation({
+    accounts,
+    debts: dictationDebts,
+    currency,
+    vocabulary,
+    onHeard: ({ text, movement }) => {
+      const id = Date.now();
+      setHeard({ text, noAmount: movement.amount === null });
+      if (movement.type === 'expense') {
+        setDictatedSpend({ id, movement });
+        setMode('quick');
+        return;
+      }
+      setDictatedSpend(undefined);
+      setGuidedIntent(movement.type === 'income' ? 'earn' : movement.type);
+      setGuidedAmount(movement.amount ? String(movement.amount) : undefined);
+      setGuidedDictation({ id, movement });
+      setMode('friendly');
+    },
+  });
+
   useEffect(() => {
     if (params.mode === 'advanced' || prefilledCategoryId) {
       setMode('advanced');
@@ -71,6 +122,23 @@ export default function AgregarScreen() {
       setMode('quick');
     }
   }, [params.mode, prefilledCategoryId]);
+
+  // At the top of every form, scrolling with it: while typing it moves out of the way.
+  const dictationBar = dictation.available ? (
+    <DictationBar
+      phase={dictation.phase}
+      transcript={dictation.transcript}
+      level={dictation.level}
+      heard={heard?.text ?? null}
+      noAmount={heard?.noAmount ?? false}
+      onStart={() => {
+        setHeard(null);
+        void dictation.start();
+      }}
+      onDone={dictation.stop}
+      onCancel={dictation.cancel}
+    />
+  ) : null;
 
   function handleSaved(result: SavedMovement) {
     const spendConcepts = settings.spendConcepts ?? [];
@@ -112,12 +180,17 @@ export default function AgregarScreen() {
       <View style={styles.content}>
         {mode === 'quick' ? (
           <QuickSpendForm
+            header={dictationBar}
+            dictated={dictatedSpend}
             onSaved={handleSaved}
             onBack={() => {
               setGuidedIntent(undefined);
+              setGuidedDictation(undefined);
               setMode('friendly');
             }}
             onOpenGuided={(intent, amount) => {
+              // Picked by hand: start that flow clean.
+              setGuidedDictation(undefined);
               setGuidedIntent(intent);
               setGuidedAmount(amount);
               setMode('friendly');
@@ -148,8 +221,10 @@ export default function AgregarScreen() {
 
           {mode === 'friendly' ? (
             <FriendlyAddFlow
-              key={`${guidedIntent ?? 'pick'}-${guidedAmount ?? ''}`}
+              key={`${guidedIntent ?? 'pick'}-${guidedAmount ?? ''}-${guidedDictation?.id ?? ''}`}
               initialAmount={guidedAmount}
+              dictated={guidedDictation?.movement}
+              header={dictationBar}
               onSaved={handleSaved}
               initialIntent={guidedIntent ?? payIntent}
               initialDebtId={payDebtId}
@@ -157,6 +232,7 @@ export default function AgregarScreen() {
                 guidedIntent
                   ? () => {
                       setGuidedIntent(undefined);
+                      setGuidedDictation(undefined);
                       setMode('quick');
                     }
                   : undefined
@@ -166,6 +242,7 @@ export default function AgregarScreen() {
                   ? undefined
                   : () => {
                       setGuidedIntent(undefined);
+                      setGuidedDictation(undefined);
                       setMode('quick');
                     }
               }
@@ -174,6 +251,7 @@ export default function AgregarScreen() {
             <KeyboardSafeScroll
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.advancedPad}>
+              {dictationBar}
               <ExpenseForm
                 onSaved={handleSaved}
                 initialCategoryId={prefilledCategoryId}
@@ -230,5 +308,6 @@ const styles = StyleSheet.create({
   },
   advancedPad: {
     paddingBottom: 120,
+    gap: space.sm,
   },
 });

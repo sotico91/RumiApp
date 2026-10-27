@@ -9,13 +9,21 @@ export type DictationPhase = 'idle' | 'starting' | 'listening' | 'denied' | 'not
 type Heard = { text: string; movement: DictatedMovement };
 
 /**
- * A phone can say it recognizes on-device and still fail at once (language
- * not downloaded). After that, this app session listens with the system
- * recognizer straight away.
+ * Ways to listen, best first. A phone can say it recognizes on-device and
+ * still fail at once (language not downloaded), and some audio hardware
+ * refuses voice processing. A way that fails right away is skipped for the
+ * rest of the app session.
  */
-let onDeviceFailed = false;
+type Rung = 'device' | 'system' | 'plain';
+const RUNGS: Record<Rung, { onDevice: boolean; voiceProcessing: boolean }> = {
+  device: { onDevice: true, voiceProcessing: true },
+  system: { onDevice: false, voiceProcessing: true },
+  plain: { onDevice: false, voiceProcessing: false },
+};
+const failedRungs = new Set<Rung>();
 /** A take that ends this soon with nothing heard did not really start. */
 const QUICK_FAIL_MS = 2500;
+const RETRY_DELAY_MS = 400;
 
 /**
  * Listen once and read the sentence as a movement. `onHeard` gets the guess
@@ -37,27 +45,42 @@ export function useDictation(
   const lastAlternatives = useRef<{ transcript: string; confidence?: number }[]>([]);
   const delivered = useRef(false);
   const active = useRef(false);
-  const take = useRef<{ lang: string; onDevice: boolean; startedAt: number } | null>(null);
+  const take = useRef<{ lang: string; rungs: Rung[]; startedAt: number } | null>(null);
   // The failed take's own "end" arrives after the retry starts: skip it.
   const retrying = useRef(false);
 
-  /** On-device failed right away: listen again with the system recognizer. */
-  const retryOnNetwork = useCallback((): boolean => {
+  const listen = useCallback((lang: string, rung: Rung) => {
     const mod = speechModule();
-    const current = take.current;
-    if (!mod || !current?.onDevice || lastAlternatives.current.length) return false;
-    if (Date.now() - current.startedAt > QUICK_FAIL_MS) return false;
-    onDeviceFailed = true;
-    retrying.current = true;
-    take.current = { lang: current.lang, onDevice: false, startedAt: Date.now() };
-    try {
-      mod.start(listenOptions(current.lang, false, latest.current.vocabulary));
-      return true;
-    } catch {
-      retrying.current = false;
-      return false;
-    }
+    if (!mod) return;
+    const { onDevice, voiceProcessing } = RUNGS[rung];
+    mod.start(listenOptions(lang, onDevice, latest.current.vocabulary, voiceProcessing));
   }, []);
+
+  /** The take failed before hearing anything: try the next way to listen. */
+  const retryNextRung = useCallback((): boolean => {
+    const current = take.current;
+    if (!current || lastAlternatives.current.length) return false;
+    if (Date.now() - current.startedAt > QUICK_FAIL_MS) return false;
+    const [failed, ...rest] = current.rungs;
+    if (failed) failedRungs.add(failed);
+    if (!rest.length) return false;
+    retrying.current = true;
+    take.current = { lang: current.lang, rungs: rest, startedAt: Date.now() };
+    // Let the native side finish closing the failed take; starting again in
+    // the same tick gets the new one torn down with it.
+    setTimeout(() => {
+      if (!active.current || take.current?.rungs[0] !== rest[0]) return;
+      try {
+        if (take.current) take.current.startedAt = Date.now();
+        listen(current.lang, rest[0]);
+      } catch {
+        retrying.current = false;
+        active.current = false;
+        setPhase('failed');
+      }
+    }, RETRY_DELAY_MS);
+    return true;
+  }, [listen]);
 
   const deliver = useCallback((alternatives: { transcript: string; confidence?: number }[]) => {
     if (delivered.current) return;
@@ -89,11 +112,12 @@ export function useDictation(
       }),
       mod.addListener('error', (ev: SpeechEvents['error']) => {
         if (!active.current || ev.error === 'aborted') return;
-        if (ev.error !== 'not-allowed' && ev.error !== 'service-not-allowed' && retryOnNetwork()) return;
+        // Permissions were checked before starting: a "not-allowed" here is the
+        // module reporting any failure to start (audio engine, recognizer).
+        if (ev.error !== 'no-speech' && ev.error !== 'speech-timeout' && retryNextRung()) return;
         active.current = false;
         setLevel(0);
-        if (ev.error === 'not-allowed' || ev.error === 'service-not-allowed') setPhase('denied');
-        else if (ev.error === 'no-speech' || ev.error === 'speech-timeout') setPhase('notHeard');
+        if (ev.error === 'no-speech' || ev.error === 'speech-timeout') setPhase('notHeard');
         else if (lastAlternatives.current.length) {
           deliver(lastAlternatives.current);
           setPhase(delivered.current ? 'idle' : 'notHeard');
@@ -101,7 +125,7 @@ export function useDictation(
       }),
       mod.addListener('end', () => {
         if (!active.current || retrying.current) return;
-        if (!delivered.current && retryOnNetwork()) return;
+        if (!delivered.current && retryNextRung()) return;
         active.current = false;
         setLevel(0);
         // Stopped by hand before a final result: use what was heard so far.
@@ -114,7 +138,7 @@ export function useDictation(
       if (active.current) mod.abort();
       active.current = false;
     };
-  }, [deliver, retryOnNetwork]);
+  }, [deliver, retryNextRung]);
 
   const start = useCallback(async () => {
     const mod = speechModule();
@@ -131,16 +155,20 @@ export function useDictation(
         return;
       }
       const picked = await pickLocale(mod, language);
-      const onDevice = picked.onDevice && !onDeviceFailed;
-      take.current = { lang: picked.lang, onDevice, startedAt: Date.now() };
+      const rungs = (['device', 'system', 'plain'] as Rung[]).filter(
+        (r) => !failedRungs.has(r) && (r !== 'device' || picked.onDevice)
+      );
+      // Every way failed before: start over from the most basic one.
+      if (!rungs.length) rungs.push('plain');
+      take.current = { lang: picked.lang, rungs, startedAt: Date.now() };
       retrying.current = false;
       active.current = true;
-      mod.start(listenOptions(picked.lang, onDevice, latest.current.vocabulary));
+      listen(picked.lang, rungs[0]);
     } catch {
       active.current = false;
       setPhase('failed');
     }
-  }, [language]);
+  }, [language, listen]);
 
   /** Done talking: finish with what was heard. */
   const stop = useCallback(() => {

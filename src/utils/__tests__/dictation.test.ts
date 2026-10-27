@@ -9,12 +9,19 @@ const accounts: Account[] = [
   { id: 'wallet-nequi', nameKey: 'account.wallet', name: 'Nequi', type: 'wallet', balance: 0 },
   { id: 'bank-bancolombia', nameKey: 'account.bank', name: 'Bancolombia', type: 'bank', balance: 0 },
   { id: 'credit-card', nameKey: 'account.creditCard', type: 'credit', balance: 0 },
+  { id: 'savings', nameKey: 'account.savings', type: 'savings', balance: 0 },
+  { id: 'investments', nameKey: 'account.investments', type: 'investment', balance: 0 },
+];
+
+const debts = [
+  { id: 'debt-card', names: ['Tarjeta Visa', 'Visa'], card: true },
+  { id: 'debt-car', names: ['Crédito del carro', 'carro'] },
 ];
 
 // Monday 26 Oct 2026.
 const now = new Date(2026, 9, 26, 12, 0, 0);
 const parse = (text: string, currency: 'COP' | 'USD' = 'COP') =>
-  parseDictation(text, { accounts, now, currency });
+  parseDictation(text, { accounts, debts, now, currency });
 
 describe('parseDictation: amounts', () => {
   it.each([
@@ -96,6 +103,7 @@ describe('parseDictation: account', () => {
   it('does not read a kind word as an account without a preposition', () => {
     const r = parse('pagué 200 mil de la cuota del crédito');
     expect(r.accountId).toBeUndefined();
+    expect(r.type).toBe('debt');
   });
 
   it('sends "la tarjeta" to the bank when there is no credit card', () => {
@@ -234,5 +242,96 @@ describe('dictationVocabulary', () => {
     expect(v.slice(0, 2)).toEqual(['Nequi', 'Almuerzo']);
     expect(v).not.toContain('General');
     expect(v.filter((w) => w.toLowerCase() === 'nequi')).toHaveLength(1);
+  });
+});
+
+describe('parseDictation: income category', () => {
+  it.each([
+    ['me pagaron la quincena 1 millón 800 mil', 'salario'],
+    ['me consignaron el sueldo, 3 millones', 'salario'],
+    ['me pagaron la prima 2 millones', 'bonos'],
+    ['me devolvieron 50 mil de un reembolso', 'reembolsos'],
+    ['recibí 400 mil de un cliente', 'freelance'],
+    ['got paid my salary, 2000 dollars', 'salario'],
+  ])('%s → %s', (text, categoryId) => {
+    const r = parse(text);
+    expect(r.type).toBe('income');
+    expect(r.categoryId).toBe(categoryId);
+  });
+
+  it('leaves the category open when the words do not say', () => {
+    expect(parse('me consignaron 500 mil a Nequi').categoryId).toBeUndefined();
+  });
+
+  it('reads "un millón ochocientos mil"', () => {
+    expect(parse('me pagaron la quincena un millón ochocientos mil').amount).toBe(1800000);
+  });
+});
+
+describe('parseDictation: moving money between accounts', () => {
+  it.each([
+    ['pasé 200 mil de Nequi a ahorros', 'wallet-nequi', 'savings', 200000],
+    ['pasé 200 mil a ahorros desde Bancolombia', 'bank-bancolombia', 'savings', 200000],
+    ['moví 50 mil de Bancolombia a Nequi', 'bank-bancolombia', 'wallet-nequi', 50000],
+    ['transferí 1 millón del banco a Nequi', 'bank-main', 'wallet-nequi', 1000000],
+    ['saqué 100 mil del cajero', 'bank-main', 'cash', 100000],
+    ['retiré 300 mil de Bancolombia', 'bank-bancolombia', 'cash', 300000],
+    ['ahorré 150 mil', undefined, 'savings', 150000],
+    ['invertí 2 millones desde Bancolombia', 'bank-bancolombia', 'investments', 2000000],
+    ['moved 300 dollars from Nequi to savings', 'wallet-nequi', 'savings', 300],
+  ])('%s → %s → %s', (text, from, to, amount) => {
+    const r = parse(text);
+    expect(r.type).toBe('move');
+    expect(r.accountId).toBe(from);
+    expect(r.toAccountId).toBe(to);
+    expect(r.amount).toBe(amount);
+  });
+
+  it('keeps the date for a move', () => {
+    expect(parse('ayer pasé 200 mil de Nequi a ahorros').daysAgo).toBe(1);
+  });
+});
+
+describe('parseDictation: paying a debt', () => {
+  it.each([
+    ['aboné 300 mil a la tarjeta', 'debt-card', 300000],
+    ['pagué la tarjeta Visa, 500 mil', 'debt-card', 500000],
+    ['pagué la cuota del carro 850 mil', 'debt-car', 850000],
+    ['pagué el carro 850 mil con Bancolombia', 'debt-car', 850000],
+    ['paid 200 dollars toward my card', 'debt-card', 200],
+  ])('%s → %s', (text, debtId, amount) => {
+    const r = parse(text);
+    expect(r.type).toBe('debt');
+    expect(r.debtId).toBe(debtId);
+    expect(r.amount).toBe(amount);
+  });
+
+  it('takes the account it was paid from', () => {
+    expect(parse('pagué el carro 850 mil con Bancolombia').accountId).toBe('bank-bancolombia');
+  });
+
+  it('leaves the debt open when there are several and none was named', () => {
+    const r = parse('pagué la cuota ayer');
+    expect(r.type).toBe('debt');
+    expect(r.debtId).toBeUndefined();
+    expect(r.daysAgo).toBe(1);
+  });
+
+  it('picks the only debt', () => {
+    const r = parseDictation('aboné 100 mil a la deuda', { accounts, debts: [debts[1]], now });
+    expect(r.debtId).toBe('debt-car');
+  });
+
+  it.each([
+    ['gasté 50 mil con la tarjeta en ropa', 'expense'],
+    ['gasté 50 mil con la tarjeta Visa en ropa', 'expense'],
+    ['gasté 80 mil en gasolina del carro', 'expense'],
+    ['pagué 300 mil de la cuota de administración', 'expense'],
+  ])('%s stays a %s', (text, type) => {
+    expect(parse(text).type).toBe(type);
+  });
+
+  it('is not a debt without debts', () => {
+    expect(parseDictation('pagué la cuota 300 mil', { accounts, now }).type).toBe('expense');
   });
 });

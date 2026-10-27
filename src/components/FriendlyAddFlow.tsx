@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -68,6 +68,8 @@ import {
   type InstallmentPayScope,
 } from '@/src/utils/debts';
 import { appAlert } from '@/src/components/AppAlert';
+import { DictatedDateChip } from '@/src/components/DictationPanel';
+import { dictatedDate, type DictatedMovement } from '@/src/utils/dictation';
 
 type Props = {
   onSaved?: (result: SavedMovement) => void;
@@ -79,6 +81,10 @@ type Props = {
   onPickSpend?: () => void;
   /** Back from the first step returns here (the quick form) instead of "What happened?". */
   onBackFromStart?: () => void;
+  /** Income, move or debt dictated at the top of Add: fills what was said. */
+  dictated?: DictatedMovement;
+  /** Shown first, scrolling with the steps (the dictation bar). */
+  header?: ReactNode;
 };
 
 export function FriendlyAddFlow({
@@ -88,6 +94,8 @@ export function FriendlyAddFlow({
   initialAmount,
   onPickSpend,
   onBackFromStart,
+  dictated,
+  header,
 }: Props) {
   const { t } = useLanguage();
   const { format, formatPlain, parse, currency } = useMoney();
@@ -101,16 +109,24 @@ export function FriendlyAddFlow({
 
   // Arriving with an intent (from the quick form or a debt) skips "What happened?",
   // and with the amount already typed, "How much?" too.
-  const [step, setStep] = useState(() =>
-    initialIntent ? (initialAmount && parse(initialAmount) ? 2 : 1) : 0
-  );
+  const [step, setStep] = useState(() => {
+    if (!initialIntent) return 0;
+    const hasAmount = !!(initialAmount && parse(initialAmount));
+    if (!hasAmount) return 1;
+    // Dictated with everything a step asks for: straight to the summary.
+    if (dictated && initialIntent === 'earn' && dictated.categoryId) return 4;
+    if (dictated && initialIntent === 'move' && dictated.accountId && dictated.toAccountId) return 3;
+    return 2;
+  });
   const [intent, setIntent] = useState<FriendlyIntent>(initialIntent ?? 'spend');
   const [amount, setAmount] = useState(initialAmount ?? '');
   const [conceptId, setConceptId] = useState<string | null>(null);
-  const [categoryId, setCategoryId] = useState('cafe');
+  const [categoryId, setCategoryId] = useState(dictated?.categoryId ?? 'cafe');
   const [debtId, setDebtId] = useState<string | null>(
-    initialIntent === 'debt' ? initialDebtId ?? null : null
+    initialIntent === 'debt' ? initialDebtId ?? dictated?.debtId ?? null : null
   );
+  // Said with the voice: "ayer", "el sábado"… 0 = today.
+  const [daysAgo, setDaysAgo] = useState(dictated?.daysAgo ?? 0);
   const [payScope, setPayScope] = useState<InstallmentPayScope | null>(null);
   const [method, setMethod] = useState<PaymentMethod>(() => {
     if (initialIntent === 'spend' && initialDebtId) return 'credit';
@@ -118,6 +134,7 @@ export function FriendlyAddFlow({
     return last?.creditDebtId ? 'credit' : 'debit';
   });
   const [accountId, setAccountId] = useState(() => {
+    if (dictated?.accountId) return dictated.accountId;
     if (initialIntent === 'spend' && initialDebtId) {
       return payAccountIdForDebt(initialDebtId);
     }
@@ -125,10 +142,10 @@ export function FriendlyAddFlow({
     if (last?.creditDebtId) return payAccountIdForDebt(last.creditDebtId);
     return defaultSpendAccountId(accounts);
   });
-  const [toAccountId, setToAccountId] = useState(() =>
-    defaultTransferDestinationId(accounts, 'bank-main')
+  const [toAccountId, setToAccountId] = useState(
+    () => dictated?.toAccountId ?? defaultTransferDestinationId(accounts, 'bank-main')
   );
-  const [note, setNote] = useState('');
+  const [note, setNote] = useState(dictated?.note ?? '');
   const hint = useCategorySuggestion(note, spendConcepts);
   const [saving, setSaving] = useState(false);
   const [fromTemplate, setFromTemplate] = useState(false);
@@ -256,6 +273,16 @@ export function FriendlyAddFlow({
       setAmount(String(choices.remaining));
     }
   }
+
+  const bootstrappedDictatedDebt = useRef(false);
+  useEffect(() => {
+    if (bootstrappedDictatedDebt.current || initialIntent !== 'debt' || !dictated?.debtId) return;
+    const debt = liveDebts.find((d) => d.id === dictated.debtId);
+    if (!debt) return;
+    bootstrappedDictatedDebt.current = true;
+    pickDebt(debt);
+    setStep(2);
+  }, [dictated, initialIntent, liveDebts]);
 
   const bootstrappedPay = useRef(false);
   useEffect(() => {
@@ -484,6 +511,8 @@ export function FriendlyAddFlow({
         toAccountId: intent === 'move' ? toAccountId : undefined,
         debtId: intent === 'debt' ? debtId ?? undefined : undefined,
         note: intent === 'debt' ? note.trim() || debtLabel : note,
+        // Dictated for another day: same time of day, that date.
+        createdAt: daysAgo > 0 ? dictatedDate(daysAgo).toISOString() : undefined,
       });
 
       if (type === 'expense') {
@@ -521,14 +550,14 @@ export function FriendlyAddFlow({
       if (type === 'expense') {
         onSaved?.({
           kind: 'expense',
-          amount: beforeExpense + parsed,
+          amount: daysAgo > 0 ? beforeExpense : beforeExpense + parsed,
           added: parsed,
           categoryId: resolvedCategoryId,
         });
       } else if (type === 'income') {
         onSaved?.({
           kind: 'income',
-          amount: beforeIncome + parsed,
+          amount: daysAgo > 0 ? beforeIncome : beforeIncome + parsed,
           added: parsed,
           categoryId: resolvedCategoryId,
         });
@@ -567,6 +596,7 @@ export function FriendlyAddFlow({
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.body}>
+        {header}
         {step === 0 ? (
           <Animated.View entering={FadeInDown.springify()} style={styles.block}>
             <Text style={styles.title}>{t('flow.whatHappened')}</Text>
@@ -1076,6 +1106,7 @@ export function FriendlyAddFlow({
                 </>
               ) : null}
             </View>
+            <DictatedDateChip daysAgo={daysAgo} onClear={() => setDaysAgo(0)} />
             <Text style={styles.noteLabel}>{t('flow.noteOptional')}</Text>
             <TextInput
               testID="flow-note"

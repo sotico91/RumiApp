@@ -6,23 +6,35 @@ import { normalize } from '@/src/utils/ask/text';
 /**
  * What a spoken (or typed) sentence says about one movement:
  * "gasté veinte mil en almuerzo con Nequi ayer" → expense, 20000,
- * "almuerzo", the Nequi account, 1 day ago. The category is left to
+ * "almuerzo", the Nequi account, 1 day ago. A spend's category is left to
  * suggestCategory, which reads it from `note`. Nothing is saved from this
  * on its own: it prefills the add form for the user to confirm.
  */
 export type DictatedMovement = {
-  type: 'expense' | 'income';
+  /** move = between own accounts; debt = a payment to a debt. */
+  type: 'expense' | 'income' | 'move' | 'debt';
   /** null = no amount heard; the form asks for it. */
   amount: number | null;
   /** What it was, cleaned of amount, account, date and filler words. */
   note: string;
+  /** Where the money left from; for income, where it arrived. */
   accountId?: string;
+  /** move: where the money went. */
+  toAccountId?: string;
+  /** debt: which one, when it was named or there is only one. */
+  debtId?: string;
+  /** income: salario, freelance, bonos or reembolsos when the words say so. */
+  categoryId?: string;
   /** 0 = today, 1 = yesterday… */
   daysAgo: number;
 };
 
+/** An open debt and the names people call it ("tarjeta Visa", "carro"). */
+export type DictationDebt = { id: string; names: string[]; card?: boolean };
+
 export type DictationOptions = {
   accounts?: Account[];
+  debts?: DictationDebt[];
   currency?: Currency;
   now?: Date;
 };
@@ -318,6 +330,38 @@ const EXPENSE_PHRASES = [
   'i spent', 'spent', 'i paid', 'paid', 'i bought', 'bought', 'i spend', 'spend',
 ];
 
+/** Money between own accounts. */
+const MOVE_PHRASES = [
+  'pase', 'movi', 'transferi', 'traspase', 'traslade', 'mande', 'envie',
+  'i moved', 'moved', 'i transferred', 'transferred', 'i sent', 'sent',
+];
+/** Out of the bank into cash. */
+const WITHDRAW_PHRASES = [
+  'saque del cajero', 'retire del cajero', 'saque', 'retire',
+  'i withdrew', 'withdrew', 'took out', 'i took out',
+];
+const SAVE_PHRASES = ['ahorre', 'guarde', 'separe', 'i saved', 'saved', 'put aside', 'set aside'];
+const INVEST_PHRASES = ['inverti', 'i invested', 'invested'];
+
+/** Clear signs of paying a debt. "Con la tarjeta" is paying with a card, not paying it. */
+const DEBT_PHRASES = [
+  'abone a la tarjeta', 'abone al credito', 'abone a la deuda', 'abone al prestamo', 'abone', 'abono',
+  'cuota del credito', 'cuota de la tarjeta', 'cuota del prestamo', 'cuota de la deuda',
+  'pague la tarjeta', 'pague mi tarjeta', 'pago de la tarjeta', 'pague el credito', 'pague mi credito',
+  'pague la deuda', 'pague el prestamo', 'a la tarjeta', 'al credito', 'a la deuda', 'al prestamo',
+  'deuda', 'prestamo',
+  'paid my card', 'paid the card', 'paid off', 'card payment', 'credit card bill', 'toward my card',
+  'to my card', 'loan', 'debt', 'installment',
+];
+
+/** Income categories by the words that name them. */
+const INCOME_CATEGORY_WORDS: [string, string[]][] = [
+  ['salario', ['sueldo', 'salario', 'quincena', 'nomina', 'salary', 'paycheck', 'wage', 'wages', 'payday']],
+  ['bonos', ['bono', 'bonos', 'prima', 'bonus', 'bonificacion']],
+  ['reembolsos', ['reembolso', 'reintegro', 'devolvieron', 'devolucion', 'refund', 'reimbursement']],
+  ['freelance', ['freelance', 'honorarios', 'proyecto', 'cliente', 'trabajito', 'gig', 'client', 'project']],
+];
+
 /** Said about money coming in, without a verb: "sueldo de octubre 3 millones". */
 const INCOME_NOUNS = [
   'sueldo', 'salario', 'quincena', 'nomina', 'ingreso', 'prima', 'honorarios',
@@ -418,10 +462,15 @@ const TYPE_ALIASES: Partial<Record<Account['type'], { phrase: string; needsPrep?
   savings: [{ phrase: 'ahorros', needsPrep: true }, { phrase: 'savings', needsPrep: true }],
 };
 
-const ACCOUNT_PREPS = new Set(['con', 'en', 'a', 'por', 'de', 'desde', 'del', 'with', 'on', 'by', 'from', 'in', 'using']);
+const ACCOUNT_PREPS = new Set([
+  'con', 'en', 'a', 'al', 'por', 'de', 'desde', 'del', 'para', 'hacia',
+  'with', 'on', 'by', 'from', 'in', 'using', 'to', 'into',
+]);
 /** Preps that make a kind word an account ("con la tarjeta"), unlike "la cuota del crédito". */
-const PAY_PREPS = new Set(['con', 'en', 'a', 'por', 'desde', 'with', 'on', 'by', 'from', 'using']);
-const ACCOUNT_ARTICLES = new Set(['la', 'el', 'mi', 'my', 'the', 'una', 'un', 'a']);
+const PAY_PREPS = new Set(['con', 'en', 'a', 'al', 'por', 'desde', 'with', 'on', 'by', 'from', 'using', 'to', 'into']);
+const FROM_PREPS = new Set(['de', 'del', 'desde', 'from']);
+const TO_PREPS = new Set(['a', 'al', 'para', 'hacia', 'en', 'to', 'into']);
+const ACCOUNT_ARTICLES = new Set(['la', 'el', 'mi', 'mis', 'my', 'the', 'una', 'un']);
 
 function accountAliases(accounts: Account[]): Alias[] {
   const out: Alias[] = [];
@@ -444,30 +493,116 @@ function accountAliases(accounts: Account[]): Alias[] {
   return out;
 }
 
-function readAccount(tokens: Token[], taken: Set<number>, accounts: Account[]): string | undefined {
+type Mention = { accountId: string; prep: string; at: number };
+
+/**
+ * Every account said, in order, with the preposition before it ("de Nequi",
+ * "a ahorros"). Kind words like "tarjeta" only count after one of `kindPreps`.
+ */
+function accountMentions(
+  tokens: Token[],
+  taken: Set<number>,
+  accounts: Account[],
+  kindPreps: Set<string>
+): Mention[] {
   const aliases = accountAliases(accounts).sort(
     (a, b) => b.phrase.split(' ').length - a.phrase.split(' ').length
   );
+  const out: Mention[] = [];
   for (const alias of aliases) {
     let from = 0;
     while (from < tokens.length) {
       const at = findPhrase(tokens, taken, alias.phrase, from);
       if (at < 0) break;
-      // Walk back over "la", "mi" and one "con/en".
+      // Walk back over "la", "mi" and one "con/en/de".
       let start = at;
       while (start > 0 && !taken.has(start - 1) && ACCOUNT_ARTICLES.has(tokens[start - 1].word)) start--;
       const prep = start > 0 && !taken.has(start - 1) ? tokens[start - 1].word : '';
-      const hasPrep = ACCOUNT_PREPS.has(prep);
-      if (alias.needsPrep && !PAY_PREPS.has(prep)) {
+      if (alias.needsPrep && !kindPreps.has(prep)) {
         from = at + 1;
         continue;
       }
-      if (hasPrep) start--;
+      if (ACCOUNT_PREPS.has(prep)) start--;
       take(taken, start, at + alias.phrase.split(' ').length - start);
-      return alias.accountId;
+      out.push({ accountId: alias.accountId, prep: ACCOUNT_PREPS.has(prep) ? prep : '', at: start });
+      from = at + 1;
     }
   }
-  return undefined;
+  return out.sort((a, b) => a.at - b.at);
+}
+
+/** "de Nequi a ahorros", "a ahorros desde el banco", or just two names in order. */
+function moveEnds(mentions: Mention[]): { from?: string; to?: string } {
+  const fromM = mentions.find((m) => FROM_PREPS.has(m.prep));
+  const toM = mentions.find((m) => m !== fromM && TO_PREPS.has(m.prep));
+  const rest = mentions.filter((m) => m !== fromM && m !== toM);
+  let from = fromM?.accountId;
+  let to = toM?.accountId;
+  for (const m of rest) {
+    if (!from) from = m.accountId;
+    else if (!to && m.accountId !== from) to = m.accountId;
+  }
+  return { from, to };
+}
+
+// ---------------------------------------------------------------------------
+// Debt
+
+const PAY_VERBS = new Set(['pague', 'pago', 'pagar', 'paid', 'pay']);
+
+/**
+ * Whether the sentence pays a debt, and which. A debt's name only counts with
+ * a sign of paying it ("la cuota del carro", "pagué el carro"), so "gasolina
+ * del carro" stays a spend; "con la tarjeta" pays with a card, not the card.
+ */
+function readDebt(
+  tokens: Token[],
+  taken: Set<number>,
+  debts: DictationDebt[]
+): { said: boolean; debtId?: string } {
+  const cue = [...DEBT_PHRASES]
+    .sort((a, b) => b.split(' ').length - a.split(' ').length)
+    .find((p) => findPhrase(tokens, taken, p) >= 0);
+  let cuotaAt = debts.length ? findPhrase(tokens, taken, 'cuota') : -1;
+
+  const named = debts
+    .flatMap((d) => d.names.map((n) => ({ id: d.id, phrase: normalize(n).split(/\s+/).join(' ') })))
+    .filter((n) => n.phrase)
+    .sort((a, b) => b.phrase.split(' ').length - a.phrase.split(' ').length);
+  let debtId: string | undefined;
+  for (const n of named) {
+    const at = findPhrase(tokens, taken, n.phrase);
+    if (at < 0) continue;
+    const near = [tokens[at - 1]?.word, tokens[at - 2]?.word];
+    if (near.includes('con') || near.includes('with')) continue;
+    const paidIt = near.some((w) => w !== undefined && PAY_VERBS.has(w));
+    if (!cue && cuotaAt < 0 && !paidIt) continue;
+    take(taken, at, n.phrase.split(' ').length);
+    debtId = n.id;
+    break;
+  }
+  // "pagué la cuota (de 300 mil)" is a debt; "la cuota de administración" is a spend.
+  if (!debtId && !cue && cuotaAt >= 0) {
+    let j = cuotaAt + 1;
+    while (j < tokens.length && FILLER.has(tokens[j].word)) j++;
+    const next = tokens[j]?.word;
+    const tailIsFree = !next || taken.has(j) || isDigits(next) || next in SMALL || next in SCALE;
+    if (!tailIsFree) cuotaAt = -1;
+  }
+  if (!debtId && !cue && cuotaAt < 0) return { said: false };
+
+  if (cue) {
+    const at = findPhrase(tokens, taken, cue);
+    if (at >= 0) take(taken, at, cue.split(' ').length);
+  }
+  const cuota = findPhrase(tokens, taken, 'cuota');
+  if (cuota >= 0) take(taken, cuota, 1);
+  if (!debtId) {
+    const cards = debts.filter((d) => d.card);
+    if (cue && /tarjeta|card/.test(cue) && cards.length === 1) debtId = cards[0].id;
+    else if (debts.length === 1) debtId = debts[0].id;
+  }
+  return { said: true, debtId };
 }
 
 // ---------------------------------------------------------------------------
@@ -513,30 +648,78 @@ function buildNote(tokens: Token[], taken: Set<number>): string {
 // ---------------------------------------------------------------------------
 
 export function parseDictation(text: string, options: DictationOptions = {}): DictatedMovement {
-  const { accounts = [], currency = 'COP', now = new Date() } = options;
+  const { accounts = [], debts = [], currency = 'COP', now = new Date() } = options;
   const tokens = tokenizeSpoken(text);
   const taken = new Set<number>();
+  // Dates first, so "ayer" is not read as part of what was paid.
+  const daysAgo = readDaysAgo(tokens, taken, now);
 
   let type: DictatedMovement['type'] = 'expense';
+  let moveKind: 'move' | 'withdraw' | 'save' | 'invest' = 'move';
+  let debtId: string | undefined;
   if (takeAny(tokens, taken, INCOME_PHRASES)) {
     type = 'income';
-  } else if (!takeAny(tokens, taken, EXPENSE_PHRASES)) {
-    if (tokens.some((t) => INCOME_NOUNS.includes(t.word))) type = 'income';
+  } else if (takeAny(tokens, taken, WITHDRAW_PHRASES)) {
+    type = 'move';
+    moveKind = 'withdraw';
+  } else if (takeAny(tokens, taken, INVEST_PHRASES)) {
+    type = 'move';
+    moveKind = 'invest';
+  } else if (takeAny(tokens, taken, SAVE_PHRASES)) {
+    type = 'move';
+    moveKind = 'save';
+  } else if (takeAny(tokens, taken, MOVE_PHRASES)) {
+    type = 'move';
+  } else {
+    const spent = takeAny(tokens, taken, EXPENSE_PHRASES);
+    const debt = readDebt(tokens, taken, debts);
+    if (debt.said) {
+      type = 'debt';
+      debtId = debt.debtId;
+    } else if (!spent && tokens.some((t) => INCOME_NOUNS.includes(t.word))) {
+      type = 'income';
+    }
   }
   // Repeated verbs ("gasté… y pagué…"): drop the rest too.
-  while (takeAny(tokens, taken, type === 'income' ? INCOME_PHRASES : EXPENSE_PHRASES));
+  const verbs =
+    type === 'income' ? INCOME_PHRASES : type === 'move' ? MOVE_PHRASES : EXPENSE_PHRASES;
+  while (takeAny(tokens, taken, verbs));
 
-  const daysAgo = readDaysAgo(tokens, taken, now);
-  const accountId = readAccount(tokens, taken, accounts);
+  let accountId: string | undefined;
+  let toAccountId: string | undefined;
+  if (type === 'move') {
+    const ends = moveEnds(accountMentions(tokens, taken, accounts, ACCOUNT_PREPS));
+    accountId = ends.from;
+    toAccountId = ends.to;
+    const firstOf = (kind: Account['type']) => accounts.find((a) => a.type === kind)?.id;
+    if (moveKind === 'withdraw') {
+      toAccountId ??= firstOf('cash');
+      accountId ??= firstOf('bank');
+      takeAny(tokens, taken, ['del cajero', 'en el cajero', 'cajero', 'from the atm', 'atm']);
+    }
+    if (moveKind === 'save') toAccountId ??= firstOf('savings');
+    if (moveKind === 'invest') toAccountId ??= firstOf('investment');
+    if (accountId === toAccountId) toAccountId = undefined;
+  } else {
+    accountId = accountMentions(tokens, taken, accounts, PAY_PREPS)[0]?.accountId;
+  }
 
   const span = pickAmount(amountSpans(tokens, taken), currency);
   if (span) take(taken, span.start, span.end - span.start);
+
+  const categoryId =
+    type === 'income'
+      ? INCOME_CATEGORY_WORDS.find(([, words]) => tokens.some((t) => words.includes(t.word)))?.[0]
+      : undefined;
 
   return {
     type,
     amount: span ? roundAmount(span.value, currency) : null,
     note: buildNote(tokens, taken),
     accountId,
+    toAccountId,
+    debtId,
+    categoryId,
     daysAgo,
   };
 }

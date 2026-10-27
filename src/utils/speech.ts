@@ -83,6 +83,8 @@ export async function pickLocale(
  * - The vocabulary (accounts, categories, "mil", "lucas") biases recognition
  *   toward the words a spend uses instead of similar-sounding ones.
  * - Several guesses come back; bestDictation keeps the one that reads as a movement.
+ * - If the phone refuses one of these (no offline language, no voice
+ *   processing), useDictation falls back to the next way to listen.
  * - Android uses the voice recognition mic source, which applies the phone's
  *   own noise suppression; silence limits end the take soon after the person
  *   stops talking, so less room noise gets in.
@@ -90,7 +92,8 @@ export async function pickLocale(
 export function listenOptions(
   lang: string,
   onDevice: boolean,
-  vocabulary: string[]
+  vocabulary: string[],
+  voiceProcessing = true
 ): ExpoSpeechRecognitionOptions {
   return {
     lang,
@@ -100,7 +103,7 @@ export function listenOptions(
     requiresOnDeviceRecognition: onDevice,
     addsPunctuation: false,
     contextualStrings: vocabulary,
-    iosVoiceProcessingEnabled: true,
+    iosVoiceProcessingEnabled: voiceProcessing,
     iosTaskHint: 'dictation',
     volumeChangeEventOptions: { enabled: true, intervalMillis: 120 },
     androidIntentOptions: {

@@ -1,5 +1,4 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useMemo, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { QuickCategoryPicker } from '@/src/components/QuickCategoryPicker';
@@ -10,7 +9,7 @@ import { CategorySearch, CATEGORY_SEARCH_MIN_SUBS } from '@/src/components/Categ
 import type { SavedMovement } from '@/src/components/ExpenseForm';
 import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
 import { ConceptIcon } from '@/src/components/ConceptIcon';
-import { DictationMicButton, DictationPanel } from '@/src/components/DictationPanel';
+import { DictatedDateChip } from '@/src/components/DictationPanel';
 import { findSpendSub, flattenSpendSubs, isGeneralSubName, subColor } from '@/src/data/spendConcepts';
 import type { FriendlyIntent } from '@/src/data/friendlyTemplates';
 import { useFundsCheck } from '@/src/hooks/useFundsCheck';
@@ -19,7 +18,6 @@ import { useMoney } from '@/src/hooks/useMoney';
 import { formatAmountTyping } from '@/src/utils/money';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useCategorySuggestion } from '@/src/hooks/useCategorySuggestion';
-import { useDictation } from '@/src/hooks/useDictation';
 import { usePickableSpendConcepts } from '@/src/hooks/useSpendConcepts';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import type { TranslationKey } from '@/src/i18n/translations';
@@ -33,7 +31,7 @@ import { debtIdFromPayAccountId, openDebts, payAccountIdForDebt } from '@/src/ut
 import { movementNotifyCopy } from '@/src/utils/movementNotify';
 import { notifyExpenseRegistered } from '@/src/utils/notifications';
 import { tapFeedback } from '@/src/utils/selectFeedback';
-import { dictatedDate, dictationVocabulary } from '@/src/utils/dictation';
+import { dictatedDate, type DictatedMovement } from '@/src/utils/dictation';
 import { appAlert } from '@/src/components/AppAlert';
 
 const MAX_CHIPS = 8;
@@ -53,6 +51,10 @@ type Props = {
   /** Open the guided flow for anything the quick form does not cover. */
   /** Opens the guided flow for this intent, carrying the amount already typed. */
   onOpenGuided: (intent: FriendlyIntent, amount?: string) => void;
+  /** Shown first, scrolling with the form (the dictation bar). */
+  header?: ReactNode;
+  /** A spend dictated at the top of Add; a new id applies it again. */
+  dictated?: { id: number; movement: DictatedMovement };
 };
 
 /**
@@ -60,8 +62,8 @@ type Props = {
  * from, save. Everything else (income, moves, debt payments, new
  * subcategories) opens the guided flow.
  */
-export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
-  const { t, language } = useLanguage();
+export function QuickSpendForm({ onSaved, onBack, onOpenGuided, dictated, header }: Props) {
+  const { t } = useLanguage();
   const { formatPlain, parse, currency } = useMoney();
   const { settings, updateQuickTemplate, teachCategory } = useSettings();
   const { addTransaction, totalForPeriod, accounts, debts, transactions } = useFinance();
@@ -130,55 +132,28 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
   const checkFunds = useFundsCheck();
   // Said with the voice: "ayer", "el sábado"… 0 = today.
   const [daysAgo, setDaysAgo] = useState(0);
-  const [heard, setHeard] = useState<{ text: string; noAmount: boolean } | null>(null);
-
-  const vocabulary = useMemo(
-    () =>
-      dictationVocabulary([
-        ...accounts.map((a) => a.name ?? '').filter(Boolean),
-        ...spendConcepts.flatMap((c) => [c.name, ...c.subs.map((sub) => sub.name)]),
-      ]),
-    [accounts, spendConcepts]
-  );
-  const dictation = useDictation({
-    accounts,
-    currency,
-    vocabulary,
-    onHeard: ({ text, movement }) => {
-      if (movement.type === 'income') {
-        // Income has its own steps; carry the amount there.
-        onOpenGuided('earn', movement.amount ? String(movement.amount) : undefined);
-        return;
-      }
-      if (movement.amount) setAmount(formatAmountTyping(String(movement.amount), currency));
-      // The description decides the category again, as if typed.
-      setNote(movement.note);
-      setCategoryId(null);
-      setCategoryQuery('');
-      if (movement.accountId) {
-        const said = accounts.find((a) => a.id === movement.accountId);
-        const match =
-          payAccounts.find((a) => a.id === movement.accountId) ??
-          (said?.type === 'credit' ? payAccounts.find((a) => a.type === 'credit') : undefined);
-        if (match) setPickedAccountId(match.id);
-      }
-      setDaysAgo(movement.daysAgo);
-      setHeard({ text, noAmount: movement.amount === null });
-    },
-  });
-  const listening = dictation.phase === 'starting' || dictation.phase === 'listening';
   const spentOn = daysAgo > 0 ? dictatedDate(daysAgo) : null;
-  const spentOnLabel = spentOn
-    ? (() => {
-        const day = spentOn.toLocaleDateString(language === 'es' ? 'es-CO' : 'en-US', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-        });
-        if (daysAgo === 1) return t('quick.dateYesterday', { date: day });
-        return day.charAt(0).toLocaleUpperCase() + day.slice(1);
-      })()
-    : '';
+
+  // A sentence dictated at the top of Add fills the form, as if typed.
+  const appliedDictation = useRef<number | null>(null);
+  useEffect(() => {
+    if (!dictated || appliedDictation.current === dictated.id) return;
+    appliedDictation.current = dictated.id;
+    const movement = dictated.movement;
+    if (movement.amount) setAmount(formatAmountTyping(String(movement.amount), currency));
+    // The description decides the category again.
+    setNote(movement.note);
+    setCategoryId(null);
+    setCategoryQuery('');
+    if (movement.accountId) {
+      const said = accounts.find((a) => a.id === movement.accountId);
+      const match =
+        payAccounts.find((a) => a.id === movement.accountId) ??
+        (said?.type === 'credit' ? payAccounts.find((a) => a.type === 'credit') : undefined);
+      if (match) setPickedAccountId(match.id);
+    }
+    setDaysAgo(movement.daysAgo);
+  }, [dictated, accounts, payAccounts, currency]);
 
   // Until the user picks one, use the account last used for this subcategory.
   const accountId = useMemo(() => {
@@ -274,6 +249,7 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.body}>
+      {header}
       <View style={styles.kindRow} accessibilityRole="tablist">
         {KINDS.map((kind) => {
           const on = kind.id === 'spend';
@@ -315,62 +291,9 @@ export function QuickSpendForm({ onSaved, onBack, onOpenGuided }: Props) {
             maxFontSizeMultiplier={1.2}
             accessibilityLabel={t('add.kicker')}
           />
-          {dictation.available ? (
-            <DictationMicButton
-              active={listening}
-              onPress={() => {
-                if (listening) {
-                  dictation.stop();
-                  return;
-                }
-                Keyboard.dismiss();
-                setHeard(null);
-                void dictation.start();
-              }}
-            />
-          ) : null}
         </View>
 
-        <DictationPanel
-          phase={dictation.phase}
-          transcript={dictation.transcript}
-          level={dictation.level}
-          onDone={dictation.stop}
-          onCancel={dictation.cancel}
-        />
-        {!listening && heard ? (
-          <Text style={styles.hint} accessibilityLiveRegion="polite">
-            {t('voice.heard', { text: heard.text })}
-            {heard.noAmount ? `\n${t('voice.noAmount')}` : ''}
-          </Text>
-        ) : null}
-        {dictation.phase === 'notHeard' || dictation.phase === 'denied' || dictation.phase === 'failed' ? (
-          <Text style={styles.voiceError} accessibilityLiveRegion="polite">
-            {t(
-              dictation.phase === 'denied'
-                ? 'voice.denied'
-                : dictation.phase === 'notHeard'
-                  ? 'voice.notHeard'
-                  : 'voice.failed'
-            )}
-          </Text>
-        ) : null}
-        {spentOn ? (
-          <View style={styles.dateRow}>
-            <MaterialCommunityIcons name="calendar-blank-outline" size={18} color={palette.inkMuted} />
-            <Text style={styles.dateText}>{spentOnLabel}</Text>
-            <Pressable
-              onPress={() => {
-                tapFeedback();
-                setDaysAgo(0);
-              }}
-              hitSlop={10}
-              accessibilityRole="button"
-              accessibilityLabel={t('quick.dateToday')}>
-              <MaterialCommunityIcons name="close" size={18} color={palette.inkMuted} />
-            </Pressable>
-          </View>
-        ) : null}
+        <DictatedDateChip daysAgo={daysAgo} onClear={() => setDaysAgo(0)} />
 
         <Text style={styles.section}>{t('quick.what')}</Text>
         {flattenSpendSubs(spendConcepts).length > CATEGORY_SEARCH_MIN_SUBS ? (
@@ -581,27 +504,6 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_400Regular',
     fontSize: 13,
     color: palette.inkMuted,
-  },
-  voiceError: {
-    fontFamily: 'DMSans_500Medium',
-    fontSize: 13,
-    color: palette.danger,
-  },
-  dateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    alignSelf: 'flex-start',
-    borderWidth: 1,
-    borderColor: palette.border,
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  dateText: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 14,
-    color: palette.ink,
   },
   chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {

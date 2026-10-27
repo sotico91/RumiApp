@@ -1,26 +1,43 @@
-# The mic next to the amount opens the listening panel; Cancel closes it and
-# leaves the form empty. (What a sentence fills in is covered by jest:
-# src/utils/__tests__/dictation.test.ts; Maestro cannot speak.)
+# The dictation bar at the top of Add (for spends, income, moves and debts)
+# opens the listening panel; Cancel closes it and leaves the form empty. What
+# each sentence fills in is covered by jest (src/utils/__tests__/dictation.test.ts):
+# Maestro cannot speak.
 appId: com.sotico91.rumi
 ---
 - runFlow: subflows/fresh-start.yaml
 - launchApp:
     stopApp: true
     permissions:
-      microphone: allow
-      speech: allow
+      all: allow
 - extendedWaitUntil:
     visible: "Inicio"
     timeout: 10000
 - tapOn:
     point: "88%,83%"
+- assertVisible: "Díctaselo a Rumi.*"
 - tapOn:
-    id: "quick-dictate"
+    id: "dictate-bar"
+# Speech recognition cannot be granted ahead on the simulator: answer its prompt.
+- runFlow:
+    when:
+      visible: "(Allow|Permitir|OK)"
+    commands:
+      - tapOn: "(Allow|Permitir|OK)"
+# The simulator's recognizer is often unavailable ("Recognizer is unavailable"):
+# then the bar must say so plainly, never blame permissions.
 - extendedWaitUntil:
-    visible: "Te escucho…"
-    timeout: 5000
-- assertVisible: ".*20 mil en almuerzo con Nequi ayer.*"
-- tapOn: "Cancelar"
-- assertNotVisible: "Te escucho…"
-- assertNotVisible: "Escuché:.*"
+    visible: "(Te escucho…|.*No puedo escuchar en este momento.*)"
+    timeout: 8000
+- assertNotVisible: ".*permite el micrófono.*"
+- runFlow:
+    when:
+      visible: "Te escucho…"
+    commands:
+      - assertVisible: ".*me pagaron la quincena.*"
+      - tapOn: "Cancelar"
+      - assertNotVisible: "Te escucho…"
+- assertVisible: "Díctaselo a Rumi.*"
 - assertVisible: "Guardar gasto"
+# The bar stays on top when another kind is picked.
+- tapOn: "Ingreso"
+- assertVisible: "Díctaselo a Rumi.*"
