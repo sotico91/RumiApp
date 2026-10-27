@@ -4,5 +4,6 @@ exclude:
   - ANDROID.md
   - CHANGELOG.md
   - E2E.md
+  - PLAY_LISTING.md
   - ROADMAP.md
   - STORE_CHECKLIST.md
