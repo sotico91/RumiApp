@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rumi — Cuentas claras, mente tranquila</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --ink: #0f1c24;
+      --muted: #5a6b75;
+      --bg: #f4f7f9;
+      --card: #ffffff;
+      --accent: #1b3a4b;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #eef4f7;
+        --muted: #a8b6be;
+        --bg: #0c161c;
+        --card: #13232c;
+        --accent: #7eb6c9;
+      }
+    }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.55;
+    }
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 28px 24px;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+    }
+    h1 { font-size: 1.75rem; margin: 0 0 8px; }
+    h2 { font-size: 1.15rem; margin: 28px 0 8px; }
+    p, li { color: var(--muted); }
+    .meta { font-size: 0.9rem; margin-bottom: 20px; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main>
+    <article class="card">
+      <h1>Rumi</h1>
+      <p class="meta">Cuentas claras, mente tranquila · Desarrollador: Sotico91</p>
+      <p>
+        Rumi es una app de finanzas personales. Anotas un gasto en segundos y Rumi lo pone en su
+        categoría, pones topes al mes, te recuerda tus recibos y cuotas, ves tus gastos hormiga y le
+        preguntas como hablas: “¿cuánto gasté en café este mes?”. Funciona en pesos y en dólares.
+      </p>
+
+      <h2>Tus datos</h2>
+      <p>
+        Sin cuenta, sin conectar tu banco y sin servidor: tus movimientos se guardan cifrados en tu
+        teléfono. Sin anuncios ni rastreo.
+      </p>
+
+      <h2>Descárgala</h2>
+      <ul>
+        <li><strong>Android:</strong> en prueba cerrada en Google Play. <a href="probar.html">Únete a la prueba</a>.</li>
+        <li><strong>iPhone:</strong> muy pronto en la App Store.</li>
+      </ul>
+
+      <h2>Más</h2>
+      <ul>
+        <li><a href="privacy-policy.html">Política de privacidad</a></li>
+        <li>Soporte: <a href="mailto:edavidvelascop@gmail.com">edavidvelascop@gmail.com</a></li>
+      </ul>
+
+      <h2>English</h2>
+      <p>
+        Rumi is a personal finance app: log a spend in seconds, set monthly limits, get reminders for
+        bills and loan payments, and ask in your own words how much you spent. Works in pesos and US
+        dollars. No account, no bank connection, no server: your data stays encrypted on your phone.
+        Android is in closed testing on Google Play (<a href="probar.html">join the test</a>, page in
+        Spanish); iPhone is coming soon. <a href="privacy-policy.html">Privacy policy</a>.
+      </p>
+    </article>
+  </main>
+</body>
+</html>
