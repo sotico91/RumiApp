@@ -75,13 +75,13 @@
         </li>
         <li>
           <h3>Acepta la invitación de Google Play</h3>
-          <p>Abre el enlace y toca el botón para unirte a la prueba.</p>
+          <p>Abre el enlace y toca “Convertirse en verificador”. Sigue al paso 3 cuando diga “Ya eres verificador”.</p>
           <a class="btn btn-primary" href="https://play.google.com/apps/testing/com.sotico91.rumiapp">Abrir la invitación</a>
         </li>
         <li>
           <h3>Instala Rumi</h3>
-          <p>Descárgala desde Google Play. Si aún no aparece, espera unos minutos después de aceptar.</p>
-          <a class="btn btn-primary" href="https://play.google.com/store/apps/details?id=com.sotico91.rumiapp">Ir a Google Play</a>
+          <p>Descárgala desde Google Play. Si sale “No se encontró el elemento”, revisa que la Play Store esté con la misma cuenta (tu foto, arriba a la derecha) y espera unos minutos después de aceptar.</p>
+          <a class="btn btn-primary" id="play-install" href="https://play.google.com/store/apps/details?id=com.sotico91.rumiapp">Ir a Google Play</a>
         </li>
       </ol>
     </section>
@@ -142,5 +142,15 @@
       <span>© 2026 Sotico91</span>
     </div>
   </footer>
+  <script>
+    // Inside WhatsApp, Instagram or Telegram the web Play page opens in their
+    // browser, often signed out or on another account, and shows "item not
+    // found". On Android, hand the link to the Play Store app instead.
+    if (/Android/i.test(navigator.userAgent)) {
+      document.getElementById('play-install').href =
+        'intent://details?id=com.sotico91.rumiapp#Intent;scheme=market;package=com.android.vending;' +
+        'S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dcom.sotico91.rumiapp;end';
+    }
+  </script>
 </body>
 </html>
