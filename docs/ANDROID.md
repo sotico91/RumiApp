@@ -97,7 +97,7 @@ Profiles in [`eas.json`](../eas.json):
 Since the app is on Play (2026-10-28), phones get new versions from the **internal test** track, not the LAN APK. The local APK has the same package but a different signing key, so Android refuses it over the Play install (and uninstalling to make room deletes the data).
 
 1. `npm run eas:android:production` (about 25 min). EAS bumps the versionCode.
-2. From the build page, download the `.aab` and the build artifacts (`mapping.txt`, kept by `buildArtifactPaths` in `eas.json`).
+2. From the build page, download the `.aab` and the build artifacts: `mapping.txt` itself (EAS hands a single artifact over uncompressed, as a .txt URL), kept by `buildArtifactPaths` in `eas.json`.
 3. Play Console → Probar y lanzar → Prueba interna → Crear versión nueva: drop the `.aab`, name it `1.0 (<versionCode>)`, paste the es-419/en-US notes, Siguiente → Guardar y publicar.
 4. App bundle explorer → that version → Descargas → Archivo de desofuscación: upload `mapping.txt`.
 5. On the phone, Play shows the update (or open the internal test link from the Verificadores tab).
