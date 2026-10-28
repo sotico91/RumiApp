@@ -98,7 +98,7 @@ Textos y respuestas para crear Rumi en Play Console y abrir la prueba cerrada. P
 - **Anuncios:** No, la app no contiene anuncios.
 - **Acceso a la app:** Toda la funcionalidad está disponible sin restricciones (no hay inicio de sesión).
 - **Clasificación de contenido (IARC):** categoría "Todas las demás apps" / utilidad. Sin violencia, sexo, lenguaje, drogas ni apuestas; no hay interacción entre usuarios, no comparte ubicación, no hay compras digitales. Resultado esperado: Para todos / PEGI 3.
-- **Público objetivo:** 18 años o más (también vale 13+; la política dice que no está dirigida a menores de 13). No atrae a niños.
+- **Público objetivo:** 13-15, 16-17 y 18+ (nada menor de 13, que es lo que dice la política). Solo 18+ hace que Play restrinja la disponibilidad. No atrae a niños; no entra en la sección de familias.
 - **Funciones financieras:** "Mi app no ofrece ninguna función financiera". La lista de Play solo tiene servicios (préstamos, banca, pagos, billeteras, cripto, bolsa, seguros, asesoría, crédito); no hay opción de finanzas personales y Rumi no presta, no mueve dinero ni se conecta a bancos. No marcar "Otro" (pide documentación) ni "Asesoramiento financiero".
 - **App de noticias / salud / gobierno / COVID:** No.
 - **ID de publicidad:** No. El AAB no declara `com.google.android.gms.permission.AD_ID` (sin anuncios ni analítica).
