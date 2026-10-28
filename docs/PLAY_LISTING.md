@@ -101,6 +101,7 @@ Textos y respuestas para crear Rumi en Play Console y abrir la prueba cerrada. P
 - **Público objetivo:** 18 años o más (también vale 13+; la política dice que no está dirigida a menores de 13). No atrae a niños.
 - **Funciones financieras:** "Mi app no ofrece ninguna función financiera". La lista de Play solo tiene servicios (préstamos, banca, pagos, billeteras, cripto, bolsa, seguros, asesoría, crédito); no hay opción de finanzas personales y Rumi no presta, no mueve dinero ni se conecta a bancos. No marcar "Otro" (pide documentación) ni "Asesoramiento financiero".
 - **App de noticias / salud / gobierno / COVID:** No.
+- **ID de publicidad:** No. El AAB no declara `com.google.android.gms.permission.AD_ID` (sin anuncios ni analítica).
 - **Seguridad de los datos:**
   - ¿Recopila o comparte datos de usuario? **No.** Todo se guarda y procesa en el teléfono; no se envía nada a servidores.
   - Si pregunta por cifrado: los datos se cifran en el dispositivo.
