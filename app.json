@@ -70,7 +70,7 @@
       }
     },
     "android": {
-      "package": "com.sotico91.rumi",
+      "package": "com.sotico91.rumiapp",
       "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#F3E6D8",

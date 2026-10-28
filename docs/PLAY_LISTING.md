@@ -10,7 +10,7 @@ Textos y respuestas para crear Rumi en Play Console y abrir la prueba cerrada. P
 | Idioma predeterminado | Español (Latinoamérica) – es-419 |
 | App o juego | App |
 | Gratis o de pago | Gratis (no se puede cambiar a pago después) |
-| Paquete | `com.sotico91.rumi` (lo toma del primer AAB) |
+| Paquete | `com.sotico91.rumiapp` (lo toma del primer AAB) |
 | Categoría | Finanzas |
 | Correo de contacto | edavidvelascop@gmail.com |
 | Sitio web | https://sotico91.github.io/RumiApp/ |
@@ -118,4 +118,4 @@ Textos y respuestas para crear Rumi en Play Console y abrir la prueba cerrada. P
   > Primera versión de prueba de Rumi. Anota gastos, pon topes, recibe recordatorios de pagos y pregúntale a Rumi. Si algo falla, cuéntanos en Ajustes → Reportar un error. ¡Gracias por probar!
 - **Release notes (en-US):**
   > First test release of Rumi. Log spending, set limits, get payment reminders and ask Rumi. If something breaks, tell us in Settings → Report a problem. Thanks for testing!
-- **Enlace para los testers:** https://play.google.com/apps/testing/com.sotico91.rumi (también en https://sotico91.github.io/RumiApp/probar.html).
+- **Enlace para los testers:** https://play.google.com/apps/testing/com.sotico91.rumiapp (también en https://sotico91.github.io/RumiApp/probar.html).

@@ -2,7 +2,7 @@
 
 Same Expo/React Native app as iOS. **No Kotlin rewrite required.**
 
-Package: `com.sotico91.rumi`  
+Package: `com.sotico91.rumiapp`  
 Version name: `1.0` (from `app.json`) · versionCode: `1`
 
 ## 1. Machine requirements
@@ -96,7 +96,7 @@ Profiles in [`eas.json`](../eas.json):
 
 - [ ] Google Play Console account (one-time developer fee) + identity verification.
 - [ ] Closed test with ≥12 testers for 14 days before production (new personal accounts). See STORE_CHECKLIST.md.
-- [ ] App created with package `com.sotico91.rumi`.
+- [ ] App created with package `com.sotico91.rumiapp`.
 - [ ] Store listing: title, short/full description (ES/EN), screenshots (phone), feature graphic.
 - [ ] Privacy policy URL (local-only data; still required by Play).
 - [ ] Content rating questionnaire.

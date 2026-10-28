@@ -8,7 +8,7 @@
    Repo → **Settings → Pages** → Source: Deploy from branch **`main`** / folder **`/docs`**.
    Wait 1–2 minutes, then open: https://sotico91.github.io/RumiApp/privacy-policy.html
    (In-app privacy does **not** need this — it opens a local screen.)
-4. Create apps in **App Store Connect** and **Play Console** with iOS bundle and Android package `com.sotico91.rumi` (com.rumi.app was taken on both stores). Neither can change later.
+4. Create apps in **App Store Connect** and **Play Console** with iOS bundle `com.sotico91.rumi` and Android package `com.sotico91.rumiapp` (com.rumi.app was taken on both stores, com.sotico91.rumi on Play). Neither can change later.
 5. Paste that privacy URL + support email `edavidvelascop@gmail.com` in both store listings.
 6. Build production:
    - `npm run eas:ios:production`
