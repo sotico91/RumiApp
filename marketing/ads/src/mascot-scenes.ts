@@ -115,12 +115,12 @@ export const testerScenes: Scene[] = [
   {
     kind: 'needs',
     title: 'Lo que necesitas',
-    say: 'Solo necesitas un celular Android, tu cuenta de Google, y quedarte conmigo catorce días.',
+    say: 'Solo necesitas un celular Android en Colombia o Estados Unidos, tu cuenta de Google, y quedarte conmigo catorce días.',
   },
   {
     kind: 'steps',
     title: 'Así te unes',
-    say: 'Escanea el código, entra con tu cuenta de Google, acepta la invitación, e instálame desde Google Play.',
+    say: 'Escanea el código y únete al grupo de testers. Luego acepta la invitación de Google Play: ese es el paso que cuenta. E instálame. Usa siempre la misma cuenta de Google.',
   },
   {
     kind: 'play',

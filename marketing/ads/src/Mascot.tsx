@@ -580,7 +580,7 @@ function SuggestCard() {
 function NeedsCard() {
   return (
     <Card>
-      <Row delay={20} icon="📱" title="Un celular Android" />
+      <Row delay={20} icon="📱" title="Un celular Android" detail="En Colombia o Estados Unidos" />
       <Row delay={34} icon="🔑" title="Tu cuenta de Google" detail="La misma de Gmail y Play Store" />
       <Row delay={48} icon="📅" title="14 días con Rumi" detail="Instalada, y úsala cuando quieras" />
     </Card>
@@ -608,7 +608,8 @@ function StepsCard({ qr }: { qr?: string }) {
   const q = pop(frame, fps, 14);
   const steps = [
     'Escanea el código',
-    'Entra con tu cuenta de Google y acepta la invitación',
+    'Únete al grupo de testers',
+    'Acepta la invitación de Google Play',
     'Instala Rumi desde Google Play',
   ];
   return (
