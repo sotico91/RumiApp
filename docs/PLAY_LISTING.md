@@ -99,7 +99,7 @@ Textos y respuestas para crear Rumi en Play Console y abrir la prueba cerrada. P
 - **Acceso a la app:** Toda la funcionalidad está disponible sin restricciones (no hay inicio de sesión).
 - **Clasificación de contenido (IARC):** categoría "Todas las demás apps" / utilidad. Sin violencia, sexo, lenguaje, drogas ni apuestas; no hay interacción entre usuarios, no comparte ubicación, no hay compras digitales. Resultado esperado: Para todos / PEGI 3.
 - **Público objetivo:** 18 años o más (también vale 13+; la política dice que no está dirigida a menores de 13). No atrae a niños.
-- **Funciones financieras:** marcar solo "Gestión de finanzas personales" (presupuestos, seguimiento de gastos). No: préstamos personales, pagos, transferencias, criptomonedas, banca, seguros, inversión real.
+- **Funciones financieras:** "Mi app no ofrece ninguna función financiera". La lista de Play solo tiene servicios (préstamos, banca, pagos, billeteras, cripto, bolsa, seguros, asesoría, crédito); no hay opción de finanzas personales y Rumi no presta, no mueve dinero ni se conecta a bancos. No marcar "Otro" (pide documentación) ni "Asesoramiento financiero".
 - **App de noticias / salud / gobierno / COVID:** No.
 - **Seguridad de los datos:**
   - ¿Recopila o comparte datos de usuario? **No.** Todo se guarda y procesa en el teléfono; no se envía nada a servidores.
