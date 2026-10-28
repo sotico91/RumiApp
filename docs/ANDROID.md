@@ -94,15 +94,15 @@ Profiles in [`eas.json`](../eas.json):
 
 ## 4. Play Store checklist
 
-- [ ] Google Play Console account (one-time developer fee) + identity verification.
+- [x] Google Play Console account (one-time developer fee) + identity verification.
 - [ ] Closed test with ≥12 testers for 14 days before production (new personal accounts). See STORE_CHECKLIST.md.
-- [ ] App created with package `com.sotico91.rumiapp`.
-- [ ] Store listing: title, short/full description (ES/EN), screenshots (phone), feature graphic.
-- [ ] Privacy policy URL (local-only data; still required by Play).
-- [ ] Content rating questionnaire.
+- [x] App created with package `com.sotico91.rumiapp`.
+- [x] Store listing (es-419): title, short/full description, 6 phone screenshots, feature graphic. English listing still to add.
+- [x] Privacy policy URL (local-only data; still required by Play).
+- [x] Content rating questionnaire (Everyone / PEGI 3 / IARC 3+).
 - [ ] Target API level required by Play (Expo 57 / RN 0.86 tracks current requirements via EAS).
-- [ ] Signing: EAS-managed credentials **or** upload your own keystore (never commit `*.jks`).
-- [ ] Upload AAB from `eas build --profile production --platform android`.
+- [x] Signing: EAS-managed credentials **or** upload your own keystore (never commit `*.jks`).
+- [x] Upload AAB from `eas build --profile production --platform android` (1.0 (2) on closed test Alpha, sent to review 2026-10-28).
 - [ ] Internal testing track first, then production.
 - [ ] Optional submit: `eas submit --platform android --profile production` (needs Play service account JSON).
 
