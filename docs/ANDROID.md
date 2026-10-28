@@ -3,7 +3,7 @@
 Same Expo/React Native app as iOS. **No Kotlin rewrite required.**
 
 Package: `com.sotico91.rumiapp`  
-Version name: `1.0` (from `app.json`) · versionCode: `1`
+Version name: `1.0` (from `app.json`) · versionCode: kept by EAS (`appVersionSource: remote`, `autoIncrement`); 3 is the last one on Play
 
 ## 1. Machine requirements
 
@@ -91,6 +91,20 @@ Profiles in [`eas.json`](../eas.json):
 | `development` | debug APK | Dev client |
 | `preview` | APK | Testers |
 | `production` | AAB | Google Play |
+
+### Delivering a change (Play internal test)
+
+Since the app is on Play (2026-10-28), phones get new versions from the **internal test** track, not the LAN APK. The local APK has the same package but a different signing key, so Android refuses it over the Play install (and uninstalling to make room deletes the data).
+
+1. `npm run eas:android:production` (about 25 min). EAS bumps the versionCode.
+2. From the build page, download the `.aab` and the build artifacts (`mapping.txt`, kept by `buildArtifactPaths` in `eas.json`).
+3. Play Console → Probar y lanzar → Prueba interna → Crear versión nueva: drop the `.aab`, name it `1.0 (<versionCode>)`, paste the es-419/en-US notes, Siguiente → Guardar y publicar.
+4. App bundle explorer → that version → Descargas → Archivo de desofuscación: upload `mapping.txt`.
+5. On the phone, Play shows the update (or open the internal test link from the Verificadores tab).
+
+The release build shrinks with R8 both locally and on EAS: `plugins/withReleaseBuildProps.js` writes the gradle properties during prebuild. `npm run android:apk` + `android:apk:lan` stay for phones that never installed the Play version.
+
+Automating step 3 with `eas submit` needs a Play service account JSON (Play Console → Configuración → Acceso a la API) uploaded to EAS credentials; the `production` submit profile targets the internal track.
 
 ## 4. Play Store checklist
 

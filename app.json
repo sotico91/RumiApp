@@ -130,6 +130,7 @@
         }
       ],
       "./plugins/withNotificationLargeIcon.js",
+      "./plugins/withReleaseBuildProps.js",
       [
         "expo-local-authentication",
         {
