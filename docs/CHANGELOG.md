@@ -12,6 +12,8 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-10-29
 
+- **Exportaciones sin copias sueltas:** el JSON y el CSV que se comparten se escriben en `cache/rumi-exports`, que se vacía antes de cada exportación y al abrir la app (no justo al compartir, porque en Android la app que recibe puede seguir leyendo el archivo). También borra las exportaciones viejas que quedaron en la caché.
+- **CI con permisos mínimos:** el token de GitHub Actions solo puede leer el repo, checkout no guarda credenciales y las acciones van fijadas por commit (v4.4.0).
 - **Fecha de la política en la app:** la pantalla de privacidad dice "Última actualización: 27 de octubre de 2026" (antes 3 de octubre), igual que la web.
 
 ## 2026-10-27

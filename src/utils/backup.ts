@@ -1,5 +1,5 @@
 import { Share, Platform } from 'react-native';
-import { File, Paths } from 'expo-file-system';
+import { Directory, File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
 import { categoryLabel } from '@/src/utils/categoryLabel';
@@ -165,9 +165,33 @@ export function transactionsToCsv(
   return `\uFEFF${[header.join(','), ...rows].join('\n')}`;
 }
 
+/** Exports are readable copies of the data, so each lives in its own folder that gets emptied. */
+const EXPORT_DIR = 'rumi-exports';
+/** Exports written straight into the cache by versions before EXPORT_DIR. */
+const LEGACY_EXPORT_RE = /^Rumi[_-].+\.(json|csv)$/;
+
+/**
+ * Deletes exported files left in the cache. Not right after sharing: on
+ * Android the receiving app (Drive, WhatsApp…) may still be reading the file
+ * when the share sheet closes. Runs before each export and at app launch.
+ */
+export function clearExportedFiles(): void {
+  try {
+    const dir = new Directory(Paths.cache, EXPORT_DIR);
+    if (dir.exists) dir.delete();
+    for (const entry of new Directory(Paths.cache).list()) {
+      if (entry instanceof File && LEGACY_EXPORT_RE.test(entry.name)) entry.delete();
+    }
+  } catch {
+    // Leftovers are retried at the next launch or export.
+  }
+}
+
 async function writeCacheFile(filename: string, contents: string): Promise<File> {
-  const file = new File(Paths.cache, filename);
-  if (file.exists) file.delete();
+  clearExportedFiles();
+  const dir = new Directory(Paths.cache, EXPORT_DIR);
+  dir.create();
+  const file = new File(dir, filename);
   file.create();
   file.write(contents);
   return file;

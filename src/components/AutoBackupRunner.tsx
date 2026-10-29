@@ -4,14 +4,20 @@ import { AppState } from 'react-native';
 import { runAutoBackup } from '@/src/data/autoBackup';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useSettings } from '@/src/hooks/useSettings';
+import { clearExportedFiles } from '@/src/utils/backup';
 
 /**
  * No UI: once data is loaded, and whenever the app comes back to the front,
- * save today's silent copy if it is not there yet (see autoBackup).
+ * save today's silent copy if it is not there yet (see autoBackup). At
+ * launch it also deletes exports left in the cache (see clearExportedFiles).
  */
 export function AutoBackupRunner() {
   const { settings, ready, quickTemplates } = useSettings();
   const { loading, transactions, accounts, budgets, debts, subscriptions } = useFinance();
+
+  useEffect(() => {
+    clearExportedFiles();
+  }, []);
 
   useEffect(() => {
     if (!ready || loading) return;
