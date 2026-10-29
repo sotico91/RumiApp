@@ -10,6 +10,10 @@ El detalle de cada cambio está en `git log`.
 - **Comentarios de código en inglés:** todos los comentarios del código van en inglés.
   Los textos que ve el usuario van en `src/i18n/translations.ts` (es/en).
 
+## 2026-10-29
+
+- **Fecha de la política en la app:** la pantalla de privacidad dice "Última actualización: 27 de octubre de 2026" (antes 3 de octubre), igual que la web.
+
 ## 2026-10-27
 
 - **Listo para dólares:** un ejercicio completo en inglés y USD (cuenta nueva, saldo y gastos con centavos, salario, crédito con su cuota, topes y preguntas a Rumi) cuadró al centavo, y se ajustó lo que sonaba a Colombia. El onboarding preselecciona la moneda según la región del teléfono (USD en EE. UU., Ecuador, Panamá, El Salvador, Puerto Rico…; pesos en el resto), y la persona la confirma igual. En USD, "+ Billetera" sugiere PayPal, Venmo y Cash App en vez de Nequi y Daviplata, la inversión sugerida es "CD" ("Depósito a plazo" en español) en vez de CDT, las tarjetas no mencionan credicheque y los ejemplos de Pregúntale a Rumi dicen "$200" en vez de "200k" / "200 mil". `currencyCopyKey` elige la versión en dólares de esos textos. La política de privacidad (web y en la app) dice "Reportar un error", como el botón.

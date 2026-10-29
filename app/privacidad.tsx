@@ -26,8 +26,8 @@ export default function PrivacyPolicyScreen() {
         <Text style={styles.title}>{t('about.privacyPolicy')}</Text>
         <Text style={styles.meta}>
           {es
-            ? 'Última actualización: 3 de octubre de 2026 · Sotico91'
-            : 'Last updated: October 3, 2026 · Sotico91'}
+            ? 'Última actualización: 27 de octubre de 2026 · Sotico91'
+            : 'Last updated: October 27, 2026 · Sotico91'}
         </Text>
 
         {es ? (
