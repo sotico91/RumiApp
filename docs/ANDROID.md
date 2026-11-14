@@ -111,7 +111,7 @@ Automating step 3: the `production` submit profile reads the Play service accoun
 ## 4. Play Store checklist
 
 - [x] Google Play Console account (one-time developer fee) + identity verification.
-- [ ] Closed test with ≥12 testers for 14 days before production (new personal accounts). See STORE_CHECKLIST.md.
+- [x] Closed test with ≥12 testers for 14 days before production (new personal accounts). See STORE_CHECKLIST.md. Production access granted 2026-11-13.
 - [x] App created with package `com.sotico91.rumiapp`.
 - [x] Store listing (es-419): title, short/full description, 6 phone screenshots, feature graphic. English listing still to add.
 - [x] Privacy policy URL (local-only data; still required by Play).
