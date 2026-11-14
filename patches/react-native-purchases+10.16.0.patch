@@ -1,0 +1,17 @@
+diff --git a/node_modules/react-native-purchases/android/src/main/java/com/revenuecat/purchases/react/RNPurchasesModule.java b/node_modules/react-native-purchases/android/src/main/java/com/revenuecat/purchases/react/RNPurchasesModule.java
+index ef72844..ae35ff9 100644
+--- a/node_modules/react-native-purchases/android/src/main/java/com/revenuecat/purchases/react/RNPurchasesModule.java
++++ b/node_modules/react-native-purchases/android/src/main/java/com/revenuecat/purchases/react/RNPurchasesModule.java
+@@ -436,10 +436,8 @@ public class RNPurchasesModule extends ReactContextBaseJavaModule implements Upd
+         SubscriberAttributesKt.setEmail(email);
+     }
+ 
+-    @ReactMethod
+-    public void setPhoneNumber(String phoneNumber) {
+-        SubscriberAttributesKt.setPhoneNumber(phoneNumber);
+-    }
++    // setPhoneNumber removed (patches/): Rumi never sends a phone number, and
++    // Google Play's Data safety scan flagged this unused bridge method.
+ 
+     @ReactMethod
+     public void setDisplayName(String displayName) {
