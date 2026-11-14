@@ -145,3 +145,5 @@ Automating step 3: the `production` submit profile reads the Play service accoun
 ---
 
 © 2026 Sotico91. All rights reserved.
+
+Play Developer API from the terminal: `node scripts/play/play.mjs <METHOD> <path> [json]` (same service account, paths relative to `applications/com.sotico91.rumiapp`, e.g. `POST /edits`, then `GET /edits/<id>/tracks`). Production needs its countries picked in Play Console first: a commit fails with "Release in track targeting no countries", so the API can only save the release as a draft until then.
