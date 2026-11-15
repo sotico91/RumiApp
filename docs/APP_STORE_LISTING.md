@@ -189,8 +189,18 @@ Ya no es "Data Not Collected": desde Rumi Pro, RevenueCat recibe la compra y un 
 
 - **Requiere inicio de sesión:** No.
 - **Contacto:** tu nombre, teléfono y correo (Apple no los publica).
-- **Notas para el revisor:**
-  > Rumi is a personal finance tracker. There is no login: all data is stored encrypted on the device, and nothing is sent to a server. It is not a bank, lender, payment processor or investment service, and it does not connect to bank accounts. Rumi Pro is an optional auto-renewable subscription validated through RevenueCat; free users can use the app without limits on logging. To see Pro, open Settings (the initial on Home) → Rumi Pro, or ask more than 5 questions in "Ask Rumi". Restore purchases, Terms of Use and Privacy Policy are on the Pro screen.
+- **Notas para el revisor** (reescritas el 2026-11-14 tras el rechazo 2.1 "Information Needed", que pidió video en iPhone real + propósito, uso, servicios externos, regiones e industria regulada; adjuntar el video en "Archivo adjunto"):
+  > 1. SCREEN RECORDING: attached (recorded on a physical iPhone, latest iOS). It starts at app launch and shows the first-run setup, logging a spend, the monthly Plan, debts and savings goals, "Ask Rumi", and the Rumi Pro screen with the subscription purchase (sandbox), Restore Purchases, Terms of Use and Privacy Policy. Rumi has no accounts, so there is no registration, login or account deletion flow, and no user-generated content shared with other users.
+  >
+  > 2. PURPOSE AND AUDIENCE: Rumi is a personal spending and budget tracker for adults in Latin America and the US who want to know where their money goes without connecting a bank. You log a spend in seconds (typing or dictating), plan the month by category, follow debts with a payoff plan and savings goals, and ask plain questions like "how much did I spend on food this month?". All data stays on the device, encrypted.
+  >
+  > 3. HOW TO USE IT: No login, no credentials, no sample files. Open the app, pick the currency and (optionally) payday, then tap the floating + on Home to add a spend. Tabs: Home, History, Plan, Wealth (debts and savings) and Ask Rumi. Rumi Pro (optional auto-renewable subscription, monthly or annual with a 1-week free trial) unlocks unlimited Ask Rumi questions (free: 5 per month), more monthly limits, reminders and savings goals, the debt payoff plan, "Can I afford it?" and export (Excel, CSV, backup). Open it from Settings (the initial on Home) → Rumi Pro, or by asking a 6th question in Ask Rumi. Free users can log spending without limits.
+  >
+  > 4. EXTERNAL SERVICES: Apple In-App Purchase (StoreKit) for Rumi Pro, validated through RevenueCat (receipt validation and entitlement; it only receives purchase data and an anonymous app user id). Apple Speech framework for dictation, on-device when the iPhone supports it. No data providers, no authentication service, no AI or LLM service: answers in Ask Rumi are computed on the device from the user's own entries.
+  >
+  > 5. REGIONS: The app works the same in every region. Only the default currency (taken from the device region, changeable) and the language (Spanish or English, from the device) differ.
+  >
+  > 6. REGULATED INDUSTRY: Not applicable. Rumi is not a bank, lender, payment processor, investment or tax service, does not move money and does not connect to financial accounts. It is a personal record-keeping tool.
 - **Cifrado de exportación:** "No" (la app ya declara `ITSAppUsesNonExemptEncryption = false`).
 
 ## 8. Build y envío
