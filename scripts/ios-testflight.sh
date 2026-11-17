@@ -16,6 +16,14 @@ if [[ -z "${EXPO_PUBLIC_REVENUECAT_IOS_KEY:-}" && -f "$ROOT/credentials/revenuec
 fi
 [[ "${EXPO_PUBLIC_REVENUECAT_IOS_KEY:-}" == appl_* ]] || echo "warning: no appl_ RevenueCat key, Pro will be off in this build" >&2
 TEAM_ID="3Q53N2B5XD"
+# App Store Connect API key (credentials/, gitignored): signs and uploads without
+# depending on the Apple account session in Xcode, which expires.
+AUTH=()
+if [[ -f "$ROOT/credentials/asc-api-key.p8" ]]; then
+  AUTH=(-authenticationKeyPath "$ROOT/credentials/asc-api-key.p8"
+        -authenticationKeyID A4SMWC32N9
+        -authenticationKeyIssuerID 0289bb86-99d4-4ed9-a9e5-139a808fcdd7)
+fi
 OUT="$HOME/Library/Caches/rumi-testflight"
 ARCHIVE="$OUT/Rumi.xcarchive"
 
@@ -50,6 +58,7 @@ xcodebuild archive \
   -destination 'generic/platform=iOS' \
   -archivePath "$ARCHIVE" \
   -allowProvisioningUpdates \
+  "${AUTH[@]}" \
   DEVELOPMENT_TEAM="$TEAM_ID" \
   CURRENT_PROJECT_VERSION="$BUILD" \
   -quiet
@@ -59,6 +68,7 @@ xcodebuild -exportArchive \
   -archivePath "$ARCHIVE" \
   -exportOptionsPlist "$OUT/ExportOptions.plist" \
   -exportPath "$OUT/export" \
-  -allowProvisioningUpdates
+  -allowProvisioningUpdates \
+  "${AUTH[@]}"
 
 echo "Uploaded Rumi ${VERSION} (${BUILD}). It shows in TestFlight once Apple finishes processing."
