@@ -12,6 +12,11 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-11-17
 
+- **Versión 1.12.0, tarjeta de racha para historias:**
+  - **"Compartir mi racha"** en la tarjeta de racha (también dentro del Diario de 14 días) desde el primer día. En los días 7, 15, 30, 60, 100, 200 y 365 el botón se vuelve coral con "¡7 días! Compártelo en tus historias 🎉" (`STREAK_MILESTONES`, `streakMilestone` en `src/utils/streak.ts`).
+  - **La imagen:** 9:16, 1080×1920, fondo crema con el billete coral, el número de días, los últimos 7 días, un sello en los hitos, el QR de descarga (`assets/images/qr-descargar.png`, abre `docs/descargar.html`), "Anota tus gastos conmigo 🐜" y "Cuentas claras, mente tranquila." Nunca muestra montos. Se ve antes de compartir y se envía con el menú del teléfono (Instagram, Facebook, WhatsApp). `StreakShareSheet`, con `react-native-view-shot` (módulo nativo nuevo: `pod install` en `ios/`).
+  - Desde esta versión Android se compila en la Mac (`eas build --local`) y se sube a Play por la API; iPhone va por TestFlight.
+
 - **Versión 1.11.0, racha y recordatorio diario para anotar** (primer paso de la estrategia de hábito; ver `marketing/ESTRATEGIA.md`):
   - **Racha 🐜:** días seguidos con al menos un movimiento anotado (cuenta el día en que se anotó, `createdAt`) o marcado con **"Hoy no gasté"**, para que un día sin gastos no rompa la racha. Hoy nunca la rompe: queda pendiente hasta que termina el día. Se calcula desde el historial, sin guardar un contador (`src/utils/streak.ts`).
   - **Comodines 🧊:** cada 7 días seguidos se gana uno (máximo 2); un día que se pasa sin anotar gasta uno solo y la racha sigue.

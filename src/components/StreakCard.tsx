@@ -12,7 +12,8 @@ import { palette, radii } from '@/src/theme/colors';
 import { parseLocalDateKey } from '@/src/utils/habitPilot';
 import { logReminderOf } from '@/src/utils/logReminder';
 import { tapFeedback } from '@/src/utils/selectFeedback';
-import { streakFromLedger, type StreakDayState } from '@/src/utils/streak';
+import { StreakShareSheet } from '@/src/components/StreakShareSheet';
+import { streakFromLedger, streakMilestone, type StreakDayState } from '@/src/utils/streak';
 
 const STATE_LABEL: Record<StreakDayState, TranslationKey> = {
   done: 'streak.stateDone',
@@ -39,12 +40,15 @@ export function StreakCard({ compact = false }: { compact?: boolean }) {
   // Re-renders at midnight so "today" moves on while the app stays open.
   const { day: today } = useCalendarClock();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const streak = useMemo(
     () => streakFromLedger(transactions, settings.noSpendDays),
     [transactions, settings.noSpendDays, today]
   );
   const reminder = logReminderOf(settings.logReminder);
+  // On a milestone day (7, 15, 30…) the share button takes the lead.
+  const milestone = streak.todayDone ? streakMilestone(streak.current) : null;
 
   async function noSpend() {
     tapFeedback();
@@ -110,6 +114,26 @@ export function StreakCard({ compact = false }: { compact?: boolean }) {
         </Pressable>
       )}
 
+      {streak.current > 0 ? (
+        <>
+          {milestone ? (
+            <Text style={styles.milestone}>{t('streakShare.milestone', { count: milestone })}</Text>
+          ) : null}
+          <Pressable
+            testID="streak-share"
+            accessibilityRole="button"
+            onPress={() => {
+              tapFeedback();
+              setShareOpen(true);
+            }}
+            style={milestone ? styles.shareHot : styles.share}>
+            <Text style={milestone ? styles.shareHotText : styles.shareText}>
+              {t('streakShare.button')}
+            </Text>
+          </Pressable>
+        </>
+      ) : null}
+
       <Pressable
         testID="streak-reminder"
         accessibilityRole="button"
@@ -130,6 +154,7 @@ export function StreakCard({ compact = false }: { compact?: boolean }) {
       </Pressable>
 
       <LogReminderSheet visible={sheetOpen} onClose={() => setSheetOpen(false)} />
+      <StreakShareSheet visible={shareOpen} onClose={() => setShareOpen(false)} streak={streak} />
     </View>
   );
 }
@@ -249,6 +274,33 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 14,
     color: palette.ink,
+  },
+  milestone: {
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 14,
+    color: palette.ink,
+  },
+  share: {
+    alignSelf: 'flex-start',
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  shareText: {
+    fontFamily: 'DMSans_600SemiBold',
+    fontSize: 14,
+    color: palette.tealText,
+  },
+  shareHot: {
+    alignSelf: 'stretch',
+    backgroundColor: palette.accent,
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  shareHotText: {
+    fontFamily: 'DMSans_700Bold',
+    fontSize: 15,
+    color: palette.white,
   },
   reminderRow: {
     marginTop: 4,

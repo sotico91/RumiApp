@@ -104,6 +104,14 @@ export function streakFromLedger(
   return computeStreak(activeDayKeys(transactions, noSpendDays ?? []), now);
 }
 
+/** Streak lengths worth celebrating with the share card. */
+export const STREAK_MILESTONES = [7, 15, 30, 60, 100, 200, 365] as const;
+export type StreakMilestone = (typeof STREAK_MILESTONES)[number];
+
+export function streakMilestone(days: number): StreakMilestone | null {
+  return (STREAK_MILESTONES as readonly number[]).includes(days) ? (days as StreakMilestone) : null;
+}
+
 /** Adds today to the "no spend" days, keeping the newest ones. */
 export function withNoSpendDay(days: string[] | undefined, day: string): string[] {
   const list = days ?? [];

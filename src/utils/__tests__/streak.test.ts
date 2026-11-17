@@ -1,6 +1,6 @@
 import { habitPilotVisible, localDateKey } from '@/src/utils/habitPilot';
 import { planLogReminders } from '@/src/utils/logReminder';
-import { computeStreak, streakFromLedger, withNoSpendDay } from '@/src/utils/streak';
+import { computeStreak, streakFromLedger, streakMilestone, withNoSpendDay } from '@/src/utils/streak';
 
 const NOW = new Date(2026, 10, 17, 10, 0); // Tue 17 Nov 2026, 10:00
 
@@ -120,5 +120,13 @@ describe('habitPilotVisible', () => {
     expect(habitPilotVisible({ habitPilotStartedAt: key(3) }, NOW)).toBe(true);
     expect(habitPilotVisible({ habitPilotStartedAt: key(20) }, NOW)).toBe(true);
     expect(habitPilotVisible({ habitPilotStartedAt: key(20), habitPilotDismissed: true }, NOW)).toBe(false);
+  });
+});
+
+describe('streakMilestone', () => {
+  it('celebrates 7, 15, 30 and later marks only', () => {
+    expect([1, 6, 7, 8, 15, 30, 31, 100].map((n) => streakMilestone(n))).toEqual([
+      null, null, 7, null, 15, 30, null, 100,
+    ]);
   });
 });
