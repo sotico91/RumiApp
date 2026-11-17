@@ -12,6 +12,11 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-11-17
 
+- **Versión 1.13.0, la racha pasa al encabezado y se cuenta sola:**
+  - **Chip "🐜 5" en el encabezado de Inicio**, junto a ayuda, ojo y perfil. Ya no hay tarjeta de racha en Inicio ni dentro del Diario de 14 días (`StreakCard` se borró; `StreakChip`). Un punto coral mientras hoy no hay nada anotado; dorado en los días de hito (7, 15, 30…). Al tocarlo abre la hoja con los 7 días, los comodines, "Compartir mi racha" y la hora del recordatorio.
+  - **Sin "Hoy no gasté":** la racha solo cuenta días con un movimiento anotado. Un día sin nada lo cubre un comodín si hay. Los días marcados en 1.11.0 siguen contando (`noSpendDays` se lee, ya no se escribe).
+  - **Correo de soporte de Rumi** dentro de la app (`SUPPORT_EMAIL`, "Reportar un error", pantalla de privacidad, `app.json`): soporte.rumifinanzas@gmail.com.
+
 - **Versión 1.12.0, tarjeta de racha para historias:**
   - **"Compartir mi racha"** en la tarjeta de racha (también dentro del Diario de 14 días) desde el primer día. En los días 7, 15, 30, 60, 100, 200 y 365 el botón se vuelve coral con "¡7 días! Compártelo en tus historias 🎉" (`STREAK_MILESTONES`, `streakMilestone` en `src/utils/streak.ts`).
   - **La imagen:** 9:16, 1080×1920, fondo crema con el billete coral, el número de días, los últimos 7 días, un sello en los hitos, el QR de descarga (`assets/images/qr-descargar.png`, abre `docs/descargar.html`), "Anota tus gastos conmigo 🐜" y "Cuentas claras, mente tranquila." Nunca muestra montos. Se ve antes de compartir y se envía con el menú del teléfono (Instagram, Facebook, WhatsApp). `StreakShareSheet`, con `react-native-view-shot` (módulo nativo nuevo: `pod install` en `ios/`).

@@ -40,7 +40,6 @@ import {
 import { ensureConceptIcons } from '@/src/data/conceptIcons';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { appendUniqueDay, localDateKey } from '@/src/utils/habitPilot';
-import { withNoSpendDay } from '@/src/utils/streak';
 import { antTipWeekKey } from '@/src/utils/antSpendTips';
 import { clampMonthStartDay, setMonthStartDay } from '@/src/utils/financeMath';
 import type { SavingsGoal } from '@/src/utils/savingsGoals';
@@ -133,8 +132,6 @@ type SettingsContextValue = {
   startHabitPilot: () => Promise<void>;
   dismissHabitPilot: () => Promise<void>;
   recordHabitOpenDay: () => Promise<void>;
-  /** Marks today as a day without spending, so the streak keeps going. */
-  markNoSpendToday: () => Promise<void>;
   updateLogReminder: (reminder: LogReminder) => Promise<void>;
   /** Hide the soft ant tip until next Monday week. */
   dismissAntSpendTipWeek: () => Promise<void>;
@@ -681,12 +678,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     });
   }, [settings, persist]);
 
-  const markNoSpendToday = useCallback(async () => {
-    const today = localDateKey();
-    if ((settings.noSpendDays ?? []).includes(today)) return;
-    await persist({ ...settings, noSpendDays: withNoSpendDay(settings.noSpendDays, today) });
-  }, [settings, persist]);
-
   const updateLogReminder = useCallback(
     async (reminder: LogReminder) => {
       await persist({ ...settings, logReminder: reminder });
@@ -757,7 +748,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       startHabitPilot,
       dismissHabitPilot,
       recordHabitOpenDay,
-      markNoSpendToday,
       updateLogReminder,
       dismissAntSpendTipWeek,
       rememberAntTipVariants,
@@ -800,7 +790,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       startHabitPilot,
       dismissHabitPilot,
       recordHabitOpenDay,
-      markNoSpendToday,
       updateLogReminder,
       dismissAntSpendTipWeek,
       rememberAntTipVariants,

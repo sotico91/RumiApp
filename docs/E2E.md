@@ -34,13 +34,13 @@ El simulador debe estar en **español**: los recorridos buscan los textos en esp
 | `date-range` | "Fechas" en Actividad abre el calendario; un atajo filtra los movimientos y el resumen muestra ingresos, gastos y balance de esas fechas. |
 | `savings-goal` | Una meta en Patrimonio crea su bolsillo, dice cuánto apartar al mes, "Aportar" abre Mover hacia ese bolsillo y el avance sube con el saldo. |
 | `dictate` | La barra "Díctaselo a Rumi" arriba en Agregar abre "Te escucho…", Cancelar la cierra sin llenar nada y sigue ahí en Ingreso. Lo que interpreta cada frase lo prueba jest (`dictation.test.ts`). |
-| `streak` | Tras el onboarding, el Diario de 14 días muestra "Empieza tu racha hoy" y el recordatorio a las 20:00; "Hoy no gasté" deja "1 día seguido" y quita el botón; "Compartir mi racha" abre la tarjeta para historias; el recordatorio pasa a las 21:00. Las reglas de la racha y los comodines las prueba jest (`streak.test.ts`). |
+| `streak` | El chip del encabezado empieza en 0 y abre "Empieza tu racha hoy" con el recordatorio a las 20:00; un gasto lo sube solo a 1; "Compartir mi racha" abre la tarjeta para historias; el recordatorio pasa a las 21:00. Las reglas de la racha y los comodines las prueba jest (`streak.test.ts`). |
 
 `subflows/` tiene pasos compartidos: `fresh-start` (datos limpios y onboarding con $1.000.000 en el banco) y `quick-spend` (registro rápido con monto y descripción).
 
 ## Al escribir uno nuevo
 
-- Preferir `id:` (los `testID` de la app: `add-fab`, `quick-amount`, `quick-note`, `category-search`, `flow-amount`, `flow-note`, `edit-note`, `dictate-bar`, `streak-card`, `streak-no-spend`, `streak-reminder`, `streak-share`, `streak-share-go`, `onboard-bank`, `repeat-amount`, `debt-name`, `debt-limit`, `debt-balance`) a coordenadas.
+- Preferir `id:` (los `testID` de la app: `add-fab`, `quick-amount`, `quick-note`, `category-search`, `flow-amount`, `flow-note`, `edit-note`, `dictate-bar`, `streak-chip`, `streak-reminder`, `streak-share`, `streak-share-go`, `onboard-bank`, `repeat-amount`, `debt-name`, `debt-limit`, `debt-balance`) a coordenadas.
 - iOS junta los textos de un botón en una sola etiqueta ("B, Banco principal, $1.000.000"): usar expresiones regulares y escapar `$`, `.` y paréntesis.
 - El teclado numérico no tiene "Listo": tocar un título ("¿En qué?") lo cierra.
 - El permiso de notificaciones de iOS puede salir al abrir la app recién instalada (pasa también en 1.10.2, sin investigar aún) o con el primer movimiento: `fresh-start` lo acepta con `tapOn: "Permitir"` `optional: true`, y los recorridos que registran algo lo repiten por si acaso.

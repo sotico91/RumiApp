@@ -99,7 +99,7 @@ export type UserSettings = {
   habitPilotDismissed?: boolean;
   /** When to cue a log: right after paying, or one minute in the evening. */
   habitCue?: HabitCue;
-  /** Local days (YYYY-MM-DD) the person marked "no spend today"; they count for the streak. */
+  /** Days marked "no spend today" in 1.11.0 (the button is gone); they still count for the streak. */
   noSpendDays?: string[];
   /** Daily reminder to log the day; missing = on at 8pm. */
   logReminder?: LogReminder;

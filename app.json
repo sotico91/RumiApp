@@ -2,7 +2,7 @@
   "expo": {
     "name": "Rumi",
     "slug": "rumi",
-    "version": "1.12.0",
+    "version": "1.13.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "rumi",
@@ -150,7 +150,7 @@
     ],
     "extra": {
       "privacyPolicyUrl": "https://sotico91.github.io/RumiApp/privacy-policy.html",
-      "supportEmail": "edavidvelascop@gmail.com",
+      "supportEmail": "soporte.rumifinanzas@gmail.com",
       "eas": {
         "projectId": "008c436e-84ba-4ece-8f2d-a9f54c635327"
       }

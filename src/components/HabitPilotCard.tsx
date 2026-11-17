@@ -16,7 +16,6 @@ import {
 } from '@/src/utils/habitPilot';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import { appAlert } from '@/src/components/AppAlert';
-import { StreakCard } from '@/src/components/StreakCard';
 
 export function HabitPilotCard() {
   const { t } = useLanguage();
@@ -131,10 +130,6 @@ export function HabitPilotCard() {
                 ? t('habit.cueHintEvening')
                 : t('habit.cueHintAfterPay')}
           </Text>
-          {/* The streak, "I spent nothing today" and the daily reminder to log. */}
-          <View style={styles.streak}>
-            <StreakCard compact />
-          </View>
         </>
       ) : (
         <>
@@ -265,12 +260,6 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 14,
     color: palette.inkMuted,
-  },
-  streak: {
-    marginTop: 6,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: palette.border,
   },
   share: {
     alignSelf: 'flex-start',

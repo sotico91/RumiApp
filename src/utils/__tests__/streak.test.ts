@@ -1,6 +1,6 @@
 import { habitPilotVisible, localDateKey } from '@/src/utils/habitPilot';
 import { planLogReminders } from '@/src/utils/logReminder';
-import { computeStreak, streakFromLedger, streakMilestone, withNoSpendDay } from '@/src/utils/streak';
+import { computeStreak, streakFromLedger, streakMilestone } from '@/src/utils/streak';
 
 const NOW = new Date(2026, 10, 17, 10, 0); // Tue 17 Nov 2026, 10:00
 
@@ -73,14 +73,6 @@ describe('computeStreak', () => {
     const s = streakFromLedger(tx, [key(0)], NOW);
     expect(s.current).toBe(2);
     expect(s.todayDone).toBe(true);
-  });
-});
-
-describe('withNoSpendDay', () => {
-  it('adds once and keeps order', () => {
-    expect(withNoSpendDay(undefined, '2026-11-17')).toEqual(['2026-11-17']);
-    expect(withNoSpendDay(['2026-11-17'], '2026-11-17')).toEqual(['2026-11-17']);
-    expect(withNoSpendDay(['2026-11-17'], '2026-11-10')).toEqual(['2026-11-10', '2026-11-17']);
   });
 });
 

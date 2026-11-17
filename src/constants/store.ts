@@ -2,7 +2,7 @@
  * Public store / legal links.
  * Privacy page lives in docs/ — enable GitHub Pages (docs/) so the HTTPS URL works for App Store & Play.
  */
-export const SUPPORT_EMAIL = 'edavidvelascop@gmail.com';
+export const SUPPORT_EMAIL = 'soporte.rumifinanzas@gmail.com';
 
 /** Hosted privacy policy (GitHub Pages from /docs). */
 export const PRIVACY_POLICY_URL =

@@ -7,8 +7,6 @@ export const STREAK_FREEZE_EVERY = 7;
 export const STREAK_FREEZE_MAX = 2;
 /** How far back the streak is rebuilt (a streak longer than this still shows this cap). */
 const LOOKBACK_DAYS = 400;
-/** Most "no spend" days kept in settings. */
-export const NO_SPEND_DAYS_MAX = 120;
 
 export type StreakDayState = 'done' | 'frozen' | 'missed' | 'pending';
 
@@ -27,7 +25,7 @@ function addDays(d: Date, n: number): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 }
 
-/** Local days with at least one saved movement (by when it was logged) or marked "no spend". */
+/** Local days with at least one saved movement (by when it was logged), plus days marked "no spend" in 1.11.0. */
 export function activeDayKeys(
   transactions: Pick<Transaction, 'createdAt'>[],
   noSpendDays: string[] = []
@@ -110,12 +108,4 @@ export type StreakMilestone = (typeof STREAK_MILESTONES)[number];
 
 export function streakMilestone(days: number): StreakMilestone | null {
   return (STREAK_MILESTONES as readonly number[]).includes(days) ? (days as StreakMilestone) : null;
-}
-
-/** Adds today to the "no spend" days, keeping the newest ones. */
-export function withNoSpendDay(days: string[] | undefined, day: string): string[] {
-  const list = days ?? [];
-  if (list.includes(day)) return list;
-  const next = [...list, day].sort();
-  return next.length > NO_SPEND_DAYS_MAX ? next.slice(next.length - NO_SPEND_DAYS_MAX) : next;
 }

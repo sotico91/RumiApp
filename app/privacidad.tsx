@@ -114,7 +114,7 @@ export default function PrivacyPolicyScreen() {
               protégelos como información sensible.
             </Text>
             <Text style={styles.h}>10. Contacto</Text>
-            <Text style={styles.p}>edavidvelascop@gmail.com</Text>
+            <Text style={styles.p}>soporte.rumifinanzas@gmail.com</Text>
           </>
         ) : (
           <>
@@ -196,7 +196,7 @@ export default function PrivacyPolicyScreen() {
               Exported backups are not encrypted: treat them as sensitive information.
             </Text>
             <Text style={styles.h}>10. Contact</Text>
-            <Text style={styles.p}>edavidvelascop@gmail.com</Text>
+            <Text style={styles.p}>soporte.rumifinanzas@gmail.com</Text>
           </>
         )}
       </View>

@@ -1,22 +1,34 @@
-# Streak: a fresh start shows "Empieza tu racha hoy" inside the 14-day diary,
-# "Hoy no gasté" counts today, the share card opens, and the daily reminder can move to another hour.
+# Streak: the header chip starts at "🐜 0", counts itself once a spend is
+# logged, opens the detail (share card, daily reminder) and the reminder can
+# move to another hour. Freezes and missed days are covered by jest (streak.test.ts).
 appId: com.sotico91.rumi
 ---
 - runFlow: subflows/fresh-start.yaml
-- scrollUntilVisible:
-    element:
-      id: "streak-card"
-    direction: DOWN
-    timeout: 15000
+- assertVisible: "Racha: 0 .*"
+- tapOn:
+    id: "streak-chip"
 - assertVisible: "Empieza tu racha hoy 🐜"
 - assertVisible: ".*Todos los días a las 20:00.*"
-- tapOn:
-    id: "streak-no-spend"
-- assertVisible: "Hoy cuenta"
-- tapOn: "OK"
-- assertVisible: "1 día seguido 🐜"
 - assertNotVisible:
-    id: "streak-no-spend"
+    id: "streak-share"
+- tapOn: "TU RACHA"
+- swipe:
+    direction: DOWN
+- runFlow:
+    file: subflows/quick-spend.yaml
+    env:
+      AMOUNT: "8000"
+      NOTE: "almuerzo"
+- tapOn: "Guardar \\$8\\.000"
+- tapOn:
+    text: "Permitir"
+    optional: true
+- extendedWaitUntil:
+    visible: "Racha: 1 .*"
+    timeout: 10000
+- tapOn:
+    id: "streak-chip"
+- assertVisible: "1 día seguido 🐜"
 - tapOn:
     id: "streak-share"
 - assertVisible: "Compártela en tus historias"
@@ -25,11 +37,12 @@ appId: com.sotico91.rumi
 - takeScreenshot: streak-share-card
 - tapOn: "Cerrar"
 - tapOn:
+    id: "streak-chip"
+- tapOn:
     id: "streak-reminder"
 - assertVisible: "¿A qué hora te recuerdo anotar?"
 - tapOn: "21:00"
 - tapOn: "Listo"
-- scrollUntilVisible:
-    element: ".*Todos los días a las 21:00.*"
-    direction: DOWN
-    timeout: 10000
+- tapOn:
+    id: "streak-chip"
+- assertVisible: ".*Todos los días a las 21:00.*"
