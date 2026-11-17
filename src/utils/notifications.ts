@@ -7,7 +7,8 @@ import { AppState, Platform } from 'react-native';
 Notifications.setNotificationHandler({
   handleNotification: async (notification) => {
     const type = notification.request.content.data?.type;
-    const isReminder = type === 'expense-reminder' || type === 'debt-reminder';
+    const isReminder =
+      type === 'expense-reminder' || type === 'debt-reminder' || type === 'log-reminder';
     return {
       shouldShowBanner: true,
       shouldShowList: true,
@@ -220,7 +221,7 @@ export type PlannedReminder = {
   title: string;
   body: string;
   /** Read by ReminderDeepLink on tap (Android delivers data as strings). */
-  data: { type: 'expense-reminder' | 'debt-reminder' } & Record<string, string>;
+  data: { type: 'expense-reminder' | 'debt-reminder' | 'log-reminder' } & Record<string, string>;
 };
 
 const REMINDER_PREFIX = 'rumi-reminder-';
@@ -244,7 +245,15 @@ let syncQueue: Promise<unknown> = Promise.resolve();
 
 async function applyPlannedReminders(items: PlannedReminder[]): Promise<number> {
   if (Platform.OS === 'web') return 0;
-  if (items.length > 0 && !(await ensureNotificationPermission())) return 0;
+  if (items.length > 0) {
+    // The daily "log your day" reminder is on by default, so it never asks for
+    // permission itself: the first saved movement (or a bill reminder) asks.
+    const mayAsk = items.some((item) => item.data.type !== 'log-reminder');
+    const granted = mayAsk
+      ? await ensureNotificationPermission()
+      : (await Notifications.getPermissionsAsync()).granted;
+    if (!granted) return 0;
+  }
 
   const wanted = new Map(items.map((item) => [`${REMINDER_PREFIX}${item.id}`, item]));
   const scheduled = (await Notifications.getAllScheduledNotificationsAsync()).filter((n) =>

@@ -1,5 +1,4 @@
-import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
 import { useFinance } from '@/src/hooks/useFinance';
@@ -14,26 +13,22 @@ import {
   habitSummaryLine,
   loggedToday,
   openDaysInWindow,
-  pickDefaultReminderSubId,
 } from '@/src/utils/habitPilot';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 import { appAlert } from '@/src/components/AppAlert';
+import { StreakCard } from '@/src/components/StreakCard';
 
 export function HabitPilotCard() {
   const { t } = useLanguage();
   const {
     settings,
     updateHabitCue,
-    updateReminders,
     dismissHabitPilot,
     startHabitPilot,
   } = useSettings();
   const { transactions } = useFinance();
-  const [busy, setBusy] = useState(false);
 
   const window = habitPilotWindow(settings.habitPilotStartedAt);
-  const spendConcepts = settings.spendConcepts ?? [];
-  const reminderCount = (settings.reminderRules ?? []).length;
 
   const stats = useMemo(() => {
     if (!window) return null;
@@ -52,27 +47,6 @@ export function HabitPilotCard() {
   const pilotEnded = window.ended;
   const loggedRatio = Math.min(1, loggedCount / HABIT_PILOT_DAYS);
   const passed = loggedCount >= HABIT_PILOT_TARGET_DAYS;
-
-  async function enableReminder() {
-    const subId = pickDefaultReminderSubId(spendConcepts);
-    if (!subId) {
-      router.push('/(tabs)/plan');
-      return;
-    }
-    setBusy(true);
-    try {
-      await updateReminders({
-        reminderRules: [
-          { subId, hour: 20, minute: 0 },
-        ],
-        reminderHour: 20,
-        reminderMinute: 0,
-      });
-      appAlert(t('reminder.savedTitle'), t('habit.reminderOn'), undefined, { tone: 'success' });
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function shareSummary() {
     tapFeedback();
@@ -157,20 +131,10 @@ export function HabitPilotCard() {
                 ? t('habit.cueHintEvening')
                 : t('habit.cueHintAfterPay')}
           </Text>
-          {reminderCount === 0 ? (
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => {
-                tapFeedback();
-                void enableReminder();
-              }}
-              disabled={busy}
-              style={[styles.cta, busy && { opacity: 0.7 }]}>
-              <Text style={styles.ctaText}>{t('habit.enableReminder')}</Text>
-            </Pressable>
-          ) : (
-            <Text style={styles.hint}>{t('habit.reminderOn')}</Text>
-          )}
+          {/* The streak, "I spent nothing today" and the daily reminder to log. */}
+          <View style={styles.streak}>
+            <StreakCard compact />
+          </View>
         </>
       ) : (
         <>
@@ -301,6 +265,12 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 14,
     color: palette.inkMuted,
+  },
+  streak: {
+    marginTop: 6,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: palette.border,
   },
   share: {
     alignSelf: 'flex-start',

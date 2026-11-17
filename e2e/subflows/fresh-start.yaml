@@ -5,6 +5,10 @@ appId: com.sotico91.rumi
 - launchApp:
     clearState: true
     stopApp: true
+# A fresh install can show iOS's notification prompt over the first step.
+- tapOn:
+    text: "Permitir"
+    optional: true
 - extendedWaitUntil:
     visible: "Tu nombre"
     timeout: 20000

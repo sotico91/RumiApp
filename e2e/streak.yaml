@@ -1,0 +1,28 @@
+# Streak: a fresh start shows "Empieza tu racha hoy" inside the 14-day diary,
+# "Hoy no gasté" counts today, and the daily reminder can move to another hour.
+appId: com.sotico91.rumi
+---
+- runFlow: subflows/fresh-start.yaml
+- scrollUntilVisible:
+    element:
+      id: "streak-card"
+    direction: DOWN
+    timeout: 15000
+- assertVisible: "Empieza tu racha hoy 🐜"
+- assertVisible: ".*Todos los días a las 20:00.*"
+- tapOn:
+    id: "streak-no-spend"
+- assertVisible: "Hoy cuenta"
+- tapOn: "OK"
+- assertVisible: "1 día seguido 🐜"
+- assertNotVisible:
+    id: "streak-no-spend"
+- tapOn:
+    id: "streak-reminder"
+- assertVisible: "¿A qué hora te recuerdo anotar?"
+- tapOn: "21:00"
+- tapOn: "Listo"
+- scrollUntilVisible:
+    element: ".*Todos los días a las 21:00.*"
+    direction: DOWN
+    timeout: 10000

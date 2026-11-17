@@ -83,6 +83,17 @@ export function habitPilotWindow(
   };
 }
 
+/** Whether Home shows the 14-day diary card (active, or ended and not dismissed yet). */
+export function habitPilotVisible(
+  settings: { habitPilotStartedAt?: string; habitPilotDismissed?: boolean },
+  now = new Date()
+): boolean {
+  const window = habitPilotWindow(settings.habitPilotStartedAt, now);
+  if (!window) return false;
+  if (window.ended) return !settings.habitPilotDismissed;
+  return window.active;
+}
+
 export function daysWithLogs(
   transactions: Transaction[],
   startedAt: string,

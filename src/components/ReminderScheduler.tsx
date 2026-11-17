@@ -12,6 +12,8 @@ import { reminderPushCopy } from '@/src/utils/reminderCopy';
 import type { TranslationKey } from '@/src/i18n/translations';
 import type { Debt } from '@/src/types/finance';
 import { planAllReminders } from '@/src/utils/reminderPlan';
+import { planLogReminders } from '@/src/utils/logReminder';
+import { streakFromLedger } from '@/src/utils/streak';
 
 /** Let a burst of edits (saving several movements) settle into one sync. */
 const SYNC_DELAY_MS = 800;
@@ -84,7 +86,24 @@ export function ReminderScheduler() {
         data: { type: 'debt-reminder' as const, debtId: o.debtId },
       };
     });
-    const items = [...debtItems, ...expenseItems];
+    const streak = streakFromLedger(transactions, settings.noSpendDays);
+    const logItems = planLogReminders({
+      reminder: settings.logReminder,
+      todayDone: streak.todayDone,
+    }).map((o, i) => {
+      // Only the next reminder knows the streak for sure; later ones keep to the generic copy.
+      const withStreak = i === 0 && streak.current >= 2;
+      return {
+        id: o.id,
+        date: o.date,
+        title: t(`logReminder.title${o.variant}` as TranslationKey),
+        body: withStreak
+          ? t('logReminder.bodyStreak', { count: streak.current })
+          : t(`logReminder.body${o.variant}` as TranslationKey),
+        data: { type: 'log-reminder' as const },
+      };
+    });
+    const items = [...debtItems, ...expenseItems, ...logItems];
     const timer = setTimeout(() => void syncPlannedReminders(items), SYNC_DELAY_MS);
     return () => clearTimeout(timer);
   }, [
@@ -93,6 +112,8 @@ export function ReminderScheduler() {
     settings.onboardingDone,
     settings.reminderRules,
     settings.debtRemindersOff,
+    settings.logReminder,
+    settings.noSpendDays,
     spendConcepts,
     allowed,
     transactions,

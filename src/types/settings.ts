@@ -99,6 +99,10 @@ export type UserSettings = {
   habitPilotDismissed?: boolean;
   /** When to cue a log: right after paying, or one minute in the evening. */
   habitCue?: HabitCue;
+  /** Local days (YYYY-MM-DD) the person marked "no spend today"; they count for the streak. */
+  noSpendDays?: string[];
+  /** Daily reminder to log the day; missing = on at 8pm. */
+  logReminder?: LogReminder;
   /** Day the person's month starts (their pay day), 1–28; 1 or missing = calendar month. */
   monthStartDay?: number;
   /**
@@ -113,6 +117,8 @@ export type UserSettings = {
 };
 
 export type HabitCue = 'afterPay' | 'evening';
+
+export type LogReminder = { enabled: boolean; hour: number; minute: number };
 
 export type QuickTemplate = {
   id: string;

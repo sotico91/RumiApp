@@ -10,6 +10,15 @@ El detalle de cada cambio está en `git log`.
 - **Comentarios de código en inglés:** todos los comentarios del código van en inglés.
   Los textos que ve el usuario van en `src/i18n/translations.ts` (es/en).
 
+## 2026-11-17
+
+- **Versión 1.11.0, racha y recordatorio diario para anotar** (primer paso de la estrategia de hábito; ver `marketing/ESTRATEGIA.md`):
+  - **Racha 🐜:** días seguidos con al menos un movimiento anotado (cuenta el día en que se anotó, `createdAt`) o marcado con **"Hoy no gasté"**, para que un día sin gastos no rompa la racha. Hoy nunca la rompe: queda pendiente hasta que termina el día. Se calcula desde el historial, sin guardar un contador (`src/utils/streak.ts`).
+  - **Comodines 🧊:** cada 7 días seguidos se gana uno (máximo 2); un día que se pasa sin anotar gasta uno solo y la racha sigue.
+  - **Recordatorio diario para anotar:** encendido por defecto a las 20:00 (`logReminder` en ajustes; se cambia la hora o se apaga desde la tarjeta). Se planean los próximos 7 días como los demás recordatorios (`ReminderScheduler`, ids `log-AAAA-MM-DD`); si ya hay registro hoy, el de hoy no sale. Cuatro textos con la voz de Rumi, y el próximo dice la racha ("Llevas 5 días seguidos…"). Al tocarlo abre Agregar. `src/utils/logReminder.ts`, `LogReminderSheet`.
+  - **Dónde se ve:** en Inicio, dentro del Diario de 14 días mientras corre (reemplaza el botón "Activar aviso a las 8pm", que creaba un recordatorio de categoría), y como tarjeta propia "Tu racha" cuando el diario termina o se cierra. Muestra los últimos 7 días, los comodines, "Hoy no gasté" y la hora del recordatorio.
+  - Recorrido `e2e/streak.yaml`.
+
 ## 2026-11-13
 
 - **Versión 1.10.1, la primera para la App Store:**

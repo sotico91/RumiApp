@@ -8,7 +8,8 @@ const HANDLED_KEY = 'rumi:last-reminder-response-id';
 type Target =
   | { type: 'expense-reminder'; categoryId: string; amount: string }
   | { type: 'debt-reminder'; debtId: string }
-  | { type: 'ant-spend-tip' };
+  | { type: 'ant-spend-tip' }
+  | { type: 'log-reminder' };
 
 /** What a tapped notification points at; Android delivers notification data as strings. */
 function targetFromData(data: unknown): Target | null {
@@ -24,6 +25,8 @@ function targetFromData(data: unknown): Target | null {
       return field('debtId') ? { type: 'debt-reminder', debtId: field('debtId') } : null;
     case 'ant-spend-tip':
       return { type: 'ant-spend-tip' };
+    case 'log-reminder':
+      return { type: 'log-reminder' };
     default:
       return null;
   }
@@ -32,6 +35,11 @@ function targetFromData(data: unknown): Target | null {
 function openFromNotification(target: Target) {
   if (target.type === 'ant-spend-tip') {
     router.push('/(tabs)');
+    return;
+  }
+  if (target.type === 'log-reminder') {
+    // The one-screen spend form; Home's streak card has "no spend today".
+    router.push('/agregar');
     return;
   }
   if (target.type === 'debt-reminder') {

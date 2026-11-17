@@ -11,6 +11,8 @@ import { AntSpendTipCard } from '@/src/components/AntSpendTipCard';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
 import { ConceptGlanceSheet } from '@/src/components/ConceptGlanceSheet';
 import { HabitPilotCard } from '@/src/components/HabitPilotCard';
+import { StreakCard } from '@/src/components/StreakCard';
+import { habitPilotVisible } from '@/src/utils/habitPilot';
 import { HowToGuideButton } from '@/src/components/HowToGuideButton';
 import { MoneyText } from '@/src/components/MoneyText';
 import { PredictedSpendsCard } from '@/src/components/PredictedSpendsCard';
@@ -367,6 +369,8 @@ export default function HomeScreen() {
       ) : null}
 
       <HabitPilotCard />
+      {/* The diary card carries the streak while it runs; after that it has its own card. */}
+      {settings.onboardingDone && !habitPilotVisible(settings) ? <StreakCard /> : null}
 
       {antTip ? (
         <AntSpendTipCard
