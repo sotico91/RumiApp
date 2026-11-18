@@ -11,7 +11,7 @@ const format = (n: number) => formatMoney(n, 'COP');
 const accounts: Account[] = [
   { id: 'cash', nameKey: 'account.cash', type: 'cash', balance: 40_000 },
   { id: 'bank-main', nameKey: 'account.bankMain', type: 'bank', balance: 250_000 },
-  { id: 'nequi', name: 'Nequi', type: 'wallet', balance: 120_000 },
+  { id: 'nequi', nameKey: 'account.wallet', name: 'Nequi', type: 'wallet', balance: 120_000 },
 ];
 const debts = [{ id: 'visa', name: 'Visa', balance: 180_000, installment: 0 } as unknown as Debt];
 
