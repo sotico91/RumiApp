@@ -36,7 +36,7 @@ Estado (2026-11-13): Apple Developer Program pagado como persona natural; activa
 | Campo | Valor |
 |---|---|
 | Nombre en inglés | Rumi: Expense & Budget ("Rumi: spending & budget" ya estaba tomado en la App Store) |
-| Subtítulo (≤30) | es: Tu plata clara, sin tu banco · en: Spending made clear, no bank |
+| Subtítulo (≤30) | es: Control de gastos y ahorro · en: Spending tracker, no bank link (desde 1.13.2; ver docs/ASO.md) |
 | Categoría | Finanzas; secundaria: Productividad |
 | Derechos de contenido | No contiene contenido de terceros |
 | Clasificación por edad | Responder "No" o "Ninguno" a todo (sin contenido generado por usuarios, sin anuncios, sin apuestas, sin navegador web, sin chat). Resultado esperado: 4+ |
@@ -54,7 +54,7 @@ Estado (2026-11-13): Apple Developer Program pagado como persona natural; activa
 
 **Palabras clave (≤100, sin espacios; no repetir palabras del nombre ni del subtítulo, ni marcas ajenas como Nequi):**
 ```
-finanzas,ahorro,hormiga,quincena,billetera,deudas,cuentas,dinero,plata,metas,recordatorios,pesos
+finanzas,personales,hormiga,quincena,deudas,tarjeta,credito,cuentas,dinero,metas,salario,plata,pesos
 ```
 
 **Descripción:**
@@ -99,7 +99,7 @@ finanzas,ahorro,hormiga,quincena,billetera,deudas,cuentas,dinero,plata,metas,rec
 
 **Keywords:**
 ```
-expense,tracker,money,finance,savings,goals,debt,bills,reminders,wallet,personal,cash,spend,planner
+money,finance,savings,goals,debt,bills,wallet,personal,cash,planner,credit,card,payday,monthly
 ```
 
 **Description:**

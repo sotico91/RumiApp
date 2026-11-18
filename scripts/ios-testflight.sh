@@ -31,6 +31,10 @@ BASE="$(grep -m1 -E 'CURRENT_PROJECT_VERSION = ' "$ROOT/ios/Rumi.xcodeproj/proje
 # BUILD_NUMBER=<n> overrides it (e.g. a plain integer if App Store Connect does not show a build).
 BUILD="${BUILD_NUMBER:-${BASE}.$(date +%Y%m%d).$((10#$(date +%H%M)))}"
 VERSION="$(node -p "require('$ROOT/app.json').expo.version")"
+# The native project keeps its own version string; bring it in line with app.json
+# so a version bump never uploads under the previous version (1.13.2 went up as 1.13.1).
+sed -i '' -E "/<key>CFBundleShortVersionString<\/key>/{n;s|<string>[^<]*</string>|<string>${VERSION}</string>|;}" "$ROOT/ios/Rumi/Info.plist"
+sed -i '' -E "s/MARKETING_VERSION = [^;]+;/MARKETING_VERSION = ${VERSION};/" "$ROOT/ios/Rumi.xcodeproj/project.pbxproj"
 
 rm -rf "$OUT"
 mkdir -p "$OUT"

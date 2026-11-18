@@ -25,6 +25,8 @@ Fuera: marcas ajenas (Nequi, Daviplata, Bancolombia) en nombre, subtítulo o pal
 
 ## App Store
 
+Cargado en la versión 1.13.2 de App Store Connect el 2026-11-18 (subtítulo y palabras clave). Entra en vigor cuando Apple apruebe esa versión.
+
 ### Español
 
 - **Nombre:** Rumi: gastos y presupuesto (sin cambio)
