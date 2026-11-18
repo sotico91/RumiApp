@@ -110,6 +110,8 @@ PODS:
     - ExpoModulesCore
   - ExpoSplashScreen (57.0.10):
     - ExpoModulesCore
+  - ExpoStoreReview (57.0.3):
+    - ExpoModulesCore
   - ExpoSymbols (57.0.3):
     - ExpoModulesCore
   - ExpoSystemUI (57.0.4):
@@ -2388,6 +2390,7 @@ DEPENDENCIES:
   - ExpoSharing (from `../node_modules/expo-sharing/ios`)
   - ExpoSpeechRecognition (from `../node_modules/expo-speech-recognition/ios`)
   - ExpoSplashScreen (from `../node_modules/expo-splash-screen/ios`)
+  - ExpoStoreReview (from `../node_modules/expo-store-review/ios`)
   - ExpoSymbols (from `../node_modules/expo-symbols/ios`)
   - ExpoSystemUI (from `../node_modules/expo-system-ui/ios`)
   - "ExpoUI (from `../node_modules/@expo/ui/ios`)"
@@ -2547,6 +2550,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-speech-recognition/ios"
   ExpoSplashScreen:
     :path: "../node_modules/expo-splash-screen/ios"
+  ExpoStoreReview:
+    :path: "../node_modules/expo-store-review/ios"
   ExpoSymbols:
     :path: "../node_modules/expo-symbols/ios"
   ExpoSystemUI:
@@ -2760,6 +2765,7 @@ SPEC CHECKSUMS:
   ExpoSharing: 79c7c06d8444b0741660848c3830edf3ecb568cc
   ExpoSpeechRecognition: 00717a213796d5423295f80964155d71bc2d32be
   ExpoSplashScreen: 81fbc53af1ad30c739358ab6d3553769f05d2404
+  ExpoStoreReview: 046bdfebdbaf384b3a78e0fb523d7f426e80707c
   ExpoSymbols: 803dd72145830a3a437339e5a7a2e4b9d0c4332a
   ExpoSystemUI: 19fb0b6ed8a94d32bc15294161b5245083304e90
   ExpoUI: a2b7c42374630ba4345deb56c207a2c72db11c94

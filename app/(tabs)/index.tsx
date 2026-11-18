@@ -24,6 +24,7 @@ import { SelectPressable } from '@/src/components/SelectPressable';
 import { AppText, BrandScreen, Button, Card } from '@/src/components/ui';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
+import { useReviewPrompt } from '@/src/hooks/useReviewPrompt';
 import { usePro } from '@/src/hooks/usePro';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
@@ -59,6 +60,7 @@ export default function HomeScreen() {
     budgetStatus,
     predictedThisMonth,
   } = useFinance();
+  useReviewPrompt();
   const [glance, setGlance] = useState<'expense' | 'income' | null>(null);
   const [moneyInfo, setMoneyInfo] = useState<MoneyInfoKind | null>(null);
   const [predictOpen, setPredictOpen] = useState(false);

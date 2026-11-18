@@ -43,6 +43,7 @@ import { appendUniqueDay, localDateKey } from '@/src/utils/habitPilot';
 import { antTipWeekKey } from '@/src/utils/antSpendTips';
 import { clampMonthStartDay, setMonthStartDay } from '@/src/utils/financeMath';
 import type { SavingsGoal } from '@/src/utils/savingsGoals';
+import { nextReviewAsk } from '@/src/utils/reviewPrompt';
 
 type SettingsContextValue = {
   settings: UserSettings;
@@ -133,6 +134,8 @@ type SettingsContextValue = {
   dismissHabitPilot: () => Promise<void>;
   recordHabitOpenDay: () => Promise<void>;
   updateLogReminder: (reminder: LogReminder) => Promise<void>;
+  /** Remember that the store rating sheet was just requested. */
+  markReviewAsked: () => Promise<void>;
   /** Hide the soft ant tip until next Monday week. */
   dismissAntSpendTipWeek: () => Promise<void>;
   rememberAntTipVariants: (titleVariant: number, bodyVariant: number) => Promise<void>;
@@ -685,6 +688,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     [settings, persist]
   );
 
+  const markReviewAsked = useCallback(async () => {
+    await persist({ ...settings, reviewAsk: nextReviewAsk(settings.reviewAsk) });
+  }, [settings, persist]);
+
   const dismissAntSpendTipWeek = useCallback(async () => {
     await persist({ ...settings, antTipDismissedWeekKey: antTipWeekKey() });
   }, [settings, persist]);
@@ -749,6 +756,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       dismissHabitPilot,
       recordHabitOpenDay,
       updateLogReminder,
+      markReviewAsked,
       dismissAntSpendTipWeek,
       rememberAntTipVariants,
     }),
@@ -791,6 +799,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       dismissHabitPilot,
       recordHabitOpenDay,
       updateLogReminder,
+      markReviewAsked,
       dismissAntSpendTipWeek,
       rememberAntTipVariants,
     ]

@@ -103,6 +103,8 @@ export type UserSettings = {
   noSpendDays?: string[];
   /** Daily reminder to log the day; missing = on at 8pm. */
   logReminder?: LogReminder;
+  /** Last time the store rating sheet was requested, and how many times so far. */
+  reviewAsk?: { at: string; count: number };
   /** Day the person's month starts (their pay day), 1–28; 1 or missing = calendar month. */
   monthStartDay?: number;
   /**
