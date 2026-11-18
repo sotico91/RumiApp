@@ -46,4 +46,14 @@ export type IntentLexicon = {
   totals: string[];
   /** "¿por qué…?": a reason, which no total answers. */
   why: string[];
+  /** "¿en qué gasto demasiado?": limits and concepts running high. */
+  overspend: string[];
+  /** "¿qué suscripciones tengo?": payments that repeat every month. */
+  recurring: string[];
+  /** "¿qué me falta pagar?": repeating payments not seen yet this month. */
+  upcoming: string[];
+  /** "¿cuánto debería ahorrar?": a suggestion, not what was saved. */
+  shouldSave: string[];
+  /** Past-tense spend/pay verbs: "¿cuánto gasté en suscripciones?" is a total, not the list. */
+  pastVerb: string[];
 };

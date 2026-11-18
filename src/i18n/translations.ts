@@ -304,6 +304,9 @@ export const translations = {
     'insights.searchSuggestions': 'Try one of these',
     'insights.searchAnswer': 'Answer',
     'insights.askUnderstood': 'Understood: {what}',
+    'insights.basisEstimate': 'Estimate',
+    'insights.basisInference': 'Read from your data',
+    'insights.basisHypothesis': 'To confirm',
     'insights.askShowTxs': 'See {count} {count|transaction|transactions}',
     'insights.askHideTxs': 'Hide transactions',
     'insights.askMoreTxs': 'and {count} more in Activity',
@@ -651,9 +654,11 @@ export const translations = {
     'debtPlan.rateHint': 'Add each credit\'s interest rate (edit it in Wealth) to see how much interest you save.',
     'pro.reasonDebtPlan': 'The plan to get out of debt is part of Pro: how much sooner you finish, how much interest you save and what to pay first.',
     'pro.reasonAfford': '"Can I afford it?" is part of Pro: Rumi checks your month, your installments and your forecast before you buy.',
+    'pro.reasonAdvisor': '"How much should I save?" and your bills to come are part of Pro: Rumi looks at what is usually left and the payments that repeat.',
     'pro.benefitDebtPlan': 'Plan to get out of debt sooner',
     'pro.seePro': 'See Rumi Pro',
     'pro.benefitAfford': '"Can I afford it?" before you buy',
+    'pro.benefitAdvisor': 'How much to save and which bills are coming',
     'wealth.debtPayDayNeed': 'Payment day must be between 1 and 28.',
     'wealth.debtPayDayHint':
       'Reminder day only — cash/bank is not deducted until you log the payment with Add transaction.',
@@ -734,6 +739,17 @@ export const translations = {
     'funds.emptyBodyCards': 'Log an income first (your salary, or what you have today), or pay with a credit card.',
     'funds.emptyBodyMove': 'Money moves out of a pocket that has some. Log an income first (your salary, or what you have today).',
     'ask.streakDays': 'You have logged {count} {count|day|days} in a row 🐜.',
+    'ask.assumePace': 'Day-to-day pace from this month and {months} previous {months|month|months}.',
+    'ask.assumePaceThisMonth': 'Day-to-day pace from this month only.',
+    'ask.assumeBills': 'Bills to come are read from your repeating payments and debts.',
+    'ask.assumeSurplus': 'What is usually left is the average of your last 3 months with income.',
+    'ask.assumeCut': 'Compared with your previous months; the savings are a suggestion.',
+    'ask.assumeRunRate': 'Daily average of the period so far.',
+    'ask.assumePartialNote': 'Only some words matched: {label}.',
+    'ask.assumeWhy': 'Compared with the same number of days of {compare}.',
+    'ask.assumeOverspend': 'Compared with what you had spent by this point in your last 3 months.',
+    'ask.assumeRecurring': 'A payment repeats when it shows up in 2 of the last 3 months with a similar amount.',
+    'ask.assumeShouldSave': '{percent}% is a common rule (50/30/20), not a must; what is left is the average of your last 3 months with income.',
     'ask.streakZero': 'Your streak is at zero: log a movement today to start it 🐜.',
     'ask.streakFreezes': 'You have {count} {count|freeze|freezes} 🧊 to cover a missed day.',
     'ask.streakTodayDone': 'Today is already counted.',
@@ -1501,9 +1517,46 @@ export const translations = {
     'search.answerAntEmpty':
       'No small spends ({period}). Mark subcategories as small spends in Plan first.',
     'search.answerAntDetail': 'Small spends ({period}): {amount}. Top: {detail}.',
-    'search.answerBudgetOk': 'No limits exceeded ({period}).',
     'search.answerBudgetOver':
       '{count} {count|limit|limits} exceeded ({period}). Highest: {label} at {percent}%.',
+    'search.answerWhySpendMore': 'You are spending more than in {compare}: {now} ({period}) vs {prev}, {amount} more.',
+    'search.answerWhySpendLess': 'You are spending less than in {compare}: {now} ({period}) vs {prev}, {amount} less.',
+    'search.answerWhySpendSame': 'You are spending the same as in {compare}: {now} ({period}).',
+    'search.answerWhyRising': 'What grew the most: {detail}.',
+    'search.answerWhyIncomeLess': 'And less came in: {now} vs {prev} ({amount} less).',
+    'search.answerWhyNothing':
+      'Your income did not drop either. If it feels like less money, an income or a move may be missing from the log.',
+    'search.answerOverspend': 'Where you are going over: {detail}.',
+    'search.answerOverspendNone':
+      'Nothing looks out of the ordinary: your concepts are running like in your previous months.',
+    'search.overspendOver': '{label} at {percent}% of its limit',
+    'search.overspendAhead': '{label} at {percent}% of its limit with {elapsed}% of the month gone',
+    'search.overspendHigh': '{label} {amount} vs about {usual} by this point in other months',
+    'search.answerBudgetAhead':
+      'No limit exceeded, but {label} is going fast: {percent}% used with {elapsed}% of the month gone.',
+    'search.answerBudgetOnPace': 'On track ({period}): you used {used}% of your limits with {elapsed}% of the month gone.',
+    'search.answerRecurring': 'Payments that repeat every month ({count}, about {total} a month): {detail}.',
+    'search.answerRecurringNone':
+      'I see no payments that repeat every month yet: one shows up here once it appears in 2 of the last 3 months.',
+    'search.recurringItem': '{label} {amount} (around day {day}, {status})',
+    'search.recurringPaid': 'paid',
+    'search.recurringPending': 'to pay',
+    'search.answerUpcoming': 'Still to pay this month: {count} {count|payment|payments}, about {total}. {detail}.',
+    'search.upcomingItem': '{label} {amount} on {date}',
+    'search.upcomingItemLate': '{label} {amount} (usual day {date} has passed)',
+    'search.answerUpcomingNoneLeft': 'Nothing repeating is left to pay this month. Next: {label} on {date} ({amount}).',
+    'search.answerUpcomingPro':
+      'You have {count} repeating {count|payment|payments} still to come this month. Seeing which ones and when they are due is part of Rumi Pro.',
+    'search.answerShouldSaveTarget':
+      'A good goal is {percent}% of what comes in: {target} a month ({perHalf} a fortnight). You usually have {surplus} left, so it fits and {free} stays free.',
+    'search.answerShouldSaveSurplus':
+      'You usually have {surplus} left a month. Start by putting that aside as soon as you get paid; reaching {percent}% ({target}) would take cutting {gap} a month.',
+    'search.answerShouldSaveNone':
+      'Today everything that comes in goes out (about {short} short a month). Before saving, it is time to trim: ask "Where can I cut back?".',
+    'search.answerShouldSaveNoIncome':
+      'To suggest an amount I need your income: log your salary or what comes in, and I will tell you how much to put aside.',
+    'search.answerShouldSavePro':
+      'How much to save, based on what is usually left each month, is part of Rumi Pro.',
     'search.labelCardPay': 'card payments',
     'search.labelObligation': 'obligations',
     'search.answerCardCharges':
@@ -1839,6 +1892,9 @@ export const translations = {
     'insights.searchSuggestions': 'Prueba una de estas',
     'insights.searchAnswer': 'Respuesta',
     'insights.askUnderstood': 'Entendí: {what}',
+    'insights.basisEstimate': 'Estimación',
+    'insights.basisInference': 'Deducido de tus datos',
+    'insights.basisHypothesis': 'Por confirmar',
     'insights.askShowTxs': 'Ver {count} {count|movimiento|movimientos}',
     'insights.askHideTxs': 'Ocultar movimientos',
     'insights.askMoreTxs': 'y {count} más en Historial',
@@ -2187,9 +2243,11 @@ export const translations = {
     'debtPlan.rateHint': 'Agrega la tasa de interés de cada crédito (edítalo en Patrimonio) para ver cuánto ahorras en intereses.',
     'pro.reasonDebtPlan': 'El plan para salir de deudas es parte de Pro: cuánto antes terminas, cuánto ahorras en intereses y qué pagar primero.',
     'pro.reasonAfford': '"¿Me alcanza?" es parte de Pro: Rumi revisa tu mes, tus cuotas y tu proyección antes de que compres.',
+    'pro.reasonAdvisor': '"¿Cuánto debería ahorrar?" y tus próximos pagos son parte de Pro: Rumi mira lo que te suele sobrar y los pagos que se repiten.',
     'pro.benefitDebtPlan': 'Plan para salir de deudas antes',
     'pro.seePro': 'Ver Rumi Pro',
     'pro.benefitAfford': '"¿Me alcanza?" antes de comprar',
+    'pro.benefitAdvisor': 'Cuánto ahorrar y qué pagos vienen',
     'wealth.debtPayDayNeed': 'El día de pago debe estar entre 1 y 28.',
     'wealth.debtPayDayHint':
       'Solo es el día de la cuota: efectivo/banco no bajan hasta que registres el pago con Registrar.',
@@ -2270,6 +2328,17 @@ export const translations = {
     'funds.emptyBodyCards': 'Registra primero un ingreso (tu salario o lo que tienes hoy) o paga con tarjeta de crédito.',
     'funds.emptyBodyMove': 'El dinero se mueve desde una cuenta que lo tenga. Registra primero un ingreso (tu salario o lo que tienes hoy).',
     'ask.streakDays': 'Llevas {count} {count|día seguido|días seguidos} anotando 🐜.',
+    'ask.assumePace': 'Ritmo del día a día de este mes y de {months} {months|mes anterior|meses anteriores}.',
+    'ask.assumePaceThisMonth': 'Ritmo del día a día solo de este mes.',
+    'ask.assumeBills': 'Las cuentas que vienen salen de tus pagos repetidos y tus deudas.',
+    'ask.assumeSurplus': 'Lo que te suele sobrar es el promedio de tus últimos 3 meses con ingresos.',
+    'ask.assumeCut': 'Comparado con tus meses anteriores; el ahorro es una sugerencia.',
+    'ask.assumeRunRate': 'Promedio diario de lo que va del periodo.',
+    'ask.assumePartialNote': 'Solo coinciden algunas palabras: {label}.',
+    'ask.assumeWhy': 'Comparado con el mismo número de días de {compare}.',
+    'ask.assumeOverspend': 'Comparado con lo que llevabas a esta altura en tus últimos 3 meses.',
+    'ask.assumeRecurring': 'Un pago se repite cuando aparece en 2 de los últimos 3 meses con un monto parecido.',
+    'ask.assumeShouldSave': 'El {percent}% es una regla común (50/30/20), no una obligación; lo que te sobra es el promedio de tus últimos 3 meses con ingresos.',
     'ask.streakZero': 'Tu racha está en cero: anota un movimiento hoy para empezarla 🐜.',
     'ask.streakFreezes': 'Tienes {count} {count|comodín|comodines} 🧊 para cubrir un día que se te pase.',
     'ask.streakTodayDone': 'Hoy ya cuenta.',
@@ -3040,9 +3109,46 @@ export const translations = {
     'search.answerAntEmpty':
       'Sin gastos hormiga ({period}). Marca subcategorías como hormiga en Plan.',
     'search.answerAntDetail': 'Gastos hormiga ({period}): {amount}. Top: {detail}.',
-    'search.answerBudgetOk': 'Ningún tope superado ({period}).',
     'search.answerBudgetOver':
       '{count} {count|tope superado|topes superados} ({period}). El peor: {label} al {percent}%.',
+    'search.answerWhySpendMore': 'Estás gastando más que en {compare}: {now} ({period}) vs {prev}, {amount} más.',
+    'search.answerWhySpendLess': 'Estás gastando menos que en {compare}: {now} ({period}) vs {prev}, {amount} menos.',
+    'search.answerWhySpendSame': 'Estás gastando lo mismo que en {compare}: {now} ({period}).',
+    'search.answerWhyRising': 'Lo que más subió: {detail}.',
+    'search.answerWhyIncomeLess': 'Y entró menos: {now} vs {prev} ({amount} menos).',
+    'search.answerWhyNothing':
+      'Tus ingresos tampoco bajaron. Si sientes menos dinero, puede que falte registrar algún ingreso o movimiento.',
+    'search.answerOverspend': 'Donde te estás pasando: {detail}.',
+    'search.answerOverspendNone':
+      'No veo nada fuera de lo normal: tus categorías van como en tus meses anteriores.',
+    'search.overspendOver': '{label} al {percent}% del tope',
+    'search.overspendAhead': '{label} al {percent}% del tope con el {elapsed}% del mes',
+    'search.overspendHigh': '{label} {amount} vs unos {usual} a esta altura en otros meses',
+    'search.answerBudgetAhead':
+      'Ningún tope superado, pero {label} va rápido: {percent}% usado con el {elapsed}% del mes.',
+    'search.answerBudgetOnPace': 'Vas bien ({period}): usaste el {used}% de tus topes con el {elapsed}% del mes.',
+    'search.answerRecurring': 'Pagos que se repiten cada mes ({count}, unos {total} al mes): {detail}.',
+    'search.answerRecurringNone':
+      'Aún no veo pagos que se repitan cada mes: aparecen aquí cuando un pago está en 2 de los últimos 3 meses.',
+    'search.recurringItem': '{label} {amount} (hacia el día {day}, {status})',
+    'search.recurringPaid': 'pagado',
+    'search.recurringPending': 'falta',
+    'search.answerUpcoming': '{count|Te falta|Te faltan} {count} {count|pago|pagos} este mes, unos {total}. {detail}.',
+    'search.upcomingItem': '{label} {amount} el {date}',
+    'search.upcomingItemLate': '{label} {amount} (su día habitual, el {date}, ya pasó)',
+    'search.answerUpcomingNoneLeft': 'No te falta ningún pago fijo este mes. El próximo: {label} el {date} ({amount}).',
+    'search.answerUpcomingPro':
+      'Tienes {count} {count|pago fijo pendiente|pagos fijos pendientes} este mes. Ver cuáles y cuándo vencen es parte de Rumi Pro.',
+    'search.answerShouldSaveTarget':
+      'Una buena meta es el {percent}% de lo que te entra: {target} al mes ({perHalf} por quincena). Te suelen sobrar {surplus}, así que te alcanza y quedarían {free} libres.',
+    'search.answerShouldSaveSurplus':
+      'Te suelen sobrar {surplus} al mes. Empieza separando eso apenas te paguen; llegar al {percent}% ({target}) pide recortar {gap} al mes.',
+    'search.answerShouldSaveNone':
+      'Hoy se te va todo lo que entra (te faltan unos {short} al mes). Antes de ahorrar toca recortar: pregunta "¿En qué puedo recortar?".',
+    'search.answerShouldSaveNoIncome':
+      'Para sugerirte un monto necesito tus ingresos: registra tu salario o lo que te entra y te digo cuánto separar.',
+    'search.answerShouldSavePro':
+      'Cuánto ahorrar según lo que te suele sobrar cada mes es parte de Rumi Pro.',
     'search.labelCardPay': 'pagos a tarjeta',
     'search.labelObligation': 'obligaciones',
     'search.answerCardCharges':

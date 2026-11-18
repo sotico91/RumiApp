@@ -57,4 +57,9 @@ export const EN: IntentLexicon = {
   latest: ['last expense', 'latest expense', 'last purchase', 'latest purchase'],
   totals: ['spend', 'spent', 'expense', 'expenses'],
   why: ['why', 'how come'],
+  overspend: ['too much', 'overspend', 'overspending', 'over budget'],
+  recurring: ['subscriptions', 'subscription', 'recurring', 'fixed bills', 'fixed costs', 'monthly bills', 'monthly payments'],
+  upcoming: ['upcoming', 'bills due', 'left to pay', 'still have to pay', 'due this month', 'still owe this month'],
+  shouldSave: ['should i save', 'should i be saving', 'how much to save', 'how much to put aside'],
+  pastVerb: ['spent', 'paid'],
 };

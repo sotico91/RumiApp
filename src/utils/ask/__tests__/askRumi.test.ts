@@ -71,8 +71,7 @@ describe('askRumi intents', () => {
     ['¿cuánto voy a gastar los próximos 30 días?', 'projection', 'próximos 30 días'],
     ['how much will I spend in the next 15 days?', 'projection', 'próximos 15 días'],
     ['¿Cómo estarán mis finanzas a final de mes?', 'projection', 'Este mes'],
-    // Asks for a reason: no handler gives one yet, so no total pretends to.
-    ['¿Por qué este mes tengo menos dinero?', null, null],
+    ['¿Por qué este mes tengo menos dinero?', 'why', 'Este mes'],
     ['hola', null, null],
   ])('%s → %s', (q, intent, period) => {
     const r = ask(q);

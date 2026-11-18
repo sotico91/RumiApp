@@ -79,3 +79,28 @@ describe('answers share the snapshot numbers', () => {
     expect(text).toContain(`${format(1_000_000)} de cuentas fijas`);
   });
 });
+
+describe('basis: estimates never read as facts', () => {
+  const ask = (q: string) => askRumi(q, data, format, t, { language: 'es', availableCash: 5_000_000 });
+
+  it.each([
+    ['¿cuánto gasté este mes?', 'fact'],
+    ['¿cuál es mi liquidez?', 'fact'],
+    ['¿cuánto puedo gastar hoy?', 'estimate'],
+    ['¿puedo comprar algo de 500 mil?', 'estimate'],
+    ['¿cuánto voy a gastar este mes?', 'estimate'],
+    ['¿cuánto voy a gastar los próximos 30 días?', 'estimate'],
+    ['¿cuánto me queda?', 'estimate'],
+    ['¿en qué puedo recortar?', 'inference'],
+  ])('%s → %s', (q, basis) => {
+    expect(ask(q).basis).toBe(basis);
+  });
+
+  it('says what an estimate takes for granted', () => {
+    expect(ask('¿cuánto voy a gastar este mes?').assumptions).toEqual([
+      'Ritmo del día a día de este mes y de 1 mes anterior.',
+      'Las cuentas que vienen salen de tus pagos repetidos y tus deudas.',
+    ]);
+    expect(ask('¿cuánto gasté este mes?').assumptions).toEqual([]);
+  });
+});

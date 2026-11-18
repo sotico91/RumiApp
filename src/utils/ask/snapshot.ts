@@ -9,6 +9,7 @@ import {
   type PredictedSpend,
 } from '@/src/utils/financeMath';
 import { projectMonth, type MonthProjection } from '@/src/utils/projection';
+import type { TFn } from './types';
 
 /**
  * The person's month in one place, so every answer that talks about "what is
@@ -118,4 +119,15 @@ export function fixedDueBetween(
     }
   }
   return { total, count };
+}
+
+/** What an estimate built on the snapshot takes for granted, in plain words. */
+export function snapshotAssumptions(s: FinanceSnapshot, t: TFn): string[] {
+  const out = [
+    s.projection.historyMonths > 0
+      ? t('ask.assumePace', { months: s.projection.historyMonths })
+      : t('ask.assumePaceThisMonth'),
+  ];
+  if (s.fixed.length > 0) out.push(t('ask.assumeBills'));
+  return out;
 }

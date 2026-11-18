@@ -53,6 +53,11 @@ export type QueryWants = {
   totals: boolean;
   /** "¿por qué…?": asks for a reason, not an amount. */
   why: boolean;
+  overspend: boolean;
+  recurring: boolean;
+  upcoming: boolean;
+  shouldSave: boolean;
+  pastVerb: boolean;
 };
 
 export type ParsedQuery = {
@@ -130,6 +135,11 @@ export function parseQuery(
     latest: includesAny(q, L.latest),
     totals: includesAny(q, L.totals),
     why: includesAny(q, L.why),
+    overspend: includesAny(q, L.overspend),
+    recurring: includesAny(q, L.recurring),
+    upcoming: includesAny(q, L.upcoming),
+    shouldSave: includesAny(q, L.shouldSave),
+    pastVerb: includesAny(q, L.pastVerb),
   };
 
   return {

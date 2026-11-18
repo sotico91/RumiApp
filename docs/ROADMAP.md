@@ -29,6 +29,14 @@ Lo que hace que Rumi ahorre trabajo y explique mejor el dinero.
 - [ ] **Gastos repetidos que se registran solos:** Netflix, arriendo o el plan del celular, el día que tocan, con confirmación de un toque.
   - Ya existe la detección (`predictMonthlySpends`, `suggestReminders`); falta convertirla en registros.
   - Sin notificaciones nuevas: usar las que ya existen.
+- [ ] **Pregúntale a Rumi, siguientes pasos del asesor** (plan completo y decisiones en `docs/ASK_ENGINE.md`; B, A, E y C salieron en 1.15.0/1.16.0):
+  - **D. Contexto de conversación:** recordar la última pregunta (monto, periodo, concepto) para seguimientos como "¿y si gasto 300 mil?" (compararlo con el límite diario recién dado), "¿y el mes pasado?", "¿y en café?". En memoria de la pantalla, sin guardar en disco.
+  - **F. Preguntas de aclaración:** cuando falta un dato que cambia la respuesta (monto, sin ingresos registrados, concepto ambiguo), responder con una pregunta corta, el porqué y opciones de un toque (`AskResult.clarify`). Nunca preguntar lo que ya se sabe.
+  - **H. Set de evaluación:** preguntas reales es/en con casos ambiguos, datos incompletos o contradictorios y 3 perfiles de usuario (con sueldo fijo, ingresos variables, con deudas). Medir precisión de intención y montos exactos; crece con cada paso.
+  - **G. Memoria de hábitos editable:** separar hábitos estables (≥3 meses) de ocasionales; que la persona vea y corrija lo aprendido ("Netflix no es suscripción", "el mercado no es un pago fijo") desde ajustes, sin tocar nunca los movimientos. Necesita pantalla nueva.
+  - **Detector de pagos fijos:** `predictMonthlySpends` toma como fija cualquier categoría con 1–2 pagos al mes en 2 meses (en datos de prueba salieron Mercado y Transporte en "¿qué suscripciones tengo?"). Revisarlo con datos reales; G permitiría corregirlo a mano.
+  - **Recurrentes por nota en la proyección:** "próximos 30 días" y la proyección del mes no cuentan los pagos repetidos por nota (Netflix en una categoría hormiga). Decidir si se suman, cuidando que no cambie de golpe la cifra que muestra Inicio.
+  - **Panorama del mes:** una respuesta tipo resumen ("¿cómo van mis finanzas?") que junte disponible, cuentas que faltan, margen diario y topes en riesgo.
 
 - [x] **Mes desde el día de pago y chip de fecha** (1.7.0).
 - [x] **Pro: plan para salir de deudas y "¿me alcanza?" a futuro** (1.7.0).

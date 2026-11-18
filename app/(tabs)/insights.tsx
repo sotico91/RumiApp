@@ -37,6 +37,13 @@ import { toneFromBudgetRatio } from '@/src/utils/signalTone';
 /** Rows shown under an answer; the rest live in Activity. */
 const MAX_ANSWER_TXS = 8;
 
+/** How a non-fact answer is labelled under its text, so an estimate never reads as a fact. */
+const BASIS_LABEL: Record<Exclude<AskResult['basis'], 'fact'>, TranslationKey> = {
+  estimate: 'insights.basisEstimate',
+  inference: 'insights.basisInference',
+  hypothesis: 'insights.basisHypothesis',
+};
+
 export default function InsightsScreen() {
   const { t, language } = useLanguage();
   const { format } = useMoney();
@@ -210,6 +217,12 @@ export default function InsightsScreen() {
               </Text>
             ) : null}
             <Text style={styles.answerBody}>{answer}</Text>
+            {result && result.basis !== 'fact' ? (
+              <Text style={styles.answerBasis} testID="ask-basis">
+                <Text style={styles.answerBasisLabel}>{t(BASIS_LABEL[result.basis])}</Text>
+                {result.assumptions.length > 0 ? ` · ${result.assumptions.join(' ')}` : ''}
+              </Text>
+            ) : null}
             {result?.proFeature ? (
               <Pressable
                 accessibilityRole="button"
@@ -553,6 +566,17 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 14,
     color: palette.white,
+  },
+  answerBasis: {
+    marginTop: 8,
+    fontFamily: 'DMSans_500Medium',
+    fontSize: 12,
+    color: palette.inkMuted,
+    lineHeight: 17,
+  },
+  answerBasisLabel: {
+    fontFamily: 'DMSans_600SemiBold',
+    color: palette.accentDeep,
   },
   answerBody: {
     marginTop: 10,

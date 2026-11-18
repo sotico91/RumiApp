@@ -19,3 +19,10 @@ export type AskOptions = {
   /** False on the free plan: Pro-only answers show what Pro adds instead. Missing = allowed. */
   isPro?: boolean;
 };
+
+/**
+ * How sure an answer is. fact: sums of logged movements and balances.
+ * inference: read from patterns in the data (a trend, a partial note match).
+ * estimate: a projection with assumptions. hypothesis: needs the person to confirm.
+ */
+export type AskBasis = 'fact' | 'inference' | 'estimate' | 'hypothesis';

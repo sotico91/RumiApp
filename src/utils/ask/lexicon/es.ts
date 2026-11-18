@@ -164,4 +164,16 @@ export const ES: IntentLexicon = {
   latest: ['ultimo gasto', 'ultima compra', 'ultimo movimiento'],
   totals: ['gaste', 'gasté', 'gasto', 'gastos', 'cuanto', 'cuánto', 'total'],
   why: ['por que', 'por qué', 'a que se debe'],
+  overspend: ['demasiado', 'de mas', 'me paso', 'me estoy pasando', 'me pase', 'excediendo', 'derrochando', 'gastando mucho'],
+  recurring: [
+    'suscripciones', 'suscripcion', 'recurrente', 'recurrentes', 'pagos fijos', 'gastos fijos',
+    'cuentas fijas', 'pagos mensuales', 'se repiten', 'cobros mensuales', 'cobros automaticos',
+  ],
+  upcoming: [
+    'me falta pagar', 'falta por pagar', 'faltan por pagar', 'que debo pagar', 'cuentas pendientes',
+    'pagos pendientes', 'proximos pagos', 'proximas cuentas', 'que vence', 'que se vence', 'vencimientos',
+    'por pagar', 'que tengo que pagar',
+  ],
+  shouldSave: ['deberia ahorrar', 'debo ahorrar', 'cuanto ahorrar', 'me conviene ahorrar', 'cuanto separar', 'cuanto deberia guardar'],
+  pastVerb: ['gaste', 'pague', 'gastamos', 'pagamos', 'he gastado', 'he pagado'],
 };

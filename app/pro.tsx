@@ -22,6 +22,7 @@ const REASON: Record<ProFeature, TranslationKey> = {
   goals: 'pro.reasonGoals',
   debtPlan: 'pro.reasonDebtPlan',
   afford: 'pro.reasonAfford',
+  advisor: 'pro.reasonAdvisor',
   export: 'pro.reasonExport',
 };
 
@@ -32,6 +33,7 @@ const BENEFITS: { icon: keyof typeof MaterialCommunityIcons.glyphMap; key: Trans
   { icon: 'piggy-bank-outline', key: 'pro.benefitGoals' },
   { icon: 'flag-checkered', key: 'pro.benefitDebtPlan' },
   { icon: 'scale-balance', key: 'pro.benefitAfford' },
+  { icon: 'calendar-clock', key: 'pro.benefitAdvisor' },
   { icon: 'microsoft-excel', key: 'pro.benefitExport' },
   { icon: 'star-four-points-outline', key: 'pro.benefitNew' },
 ];

@@ -1,0 +1,23 @@
+# Ask Rumi labels how sure an answer is: a sum of movements reads as a plain
+# answer, a daily allowance says "Estimación" and what it assumes.
+appId: com.sotico91.rumi
+---
+- runFlow: subflows/fresh-start.yaml
+- tapOn: "Análisis"
+- tapOn:
+    id: "ask-input"
+- inputText: "¿Cuánto gasté hoy?"
+- pressKey: Enter
+- assertVisible: ".*No hay gastos registrados.*"
+- assertNotVisible:
+    id: "ask-basis"
+- tapOn:
+    id: "ask-input"
+- eraseText: 40
+- inputText: "¿Cuánto puedo gastar hoy?"
+- pressKey: Enter
+- assertVisible: ".*podrías gastar cerca de.*al día.*"
+- assertVisible:
+    id: "ask-basis"
+- assertVisible: "Estimación.*Ritmo del día a día.*"
+- takeScreenshot: ask-rumi-estimate

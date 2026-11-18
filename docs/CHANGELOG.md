@@ -12,6 +12,12 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-11-18
 
+- **Versión 1.16.0, Pregúntale a Rumi como asesor** (plan en `docs/ASK_ENGINE.md`, pasos E y C):
+  - **Cada respuesta dice qué tan segura es:** debajo del texto, "Estimación", "Deducido de tus datos" o "Por confirmar" con lo que supone ("Ritmo del día a día de este mes y de 3 meses anteriores", "Comparado con el mismo número de días de septiembre"). Las sumas de movimientos salen sin etiqueta (`basis`/`assumptions` en `AskResult`).
+  - **Preguntas nuevas** (`src/utils/ask/advisor.ts`): "¿por qué tengo menos dinero?" (qué subió y si entró menos, frente a los mismos días del mes pasado), "¿en qué estoy gastando demasiado?" (topes pasados o que van más rápido que el mes, y categorías muy por encima de lo habitual a esta altura), "¿qué suscripciones / gastos fijos tengo?" (pagos que se repiten, Netflix incluido), y "¿cómo voy con mi presupuesto?" ahora dice el ritmo ("90% usado con el 65% del mes").
+  - **Pro:** "¿qué me falta pagar este mes?" (pagos que se repiten y no han salido, con fecha) y "¿cuánto debería ahorrar?" (20% del ingreso frente a lo que te suele sobrar). Nueva línea en la pantalla de Pro.
+  - Recorrido `e2e/ask-rumi.yaml`.
+
 - **Versión 1.15.0, Pregúntale a Rumi más preciso y coherente** (auditoría y plan en `docs/ASK_ENGINE.md`):
   - **Una sola cuenta del mes:** "¿cuánto puedo gastar hoy?", "¿puedo comprar algo de 500 mil?", "¿cuánto me queda?" y "¿cómo cierro el mes?" usan las mismas cifras (`src/utils/ask/snapshot.ts`): lo que el ingreso aún cubre después de las cuentas pendientes, y dónde cae el mes al ritmo habitual. El límite diario dice también el ritmo y con cuánto cerrarías.
   - **El efectivo cuenta:** si en las cuentas hay menos de lo que el ingreso cubre, el límite diario usa lo disponible y dice ambas cifras. "¿Cuánto me queda?" resta las cuentas que faltan este mes.

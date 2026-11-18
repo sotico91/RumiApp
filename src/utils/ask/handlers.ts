@@ -25,14 +25,15 @@ import type { ParsedQuery } from './parse';
 import { tryAnswerPercentQuery } from './percent';
 import { analogRange, dayLabel, previousLabel } from './period';
 import { answerAfford, answerAffordLater, answerAhead, answerCut, answerProjection } from './planning';
-import type { FinanceSnapshot } from './snapshot';
+import { snapshotAssumptions, type FinanceSnapshot } from './snapshot';
+import { budget, overspend, recurring, shouldSave, upcoming, why } from './advisor';
 import { isCardTopicQuery, parseQueryAmount } from './signals';
 import { accountDisplayName, liquidPocketsForPay } from '@/src/utils/accounts';
 import { openDebts } from '@/src/utils/debts';
 import { pickUsual, usualSourceAccounts } from '@/src/utils/habits';
 import { streakFromLedger } from '@/src/utils/streak';
 import { includesAny, normalize } from './text';
-import type { AskOptions, TFn } from './types';
+import type { AskBasis, AskOptions, TFn } from './types';
 
 export type AskContext = {
   parsed: ParsedQuery;
@@ -57,6 +58,10 @@ export type AskAnswer = {
   period?: string;
   /** The answer is a Pro feature the free plan does not have. */
   proFeature?: ProFeature;
+  /** How sure the answer is; missing = fact. */
+  basis?: AskBasis;
+  /** What an estimate or inference takes for granted, ready to show. */
+  assumptions?: string[];
 };
 
 export type Handler = (ctx: AskContext) => AskAnswer | null;
@@ -142,24 +147,41 @@ const payFrom: Handler = ({ parsed, transactions, options, format, t }) => {
   };
 };
 
+/** An estimate from the shared snapshot, with what it takes for granted. */
+const estimate = (ctx: AskContext, text: string): AskAnswer => ({
+  text,
+  basis: 'estimate',
+  assumptions: snapshotAssumptions(ctx.snapshot(), ctx.t),
+});
+
 const afford: Handler = (ctx) => {
   if (!ctx.parsed.wants.afford) return null;
   const later = answerAffordLater(ctx.parsed.q, ctx.transactions, ctx.format, ctx.t, ctx.options);
-  if (later) return { text: later.text, proFeature: later.locked ? 'afford' : undefined };
-  return { text: answerAfford(ctx.parsed.q, ctx.snapshot(), ctx.format, ctx.t, ctx.options) };
+  if (later) {
+    if (later.locked) return { text: later.text, proFeature: 'afford' };
+    return { text: later.text, basis: 'estimate', assumptions: [ctx.t('ask.assumeSurplus')] };
+  }
+  const text = answerAfford(ctx.parsed.q, ctx.snapshot(), ctx.format, ctx.t, ctx.options);
+  // Without an amount it only asks for one: nothing estimated yet.
+  return parseQueryAmount(ctx.parsed.q) == null && ctx.snapshot().room == null ? { text } : estimate(ctx, text);
 };
 
 const cut: Handler = (ctx) =>
   ctx.parsed.wants.cut
-    ? { text: answerCut(ctx.transactions, ctx.format, ctx.t, ctx.options, ctx.categoryLabel) }
+    ? {
+        text: answerCut(ctx.transactions, ctx.format, ctx.t, ctx.options, ctx.categoryLabel),
+        basis: 'inference',
+        assumptions: [ctx.t('ask.assumeCut')],
+      }
     : null;
 
 /**
  * "¿cuánto me queda?" with no month-end words: cash on hand now, what is left
  * once this month's pending bills are paid, then where the month lands.
  */
-const leftNow: Handler = ({ parsed, options, format, t, snapshot }) => {
-  if (!parsed.wants.leftNow || options.availableCash == null) return null;
+const leftNow: Handler = (ctx) => {
+  const { parsed, options, format, t, snapshot } = ctx;
+  if (!parsed.wants.leftNow || parsed.wants.upcoming || options.availableCash == null) return null;
   const s = snapshot();
   const parts = [t('search.answerAvailable', { amount: format(options.availableCash) })];
   if (s.cashRoom != null && s.pendingFixed > 0) {
@@ -177,17 +199,19 @@ const leftNow: Handler = ({ parsed, options, format, t, snapshot }) => {
         : t('search.answerProjectionShort', { income: format(p.income), short: format(-p.projectedLeft) })
     );
   }
-  return { text: parts.join(' ') };
+  // Cash on hand alone is a fact; bills to come and the month's landing are estimates.
+  return parts.length > 1 ? estimate(ctx, parts.join(' ')) : { text: parts.join(' ') };
 };
 
 /** Month and running weeks/fortnights: pace to the end. Windows ahead ("próximos 30 días"): an estimate. */
 const projection: Handler = (ctx) => {
   const { parsed } = ctx;
-  if (parsed.period.ahead) return { text: answerAhead(ctx.snapshot(), parsed.period, ctx.format, ctx.t) };
+  if (parsed.period.ahead) return estimate(ctx, answerAhead(ctx.snapshot(), parsed.period, ctx.format, ctx.t));
   if (!parsed.wants.projection || !parsed.inProgress || parsed.period.analog === 'day') return null;
-  return {
-    text: answerProjection(ctx.snapshot(), ctx.list, parsed.period, ctx.format, ctx.t, ctx.options.debts),
-  };
+  const text = answerProjection(ctx.snapshot(), ctx.list, parsed.period, ctx.format, ctx.t, ctx.options.debts);
+  // Weeks and fortnights run at their own daily average; only the month uses the snapshot.
+  if (parsed.period.analog === 'month') return estimate(ctx, text);
+  return { text, basis: 'estimate', assumptions: [ctx.t('ask.assumeRunRate')] };
 };
 
 const savings: Handler = ({ parsed, list, options, format, t }) => {
@@ -315,23 +339,6 @@ const top: Handler = (ctx) => {
     };
   }
   return { text: t('search.answerTop', base), txs };
-};
-
-const budget: Handler = ({ parsed, options, t, categoryLabel }) => {
-  if (!parsed.wants.budget || !options.budgetStatus?.length) return null;
-  const period = parsed.period.label;
-  const over = options.budgetStatus
-    .filter((b) => b.ratio > 1 && b.limit > 0)
-    .sort((a, b) => b.ratio - a.ratio);
-  if (over.length === 0) return { text: t('search.answerBudgetOk', { period }) };
-  return {
-    text: t('search.answerBudgetOver', {
-      label: categoryLabel(over[0].categoryId),
-      percent: Math.round(over[0].ratio * 100),
-      count: over.length,
-      period,
-    }),
-  };
 };
 
 /** One or more concepts, optionally by payment method, compared, counted or averaged. */
@@ -718,9 +725,11 @@ const looseNote: Handler = (ctx) => {
   const { parsed } = ctx;
   if (parsed.noteNeedle || noteSearchTokens(parsed.q).length === 0) return null;
   const { pool, period } = noteScope(ctx);
-  const { txs, label } = findNotes(pool, parsed);
+  const { txs, label, full } = findNotes(pool, parsed);
   if (txs.length === 0) return null;
-  return noteAnswer(ctx, label, period, txs);
+  const answer = noteAnswer(ctx, label, period, txs);
+  // Only some of the words matched: a likely hit, not a certain one.
+  return full ? answer : { ...answer, basis: 'inference', assumptions: [ctx.t('ask.assumePartialNote', { label })] };
 };
 
 const noteNeedle: Handler = (ctx) => {
@@ -788,8 +797,12 @@ export const HANDLERS = {
   percent,
   afford,
   cut,
+  shouldSave,
+  upcoming,
   leftNow,
   projection,
+  why,
+  overspend,
   savings,
   available,
   creditDraws,
@@ -800,6 +813,7 @@ export const HANDLERS = {
   listed,
   top,
   budget,
+  recurring,
   confirm,
   when,
   noteFirst,

@@ -5,13 +5,13 @@ import { parseQuery, type ParsedQuery } from './parse';
 import { txsForPeriod } from './period';
 import { buildSnapshot, type FinanceSnapshot } from './snapshot';
 import { normalize } from './text';
-import type { AskOptions, TFn } from './types';
+import type { AskBasis, AskOptions, TFn } from './types';
 import type { ProFeature } from '@/src/utils/pro';
 
 export { buildSearchSuggestions, type SearchSuggestion } from './suggestions';
 export { parseQueryAmount } from './signals';
 export { parseQuery, type ParsedQuery } from './parse';
-export type { AskOptions } from './types';
+export type { AskBasis, AskOptions } from './types';
 
 export type { AskIntent } from './handlers';
 
@@ -27,9 +27,22 @@ export type AskResult = {
   followUps: string[];
   /** Set when the full answer is a Pro feature. */
   proFeature?: ProFeature;
+  /** fact, inference, estimate or hypothesis: never show an estimate as a fact. */
+  basis: AskBasis;
+  /** What an estimate or inference takes for granted (empty for facts). */
+  assumptions: string[];
 };
 
 const MAX_FOLLOW_UPS = 3;
+
+const NOT_UNDERSTOOD: Omit<AskResult, 'text'> = {
+  intent: null,
+  understood: null,
+  txs: [],
+  followUps: [],
+  basis: 'fact',
+  assumptions: [],
+};
 
 function followUpsFor(ctx: AskContext, concept: string | null, query: string): string[] {
   const { parsed, t } = ctx;
@@ -58,7 +71,7 @@ export function askRumi(
   options: AskOptions = {}
 ): AskResult {
   if (!query.trim()) {
-    return { text: t('search.needQuestion'), intent: null, understood: null, txs: [], followUps: [] };
+    return { ...NOT_UNDERSTOOD, text: t('search.needQuestion') };
   }
   const spendConcepts = options.spendConcepts ?? [];
   const parsed: ParsedQuery = parseQuery(query, {
@@ -91,15 +104,11 @@ export function askRumi(
       txs: [...(answer.txs ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
       followUps: answer.proFeature ? [] : followUpsFor(ctx, concept, query),
       proFeature: answer.proFeature,
+      basis: answer.basis ?? 'fact',
+      assumptions: answer.assumptions ?? [],
     };
   }
-  return {
-    text: t('search.answerUnclear', { examples: t('search.examples') }),
-    intent: null,
-    understood: null,
-    txs: [],
-    followUps: [],
-  };
+  return { ...NOT_UNDERSTOOD, text: t('search.answerUnclear', { examples: t('search.examples') }) };
 }
 
 /** Text-only answer (tests, cards and older callers). */

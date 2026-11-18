@@ -26,7 +26,7 @@ export const FOUNDER_DAYS = 90;
 /** RevenueCat entitlement that unlocks Pro. */
 export const PRO_ENTITLEMENT = 'pro';
 
-/** `debtPlan`, `afford` and `export` (Excel, CSV, JSON backup) are Pro only. */
+/** `debtPlan`, `afford`, `advisor` (how much to save, bills to come) and `export` (Excel, CSV, JSON backup) are Pro only. */
 export type ProFeature =
   | 'ask'
   | 'budgets'
@@ -34,6 +34,7 @@ export type ProFeature =
   | 'goals'
   | 'debtPlan'
   | 'afford'
+  | 'advisor'
   | 'export';
 
 /** What is saved on the phone about Pro. */
@@ -150,7 +151,7 @@ export function freeAllows(feature: ProFeature, existing: number): boolean {
   if (feature === 'budgets') return existing < FREE_BUDGETS;
   if (feature === 'reminders') return existing < FREE_REMINDERS;
   if (feature === 'goals') return existing < FREE_GOALS;
-  if (feature === 'debtPlan' || feature === 'afford' || feature === 'export') return false;
+  if (feature === 'debtPlan' || feature === 'afford' || feature === 'advisor' || feature === 'export') return false;
   return existing < FREE_ASKS_PER_MONTH;
 }
 
