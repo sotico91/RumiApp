@@ -47,6 +47,8 @@ Fuera: marcas ajenas (Nequi, Daviplata, Bancolombia) en nombre, subtítulo o pal
 
 ## Google Play
 
+Aplicado en Play el 2026-11-18 por la API (descripción breve y completa, es-419 y en-US). Medir desde esa fecha.
+
 ### Español (es-419)
 
 - **Nombre:** Rumi: gastos y presupuesto (sin cambio)

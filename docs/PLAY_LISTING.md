@@ -22,17 +22,17 @@ Textos y respuestas para crear Rumi en Play Console y abrir la prueba cerrada. P
 
 **Nombre (≤30):** Rumi: gastos y presupuesto
 
-**Descripción breve (≤80):** Anota gastos en segundos, pon topes y mira tu mes. Tus datos, en tu teléfono.
+**Descripción breve (≤80):** Control de gastos y finanzas personales: topes, deudas y ahorro. Sin banco.
 
 **Descripción completa:**
 
-> Rumi te ayuda a saber en qué se te va la plata, sin hojas de cálculo y sin conectar tu banco.
+> Rumi es una app de control de gastos y finanzas personales: te ayuda a saber en qué se te va la plata, sin hojas de cálculo y sin conectar tu banco.
 >
 > ANOTA EN SEGUNDOS
 > Escribe cuánto y en qué ("almuerzo", "uber", "mercado") y Rumi lo pone en su categoría. También puedes dictarlo: "gasté veinte mil en almuerzo con Nequi ayer".
 >
 > TOPES QUE TE CUIDAN
-> Ponle un tope al mes a lo que quieras cuidar y mira cuánto te queda en cada categoría antes de pasarte.
+> Arma tu presupuesto mensual: ponle un tope a lo que quieras cuidar y mira cuánto te queda en cada categoría antes de pasarte.
 >
 > GASTOS HORMIGA
 > El café, el domicilio, la suscripción: Rumi te muestra cuánto suman esos gastos pequeños que se repiten.
@@ -44,7 +44,7 @@ Textos y respuestas para crear Rumi en Play Console y abrir la prueba cerrada. P
 > Te avisa el día de pagar la luz, el internet o el arriendo, y un día antes de cada cuota de tus créditos.
 >
 > TODO TU DINERO EN UN LUGAR
-> Efectivo, bancos, billeteras como Nequi, ahorros, inversiones, tarjetas y créditos, con tu patrimonio neto y el pronóstico de cómo cierras el mes.
+> Efectivo, bancos, billeteras como Nequi, ahorros, inversiones, tarjeta de crédito, credicheque y créditos, con tu patrimonio neto y el pronóstico de cómo cierras el mes.
 >
 > TUS DATOS SON TUYOS
 > Sin cuenta ni correo, sin servidor y sin anuncios. Todo se guarda cifrado en tu teléfono y puedes bloquear la app con huella o rostro. Exporta un respaldo cuando quieras.
@@ -55,17 +55,17 @@ Textos y respuestas para crear Rumi en Play Console y abrir la prueba cerrada. P
 
 **Name (≤30):** Rumi: spending & budget
 
-**Short description (≤80):** Log spending in seconds, set limits, see your month. Data stays on your phone.
+**Short description (≤80):** Expense tracker and budget planner: limits, debts and savings. No bank link.
 
 **Full description:**
 
-> Rumi shows you where your money goes, with no spreadsheets and no bank connection.
+> Rumi is an expense tracker and budget planner that shows you where your money goes, with no spreadsheets and no bank connection.
 >
 > LOG IN SECONDS
 > Type how much and what for ("lunch", "uber", "groceries") and Rumi files it. Or say it: "spent twelve fifty on lunch yesterday".
 >
 > LIMITS THAT LOOK OUT FOR YOU
-> Set a monthly limit on what you want to watch and see what's left in every category.
+> Build a monthly budget: set a limit on what you want to watch and see what's left in every category.
 >
 > SMALL SPENDS
 > Coffee, delivery, subscriptions: Rumi adds up the small spends that keep coming back.
@@ -77,7 +77,7 @@ Textos y respuestas para crear Rumi en Play Console y abrir la prueba cerrada. P
 > A heads-up on the day your power, internet or rent is due, and a day before each loan installment.
 >
 > ALL YOUR MONEY IN ONE PLACE
-> Cash, banks, wallets like PayPal, savings, investments, cards and loans, with your net worth and a month-end forecast.
+> Cash, banks, wallets like PayPal, savings, investments, credit cards and loans, with your net worth and a month-end forecast.
 >
 > YOUR DATA IS YOURS
 > No account, no server, no ads. Everything is stored encrypted on your phone, and you can lock the app with your fingerprint or face. Export a backup anytime.
