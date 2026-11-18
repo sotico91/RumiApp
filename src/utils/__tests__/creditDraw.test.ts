@@ -164,11 +164,26 @@ describe('credit draws (cash advance / cupo into a pocket)', () => {
     expect(paidLoan.closedAt).toBe(tx.createdAt);
   });
 
-  it('reopens cupo products an older version closed at 0', () => {
-    const closed = { ...visa, closedAt: '2026-10-01T00:00:00.000Z' };
-    const { debts: next, changed } = closePaidInstallments([closed], []);
-    expect(changed).toBe(true);
-    expect(next[0].closedAt).toBeUndefined();
+  it('closes again a card 1.13.2 reopened, but keeps one paid off or used since', () => {
+    const payoff = (debtId: string, createdAt: string) =>
+      ({ id: `p-${debtId}-${createdAt}`, type: 'debt_payment', amount: 1, createdAt, accountId: 'bank', debtId }) as Transaction;
+    const oldPayoff = payoff('visa', '2026-10-01T15:00:00.000Z');
+    // Reopened by 1.13.2: at 0, last movement is the old payoff → closed again.
+    let out = closePaidInstallments([visa], [oldPayoff]);
+    expect(out.changed).toBe(true);
+    expect(out.debts[0].closedAt).toBe(oldPayoff.createdAt);
+    // Paid in full on 1.13.2 or later → stays open.
+    out = closePaidInstallments([visa], [oldPayoff, payoff('visa', '2026-11-18T20:00:00.000Z')]);
+    expect(out.debts[0].closedAt).toBeUndefined();
+    // Charged after the reopen, then paid: last movement is new → stays open.
+    const charge = { id: 'c', type: 'expense', amount: 1, createdAt: '2026-11-19T10:00:00.000Z', creditDebtId: 'visa' } as Transaction;
+    out = closePaidInstallments([visa], [oldPayoff, charge]);
+    expect(out.debts[0].closedAt).toBeUndefined();
+    // A card at 0 that was never paid (just added) stays open.
+    expect(closePaidInstallments([visa], []).changed).toBe(false);
+    // A closed card stays closed.
+    const closed = { ...visa, closedAt: oldPayoff.createdAt };
+    expect(closePaidInstallments([closed], [oldPayoff]).debts[0].closedAt).toBe(oldPayoff.createdAt);
   });
 
   it('only blocks past the free cupo when the limit is known', () => {

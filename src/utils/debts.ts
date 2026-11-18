@@ -109,6 +109,30 @@ export function closedAtAfterBalance(
   return undefined;
 }
 
+/**
+ * From 1.13.2 a card paid in full stays open. Before that (since 1.5, Sep 2026)
+ * paying it off closed it, so a payoff older than this marks a closed card.
+ */
+export const CUPO_KEPT_OPEN_SINCE = '2026-11-18T05:00:00.000Z';
+
+/** Latest movement touching each debt: a payment, a card charge or a draw from it. */
+function lastDebtActivity(
+  transactions: Transaction[]
+): Map<string, Pick<Transaction, 'type' | 'createdAt'>> {
+  const last = new Map<string, Pick<Transaction, 'type' | 'createdAt'>>();
+  const touch = (id: string | undefined, tx: Transaction) => {
+    if (!id) return;
+    const prev = last.get(id);
+    if (!prev || tx.createdAt > prev.createdAt) last.set(id, tx);
+  };
+  for (const tx of transactions) {
+    touch(tx.debtId, tx);
+    touch(tx.creditDebtId, tx);
+    touch(debtIdFromPayAccountId(tx.accountId), tx);
+  }
+  return last;
+}
+
 /** Mark already-zero installment loans as settled (migration + first load). */
 export function closePaidInstallments(
   debts: Debt[],
@@ -121,13 +145,18 @@ export function closePaidInstallments(
     const prev = lastPay.get(tx.debtId);
     if (!prev || tx.createdAt > prev) lastPay.set(tx.debtId, tx.createdAt);
   }
+  const lastTouch = lastDebtActivity(transactions);
   let changed = false;
   const next = debts.map((debt) => {
-    // Cupo products closed by an older version come back: the line still exists.
-    if (hasCupo(debt) && debt.closedAt) {
-      changed = true;
-      const { closedAt: _closed, ...open } = debt;
-      return open;
+    // 1.13.2 reopened cards an older version had closed on payoff. Those were
+    // history, not cards defined in Wealth (often re-added as a new card), so
+    // a card still at 0 whose last movement is that pre-1.13.2 payoff goes back.
+    if (isRevolving(debt) && !debt.closedAt && isSettledBalance(debt.balance)) {
+      const last = lastTouch.get(debt.id);
+      if (last?.type === 'debt_payment' && last.createdAt < CUPO_KEPT_OPEN_SINCE) {
+        changed = true;
+        return { ...debt, closedAt: last.createdAt };
+      }
     }
     if (hasCupo(debt) || debt.closedAt || !isSettledBalance(debt.balance)) {
       return debt;
