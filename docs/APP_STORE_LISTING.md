@@ -36,7 +36,7 @@ Estado (2026-11-13): Apple Developer Program pagado como persona natural; activa
 | Campo | Valor |
 |---|---|
 | Nombre en inglés | Rumi: Expense & Budget ("Rumi: spending & budget" ya estaba tomado en la App Store) |
-| Subtítulo (≤30) | es: Control de gastos y ahorro · en: Spending tracker, no bank link (desde 1.13.2; ver docs/ASO.md) |
+| Subtítulo (≤30) | es: Control de gastos y ahorro · en: Spending tracker, no bank link (desde 1.14.1; ver docs/ASO.md) |
 | Categoría | Finanzas; secundaria: Productividad |
 | Derechos de contenido | No contiene contenido de terceros |
 | Clasificación por edad | Responder "No" o "Ninguno" a todo (sin contenido generado por usuarios, sin anuncios, sin apuestas, sin navegador web, sin chat). Resultado esperado: 4+ |
