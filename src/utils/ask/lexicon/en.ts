@@ -15,6 +15,7 @@ export const EN: IntentLexicon = {
     'left to spend',
     'end of the month',
     'end of month',
+    'how will my finances',
     'forecast',
     'projection',
     'projected',
@@ -55,4 +56,5 @@ export const EN: IntentLexicon = {
   biggest: ['biggest purchase', 'largest purchase', 'most expensive', 'biggest single'],
   latest: ['last expense', 'latest expense', 'last purchase', 'latest purchase'],
   totals: ['spend', 'spent', 'expense', 'expenses'],
+  why: ['why', 'how come'],
 };

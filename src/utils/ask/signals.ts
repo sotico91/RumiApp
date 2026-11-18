@@ -80,35 +80,30 @@ export function detectPaymentMethod(q: string): PaymentMethod | null {
   return null;
 }
 
+/**
+ * Words that follow "a/para/por/to" without naming who or what was paid:
+ * periods, accounts, question words ("¿por qué…?") and verbs ("para pagar").
+ */
+const NOT_A_NEEDLE = [
+  'mes', 'semana', 'ano', 'año', 'hoy', 'dia', 'dias', 'quincena', 'final', 'fin', 'finales',
+  'principio', 'principios', 'inicio', 'partir', 'proximo', 'proxima', 'proximos', 'proximas',
+  'tarjeta', 'cuenta', 'mi', 'la', 'credito', 'creditos', 'cuota', 'cuotas', 'deuda', 'deudas',
+  'que', 'quien', 'cual', 'cuanto', 'cuanta', 'como', 'donde', 'cuando',
+  'pagar', 'gastar', 'comprar', 'ahorrar', 'cubrir', 'llegar',
+  'what', 'how', 'why', 'end', 'spend', 'pay', 'buy', 'save', 'next', 'this', 'day', 'days',
+  'week', 'month', 'year',
+];
+
 export function extractNoteNeedle(q: string): string | null {
   const quoted = q.match(/["“']([^"”']+)["”']/);
   if (quoted?.[1]) return normalize(quoted[1]);
 
-  // "por el didi", "a mi mamá": skip the article to reach the word.
-  const para = q.match(
-    /\b(?:a|para|por|to)\s+(?:(?:el|la|los|las|lo|un|una|mi|mis|the|my|a)\s+)?([a-záéíóúñ]{2,})/i
+  // "por el didi", "a mi mamá": skip the article to reach the word. The first real one wins.
+  const para = q.matchAll(
+    /\b(?:a|para|por|to)\s+(?:(?:el|la|los|las|lo|un|una|mi|mis|the|my|a)\s+)?([a-záéíóúñ]{2,})/gi
   );
-  if (
-    para?.[1] &&
-    !includesAny(para[1], [
-      'mes',
-      'semana',
-      'ano',
-      'año',
-      'hoy',
-      'tarjeta',
-      'cuenta',
-      'mi',
-      'la',
-      'credito',
-      'creditos',
-      'cuota',
-      'cuotas',
-      'deuda',
-      'deudas',
-    ])
-  ) {
-    return normalize(para[1]);
+  for (const m of para) {
+    if (m[1] && !includesAny(m[1], NOT_A_NEEDLE)) return normalize(m[1]);
   }
   return null;
 }

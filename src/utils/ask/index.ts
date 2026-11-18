@@ -3,6 +3,7 @@ import { categoryLabel as resolveCategoryLabel } from '@/src/utils/categoryLabel
 import { conceptLabel, HANDLERS, type AskContext, type AskIntent, type Handler } from './handlers';
 import { parseQuery, type ParsedQuery } from './parse';
 import { txsForPeriod } from './period';
+import { buildSnapshot, type FinanceSnapshot } from './snapshot';
 import { normalize } from './text';
 import type { AskOptions, TFn } from './types';
 import type { ProFeature } from '@/src/utils/pro';
@@ -66,6 +67,7 @@ export function askRumi(
     spendConcepts,
     t,
   });
+  let snapshot: FinanceSnapshot | null = null;
   const ctx: AskContext = {
     parsed,
     transactions,
@@ -75,6 +77,7 @@ export function askRumi(
     options,
     spendConcepts,
     categoryLabel: (id) => resolveCategoryLabel(id, t, spendConcepts),
+    snapshot: () => (snapshot ??= buildSnapshot(transactions, options)),
   };
 
   for (const [intent, handler] of Object.entries(HANDLERS) as [AskIntent, Handler][]) {

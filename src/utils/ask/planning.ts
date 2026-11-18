@@ -1,5 +1,4 @@
 import type { Debt, Transaction } from '@/src/types/finance';
-import type { SpendConcept } from '@/src/types/settings';
 import { buildAntSpendTips } from '@/src/utils/antSpendTips';
 import {
   budgetMonthOf,
@@ -12,10 +11,10 @@ import {
   sumByType,
   sumSpendOut,
 } from '@/src/utils/financeMath';
-import { projectMonth } from '@/src/utils/projection';
 import { currencyCopyKey } from '@/src/i18n/translations';
 import { DAY_MS, MES_AGO_WORDS, MONTH_INDEX, monthLabel, type QueryPeriod } from './period';
 import { parseQueryAmount } from './signals';
+import { fixedDueBetween, type FinanceSnapshot } from './snapshot';
 import { includesAny } from './text';
 import type { AskOptions, TFn } from './types';
 
@@ -137,57 +136,101 @@ export function answerAffordLater(
   };
 }
 
+/** "¿Cuánto puedo gastar (hoy)?": the room left spread over the days left, from the shared snapshot. */
+export function answerDailyAllowance(s: FinanceSnapshot, format: (n: number) => string, t: TFn): string | null {
+  if (s.room == null) return null;
+  const p = s.projection;
+  const days = s.daysLeft;
+  if (s.limitedBy === 'cash') {
+    // Cash on hand is tighter than what the month's income still covers: say both.
+    const available = format(s.available ?? 0);
+    const intro =
+      s.incomeRoom != null
+        ? t('search.answerDailyCashIntro', { room: format(s.incomeRoom), available })
+        : t('search.answerDailyCashIntroNoIncome', { available });
+    if (s.room <= 0) {
+      return `${intro} ${
+        s.pendingFixed > 0
+          ? t('search.answerDailyBudgetCashNone', { pending: format(s.pendingFixed) })
+          : t('search.answerDailyBudgetCashEmpty')
+      }`;
+    }
+    const params = { pending: format(s.pendingFixed), perDay: format(s.room / days), days, room: format(s.room) };
+    return `${intro} ${t(s.pendingFixed > 0 ? 'search.answerDailyBudgetCash' : 'search.answerDailyBudgetCashPlain', params)}`;
+  }
+  if (s.room <= 0) return t('search.answerDailyBudgetNone', { short: format(-s.room) });
+  const parts = [t('search.answerDailyBudget', { perDay: format(s.room / days), days, left: format(s.room) })];
+  // Same chain as the projection: room − day-to-day spend still to come = where the month lands.
+  if (s.projectedLeft != null && p.dailyPace > 0) {
+    parts.push(
+      s.projectedLeft >= 0
+        ? t('search.answerDailyPace', { pace: format(p.dailyPace), left: format(s.projectedLeft) })
+        : t('search.answerDailyPaceShort', { pace: format(p.dailyPace), short: format(-s.projectedLeft) })
+    );
+  }
+  if (p.early) parts.push(t('search.answerProjectionEarly'));
+  return parts.join(' ');
+}
+
 export function answerAfford(
   q: string,
-  transactions: Transaction[],
+  s: FinanceSnapshot,
   format: (n: number) => string,
   t: TFn,
-  options: AskOptions,
-  now = new Date()
+  options: AskOptions
 ): string {
   const amount = parseQueryAmount(q);
-  const available = options.availableCash;
   const needAmount = currencyCopyKey('search.answerAffordNeedAmount', options.currency ?? 'COP');
-  const p = projectMonth(transactions, options.debts, now, options.spendConcepts);
+  const p = s.projection;
   if (amount == null) {
     // "¿Cuánto puedo gastar?" → a daily budget for the rest of the month.
-    if (p.income > 0 && includesAny(q, ['cuanto', 'how much'])) {
-      const remainingDays = Math.max(1, p.totalDays - p.days + 1);
-      const left = p.income - p.spent - p.pendingFixed;
-      return left > 0
-        ? t('search.answerDailyBudget', {
-            perDay: format(left / remainingDays),
-            days: remainingDays,
-            left: format(left),
-          })
-        : t('search.answerDailyBudgetNone', { short: format(-left) });
-    }
+    if (includesAny(q, ['cuanto', 'how much'])) return answerDailyAllowance(s, format, t) ?? t(needAmount);
     return t(needAmount);
   }
 
+  const available = s.available;
   if (p.income <= 0) {
     if (available == null) return t(needAmount);
-    return available >= amount
-      ? t('search.answerAffordCash', {
-          amount: format(amount),
-          available: format(available),
-          left: format(available - amount),
-        })
-      : t('search.answerAffordCashNo', {
-          amount: format(amount),
-          available: format(available),
-          short: format(amount - available),
-        });
+    const parts = [
+      available >= amount
+        ? t('search.answerAffordCash', {
+            amount: format(amount),
+            available: format(available),
+            left: format(available - amount),
+          })
+        : t('search.answerAffordCashNo', {
+            amount: format(amount),
+            available: format(available),
+            short: format(amount - available),
+          }),
+    ];
+    if (s.pendingFixed > 0) parts.push(t('search.answerAffordPendingNote', { pending: format(s.pendingFixed) }));
+    return parts.join(' ');
   }
 
+  // The month's plan (income − spent − bills to come), so it chains with the pace line below.
+  const parts: string[] = [];
+  if (s.incomeRoom != null) {
+    const after = s.incomeRoom - amount;
+    parts.push(
+      after >= 0
+        ? t('search.answerAffordRoom', { room: format(s.incomeRoom), amount: format(amount), after: format(after) })
+        : t('search.answerAffordRoomOver', { room: format(s.incomeRoom), amount: format(amount), short: format(-after) })
+    );
+  }
   const leftAfter = p.projectedLeft - amount;
-  const parts = [
+  parts.push(
     leftAfter >= 0
       ? t('search.answerAffordYes', { amount: format(amount), left: format(leftAfter) })
-      : t('search.answerAffordNo', { amount: format(amount), short: format(-leftAfter) }),
-  ];
-  if (available != null && amount > available) {
-    parts.push(t('search.answerAffordCashWarn', { available: format(available) }));
+      : t('search.answerAffordNo', { amount: format(amount), short: format(-leftAfter) })
+  );
+  // Cash today is a separate limit: the month can cover it while the accounts cannot yet.
+  if (available != null && s.cashRoom != null && amount > s.cashRoom) {
+    parts.push(
+      s.pendingFixed > 0
+        ? t('search.answerAffordCashWarnPending', { available: format(available), pending: format(s.pendingFixed) })
+        : t('search.answerAffordCashWarn', { available: format(available) })
+    );
   }
   if (p.early) parts.push(t('search.answerProjectionEarly'));
   return parts.join(' ');
@@ -245,16 +288,16 @@ export function answerCut(
 
 /**
  * Month: fixed payments once + day-to-day spend at its current pace (see
- * projectMonth). Week: plain run-rate, since fixed bills are monthly.
+ * projectMonth). Week and fortnight: plain run-rate over the window, since
+ * fixed bills are monthly.
  */
 export function answerProjection(
-  allTransactions: Transaction[],
+  snapshot: FinanceSnapshot,
   list: Transaction[],
   period: QueryPeriod,
   format: (n: number) => string,
   t: TFn,
   debts?: Debt[],
-  spendConcepts?: SpendConcept[],
   now = new Date()
 ): string {
   let projected: number;
@@ -266,20 +309,29 @@ export function answerProjection(
   let oneOffs = 0;
   let early: boolean;
   if (period.analog === 'month') {
-    const p = projectMonth(allTransactions, debts, now, spendConcepts);
+    const p = snapshot.projection;
     ({ spent, income, days, totalDays, early, oneOffs } = p);
     projected = p.projectedSpend;
     pending = p.pendingFixed;
   } else {
     spent = sumSpendOut(list, debts);
     income = sumByType(list, 'income');
-    totalDays = 7;
+    // A week ends today in its range; other windows (a fortnight) carry their real end.
+    totalDays =
+      period.analog === 'week' ? 7 : Math.max(1, Math.round((period.to.getTime() - period.from.getTime()) / DAY_MS));
     days = Math.min(totalDays, Math.max(1, Math.ceil((now.getTime() - period.from.getTime()) / DAY_MS)));
     projected = (spent / days) * totalDays;
     early = days < 3;
   }
-  const unit = t(period.analog === 'week' ? 'search.unitWeek' : 'search.unitMonth');
-
+  const unit = t(
+    period.analog === 'week'
+      ? 'search.unitWeek'
+      : period.analog === 'month'
+        ? 'search.unitMonth'
+        : period.fortnight
+          ? 'search.unitFortnight'
+          : 'search.unitPeriod'
+  );
   const parts = [
     t('search.answerProjection', {
       projected: format(projected),
@@ -304,5 +356,34 @@ export function answerProjection(
     );
   }
   if (early) parts.push(t('search.answerProjectionEarly'));
+  return parts.join(' ');
+}
+
+/**
+ * "¿Cuánto voy a gastar los próximos 30 días?": repeating bills due in the
+ * window plus day-to-day spend at the usual pace. Always an estimate.
+ */
+export function answerAhead(
+  snapshot: FinanceSnapshot,
+  period: QueryPeriod,
+  format: (n: number) => string,
+  t: TFn,
+  now = new Date()
+): string {
+  const days = Math.max(1, Math.round((period.to.getTime() - period.from.getTime()) / DAY_MS));
+  const perDay = snapshot.projection.dailyPace;
+  const variable = perDay * days;
+  const fixed = fixedDueBetween(snapshot, period.from, period.to, now);
+  if (variable <= 0 && fixed.total <= 0) return t('search.answerAheadNoData', { label: period.label });
+  const params = {
+    label: period.label,
+    total: format(variable + fixed.total),
+    variable: format(variable),
+    perDay: format(perDay),
+    fixed: format(fixed.total),
+    count: fixed.count,
+  };
+  const parts = [t(fixed.total > 0 ? 'search.answerAhead' : 'search.answerAheadNoFixed', params)];
+  if (snapshot.projection.early) parts.push(t('search.answerProjectionEarly'));
   return parts.join(' ');
 }

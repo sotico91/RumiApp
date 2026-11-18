@@ -151,10 +151,21 @@ describe('Ask Rumi advice', () => {
   });
 
   it('gives a daily budget for "¿cuánto puedo gastar?"', () => {
-    // 4.000.000 − 1.300.000 spent, no pending bills, 22 days left (Oct 10–31)
-    expect(ask('¿cuánto puedo gastar al día?')).toContain(
-      `podrías gastar cerca de ${format(2_700_000 / 22)} al día en los 22 días`
-    );
+    // 4.000.000 − 1.300.000 spent, no pending bills, 22 days left (Oct 10–31); cash is not the limit.
+    const answer = answerFinanceQuery('¿cuánto puedo gastar al día?', list, format, t, {
+      language: 'es',
+      debts: [],
+      availableCash: 5_000_000,
+      currency: 'COP',
+    });
+    expect(answer).toContain(`podrías gastar cerca de ${format(2_700_000 / 22)} al día en los 22 días`);
+  });
+
+  it('caps the daily budget at the cash on hand when that is tighter', () => {
+    // Income still covers 2.700.000, but only 1.000.000 is in the accounts today.
+    const answer = ask('¿cuánto puedo gastar al día?');
+    expect(answer).toContain(`aún cubrirían ${format(2_700_000)}, pero hoy tienes ${format(1_000_000)}`);
+    expect(answer).toContain(`cerca de ${format(1_000_000 / 22)} al día en los 22 días`);
   });
 
   it('asks for the amount when there is none', () => {

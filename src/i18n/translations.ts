@@ -1336,6 +1336,8 @@ export const translations = {
       'You also paid {obligations} on cards — not new spend.',
     'search.unitMonth': 'month',
     'search.unitWeek': 'week',
+    'search.unitFortnight': 'fortnight',
+    'search.unitPeriod': 'period',
     'search.answerProjection':
       'At this pace you would spend about {projected} by the end of the {unit} ({spent} so far, {days} of {total} days).',
     'search.answerProjectionLeft':
@@ -1369,6 +1371,34 @@ export const translations = {
       'To end the month even, you could spend about {perDay} a day for the {days} {days|day|days} left ({left} in total, after bills still to come).',
     'search.answerDailyBudgetNone':
       'Counting bills still to come, this month’s spending is already about {short} over your income.',
+    'search.answerDailyCashIntro':
+      'This month’s income would still cover {room}, but you have {available} available right now.',
+    'search.answerDailyCashIntroNoIncome': 'No income logged this month; you have {available} available right now.',
+    'search.answerDailyBudgetCash':
+      'After {pending} in bills still to come, you could spend about {perDay} a day for the {days} {days|day|days} left ({room} in total).',
+    'search.answerDailyBudgetCashPlain':
+      'You could spend about {perDay} a day for the {days} {days|day|days} left ({room} in total).',
+    'search.answerDailyBudgetCashNone':
+      'This month’s bills still to come ({pending}) take all of it: there is no room for extra spending.',
+    'search.answerDailyBudgetCashEmpty': 'There is no room for extra spending.',
+    'search.answerAffordCashWarnPending':
+      'Heads-up: right now you have {available} available and {pending} in bills still to come this month.',
+    'search.answerDailyPace':
+      'At your usual pace ({pace} a day) you would end the month with about {left} left.',
+    'search.answerDailyPaceShort':
+      'At your usual pace ({pace} a day) you would end the month about {short} short.',
+    'search.answerAffordRoom':
+      'You have {room} free for the rest of the month (bills still to come already taken out); after {amount}, {after} would be left.',
+    'search.answerAffordRoomOver':
+      'You have {room} free for the rest of the month (bills still to come already taken out): {amount} is {short} more than that.',
+    'search.answerAffordPendingNote': 'Keep in mind {pending} in bills still to come this month.',
+    'search.answerLeftAfterBills': 'After this month’s bills still to come ({pending}), {left} would be left.',
+    'search.answerLeftAfterBillsShort': 'This month’s bills still to come ({pending}) are {short} more than what you have available.',
+    'search.answerAhead':
+      'Estimate for the {label}: about {total}. That is {fixed} in repeating bills due then ({count} {count|payment|payments}) plus {variable} of day-to-day spend at your usual pace ({perDay} a day).',
+    'search.answerAheadNoFixed':
+      'Estimate for the {label}: about {total} of day-to-day spend at your usual pace ({perDay} a day). I see no repeating bills due in that window.',
+    'search.answerAheadNoData': 'There are not enough movements yet to estimate the {label}.',
     'search.answerCut': 'Where to trim: {detail}. Together, about {total} back in your month.',
     'search.answerCutItem': '{label} ({amount} this month, ease ~{save})',
     'search.answerCutTop':
@@ -1434,6 +1464,9 @@ export const translations = {
     'search.periodWeekend': 'this weekend',
     'search.periodLastWeekend': 'last weekend',
     'search.periodLastDays': 'last {count} days',
+    'search.periodNextDays': 'next {count} days',
+    'search.periodFortnight': 'this fortnight',
+    'search.periodLastFortnight': 'last fortnight',
     'search.periodBefore': 'the period before',
     'ask.followCompareMonth': '{label} vs last month',
     'ask.followCount': 'How many times {label}?',
@@ -2841,6 +2874,8 @@ export const translations = {
       'Además pagaste {obligations} de tarjetas: no es gasto nuevo.',
     'search.unitMonth': 'del mes',
     'search.unitWeek': 'de la semana',
+    'search.unitFortnight': 'de la quincena',
+    'search.unitPeriod': 'del periodo',
     'search.answerProjection':
       'A este ritmo gastarías cerca de {projected} al cierre {unit} ({spent} hasta hoy, {days} de {total} días).',
     'search.answerProjectionLeft':
@@ -2874,6 +2909,34 @@ export const translations = {
       'Para cerrar el mes sin perder, podrías gastar cerca de {perDay} al día en {days|el|los} {days} {days|día|días} que faltan ({left} en total, ya descontando las cuentas que vienen).',
     'search.answerDailyBudgetNone':
       'Contando las cuentas que aún vienen, el gasto de este mes ya supera tu ingreso en unos {short}.',
+    'search.answerDailyCashIntro':
+      'Tus ingresos del mes aún cubrirían {room}, pero hoy tienes {available} disponibles.',
+    'search.answerDailyCashIntroNoIncome': 'No hay ingresos registrados este mes; hoy tienes {available} disponibles.',
+    'search.answerDailyBudgetCash':
+      'Descontando {pending} de cuentas que faltan, podrías gastar cerca de {perDay} al día en {days|el|los} {days} {days|día|días} que faltan ({room} en total).',
+    'search.answerDailyBudgetCashPlain':
+      'Podrías gastar cerca de {perDay} al día en {days|el|los} {days} {days|día|días} que faltan ({room} en total).',
+    'search.answerDailyBudgetCashNone':
+      'Las cuentas que faltan este mes ({pending}) se llevan todo: no queda margen para gastos extra.',
+    'search.answerDailyBudgetCashEmpty': 'No queda margen para gastos extra.',
+    'search.answerAffordCashWarnPending':
+      'Ojo: hoy tienes {available} disponibles y aún faltan {pending} de cuentas este mes.',
+    'search.answerDailyPace':
+      'A tu ritmo habitual ({pace} al día) cerrarías el mes con unos {left} a favor.',
+    'search.answerDailyPaceShort':
+      'A tu ritmo habitual ({pace} al día) te faltarían unos {short} para cerrar el mes.',
+    'search.answerAffordRoom':
+      'Tienes {room} libres para el resto del mes (ya descontando las cuentas que vienen); después de {amount} quedarían {after}.',
+    'search.answerAffordRoomOver':
+      'Tienes {room} libres para el resto del mes (ya descontando las cuentas que vienen): {amount} lo supera por {short}.',
+    'search.answerAffordPendingNote': 'Ten en cuenta que aún faltan {pending} de cuentas este mes.',
+    'search.answerLeftAfterBills': 'Después de las cuentas que faltan este mes ({pending}), quedarían {left}.',
+    'search.answerLeftAfterBillsShort': 'Las cuentas que faltan este mes ({pending}) superan lo disponible por {short}.',
+    'search.answerAhead':
+      'Estimación para los {label}: unos {total}. Son {fixed} de cuentas fijas que vencen en ese lapso ({count} {count|pago|pagos}) y {variable} del día a día a tu ritmo habitual ({perDay} al día).',
+    'search.answerAheadNoFixed':
+      'Estimación para los {label}: unos {total} del día a día a tu ritmo habitual ({perDay} al día). No veo cuentas fijas que venzan en ese lapso.',
+    'search.answerAheadNoData': 'Aún no hay suficientes movimientos para estimar los {label}.',
     'search.answerCut': 'Dónde recortar: {detail}. En total, unos {total} de vuelta para tu mes.',
     'search.answerCutItem': '{label} ({amount} este mes, baja ~{save})',
     'search.answerCutTop':
@@ -2940,6 +3003,9 @@ export const translations = {
     'search.periodWeekend': 'este fin de semana',
     'search.periodLastWeekend': 'el fin de semana pasado',
     'search.periodLastDays': 'últimos {count} días',
+    'search.periodNextDays': 'próximos {count} días',
+    'search.periodFortnight': 'esta quincena',
+    'search.periodLastFortnight': 'la quincena pasada',
     'search.periodBefore': 'el periodo anterior',
     'ask.followCompareMonth': '{label} vs el mes pasado',
     'ask.followCount': '¿Cuántas veces {label}?',

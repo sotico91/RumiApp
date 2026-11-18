@@ -66,6 +66,13 @@ describe('askRumi intents', () => {
     ['¿cuáles son mis gastos hormiga?', 'ant', 'Este mes'],
     ['¿qué porcentaje de mi salario se va en delivery?', 'percent', 'Este mes'],
     ['¿cuánto gasté en efectivo?', 'paymentMethod', 'Este mes'],
+    ['¿cuánto gasté esta quincena?', 'totals', 'esta quincena'],
+    ['¿cuánto gasté la quincena pasada?', 'totals', 'la quincena pasada'],
+    ['¿cuánto voy a gastar los próximos 30 días?', 'projection', 'próximos 30 días'],
+    ['how much will I spend in the next 15 days?', 'projection', 'próximos 15 días'],
+    ['¿Cómo estarán mis finanzas a final de mes?', 'projection', 'Este mes'],
+    // Asks for a reason: no handler gives one yet, so no total pretends to.
+    ['¿Por qué este mes tengo menos dinero?', null, null],
     ['hola', null, null],
   ])('%s → %s', (q, intent, period) => {
     const r = ask(q);
@@ -109,6 +116,19 @@ describe('askRumi result', () => {
 
   it('drops follow-ups that repeat the question', () => {
     expect(ask('¿Gasté más que el mes pasado?').followUps).not.toContain('¿Gasté más que el mes pasado?');
+  });
+
+  it('does not answer "$0" for a word after "por/a/para" that no note has', () => {
+    for (const q of ['¿por qué gasto tanto?', '¿cómo voy a final de mes con el arriendo?', 'pagos para pepito']) {
+      expect(ask(q).text).not.toMatch(/Coincidencias de/);
+    }
+  });
+
+  it('reads a fortnight as the calendar half running now', () => {
+    const r = ask('¿cuánto gasté esta quincena?');
+    // Oct 16–31: only the 18th (snacks 15.000) falls in it.
+    expect(r.text).toContain(format(15_000));
+    expect(ask('¿cuánto gasté la quincena pasada?').text).toContain(format(12_000 + 45_000 + 9_000));
   });
 
   it('has no follow-ups or movements when it did not understand', () => {

@@ -10,6 +10,14 @@ El detalle de cada cambio está en `git log`.
 - **Comentarios de código en inglés:** todos los comentarios del código van en inglés.
   Los textos que ve el usuario van en `src/i18n/translations.ts` (es/en).
 
+## 2026-11-18
+
+- **Versión 1.15.0, Pregúntale a Rumi más preciso y coherente** (auditoría y plan en `docs/ASK_ENGINE.md`):
+  - **Una sola cuenta del mes:** "¿cuánto puedo gastar hoy?", "¿puedo comprar algo de 500 mil?", "¿cuánto me queda?" y "¿cómo cierro el mes?" usan las mismas cifras (`src/utils/ask/snapshot.ts`): lo que el ingreso aún cubre después de las cuentas pendientes, y dónde cae el mes al ritmo habitual. El límite diario dice también el ritmo y con cuánto cerrarías.
+  - **El efectivo cuenta:** si en las cuentas hay menos de lo que el ingreso cubre, el límite diario usa lo disponible y dice ambas cifras. "¿Cuánto me queda?" resta las cuentas que faltan este mes.
+  - **Sin respuestas falsas:** "¿por qué…?" o "a final de mes" ya no buscan "qué" o "final" en las notas ni dicen "$0 en 0 movimientos". Una palabra después de "por/para/a" que ninguna nota tiene ya no se responde como búsqueda.
+  - **Periodos nuevos:** "esta quincena" / "la quincena pasada" (1–15 y 16–fin) y "los próximos 30 días" (estimación con las cuentas fijas que vencen en ese lapso y el gasto del día a día a tu ritmo). "¿Cómo estarán mis finanzas a final de mes?" va a la proyección.
+
 ## 2026-11-17
 
 - **Versión 1.14.1, sin tarjetas duplicadas:** la 1.13.2 había reabierto las tarjetas que versiones anteriores cerraron al pagarlas, y quien ya había creado otra igual en Patrimonio quedó con dos (por ejemplo, dos Rappi en "¿De dónde sale?" y en Mover). Lo que manda es lo definido en Patrimonio: al abrir, una tarjeta en 0 cuyo último movimiento es un pago total anterior a la 1.13.2 vuelve a cerrarse (`CUPO_KEPT_OPEN_SINCE` en `closePaidInstallments`). Las que se pagan desde la 1.13.2, o que se usaron después, siguen abiertas.

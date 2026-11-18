@@ -51,6 +51,8 @@ export type QueryWants = {
   biggest: boolean;
   latest: boolean;
   totals: boolean;
+  /** "¿por qué…?": asks for a reason, not an amount. */
+  why: boolean;
 };
 
 export type ParsedQuery = {
@@ -65,6 +67,8 @@ export type ParsedQuery = {
   method: PaymentMethod | null;
   /** Quoted text or "para Ana": a word to look for in notes. */
   noteNeedle: string | null;
+  /** The needle came in quotes: the person asked for that exact word. */
+  noteQuoted: boolean;
 };
 
 /** Turns a question into a structured request. Pure: no amounts, no answers. */
@@ -125,6 +129,7 @@ export function parseQuery(
     biggest: includesAny(q, L.biggest),
     latest: includesAny(q, L.latest),
     totals: includesAny(q, L.totals),
+    why: includesAny(q, L.why),
   };
 
   return {
@@ -136,5 +141,6 @@ export function parseQuery(
     cats: detectCategoryList(q, options.spendConcepts),
     method: detectPaymentMethod(q),
     noteNeedle: extractNoteNeedle(q),
+    noteQuoted: /["“'][^"”']+["”']/.test(q),
   };
 }

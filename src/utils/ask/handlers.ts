@@ -5,7 +5,6 @@ import type { SpendConcept } from '@/src/types/settings';
 import { findSpendSub } from '@/src/data/spendConcepts';
 import { antExpenseBreakdown, filterBetween, sumByType, sumSpendOut } from '@/src/utils/financeMath';
 import { isCreditDraw } from '@/src/utils/ledger';
-import { projectMonth } from '@/src/utils/projection';
 import {
   INCOME_CATEGORY_IDS,
   isCreditsCategoryHit,
@@ -25,7 +24,8 @@ import {
 import type { ParsedQuery } from './parse';
 import { tryAnswerPercentQuery } from './percent';
 import { analogRange, dayLabel, previousLabel } from './period';
-import { answerAfford, answerAffordLater, answerCut, answerProjection } from './planning';
+import { answerAfford, answerAffordLater, answerAhead, answerCut, answerProjection } from './planning';
+import type { FinanceSnapshot } from './snapshot';
 import { isCardTopicQuery, parseQueryAmount } from './signals';
 import { accountDisplayName, liquidPocketsForPay } from '@/src/utils/accounts';
 import { openDebts } from '@/src/utils/debts';
@@ -45,6 +45,8 @@ export type AskContext = {
   options: AskOptions;
   spendConcepts: SpendConcept[];
   categoryLabel: (id: string) => string;
+  /** The month's shared numbers (available, bills to come, room, pace); built once, on first use. */
+  snapshot: () => FinanceSnapshot;
 };
 
 export type AskAnswer = {
@@ -144,7 +146,7 @@ const afford: Handler = (ctx) => {
   if (!ctx.parsed.wants.afford) return null;
   const later = answerAffordLater(ctx.parsed.q, ctx.transactions, ctx.format, ctx.t, ctx.options);
   if (later) return { text: later.text, proFeature: later.locked ? 'afford' : undefined };
-  return { text: answerAfford(ctx.parsed.q, ctx.transactions, ctx.format, ctx.t, ctx.options) };
+  return { text: answerAfford(ctx.parsed.q, ctx.snapshot(), ctx.format, ctx.t, ctx.options) };
 };
 
 const cut: Handler = (ctx) =>
@@ -152,11 +154,22 @@ const cut: Handler = (ctx) =>
     ? { text: answerCut(ctx.transactions, ctx.format, ctx.t, ctx.options, ctx.categoryLabel) }
     : null;
 
-/** "¿cuánto me queda?" with no month-end words: cash on hand now, then where the month lands. */
-const leftNow: Handler = ({ parsed, options, transactions, format, t }) => {
+/**
+ * "¿cuánto me queda?" with no month-end words: cash on hand now, what is left
+ * once this month's pending bills are paid, then where the month lands.
+ */
+const leftNow: Handler = ({ parsed, options, format, t, snapshot }) => {
   if (!parsed.wants.leftNow || options.availableCash == null) return null;
+  const s = snapshot();
   const parts = [t('search.answerAvailable', { amount: format(options.availableCash) })];
-  const p = projectMonth(transactions, options.debts, new Date(), options.spendConcepts);
+  if (s.cashRoom != null && s.pendingFixed > 0) {
+    parts.push(
+      s.cashRoom >= 0
+        ? t('search.answerLeftAfterBills', { pending: format(s.pendingFixed), left: format(s.cashRoom) })
+        : t('search.answerLeftAfterBillsShort', { pending: format(s.pendingFixed), short: format(-s.cashRoom) })
+    );
+  }
+  const p = s.projection;
   if (p.income > 0) {
     parts.push(
       p.projectedLeft >= 0
@@ -167,19 +180,13 @@ const leftNow: Handler = ({ parsed, options, transactions, format, t }) => {
   return { text: parts.join(' ') };
 };
 
+/** Month and running weeks/fortnights: pace to the end. Windows ahead ("próximos 30 días"): an estimate. */
 const projection: Handler = (ctx) => {
   const { parsed } = ctx;
+  if (parsed.period.ahead) return { text: answerAhead(ctx.snapshot(), parsed.period, ctx.format, ctx.t) };
   if (!parsed.wants.projection || !parsed.inProgress || parsed.period.analog === 'day') return null;
   return {
-    text: answerProjection(
-      ctx.transactions,
-      ctx.list,
-      parsed.period,
-      ctx.format,
-      ctx.t,
-      ctx.options.debts,
-      ctx.options.spendConcepts
-    ),
+    text: answerProjection(ctx.snapshot(), ctx.list, parsed.period, ctx.format, ctx.t, ctx.options.debts),
   };
 };
 
@@ -717,14 +724,18 @@ const looseNote: Handler = (ctx) => {
 };
 
 const noteNeedle: Handler = (ctx) => {
-  const needle = ctx.parsed.noteNeedle;
+  const { noteNeedle: needle, noteQuoted } = ctx.parsed;
   if (!needle) return null;
+  // "para Ana" read from free text: if no note ever had it, it was a misread, not a $0 answer.
+  if (!noteQuoted && matchNotes(ctx.transactions, [needle]).txs.length === 0) return null;
   const { pool, period } = noteScope(ctx);
   return noteAnswer(ctx, needle, period, matchNotes(pool, [needle]).txs);
 };
 
 const totals: Handler = ({ parsed, list, spendConcepts, format, t, categoryLabel }) => {
   if (!parsed.period.explicit && (parsed.wants.savings || !parsed.wants.totals)) return null;
+  // "¿Por qué tengo menos plata?" asks for a reason; a bare total would read as one.
+  if (parsed.wants.why) return null;
   const period = parsed.period.label;
   const expenses = expenseTxs(list);
   const obligations = obligationTxs(list);

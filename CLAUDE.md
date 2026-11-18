@@ -5,7 +5,7 @@ Personal finance app (Expo ~57, React Native, TypeScript, Expo Router). On-devic
 ## Map
 - `app/(tabs)/`: index (Home), historial, plan, wealth, insights ("Pregúntale a Rumi"). `app/agregar.tsx` is the add screen.
 - `src/hooks/useFinance.tsx`: ledger state; `transactionsForPeriod(period, scope='mine')`.
-- `src/utils/ask/`: Q&A engine. `parse.ts` reads the question, `handlers.ts` answers (order of `HANDLERS` = priority), `lexicon/{es,en}.ts` keywords, `period.ts` dates. Entry: `askRumi` / `answerFinanceQuery`.
+- `src/utils/ask/`: Q&A engine. `parse.ts` reads the question, `handlers.ts` answers (order of `HANDLERS` = priority), `lexicon/{es,en}.ts` keywords, `period.ts` dates, `snapshot.ts` the month's shared numbers (available, pending bills, room, pace). Entry: `askRumi` / `answerFinanceQuery`. Audit + plan: docs/ASK_ENGINE.md.
 - `src/utils/smartInsights.ts`: Insights cards; re-exports the engine. `src/utils/projection.ts`: month-end forecast.
 - `src/utils/financeMath.ts`: period ranges and sums. `src/i18n/translations.ts`: all copy (es + en).
 - `src/theme/tokens.ts`: single color source. UI primitives in `src/components/ui/`.

@@ -117,6 +117,10 @@ export type QueryPeriod = {
   explicit: boolean;
   /** Window to compare against when "the one before" is not just the same length back. */
   previous?: { from: Date; to: Date };
+  /** Days 1–15 or 16–end of a calendar month. */
+  fortnight?: boolean;
+  /** Starts today and runs into the future ("próximos 30 días"): only estimates fit. */
+  ahead?: boolean;
 };
 
 export function startOfDay(date: Date): Date {
@@ -317,6 +321,42 @@ export function lastDaysPeriod(count: number, t: TFn, now: Date): QueryPeriod {
   };
 }
 
+/** Coming window that starts today: "próximos 30 días". */
+export function nextDaysPeriod(count: number, t: TFn, now: Date): QueryPeriod {
+  const from = startOfDay(now);
+  return {
+    label: t('search.periodNextDays', { count }),
+    from,
+    to: addDays(from, count),
+    analog: 'range',
+    explicit: true,
+    ahead: true,
+  };
+}
+
+/** Calendar half a day falls in: 1–15 or 16–end of the month. */
+function fortnightOf(day: Date): { from: Date; to: Date } {
+  const y = day.getFullYear();
+  const m = day.getMonth();
+  return day.getDate() <= 15
+    ? { from: new Date(y, m, 1), to: new Date(y, m, 16) }
+    : { from: new Date(y, m, 16), to: new Date(y, m + 1, 1) };
+}
+
+/** "esta quincena" (the half running now) or "la quincena pasada" (the one before). */
+export function fortnightPeriod(past: boolean, t: TFn, now: Date): QueryPeriod {
+  const current = fortnightOf(startOfDay(now));
+  const range = past ? fortnightOf(addDays(current.from, -1)) : current;
+  return {
+    label: t(past ? 'search.periodLastFortnight' : 'search.periodFortnight'),
+    ...range,
+    analog: 'range',
+    explicit: true,
+    fortnight: true,
+    previous: fortnightOf(addDays(range.from, -1)),
+  };
+}
+
 /** Saturday + Sunday: this one while it runs, else the most recent; "pasado" steps back one more. */
 export function weekendPeriod(past: boolean, t: TFn, now: Date): QueryPeriod {
   const today = startOfDay(now);
@@ -414,6 +454,16 @@ export function resolvePeriod(
   if (lastDays) {
     const count = parseDayCount(lastDays[1]);
     if (count) return lastDaysPeriod(count, t, now);
+  }
+  const nextDays =
+    q.match(new RegExp(`\\b(?:proximos|proximas|siguientes)\\s+${daysWords}\\s+dias\\b`)) ??
+    q.match(/\b(?:next|coming)\s+(\d{1,3})\s+days\b/);
+  if (nextDays) {
+    const count = parseDayCount(nextDays[1]);
+    if (count) return nextDaysPeriod(count, t, now);
+  }
+  if (includesAny(q, ['quincena', 'fortnight'])) {
+    return fortnightPeriod(includesAny(q, ['pasada', 'anterior', 'last', 'previous']), t, now);
   }
   const daysAgo =
     q.match(new RegExp(`\\bhace\\s+${daysWords}\\s+dias?\\b`)) ??

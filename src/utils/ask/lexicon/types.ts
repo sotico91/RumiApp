@@ -44,4 +44,6 @@ export type IntentLexicon = {
   payFrom: string[];
   /** Generic "how much / total" that still asks for spend. */
   totals: string[];
+  /** "¿por qué…?": a reason, which no total answers. */
+  why: string[];
 };
