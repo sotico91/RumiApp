@@ -95,3 +95,25 @@ describe('pockets offered for a move', () => {
     expect(pocketMoveSources(accounts(0), 'cash').map((a) => a.id)).toContain('cash');
   });
 });
+
+describe('pockets that cover the amount', () => {
+  const list = accounts(40000, 250000, 100000);
+
+  it('pays a debt only from pockets with the whole amount', () => {
+    expect(liquidPocketsForPay(list, undefined, 100000).map((a) => a.id).sort()).toEqual(['bank-main', 'savings']);
+    expect(liquidPocketsForPay(list, undefined, 300000)).toEqual([]);
+  });
+
+  it('offers every pocket with money while no amount is typed', () => {
+    expect(liquidPocketsForPay(list).map((a) => a.id).sort()).toEqual(['bank-main', 'cash', 'savings']);
+  });
+
+  it('keeps cards for a spend and filters only the pockets', () => {
+    expect(accountsForExpenseSource(list, 'debit', { need: 50000 }).map((a) => a.id)).not.toContain('cash');
+  });
+
+  it('moves money only out of a pocket that covers it', () => {
+    expect(pocketMoveSources(list, undefined, 120000).map((a) => a.id)).not.toContain('savings');
+    expect(pocketMoveSources(list, undefined, 120000).map((a) => a.id)).toContain('bank-main');
+  });
+});

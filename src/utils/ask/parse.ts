@@ -21,6 +21,8 @@ import type { TFn } from './types';
 
 /** What the question asks for. Several can be on at once; handlers decide who answers. */
 export type QueryWants = {
+  streak: boolean;
+  payFrom: boolean;
   count: boolean;
   income: boolean;
   savings: boolean;
@@ -90,6 +92,8 @@ export function parseQuery(
     (includesAny(q, L.incomeWord) && !skipIncomeCategoryMatch(q) && !isIncomeUsedAsReference(q));
 
   const wants: QueryWants = {
+    streak: includesAny(q, L.streak),
+    payFrom: includesAny(q, L.payFrom),
     count: includesAny(q, L.count),
     income,
     savings: L.savingsStems.some((stem) => hasStem(q, stem)) || includesAny(q, L.savings),

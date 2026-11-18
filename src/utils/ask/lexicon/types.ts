@@ -38,6 +38,10 @@ export type IntentLexicon = {
   biggest: string[];
   /** …or the most recent. */
   latest: string[];
+  /** "¿cuántos días llevo?", "mi racha": the logging streak. */
+  streak: string[];
+  /** "¿de qué cuenta puedo pagar 100 mil?": which pockets cover an amount now. */
+  payFrom: string[];
   /** Generic "how much / total" that still asks for spend. */
   totals: string[];
 };

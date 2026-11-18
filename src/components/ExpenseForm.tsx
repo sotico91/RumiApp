@@ -172,16 +172,18 @@ export function ExpenseForm({
     return spendSubsAsCategories([concept]);
   }, [type, settings.enabledCategoryIds, spendConcepts, conceptId]);
 
+  // Once the amount is typed, only pockets that cover all of it are offered.
+  const need = parse(amount) ?? undefined;
   const accountChoices = useMemo(() => {
     if (type === 'income') return incomeDestinationAccounts(accounts);
     const debtLabel = (debt: Debt) =>
       debt.nameKey ? t(debt.nameKey as TranslationKey) : debt.name ?? t('debt.mainCard');
     // A transfer can also leave from a card or cupo (cash advance).
-    if (type === 'transfer') return moveSourcesWithCredit(accounts, debts, debtLabel);
-    if (isPocketMove(type)) return pocketMoveSources(accounts);
-    if (type === 'debt_payment') return liquidPocketsForPay(accounts);
-    return accountsForExpenseSource(accounts, method, { debts, debtLabel });
-  }, [type, accounts, method, debts, t]);
+    if (type === 'transfer') return moveSourcesWithCredit(accounts, debts, debtLabel, undefined, need);
+    if (isPocketMove(type)) return pocketMoveSources(accounts, undefined, need);
+    if (type === 'debt_payment') return liquidPocketsForPay(accounts, undefined, need);
+    return accountsForExpenseSource(accounts, method, { debts, debtLabel, need });
+  }, [type, accounts, method, debts, t, need]);
 
   const destinations = useMemo(() => moveDestinations(accounts, accountId, debts), [accounts, accountId, debts]);
   const creditDraw = type === 'transfer' && isDebtPayAccountId(accountId);
@@ -261,7 +263,7 @@ export function ExpenseForm({
     } else if (isPocketMove(next)) {
       setCategoryId('');
       const fromId = firstAccountId(
-        pocketMoveSources(accounts)
+        pocketMoveSources(accounts, undefined, need)
       );
       if (fromId) setAccountId(fromId);
       setToAccountId(defaultTransferDestinationId(accounts, fromId));
@@ -462,7 +464,7 @@ export function ExpenseForm({
                 return;
               }
               setMethod('debit');
-              const nextId = firstAccountId(liquidPocketsForPay(accounts), accountId);
+              const nextId = firstAccountId(liquidPocketsForPay(accounts, undefined, need), accountId);
               if (nextId) setAccountId(nextId);
             }}
             showNoCards={method === 'credit' && accountChoices.length === 0}
@@ -502,7 +504,7 @@ export function ExpenseForm({
       </Text>
       {accountChoices.length === 0 &&
       (type === 'debt_payment' || isPocketMove(type) || (type === 'expense' && method !== 'credit')) ? (
-        <NoMoneyHint move={isPocketMove(type)} />
+        <NoMoneyHint move={isPocketMove(type)} need={need} />
       ) : accountChoices.length === 0 ? (
         <Text style={styles.preview}>{t('flow.payAccountsEmpty')}</Text>
       ) : (

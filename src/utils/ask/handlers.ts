@@ -26,7 +26,11 @@ import type { ParsedQuery } from './parse';
 import { tryAnswerPercentQuery } from './percent';
 import { analogRange, dayLabel, previousLabel } from './period';
 import { answerAfford, answerAffordLater, answerCut, answerProjection } from './planning';
-import { isCardTopicQuery } from './signals';
+import { isCardTopicQuery, parseQueryAmount } from './signals';
+import { accountDisplayName, liquidPocketsForPay } from '@/src/utils/accounts';
+import { openDebts } from '@/src/utils/debts';
+import { pickUsual, usualSourceAccounts } from '@/src/utils/habits';
+import { streakFromLedger } from '@/src/utils/streak';
 import { includesAny, normalize } from './text';
 import type { AskOptions, TFn } from './types';
 
@@ -81,6 +85,59 @@ const percent: Handler = (ctx) => {
     debts: ctx.options.debts,
   });
   return text ? { text } : null;
+};
+
+/** "¿Cuántos días llevo de racha?": the streak the header chip shows. */
+const streak: Handler = ({ parsed, transactions, options, t }) => {
+  if (!parsed.wants.streak) return null;
+  const s = streakFromLedger(transactions, options.noSpendDays);
+  const parts = [s.current > 0 ? t('ask.streakDays', { count: s.current }) : t('ask.streakZero')];
+  if (s.freezes > 0) parts.push(t('ask.streakFreezes', { count: s.freezes }));
+  parts.push(t(s.todayDone ? 'ask.streakTodayDone' : 'ask.streakTodayPending'));
+  return { text: parts.join(' ') };
+};
+
+/**
+ * "¿De qué cuenta puedo pagar 100 mil?" / "¿con qué cuenta pago la tarjeta?":
+ * the pockets that cover the whole amount, the usual one first. Without an
+ * amount, a debt named in the question (or the only open one) sets it.
+ */
+const payFrom: Handler = ({ parsed, transactions, options, format, t }) => {
+  if (!parsed.wants.payFrom || !options.accounts) return null;
+  const debts = openDebts(options.debts ?? []);
+  const q = parsed.q;
+  const named =
+    debts.find((d) => {
+      const name = normalize(d.nameKey ? t(d.nameKey as TranslationKey) : d.name ?? '');
+      return name.length > 2 && q.includes(name);
+    }) ?? (debts.length === 1 && (parsed.wants.debt || parsed.wants.cardPay || isCardTopicQuery(q)) ? debts[0] : undefined);
+  const amount = parseQueryAmount(q) ?? (named ? named.balance : null);
+  // "¿Qué cuenta tiene más plata?" has no amount and no payment: other handlers answer it.
+  if (!amount || amount <= 0) return /\bpag(?:ar|o|ue)\b|\bpay\b/.test(q) ? { text: t('ask.payFromNeedAmount') } : null;
+  const pockets = liquidPocketsForPay(options.accounts, undefined, amount);
+  if (pockets.length === 0) {
+    const richest = [...liquidPocketsForPay(options.accounts)].sort((a, b) => b.balance - a.balance)[0];
+    return {
+      text: richest
+        ? t('ask.payFromNone', {
+            amount: format(amount),
+            account: accountDisplayName(richest, t),
+            available: format(richest.balance),
+          })
+        : t('ask.payFromEmpty', { amount: format(amount) }),
+    };
+  }
+  const type = named || parsed.wants.debtPayments ? 'debt_payment' : 'expense';
+  const usual = pickUsual(usualSourceAccounts(transactions, { type, debtId: named?.id }), pockets);
+  const ordered = usual ? [pockets.find((a) => a.id === usual)!, ...pockets.filter((a) => a.id !== usual)] : pockets;
+  const list = ordered.map((a) => `${accountDisplayName(a, t)} (${format(a.balance)})`).join(', ');
+  return {
+    text: t(usual ? 'ask.payFromUsual' : 'ask.payFromList', {
+      amount: format(amount),
+      list,
+      account: usual ? accountDisplayName(ordered[0], t) : '',
+    }),
+  };
 };
 
 const afford: Handler = (ctx) => {
@@ -715,6 +772,8 @@ const totals: Handler = ({ parsed, list, spendConcepts, format, t, categoryLabel
  * Concepts come before "hormiga" so "café" wins over the ant-spend summary.
  */
 export const HANDLERS = {
+  streak,
+  payFrom,
   percent,
   afford,
   cut,

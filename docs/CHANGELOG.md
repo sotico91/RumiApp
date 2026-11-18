@@ -12,6 +12,10 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-11-17
 
+- **Versión 1.13.1, solo cuentas que alcanzan:** con el monto ya escrito, "¿De dónde sale?" ofrece solo las cuentas que tienen el valor completo (pagar una deuda o tarjeta, gasto en efectivo/débito, Mover). Pagar $100.000 ya no ofrece Nequi con $40.000. Las tarjetas de crédito siguen apareciendo en un gasto. Si ninguna alcanza, el aviso dice "Ninguna cuenta tiene $X" y cuál es la que más tiene (`liquidPocketsForPay`/`pocketMoveSources` con `need`, `NoMoneyHint need`). Editar un movimiento no filtra (sigue el aviso al guardar).
+  - **Rumi aprende de dónde pagas:** la cuenta que se ofrece primero es la que más usas para esa subcategoría (gasto), esa deuda (pago) o ese origen (Mover, también el destino); si esa no alcanza, la siguiente habitual o la que más tiene (`src/utils/habits.ts`: `usualSourceAccounts`, `usualDestinationAccounts`, `pickUsual`). Los chips de subcategoría del gasto rápido van por uso (más usadas primero; empate, la más reciente) en vez de solo la última.
+  - **Pregúntale a Rumi:** "¿cuántos días llevo de racha?" (días, comodines, si hoy ya cuenta) y "¿de qué cuenta puedo pagar 100 mil?" / "¿con qué cuenta pago la visa?" (solo las cuentas que alcanzan, la habitual primero; sin monto usa el saldo de la deuda nombrada). Handlers `streak` y `payFrom`, antes de `percent`.
+
 - **Versión 1.13.0, la racha pasa al encabezado y se cuenta sola:**
   - **Chip "🐜 5" en el encabezado de Inicio**, junto a ayuda, ojo y perfil. Ya no hay tarjeta de racha en Inicio ni dentro del Diario de 14 días (`StreakCard` se borró; `StreakChip`). Un punto coral mientras hoy no hay nada anotado; dorado en los días de hito (7, 15, 30…). Al tocarlo abre la hoja con los 7 días, los comodines, "Compartir mi racha" y la hora del recordatorio.
   - **Sin "Hoy no gasté":** la racha solo cuenta días con un movimiento anotado. Un día sin nada lo cubre un comodín si hay. Los días marcados en 1.11.0 siguen contando (`noSpendDays` se lee, ya no se escribe).

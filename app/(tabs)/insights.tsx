@@ -120,6 +120,7 @@ export default function InsightsScreen() {
         accounts,
         currency: settings.currency,
         isPro: pro.isPro,
+        noSpendDays: settings.noSpendDays,
       })
     );
   }

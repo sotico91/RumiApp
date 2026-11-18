@@ -476,12 +476,14 @@ export function accountsForExpenseSource(
     debtLabel?: (debt: Debt) => string;
     /** Shown even when empty: the account a movement being edited already uses. */
     keepId?: string;
+    /** The amount, once typed: only pockets that cover all of it. */
+    need?: number;
   }
 ): Account[] {
   if (method === 'credit') {
     return accountsForPaymentMethod(accounts, 'credit', opts);
   }
-  return liquidPocketsForPay(accounts, opts?.keepId);
+  return liquidPocketsForPay(accounts, opts?.keepId, opts?.need);
 }
 
 /** Below half a cent nothing is really there / missing (float residue). */
@@ -508,12 +510,18 @@ export function firstAccountId(list: Account[], preferredId?: string): string | 
  * Pockets a spend or payment can come from: only those with money in them.
  * Paying from an empty one would leave it below zero.
  */
-export function liquidPocketsForPay(accounts: Account[], keepId?: string): Account[] {
+export function liquidPocketsForPay(accounts: Account[], keepId?: string, need?: number): Account[] {
   return sortAccountsByKind(
-    accounts.filter(
-      (a) => isSpendableLiquid(a.type) && (a.balance > HALF_CENT_FUNDS || a.id === keepId)
-    )
+    accounts.filter((a) => isSpendableLiquid(a.type) && (coversNeed(a.balance, need) || a.id === keepId))
   );
+}
+
+/**
+ * With the amount known, a pocket only counts if it covers all of it: paying
+ * $100.000 from a pocket with $40.000 makes no sense. Without it, any money.
+ */
+function coversNeed(balance: number, need?: number): boolean {
+  return need && need > 0 ? balance >= need - HALF_CENT_FUNDS : balance > HALF_CENT_FUNDS;
 }
 
 /** Cash, banks, wallets, savings, investments — not credit lines. */
@@ -537,10 +545,8 @@ export function pocketMoveAccounts(accounts: Account[]): Account[] {
 }
 
 /** Where a move can leave from: only pockets with money (or the one being edited). */
-export function pocketMoveSources(accounts: Account[], keepId?: string): Account[] {
-  return pocketMoveAccounts(accounts).filter(
-    (a) => a.balance > HALF_CENT_FUNDS || a.id === keepId
-  );
+export function pocketMoveSources(accounts: Account[], keepId?: string, need?: number): Account[] {
+  return pocketMoveAccounts(accounts).filter((a) => coversNeed(a.balance, need) || a.id === keepId);
 }
 
 /**
@@ -551,9 +557,10 @@ export function moveSourcesWithCredit(
   accounts: Account[],
   debts: Debt[],
   debtLabel: (debt: Debt) => string,
-  keepId?: string
+  keepId?: string,
+  need?: number
 ): Account[] {
-  return [...pocketMoveSources(accounts, keepId), ...drawSourcesAsAccounts(debts, debtLabel)];
+  return [...pocketMoveSources(accounts, keepId, need), ...drawSourcesAsAccounts(debts, debtLabel)];
 }
 
 /**

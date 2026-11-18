@@ -14,6 +14,8 @@ export type AskOptions = {
   language?: 'en' | 'es';
   accounts?: Account[];
   currency?: Currency;
+  /** Days marked "no spend" in 1.11.0: they still count for the streak. */
+  noSpendDays?: string[];
   /** False on the free plan: Pro-only answers show what Pro adds instead. Missing = allowed. */
   isPro?: boolean;
 };

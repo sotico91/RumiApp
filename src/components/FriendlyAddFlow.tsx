@@ -20,6 +20,7 @@ import { useFundsCheck } from '@/src/hooks/useFundsCheck';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { formatAmountTyping } from '@/src/utils/money';
+import { pickUsual, usualDestinationAccounts, usualSourceAccounts } from '@/src/utils/habits';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useCategorySuggestion } from '@/src/hooks/useCategorySuggestion';
 import { usePickableSpendConcepts } from '@/src/hooks/useSpendConcepts';
@@ -147,25 +148,30 @@ export function FriendlyAddFlow({
   const scrollRef = useRef<ScrollView>(null);
 
 
+  // The amount comes first: only pockets that cover all of it are offered.
+  const need = parse(amount) ?? undefined;
   const methodAccounts = useMemo(
     () =>
       accountsForExpenseSource(accounts, method, {
+        need,
         debts,
         debtLabel: (debt) =>
           debt.nameKey
             ? t(debt.nameKey as TranslationKey)
             : debt.name ?? t('debt.mainCard'),
       }),
-    [accounts, method, debts, t]
+    [accounts, method, debts, t, need]
   );
 
   // Pockets with money, plus cards / cupos for a cash advance.
   const moveSources = useMemo(
     () =>
       moveSourcesWithCredit(accounts, debts, (debt) =>
-        debt.nameKey ? t(debt.nameKey as TranslationKey) : debt.name ?? t('debt.mainCard')
+        debt.nameKey ? t(debt.nameKey as TranslationKey) : debt.name ?? t('debt.mainCard'),
+        undefined,
+        need
       ),
-    [accounts, debts, t]
+    [accounts, debts, t, need]
   );
   const moveAccounts = useMemo(() => moveDestinations(accounts, accountId, debts), [accounts, accountId, debts]);
   const creditDraw = intent === 'move' && isDebtPayAccountId(accountId);
@@ -185,7 +191,7 @@ export function FriendlyAddFlow({
       : intent === 'move'
         ? moveSources
         : intent === 'debt'
-          ? liquidPocketsForPay(accounts)
+          ? liquidPocketsForPay(accounts, undefined, need)
           : methodAccounts;
 
   useEffect(() => {
@@ -208,14 +214,38 @@ export function FriendlyAddFlow({
       return;
     }
     if (intent === 'debt') {
-      const pockets = liquidPocketsForPay(accounts);
+      const pockets = liquidPocketsForPay(accounts, undefined, need);
       const next = firstAccountId(pockets, accountId);
       if (next && next !== accountId) setAccountId(next);
       return;
     }
     const next = firstAccountId(methodAccounts, accountId);
     if (next && next !== accountId) setAccountId(next);
-  }, [intent, methodAccounts, incomeAccounts, moveAccounts, moveSources, accountId, toAccountId, accounts, debts]);
+  }, [intent, methodAccounts, incomeAccounts, moveAccounts, moveSources, accountId, toAccountId, accounts, debts, need]);
+
+  // Rumi learns the habit: until the user taps an account, offer the one this
+  // kind of movement (same subcategory, same debt, same source) usually uses.
+  // Choices already hold only accounts that cover the amount, so when the usual
+  // one falls short the next habitual one (or the fullest) is offered instead.
+  const sourceTouched = useRef(!!dictated?.accountId || (initialIntent === 'spend' && !!initialDebtId));
+  const destTouched = useRef(!!dictated?.toAccountId);
+  useEffect(() => {
+    if (sourceTouched.current) return;
+    const type =
+      intent === 'debt' ? 'debt_payment' : intent === 'move' ? 'transfer' : intent === 'earn' ? 'income' : 'expense';
+    const ranked = usualSourceAccounts(transactions, {
+      type,
+      categoryId: intent === 'spend' || intent === 'earn' ? categoryId : undefined,
+      debtId: intent === 'debt' ? debtId : undefined,
+    });
+    const usual = pickUsual(ranked, accountChoices);
+    if (usual && usual !== accountId) setAccountId(usual);
+  }, [intent, categoryId, debtId, accountChoices, accountId, transactions]);
+  useEffect(() => {
+    if (intent !== 'move' || destTouched.current) return;
+    const usual = pickUsual(usualDestinationAccounts(transactions, accountId), moveAccounts);
+    if (usual && usual !== toAccountId) setToAccountId(usual);
+  }, [intent, accountId, moveAccounts, toAccountId, transactions]);
 
   const incomeChoices = useMemo(
     () => categoriesForKind('income', settings.enabledCategoryIds),
@@ -765,7 +795,7 @@ export function FriendlyAddFlow({
                     }
                     setMethod('debit');
                     const nextId = firstAccountId(
-                      liquidPocketsForPay(accounts),
+                      liquidPocketsForPay(accounts, undefined, need),
                       accountId
                     );
                     if (nextId) setAccountId(nextId);
@@ -796,7 +826,7 @@ export function FriendlyAddFlow({
             </Text>
             {accountChoices.length === 0 &&
             (intent === 'debt' || intent === 'move' || (intent === 'spend' && method !== 'credit')) ? (
-              <NoMoneyHint move={intent === 'move'} />
+              <NoMoneyHint move={intent === 'move'} need={need} />
             ) : accountChoices.length === 0 ? (
               <Text style={styles.intentSub}>{t('flow.payAccountsEmpty')}</Text>
             ) : (
@@ -805,6 +835,7 @@ export function FriendlyAddFlow({
                 accounts={accountChoices}
                 selectedId={accountId}
                 onSelect={(id) => {
+                  sourceTouched.current = true;
                   setAccountId(id);
                   if (intent === 'spend' && method !== 'credit') {
                     const acc = accounts.find((a) => a.id === id);
@@ -826,7 +857,10 @@ export function FriendlyAddFlow({
                   variant="card"
                   accounts={moveAccounts}
                   selectedId={toAccountId}
-                  onSelect={setToAccountId}
+                  onSelect={(id) => {
+                    destTouched.current = true;
+                    setToAccountId(id);
+                  }}
                   allowAddWallet={!creditDraw}
                 />
               </>

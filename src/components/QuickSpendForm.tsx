@@ -16,6 +16,7 @@ import { useFundsCheck } from '@/src/hooks/useFundsCheck';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
 import { formatAmountTyping } from '@/src/utils/money';
+import { usualSourceAccounts, usualSpendCategories, pickUsual } from '@/src/utils/habits';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useCategorySuggestion } from '@/src/hooks/useCategorySuggestion';
 import { usePickableSpendConcepts } from '@/src/hooks/useSpendConcepts';
@@ -27,7 +28,7 @@ import {
   defaultSpendAccountId,
   paymentMethodForAccount,
 } from '@/src/utils/accounts';
-import { debtIdFromPayAccountId, openDebts, payAccountIdForDebt } from '@/src/utils/debts';
+import { debtIdFromPayAccountId, openDebts } from '@/src/utils/debts';
 import { movementNotifyCopy } from '@/src/utils/movementNotify';
 import { notifyExpenseRegistered } from '@/src/utils/notifications';
 import { tapFeedback } from '@/src/utils/selectFeedback';
@@ -66,14 +67,11 @@ export function QuickSpendForm({ onSaved, onOpenGuided, dictated, header }: Prop
   const { addTransaction, totalForPeriod, accounts, debts, transactions } = useFinance();
   const spendConcepts = usePickableSpendConcepts();
 
-  // Recent subcategories first, then the rest of the tree.
+  // The subcategories logged most first (ties: the latest), then the rest of the tree.
   const { categoryChips, hasRecent } = useMemo(() => {
-    const ids: string[] = [];
-    for (const tx of transactions) {
-      if (tx.type !== 'expense' || !tx.categoryId || ids.includes(tx.categoryId)) continue;
-      if (findSpendSub(spendConcepts, tx.categoryId)) ids.push(tx.categoryId);
-      if (ids.length >= MAX_CHIPS) break;
-    }
+    const ids = usualSpendCategories(transactions)
+      .filter((id) => findSpendSub(spendConcepts, id))
+      .slice(0, MAX_CHIPS);
     const recentCount = ids.length;
     for (const sub of flattenSpendSubs(spendConcepts)) {
       if (ids.length >= MAX_CHIPS) break;
@@ -91,16 +89,18 @@ export function QuickSpendForm({ onSaved, onOpenGuided, dictated, header }: Prop
     return { categoryChips: chips, hasRecent: recentCount > 0 };
   }, [transactions, spendConcepts]);
 
+  const [amount, setAmount] = useState('');
+  // Once the amount is typed, only pockets that cover all of it are offered (cards stay).
+  const need = parse(amount) ?? undefined;
   const payAccounts = useMemo(() => {
     const debtLabel = (debt: (typeof debts)[number]) =>
       debt.nameKey ? t(debt.nameKey as TranslationKey) : debt.name ?? t('debt.mainCard');
     return [
-      ...accountsForExpenseSource(accounts, 'debit'),
+      ...accountsForExpenseSource(accounts, 'debit', { need }),
       ...accountsForExpenseSource(accounts, 'credit', { debts: openDebts(debts), debtLabel }),
     ];
-  }, [accounts, debts, t]);
+  }, [accounts, debts, t, need]);
 
-  const [amount, setAmount] = useState('');
   const [pickedCategoryId, setCategoryId] = useState<string | null>(null);
   const [note, setNote] = useState('');
   // "Other category" opens a picker right here: the amount stays typed.
@@ -152,19 +152,18 @@ export function QuickSpendForm({ onSaved, onOpenGuided, dictated, header }: Prop
     setDaysAgo(movement.daysAgo);
   }, [dictated, accounts, payAccounts, currency]);
 
-  // Until the user picks one, use the account last used for this subcategory.
+  // Until the user picks one, the account this subcategory is usually paid from.
+  // When that one doesn't cover the amount it isn't offered, so the next
+  // habitual one (or the fullest pocket) takes its place.
   const accountId = useMemo(() => {
-    if (pickedAccountId) return pickedAccountId;
-    const last =
-      (categoryId &&
-        transactions.find(
-          (tx) => tx.type === 'expense' && tx.categoryId === categoryId && (tx.accountId || tx.creditDebtId)
-        )) ||
-      transactions.find((tx) => tx.type === 'expense' && (tx.accountId || tx.creditDebtId));
-    const lastId = last?.creditDebtId ? payAccountIdForDebt(last.creditDebtId) : last?.accountId;
-    if (lastId && payAccounts.some((a) => a.id === lastId)) return lastId;
-    return defaultSpendAccountId(accounts);
-  }, [pickedAccountId, categoryId, transactions, payAccounts, accounts]);
+    // A pocket picked by hand stays only while it still covers the amount.
+    if (pickedAccountId && payAccounts.some((a) => a.id === pickedAccountId)) return pickedAccountId;
+    const usual = pickUsual(usualSourceAccounts(transactions, { type: 'expense', categoryId }), payAccounts);
+    if (usual) return usual;
+    return payAccounts.some((a) => a.type !== 'credit')
+      ? defaultSpendAccountId(accounts, { amount: need })
+      : payAccounts[0]?.id ?? defaultSpendAccountId(accounts);
+  }, [pickedAccountId, categoryId, transactions, payAccounts, accounts, need]);
 
   // A subcategory picked through search shows up first, selected.
   const visibleChips = useMemo(() => {
@@ -365,7 +364,7 @@ export function QuickSpendForm({ onSaved, onOpenGuided, dictated, header }: Prop
 
         <Text style={styles.section}>{t('quick.from')}</Text>
         {payAccounts.every((a) => a.type === 'credit') ? (
-          <NoMoneyHint cardsToo={payAccounts.length > 0} />
+          <NoMoneyHint cardsToo={payAccounts.length > 0} need={need} />
         ) : null}
         <AccountChoiceChips
           accounts={payAccounts}
