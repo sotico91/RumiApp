@@ -259,7 +259,7 @@ export const translations = {
     'history.settledOn': 'Settled {date}',
     'history.settledPaid': 'Paid in total {amount}',
     'history.settledHint':
-      'A payment that clears the remaining balance leaves Wealth and stays here, along with every transaction.',
+      'A fixed loan you pay off leaves Wealth and stays here, along with every transaction. Cards, credicheque and cupos stay in Wealth at 0 so you can use them again.',
 
     'insights.title': 'Insights',
     'insights.subtitle': 'What is happening with your money',
@@ -923,7 +923,7 @@ export const translations = {
     'flow.payScopeHint':
       'This month’s installment, settle the remaining total (leaves Wealth), or another amount.',
     'flow.payScopeHintRevolving':
-      'This month’s payment, everything you currently owe on this card or line, or another amount. Paying the full amount leaves Wealth and stays in Activity.',
+      'This month’s payment, everything you currently owe on this card or line, or another amount. Paying it all frees the cupo; the card stays in Wealth to use again.',
     'flow.payScopeCuota': 'This month’s installment',
     'flow.payScopeMonth': 'This month’s payment',
     'flow.payScopeFull': 'Pay off the remaining total',
@@ -1761,7 +1761,7 @@ export const translations = {
     'history.settledOn': 'Saldada el {date}',
     'history.settledPaid': 'Pagaste en total {amount}',
     'history.settledHint':
-      'Un pago que cierra el saldo sale de Patrimonio y queda aquí, junto a cada movimiento.',
+      'Un crédito de cuota fija que terminas de pagar sale de Patrimonio y queda aquí, junto a cada movimiento. Tarjetas, credicheque y cupos siguen en Patrimonio en 0 para volver a usarlos.',
 
     'insights.title': 'Análisis',
     'insights.subtitle': 'qué está pasando con tu dinero',
@@ -2427,7 +2427,7 @@ export const translations = {
     'flow.payScopeHint':
       'La cuota de este mes, saldar el total que queda (sale de Patrimonio), u otro valor.',
     'flow.payScopeHintRevolving':
-      'El pago de este mes, todo lo que debes hoy en esta tarjeta o cupo, u otro valor. Pagar el total sale de Patrimonio y queda en Actividad.',
+      'El pago de este mes, todo lo que debes hoy en esta tarjeta o cupo, u otro valor. Pagar el total libera el cupo; la tarjeta sigue en Patrimonio para volver a usarla.',
     'flow.payScopeCuota': 'Cuota de este mes',
     'flow.payScopeMonth': 'Pago de este mes',
     'flow.payScopeFull': 'Saldar el total que queda',

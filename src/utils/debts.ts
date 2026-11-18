@@ -94,14 +94,17 @@ export function paymentSettlesInstallment(
   return isSettledBalance(Math.max(0, (debt.balance || 0) - paid));
 }
 
-/** Any debt that reaches 0 after a payment leaves live Wealth (kept via closedAt). */
+/**
+ * A fixed loan that reaches 0 leaves live Wealth (kept via closedAt).
+ * Cards, credicheque, cupos and rotativo loans keep their cupo at 0 used:
+ * they stay open so you can charge or draw from them again.
+ */
 export function closedAtAfterBalance(
   debt: Pick<Debt, 'kind' | 'closedAt' | 'drawable'>,
   nextBalance: number,
   closedAt: string
 ): string | undefined {
-  // A rotativo loan at zero still has its cupo: it stays open to draw from.
-  if (debt.drawable) return undefined;
+  if (hasCupo(debt)) return undefined;
   if (isSettledBalance(nextBalance)) return debt.closedAt ?? closedAt;
   return undefined;
 }
@@ -120,6 +123,12 @@ export function closePaidInstallments(
   }
   let changed = false;
   const next = debts.map((debt) => {
+    // Cupo products closed by an older version come back: the line still exists.
+    if (hasCupo(debt) && debt.closedAt) {
+      changed = true;
+      const { closedAt: _closed, ...open } = debt;
+      return open;
+    }
     if (hasCupo(debt) || debt.closedAt || !isSettledBalance(debt.balance)) {
       return debt;
     }

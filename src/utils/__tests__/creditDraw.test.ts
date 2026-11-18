@@ -145,6 +145,32 @@ describe('credit draws (cash advance / cupo into a pocket)', () => {
     expect(closePaidInstallments([rotLoan], []).changed).toBe(false);
   });
 
+  it('keeps cards, credicheque and cupos open in Wealth after paying them in full', () => {
+    const tx = {
+      id: 'pay',
+      type: 'debt_payment',
+      amount: 200000,
+      createdAt: '2026-11-18T12:00:00.000Z',
+      accountId: 'bank',
+      debtId: 'rot',
+    } as Transaction;
+    for (const product of ['card', 'credicheque', 'line'] as const) {
+      const [paid] = applyDebtPayment([{ ...base, revolvingProduct: product }], tx, 1);
+      expect(paid.balance).toBe(0);
+      expect(paid.closedAt).toBeUndefined();
+      expect(creditAvailable(paid)).toBe(1000000);
+    }
+    const [paidLoan] = applyDebtPayment([{ ...loan, id: 'rot' }], tx, 1);
+    expect(paidLoan.closedAt).toBe(tx.createdAt);
+  });
+
+  it('reopens cupo products an older version closed at 0', () => {
+    const closed = { ...visa, closedAt: '2026-10-01T00:00:00.000Z' };
+    const { debts: next, changed } = closePaidInstallments([closed], []);
+    expect(changed).toBe(true);
+    expect(next[0].closedAt).toBeUndefined();
+  });
+
   it('only blocks past the free cupo when the limit is known', () => {
     expect(creditShortfall(base, 800000)).toBe(0);
     expect(creditShortfall(base, 900000)).toBe(100000);
