@@ -10,6 +10,7 @@ import { MoneyText } from '@/src/components/MoneyText';
 import { findSpendSub, isGeneralSubName } from '@/src/data/spendConcepts';
 import { useMoney } from '@/src/hooks/useMoney';
 import { useLanguage } from '@/src/i18n/LanguageContext';
+import { palette, radii } from '@/src/theme/colors';
 import { colors, scale } from '@/src/theme/tokens';
 import type { Debt, Transaction } from '@/src/types/finance';
 import type { SpendConcept } from '@/src/types/settings';
@@ -21,14 +22,27 @@ import { tapFeedback } from '@/src/utils/selectFeedback';
 const HEIGHT = 250;
 const GAP = 6;
 const OTHERS_COLOR = scale.ink[500];
-const CREAM = scale.cream[50];
-const CREAM_MUTED = 'rgba(251,247,241,0.72)';
 
 type Props = {
   transactions: Transaction[];
   spendConcepts: SpendConcept[];
   debts?: Pick<Debt, 'id' | 'kind'>[];
 };
+
+/** The category's icon on a circle of its color, glyph in whichever of black/white reads. */
+function IconBubble({ tile, color, size }: { tile: MosaicTile; color: string; size: number }) {
+  const glyph = readableTextOn(color);
+  const box = Math.round(size * 1.85);
+  return (
+    <View style={[styles.bubble, { width: box, height: box, borderRadius: box / 2, backgroundColor: color }]}>
+      {tile.id === OTHERS_ID ? (
+        <MaterialCommunityIcons name="dots-horizontal" size={size} color={glyph} />
+      ) : (
+        <ConceptIcon icon={tile.concept?.icon} color={glyph} size={size} />
+      )}
+    </View>
+  );
+}
 
 /**
  * "Where does your money go?": the month's spending as a mosaic, each category
@@ -68,16 +82,10 @@ export function SpendMosaic({ transactions, spendConcepts, debts = [] }: Props) 
   const top = tiles[0];
   const topDelta = top.deltaPoints != null ? Math.round(top.deltaPoints) : null;
   const selected = tiles.find((tile) => tile.id === selectedId) ?? null;
-  const upColor = colors.text.onBrandDanger;
-  const downColor = colors.text.onBrandSuccess;
 
   return (
-    <LinearGradient
-      colors={[scale.petrol[700], scale.petrol[900]]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0.4, y: 1 }}
-      style={styles.card}>
-      <Text style={styles.eyebrow}>{t('mosaic.title')}</Text>
+    <View style={styles.card}>
+      <Text style={styles.title}>{t('mosaic.title')}</Text>
       <View style={styles.hero}>
         <MoneyText style={styles.total}>{format(total)}</MoneyText>
         <Text style={styles.totalLabel}>{t('mosaic.totalLabel')}</Text>
@@ -90,9 +98,9 @@ export function SpendMosaic({ transactions, spendConcepts, debts = [] }: Props) 
           <MaterialCommunityIcons
             name={topDelta > 0 ? 'arrow-top-right' : 'arrow-bottom-right'}
             size={14}
-            color={topDelta > 0 ? upColor : downColor}
+            color={topDelta > 0 ? colors.status.danger : colors.status.success}
           />
-          <Text style={[styles.chipText, { color: topDelta > 0 ? upColor : downColor }]}>
+          <Text style={[styles.chipText, { color: topDelta > 0 ? colors.status.danger : colors.status.success }]}>
             {t(topDelta > 0 ? 'mosaic.chipUp' : 'mosaic.chipDown', { category: nameOf(top), points: Math.abs(topDelta) })}
           </Text>
         </View>
@@ -104,11 +112,12 @@ export function SpendMosaic({ transactions, spendConcepts, debts = [] }: Props) 
               const r = rects[i];
               if (!r) return null;
               const base = colorOf(tile);
-              const ink = readableTextOn(base);
               const w = r.w - GAP;
               const h = r.h - GAP;
-              const roomy = w >= 110 && h >= 96;
-              const showName = w >= 72 && h >= 58;
+              // Every block shows its icon; text only where it fits.
+              const tiny = w < 60 || h < 60;
+              const showName = w >= 76 && h >= 92;
+              const roomy = w >= 120 && h >= 120;
               const isOn = tile.id === selectedId;
               return (
                 <Animated.View
@@ -127,40 +136,38 @@ export function SpendMosaic({ transactions, spendConcepts, debts = [] }: Props) 
                     onPress={() => pick(tile.id)}
                     style={({ pressed }) => [styles.pressable, pressed && styles.pressed]}>
                     <LinearGradient
-                      colors={[shade(base, 0.18), base, shade(base, -0.12)]}
+                      colors={[shade(base, 0.88), shade(base, 0.76)]}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
-                      style={[styles.tile, isOn && styles.tileOn]}>
-                      {roomy ? (
-                        <View style={styles.tileTop}>
-                          <View style={styles.iconBadge}>
-                            {tile.id === OTHERS_ID ? (
-                              <MaterialCommunityIcons name="dots-horizontal" size={16} color={ink} />
-                            ) : (
-                              <ConceptIcon icon={tile.concept?.icon} color={ink} size={16} />
-                            )}
+                      style={[
+                        styles.tile,
+                        tiny && styles.tileTiny,
+                        { borderColor: isOn ? base : shade(base, 0.6), borderWidth: isOn ? 2 : 1 },
+                      ]}>
+                      {tiny ? (
+                        <IconBubble tile={tile} color={base} size={12} />
+                      ) : (
+                        <>
+                          <View style={styles.tileTop}>
+                            <IconBubble tile={tile} color={base} size={roomy ? 16 : 13} />
+                            {tile.hasAnt && roomy ? <Text style={styles.ant}>🐜</Text> : null}
                           </View>
-                          {tile.hasAnt ? <Text style={styles.ant}>🐜</Text> : null}
-                        </View>
-                      ) : null}
-                      <View style={styles.tileBottom}>
-                        <Text
-                          style={[styles.percent, { color: ink }, !showName && styles.percentSmall]}
-                          numberOfLines={1}
-                          adjustsFontSizeToFit>
-                          {pct(tile.percent)}%
-                        </Text>
-                        {showName ? (
-                          <Text style={[styles.tileName, { color: ink }]} numberOfLines={1}>
-                            {nameOf(tile)}
-                          </Text>
-                        ) : null}
-                        {roomy ? (
-                          <MoneyText style={[styles.tileAmount, { color: ink }]}>
-                            {format(tile.total)}
-                          </MoneyText>
-                        ) : null}
-                      </View>
+                          <View style={styles.tileBottom}>
+                            <Text
+                              style={[styles.percent, !showName && styles.percentSmall]}
+                              numberOfLines={1}
+                              adjustsFontSizeToFit>
+                              {pct(tile.percent)}%
+                            </Text>
+                            {showName ? (
+                              <Text style={styles.tileName} numberOfLines={1}>
+                                {nameOf(tile)}
+                              </Text>
+                            ) : null}
+                            {roomy ? <MoneyText style={styles.tileAmount}>{format(tile.total)}</MoneyText> : null}
+                          </View>
+                        </>
+                      )}
                     </LinearGradient>
                   </Pressable>
                 </Animated.View>
@@ -173,14 +180,15 @@ export function SpendMosaic({ transactions, spendConcepts, debts = [] }: Props) 
       <View style={styles.legend}>
         {tiles.map((tile) => {
           const isOn = tile.id === selectedId;
+          const c = colorOf(tile);
           return (
             <Pressable
               key={tile.id}
               accessibilityRole="button"
               accessibilityState={{ selected: isOn }}
               onPress={() => pick(tile.id)}
-              style={[styles.legendChip, isOn && styles.legendChipOn]}>
-              <View style={[styles.legendDot, { backgroundColor: colorOf(tile) }]} />
+              style={[styles.legendChip, isOn && { borderColor: c, backgroundColor: shade(c, 0.88) }]}>
+              <View style={[styles.legendDot, { backgroundColor: c }]} />
               <Text style={styles.legendName} numberOfLines={1}>
                 {nameOf(tile)}
               </Text>
@@ -204,7 +212,7 @@ export function SpendMosaic({ transactions, spendConcepts, debts = [] }: Props) 
       ) : (
         <Text style={styles.hint}>{t('mosaic.hint')}</Text>
       )}
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -257,7 +265,7 @@ function MosaicDetail({
   return (
     <>
       <View style={styles.detailHead}>
-        <View style={[styles.swatch, { backgroundColor: color }]} />
+        <IconBubble tile={tile} color={color} size={12} />
         <Text style={styles.detailName} numberOfLines={1}>
           {name}
         </Text>
@@ -292,17 +300,21 @@ function MosaicDetail({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 24,
-    padding: 18,
-    gap: 10,
-    overflow: 'hidden',
+    backgroundColor: palette.surfaceSolid,
+    borderRadius: radii.lg,
+    borderWidth: 1,
+    borderColor: palette.border,
+    padding: 16,
+    gap: 8,
+    shadowColor: palette.shadow,
+    shadowOpacity: 0.05,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
   },
-  eyebrow: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 13,
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-    color: scale.gold[400],
+  title: {
+    fontFamily: 'Fraunces_600SemiBold',
+    fontSize: 20,
+    color: palette.ink,
   },
   hero: {
     flexDirection: 'row',
@@ -312,19 +324,19 @@ const styles = StyleSheet.create({
   },
   total: {
     fontFamily: 'Fraunces_600SemiBold',
-    fontSize: 34,
-    color: CREAM,
+    fontSize: 30,
+    color: palette.ink,
   },
   totalLabel: {
     fontFamily: 'DMSans_400Regular',
     fontSize: 14,
-    color: CREAM_MUTED,
+    color: palette.inkMuted,
   },
   headline: {
     fontFamily: 'DMSans_400Regular',
     fontSize: 15,
     lineHeight: 21,
-    color: CREAM,
+    color: palette.inkMuted,
   },
   chip: {
     alignSelf: 'flex-start',
@@ -335,8 +347,8 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 999,
   },
-  chipUp: { backgroundColor: 'rgba(255,180,168,0.14)' },
-  chipDown: { backgroundColor: 'rgba(125,255,200,0.12)' },
+  chipUp: { backgroundColor: palette.dangerSoft },
+  chipDown: { backgroundColor: palette.successSoft },
   chipText: {
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 12,
@@ -361,25 +373,20 @@ const styles = StyleSheet.create({
     padding: 10,
     justifyContent: 'space-between',
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.14)',
   },
-  tileOn: {
-    borderWidth: 2.5,
-    borderColor: CREAM,
+  tileTiny: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 4,
+  },
+  bubble: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tileTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  iconBadge: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.22)',
   },
   ant: {
     fontSize: 14,
@@ -390,18 +397,20 @@ const styles = StyleSheet.create({
   percent: {
     fontFamily: 'Fraunces_600SemiBold',
     fontSize: 30,
+    color: palette.ink,
   },
   percentSmall: {
-    fontSize: 16,
+    fontSize: 17,
   },
   tileName: {
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 13,
+    color: palette.ink,
   },
   tileAmount: {
     fontFamily: 'DMSans_400Regular',
     fontSize: 12,
-    opacity: 0.85,
+    color: palette.inkMuted,
   },
   legend: {
     flexDirection: 'row',
@@ -416,14 +425,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: colors.bg.screen,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.10)',
+    borderColor: palette.border,
     maxWidth: '100%',
-  },
-  legendChipOn: {
-    borderColor: CREAM,
-    backgroundColor: 'rgba(255,255,255,0.16)',
   },
   legendDot: {
     width: 10,
@@ -433,53 +438,48 @@ const styles = StyleSheet.create({
   legendName: {
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 13,
-    color: CREAM,
+    color: palette.ink,
     flexShrink: 1,
   },
   legendPct: {
     fontFamily: 'DMSans_400Regular',
     fontSize: 13,
-    color: CREAM_MUTED,
+    color: palette.inkMuted,
   },
   hint: {
     fontFamily: 'DMSans_400Regular',
     fontSize: 13,
-    color: CREAM_MUTED,
+    color: palette.inkSoft,
   },
   detail: {
     gap: 8,
     marginTop: 4,
     padding: 14,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.07)',
+    backgroundColor: colors.bg.screen,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.10)',
+    borderColor: palette.border,
   },
   detailHead: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  swatch: {
-    width: 12,
-    height: 12,
-    borderRadius: 4,
-  },
   detailName: {
     flex: 1,
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 16,
-    color: CREAM,
+    color: palette.ink,
   },
   detailAmount: {
     fontFamily: 'Fraunces_600SemiBold',
     fontSize: 18,
-    color: CREAM,
+    color: palette.ink,
   },
   detailMeta: {
     fontFamily: 'DMSans_400Regular',
     fontSize: 13,
-    color: CREAM_MUTED,
+    color: palette.inkMuted,
   },
   parts: {
     gap: 9,
@@ -494,13 +494,13 @@ const styles = StyleSheet.create({
     width: 112,
     fontFamily: 'DMSans_400Regular',
     fontSize: 13,
-    color: CREAM,
+    color: palette.ink,
   },
   partTrack: {
     flex: 1,
     height: 8,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.10)',
+    backgroundColor: 'rgba(15,28,36,0.06)',
     overflow: 'hidden',
   },
   partFill: {
@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
   partAmount: {
     fontFamily: 'DMSans_600SemiBold',
     fontSize: 13,
-    color: CREAM,
+    color: palette.ink,
     minWidth: 72,
     textAlign: 'right',
   },

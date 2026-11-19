@@ -12,6 +12,8 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-11-19
 
+- **Versión 1.17.3, mosaico claro:** la tarjeta oscura de la 1.17.2 cortaba con el fondo crema de la app. Ahora "¿A dónde se va tu plata?" es una tarjeta blanca como las demás: bloques en un tono suave del color de cada categoría con texto oscuro, borde del color al elegirlos, y **todos** llevan su ícono en un círculo de su color (los pequeños, solo el ícono; su nombre y % están en la leyenda). La etiqueta del cambio frente al mes pasado usa los colores claros de alerta y de éxito. Video de la App Store regrabado con este diseño y con las mismas cifras en todas las escenas.
+
 - **Versión 1.17.2, mosaico más cuidado:** al volver a Análisis desde otra pestaña, el bloque elegido seguía marcado y los demás quedaban atenuados al 45%, tanto que sus porcentajes no se leían. Ahora la elección se borra al salir de la pestaña y nada se atenúa: el bloque elegido lleva un borde. Rediseño: tarjeta oscura con el total del mes grande, una etiqueta con cuántos puntos subió o bajó la mayor categoría, bloques con degradado, ícono en círculo, porcentaje, nombre y monto cuando caben, y una leyenda debajo con todas las categorías (tocarla también abre el detalle), para que los bloques pequeños siempre se lean. El video de la App Store usa este diseño.
 
 - **Versión 1.17.1, ranking compacto:** en Análisis, el "Ranking de categorías" pasa de tarjetas grandes a una tabla: una línea por subcategoría con su ícono, porcentaje y monto, y una nota corta debajo solo si pasó o va cerca del tope, va bien con su tope o es el gasto más frecuente. Ocupa cerca de un tercio de antes, porque el mosaico de arriba ya dibuja las partes.
