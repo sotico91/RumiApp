@@ -5,6 +5,9 @@ appId: com.sotico91.rumi
 - launchApp:
     clearState: true
     stopApp: true
+- tapOn:
+    text: "Allow"
+    optional: true
 - extendedWaitUntil:
     visible: "Your first name"
     timeout: 20000
@@ -23,9 +26,10 @@ appId: com.sotico91.rumi
 - inputText: "2450.75"
 - tapOn: "STEP 4 OF 4"
 - tapOn: "I'm ready"
+# The first-launch tips cover Home for about 18 s.
 - extendedWaitUntil:
     visible: "Home"
-    timeout: 10000
+    timeout: 25000
 - runFlow: { file: spend-en.yaml, env: { AMOUNT: "86.40", NOTE: "groceries", SAVE: "86\\.40" } }
 - runFlow: { file: spend-en.yaml, env: { AMOUNT: "4.75", NOTE: "coffee", SAVE: "4\\.75" } }
 - runFlow: { file: spend-en.yaml, env: { AMOUNT: "12.50", NOTE: "lunch", SAVE: "12\\.50" } }
@@ -34,3 +38,18 @@ appId: com.sotico91.rumi
 - runFlow: { file: spend-en.yaml, env: { AMOUNT: "23.90", NOTE: "delivery", SAVE: "23\\.90" } }
 - runFlow: { file: spend-en.yaml, env: { AMOUNT: "15.49", NOTE: "netflix", SAVE: "15\\.49" } }
 - runFlow: { file: spend-en.yaml, env: { AMOUNT: "4.50", NOTE: "coffee", SAVE: "4\\.50" } }
+- tapOn:
+    text: "Allow"
+    optional: true
+# A $3,200 salary so Home shows income too.
+- tapOn: { id: "add-fab" }
+- tapOn: "Income"
+- tapOn: { id: "flow-amount" }
+- inputText: "3200"
+- tapOn: "How much was it?"
+- tapOn: "Continue"
+- tapOn: "Salary"
+- tapOn: "Continue"
+- tapOn: "Continue"
+- tapOn: "Yes, save it"
+- extendedWaitUntil: { visible: "Home", timeout: 10000 }

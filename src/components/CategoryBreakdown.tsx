@@ -8,10 +8,7 @@ import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import { palette, radii } from '@/src/theme/colors';
 import { categoryLabel } from '@/src/utils/categoryLabel';
-import {
-  toneFromBudgetRatio,
-  type SignalTone,
-} from '@/src/utils/signalTone';
+import { toneFromBudgetRatio } from '@/src/utils/signalTone';
 
 type Insight = {
   categoryId: string;
@@ -72,103 +69,43 @@ export function CategoryBreakdown({ insights, emptyLabel, budgetStatus }: Props)
     return worst;
   }
 
+  // One line per category: compact, since the mosaic above already draws the shares.
   return (
     <View style={styles.list}>
       {insights.map((item, index) => {
         const budget = budgetFor(item);
         const budgetTone = budget ? toneFromBudgetRatio(budget.ratio) : 'neutral';
-        const isTopSpend = index === 0 && item.percent >= 30;
         const isMostFrequent = item.categoryId === mostFrequentId;
-        const tone: SignalTone =
-          budgetTone === 'danger' || budgetTone === 'warn'
-            ? budgetTone
-            : isMostFrequent || isTopSpend
-              ? 'danger'
-              : budgetTone === 'good'
-                ? 'good'
-                : 'neutral';
+        const flag =
+          budgetTone === 'danger'
+            ? { text: t('insights.overBudget'), color: palette.danger }
+            : budgetTone === 'warn'
+              ? { text: t('insights.nearBudget'), color: palette.accentDeep }
+              : isMostFrequent
+                ? { text: t('insights.mostFrequent'), color: palette.danger }
+                : budgetTone === 'good'
+                  ? { text: t('insights.underBudget'), color: palette.success }
+                  : null;
+        const limitText = budget
+          ? t('insights.topeMeta', { spent: format(budget.spent ?? item.total), limit: format(budget.limit ?? 0) })
+          : null;
 
         return (
-          <View
-            key={item.categoryId}
-            style={[
-              styles.item,
-              tone === 'danger' && styles.itemDanger,
-              tone === 'warn' && styles.itemWarn,
-              tone === 'good' && styles.itemGood,
-            ]}>
-            <View style={styles.header}>
-              <View style={styles.nameRow}>
-                <ConceptIcon
-                  icon={categoryVisual(item.categoryId, spendConcepts).icon}
-                  color={
-                    tone === 'danger'
-                      ? palette.danger
-                      : tone === 'good'
-                        ? palette.success
-                        : item.color
-                  }
-                  size={18}
-                />
-                <Text
-                  style={[
-                    styles.name,
-                    tone === 'danger' && styles.textDanger,
-                    tone === 'good' && styles.textGood,
-                  ]}>
-                  {categoryLabel(item.categoryId, t, spendConcepts)}
-                </Text>
-              </View>
-              <MoneyText
-                style={[
-                  styles.total,
-                  tone === 'danger' && styles.textDanger,
-                  tone === 'good' && styles.textGood,
-                ]}>
-                {format(item.total)}
-              </MoneyText>
+          <View key={item.categoryId} style={[styles.row, index > 0 && styles.rowDivider]}>
+            <View style={styles.line}>
+              <ConceptIcon icon={categoryVisual(item.categoryId, spendConcepts).icon} color={item.color} size={16} />
+              <Text style={styles.name} numberOfLines={1}>
+                {categoryLabel(item.categoryId, t, spendConcepts)}
+              </Text>
+              <Text style={styles.percent}>{Math.round(item.percent)}%</Text>
+              <MoneyText style={styles.total}>{format(item.total)}</MoneyText>
             </View>
-            <View style={styles.track}>
-              <View
-                style={[
-                  styles.fill,
-                  {
-                    backgroundColor:
-                      tone === 'danger'
-                        ? palette.danger
-                        : tone === 'warn'
-                          ? palette.accent
-                          : tone === 'good'
-                            ? palette.success
-                            : item.color,
-                    width: `${Math.max(Math.min(item.percent, 100), 6)}%`,
-                  },
-                ]}
-              />
-            </View>
-            <Text style={styles.meta}>
-              {t('insights.percentOfTotalShort', { percent: Math.round(item.percent) })}
-              {' · '}
-              {item.count}{' '}
-              {item.count === 1 ? t('insights.expense') : t('insights.expenses')}
-              {budget
-                ? ` · ${t('insights.topeMeta', {
-                    spent: format(budget.spent ?? item.total),
-                    limit: format(budget.limit ?? 0),
-                  })}`
-                : ''}
-            </Text>
-            {isMostFrequent ? (
-              <Text style={styles.badgeDanger}>{t('insights.mostFrequent')}</Text>
-            ) : null}
-            {budgetTone === 'danger' ? (
-              <Text style={styles.badgeDanger}>{t('insights.overBudget')}</Text>
-            ) : null}
-            {budgetTone === 'warn' && !isMostFrequent ? (
-              <Text style={styles.badgeWarn}>{t('insights.nearBudget')}</Text>
-            ) : null}
-            {budgetTone === 'good' && !isTopSpend && !isMostFrequent ? (
-              <Text style={styles.badgeGood}>{t('insights.underBudget')}</Text>
+            {flag || limitText ? (
+              <Text style={styles.meta} numberOfLines={1}>
+                {flag ? <Text style={[styles.flag, { color: flag.color }]}>{flag.text}</Text> : null}
+                {flag && limitText ? ' · ' : ''}
+                {limitText}
+              </Text>
             ) : null}
           </View>
         );
@@ -179,97 +116,54 @@ export function CategoryBreakdown({ insights, emptyLabel, budgetStatus }: Props)
 
 const styles = StyleSheet.create({
   list: {
-    gap: 12,
     backgroundColor: palette.surfaceSolid,
     borderRadius: radii.lg,
     borderWidth: 1,
     borderColor: palette.border,
-    padding: 14,
-    shadowColor: palette.shadow,
-    shadowOpacity: 0.05,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
+    paddingHorizontal: 14,
+    paddingVertical: 4,
   },
-  item: {
-    gap: 8,
-    borderRadius: 14,
-    padding: 12,
-    backgroundColor: '#F7FAFC',
-    borderWidth: 1,
-    borderColor: palette.border,
+  row: {
+    paddingVertical: 10,
+    gap: 2,
   },
-  itemDanger: {
-    backgroundColor: palette.dangerSoft,
-    borderColor: 'rgba(214,69,69,0.35)',
+  rowDivider: {
+    borderTopWidth: 1,
+    borderTopColor: palette.border,
   },
-  itemWarn: {
-    backgroundColor: palette.warnSoft,
-    borderColor: 'rgba(255,107,74,0.35)',
-  },
-  itemGood: {
-    backgroundColor: palette.successSoft,
-    borderColor: 'rgba(31,157,108,0.3)',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 12,
-  },
-  nameRow: {
+  line: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    flex: 1,
   },
   name: {
+    flex: 1,
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 15,
+    fontSize: 14,
     color: palette.ink,
-    flexShrink: 1,
+  },
+  percent: {
+    fontFamily: 'DMSans_400Regular',
+    fontSize: 13,
+    color: palette.inkMuted,
+    minWidth: 36,
+    textAlign: 'right',
   },
   total: {
     fontFamily: 'Fraunces_600SemiBold',
-    fontSize: 16,
+    fontSize: 15,
     color: palette.ink,
-  },
-  textDanger: { color: palette.danger },
-  textGood: { color: palette.success },
-  track: {
-    height: 8,
-    borderRadius: 999,
-    backgroundColor: 'rgba(15,28,36,0.06)',
-    overflow: 'hidden',
-  },
-  fill: {
-    height: '100%',
-    borderRadius: 999,
+    minWidth: 84,
+    textAlign: 'right',
   },
   meta: {
     fontFamily: 'DMSans_400Regular',
-    fontSize: 13,
+    fontSize: 12,
     color: palette.inkSoft,
+    marginLeft: 24,
   },
-  badgeDanger: {
+  flag: {
     fontFamily: 'DMSans_600SemiBold',
-    fontSize: 12,
-    color: palette.danger,
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-  },
-  badgeWarn: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 12,
-    color: palette.accentDeep,
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-  },
-  badgeGood: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 12,
-    color: palette.success,
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
   },
   emptyWrap: {
     backgroundColor: palette.surfaceSolid,

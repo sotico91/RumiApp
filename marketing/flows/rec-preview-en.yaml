@@ -1,0 +1,42 @@
+# App Store preview footage (English, US dollars), after seed-en.yaml. Record the
+# simulator while it runs: log a lunch in a few taps, see where the money goes,
+# ask Rumi. Each step waits so the edit has room for captions.
+appId: com.sotico91.rumi
+---
+- tapOn: "Home"
+- swipe: { direction: DOWN }
+- waitForAnimationToEnd
+- swipe: { start: "50%,70%", end: "50%,45%", duration: 1200 }
+- swipe: { start: "50%,45%", end: "50%,70%", duration: 1200 }
+- tapOn: { id: "add-fab" }
+- tapOn: { id: "quick-amount" }
+- inputText: "12.50"
+- tapOn: "What for?"
+- tapOn: { id: "quick-note" }
+- inputText: "lunch"
+- tapOn: "What for?"
+- waitForAnimationToEnd
+- tapOn: "Save \\$12\\.50"
+- extendedWaitUntil: { visible: "Home", timeout: 10000 }
+- waitForAnimationToEnd
+- tapOn: "Insights"
+- swipe: { direction: DOWN }
+- swipe: { direction: DOWN }
+- swipe: { direction: DOWN }
+- waitForAnimationToEnd
+- scrollUntilVisible:
+    element: "Where your money goes"
+    direction: DOWN
+    speed: 20
+- scroll
+- waitForAnimationToEnd
+- tapOn: "Food: .*"
+- waitForAnimationToEnd
+- swipe: { direction: DOWN }
+- swipe: { direction: DOWN }
+- swipe: { direction: DOWN }
+- tapOn: { id: "ask-input" }
+- inputText: "How much did I spend on coffee?"
+- tapOn: "Ask"
+- tapOn: "Ask Rumi"
+- waitForAnimationToEnd
