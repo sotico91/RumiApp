@@ -1,0 +1,39 @@
+# Analysis shows "¿A dónde se va tu plata?": a block per category sized by its
+# share; tapping one opens what is inside. Shares are covered by jest (mosaic.test.ts).
+appId: com.sotico91.rumi
+---
+- runFlow: subflows/fresh-start.yaml
+- runFlow:
+    file: subflows/quick-spend.yaml
+    env: { AMOUNT: "60000", NOTE: "almuerzo" }
+- tapOn: "Guardar \\$60\\.000"
+- tapOn:
+    text: "Permitir"
+    optional: true
+- extendedWaitUntil:
+    visible: "Inicio"
+    timeout: 10000
+- runFlow:
+    file: subflows/quick-spend.yaml
+    env: { AMOUNT: "25000", NOTE: "taxi" }
+- tapOn: "Guardar \\$25\\.000"
+- extendedWaitUntil:
+    visible: "Inicio"
+    timeout: 10000
+- runFlow:
+    file: subflows/quick-spend.yaml
+    env: { AMOUNT: "6500", NOTE: "café" }
+- tapOn: "Guardar \\$6\\.500"
+- extendedWaitUntil:
+    visible: "Inicio"
+    timeout: 10000
+- tapOn: "Análisis"
+- scrollUntilVisible:
+    element: "¿A dónde se va tu plata?"
+    direction: DOWN
+- scroll
+- assertVisible: ".*se lleva el \\d+% de lo que gastaste este mes.*"
+- takeScreenshot: mosaic
+- tapOn: "Alimentación: .*"
+- assertVisible: ".*% del mes · 2 movimientos.*"
+- takeScreenshot: mosaic-open

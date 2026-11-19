@@ -6,6 +6,7 @@ import { AmountPrivacyToggle } from '@/src/components/AmountPrivacyToggle';
 import { BrandScreen, ScreenHeader } from '@/src/components/ui';
 import { colors, space } from '@/src/theme';
 import { CategoryBreakdown } from '@/src/components/CategoryBreakdown';
+import { SpendMosaic } from '@/src/components/SpendMosaic';
 import { EmptyState } from '@/src/components/EmptyState';
 import { ExpenseRow } from '@/src/components/ExpenseRow';
 import { CollapsibleSection } from '@/src/components/CollapsibleSection';
@@ -412,6 +413,8 @@ export default function InsightsScreen() {
           />
         )}
       </View>
+
+      <SpendMosaic transactions={mine} spendConcepts={spendConcepts} debts={debts} />
 
       <View>
         <CollapsibleSection
