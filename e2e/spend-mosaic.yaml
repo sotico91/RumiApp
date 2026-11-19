@@ -29,7 +29,7 @@ appId: com.sotico91.rumi
     timeout: 10000
 - tapOn: "Análisis"
 - scrollUntilVisible:
-    element: "¿A dónde se va tu plata?"
+    element: "(?i)¿a dónde se va tu plata\\?"
     direction: DOWN
 - scroll
 - assertVisible: ".*se lleva el \\d+% de lo que gastaste este mes.*"

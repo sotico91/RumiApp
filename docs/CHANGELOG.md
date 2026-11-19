@@ -12,6 +12,8 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-11-19
 
+- **Versión 1.17.2, mosaico más cuidado:** al volver a Análisis desde otra pestaña, el bloque elegido seguía marcado y los demás quedaban atenuados al 45%, tanto que sus porcentajes no se leían. Ahora la elección se borra al salir de la pestaña y nada se atenúa: el bloque elegido lleva un borde. Rediseño: tarjeta oscura con el total del mes grande, una etiqueta con cuántos puntos subió o bajó la mayor categoría, bloques con degradado, ícono en círculo, porcentaje, nombre y monto cuando caben, y una leyenda debajo con todas las categorías (tocarla también abre el detalle), para que los bloques pequeños siempre se lean. El video de la App Store usa este diseño.
+
 - **Versión 1.17.1, ranking compacto:** en Análisis, el "Ranking de categorías" pasa de tarjetas grandes a una tabla: una línea por subcategoría con su ícono, porcentaje y monto, y una nota corta debajo solo si pasó o va cerca del tope, va bien con su tope o es el gasto más frecuente. Ocupa cerca de un tercio de antes, porque el mosaico de arriba ya dibuja las partes.
 - **Tiendas para EE. UU.:** ficha es-US de Play en español con capturas en dólares, fichas en-GB, en-CA y en-AU, y el video de vista previa en inglés (`marketing/store/preview-en.mp4`).
 

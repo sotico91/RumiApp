@@ -4,8 +4,8 @@ appId: com.sotico91.rumi
 - scrollUntilVisible:
     element: "Where your money goes"
     direction: DOWN
-- swipe: { start: "50%,75%", end: "50%,30%", duration: 1100 }
+- swipe: { start: "50%,80%", end: "50%,30%", duration: 1100 }
 - tapOn:
     text: "Food: .*"
     retryTapIfNoChange: false
-- swipe: { start: "50%,86%", end: "50%,72%", duration: 1200 }
+- swipe: { start: "50%,88%", end: "50%,62%", duration: 1200 }

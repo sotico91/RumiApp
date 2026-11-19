@@ -176,3 +176,16 @@ export function readableTextOn(hex: string): '#FFFFFF' | '#0F1C24' {
   const vsDark = (lum + 0.05) / (dark + 0.05);
   return vsWhite >= vsDark ? '#FFFFFF' : '#0F1C24';
 }
+
+/** `hex` mixed toward white (amount > 0) or black (amount < 0), for gradients. */
+export function shade(hex: string, amount: number): string {
+  const m = hex.replace('#', '').match(/^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i);
+  if (!m) return hex;
+  const target = amount > 0 ? 255 : 0;
+  const k = Math.min(Math.abs(amount), 1);
+  const mix = (c: string) =>
+    Math.round(parseInt(c, 16) + (target - parseInt(c, 16)) * k)
+      .toString(16)
+      .padStart(2, '0');
+  return `#${mix(m[1])}${mix(m[2])}${mix(m[3])}`.toUpperCase();
+}

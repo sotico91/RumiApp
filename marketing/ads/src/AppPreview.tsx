@@ -108,7 +108,7 @@ export const appPreviews: Record<string, AppPreviewProps> = {
     scenes: [
       { src: clip('1-home'), from: 21.5, to: 27, caption: 'Your month at a glance' },
       { src: clip('2-add'), from: 12.5, to: 30, rate: 2, caption: 'Log a spend in seconds' },
-      { src: clip('3-mosaic'), from: 32, to: 45.5, rate: 2, caption: 'See where your money goes' },
+      { src: clip('3-mosaic'), from: 28, to: 41.75, rate: 2, caption: 'See where your money goes' },
       { src: clip('4-ask'), from: 50, to: 55, rate: 1.2, caption: 'Just ask Rumi' },
       { src: clip('4-ask'), from: 70.5, to: 74, rate: 1.2, caption: 'Just ask Rumi' },
       { src: clip('4-ask'), from: 86.5, to: 88.5, rate: 1.2, caption: 'Just ask Rumi' },

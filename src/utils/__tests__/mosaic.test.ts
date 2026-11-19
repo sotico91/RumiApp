@@ -1,6 +1,6 @@
 import type { Transaction } from '@/src/types/finance';
 import type { SpendConcept } from '@/src/types/settings';
-import { buildMosaic, OTHERS_ID, readableTextOn, squarify } from '@/src/utils/mosaic';
+import { buildMosaic, OTHERS_ID, readableTextOn, shade, squarify } from '@/src/utils/mosaic';
 
 const concepts: SpendConcept[] = [
   { id: 'food', name: 'Alimentación', color: '#E07A5F', subs: [{ id: 'mercado', name: 'Mercado' }, { id: 'cafe', name: 'Café', isAnt: true }] },
@@ -118,5 +118,13 @@ describe('readableTextOn', () => {
   it('picks dark text on light colors and white on dark ones', () => {
     expect(readableTextOn('#F2CC8F')).toBe('#0F1C24');
     expect(readableTextOn('#3D5A80')).toBe('#FFFFFF');
+  });
+});
+
+describe('shade', () => {
+  it('mixes toward white or black', () => {
+    expect(shade('#808080', 0.5)).toBe('#C0C0C0');
+    expect(shade('#808080', -0.5)).toBe('#404040');
+    expect(shade('#123456', 0)).toBe('#123456');
   });
 });
