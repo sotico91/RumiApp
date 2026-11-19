@@ -1,0 +1,32 @@
+# Dollars: a quick-add spend and a one-tap spend both close their screen after
+# saving and take the money out of the bank.
+appId: com.sotico91.rumi
+---
+- runFlow:
+    file: subflows/fresh-start.yaml
+    env: { CURRENCY: "USD" }
+- runFlow:
+    file: subflows/quick-spend.yaml
+    env: { AMOUNT: "15", NOTE: "café" }
+- tapOn: "Guardar \\$15.*"
+- tapOn:
+    text: "Permitir"
+    optional: true
+- extendedWaitUntil:
+    notVisible:
+      id: "quick-amount"
+    timeout: 10000
+- assertVisible: "Inicio"
+- scrollUntilVisible:
+    element: "Gastos en un toque"
+    direction: DOWN
+- scroll
+- tapOn: "Café.*"
+- assertVisible: "Registrar \\$15.*"
+- tapOn: "Registrar \\$15.*"
+- extendedWaitUntil:
+    notVisible:
+      id: "repeat-amount"
+    timeout: 10000
+- tapOn: "Patrimonio"
+- assertVisible: ".*Banco principal, \\$999,970.*"

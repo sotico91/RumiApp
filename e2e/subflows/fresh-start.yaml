@@ -1,5 +1,6 @@
 # Fresh app data, onboarding done in Spanish: every ant spend marked (it creates
 # their subcategories) and $1.000.000 in the main bank.
+# CURRENCY=USD picks dollars on the currency step (default: what the phone's region says).
 appId: com.sotico91.rumi
 ---
 - launchApp:
@@ -15,6 +16,11 @@ appId: com.sotico91.rumi
 - tapOn: "Tu nombre"
 - inputText: "Prueba"
 - tapOn: "Suena bien"
+- runFlow:
+    when:
+      true: ${typeof CURRENCY !== 'undefined' && CURRENCY === 'USD'}
+    commands:
+      - tapOn: "Dólares \\(USD\\)"
 - tapOn: "Continuar"
 - tapOn: ".*Café"
 - tapOn: ".*Domicilio"

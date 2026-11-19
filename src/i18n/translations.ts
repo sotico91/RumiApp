@@ -1587,6 +1587,13 @@ export const translations = {
     'invest.whereHintUsd': 'Where is it? Tap “Rename”: CD, fund, stocks…',
     'wealth.cardsEmptyUsd':
       'Visa, a store card or a bank credit line. A charge uses available credit. Pay card uses cash.',
+    'home.availableInfoBodyUsd':
+      'Money you can use right now: cash, banks, wallets (PayPal, Venmo…) and savings. Moving money between them does not change this total; an expense lowers it.',
+    'flow.paidWithMoneyHintUsd': 'Cash, bank, PayPal, savings. That account goes down now.',
+    'flow.bankNamePlaceholderUsd': 'Chase, Bank of America…',
+    'guide.step1BodyUsd':
+      'Your bank and cash are already there. Add what is missing: PayPal, Venmo or another bank, savings, and credit cards, so each expense comes from the right place.',
+    'voice.exampleUsd': 'Say something like “20 dollars on lunch, cash”, “I got paid my salary” or “moved 100 to savings”.',
   },
   es: {
     'brand.mark': 'RUMI',
@@ -3178,12 +3185,19 @@ export const translations = {
     'invest.whereHintUsd': '¿Dónde está? Toca “Cambiar nombre”: depósito, fondo, acciones…',
     'wealth.cardsEmptyUsd':
       'Visa, una tarjeta de almacén o un cupo del banco. Cargar gasto usa cupo. Pagar tarjeta usa plata.',
+    'home.availableInfoBodyUsd':
+      'La plata que puedes usar ahora: efectivo, bancos, billeteras (PayPal, Venmo…) y ahorros. Moverla entre ellas no cambia este total; un gasto sí lo baja.',
+    'flow.paidWithMoneyHintUsd': 'Efectivo, banco, PayPal, ahorros. Ese bolsillo baja ahora.',
+    'flow.bankNamePlaceholderUsd': 'Chase, Bank of America…',
+    'guide.step1BodyUsd':
+      'Tu banco y tu efectivo ya están. Agrega lo que falte: PayPal, Venmo u otro banco, ahorros y tarjetas de crédito, para que cada gasto salga de donde es.',
+    'voice.exampleUsd': 'Di algo como “20 dólares en almuerzo en efectivo”, “me pagaron el sueldo” o “pasé 100 dólares a ahorros”.',
   },
 } as const;
 
 export type TranslationKey = keyof typeof translations.en;
 
-/** Texts whose examples are in pesos (CDT, credicheque, "200 mil"), and their dollar version. */
+/** Texts whose examples are Colombian (pesos, CDT, Nequi, Bancolombia), and their dollar version. */
 const USD_COPY: Partial<Record<TranslationKey, TranslationKey>> = {
   'insights.searchHint': 'insights.searchHintUsd',
   'guide.step6Body': 'guide.step6BodyUsd',
@@ -3194,6 +3208,11 @@ const USD_COPY: Partial<Record<TranslationKey, TranslationKey>> = {
   'invest.namePlaceholder': 'invest.namePlaceholderUsd',
   'invest.whereHint': 'invest.whereHintUsd',
   'wealth.cardsEmpty': 'wealth.cardsEmptyUsd',
+  'home.availableInfoBody': 'home.availableInfoBodyUsd',
+  'flow.paidWithMoneyHint': 'flow.paidWithMoneyHintUsd',
+  'flow.bankNamePlaceholder': 'flow.bankNamePlaceholderUsd',
+  'guide.step1Body': 'guide.step1BodyUsd',
+  'voice.example': 'voice.exampleUsd',
 };
 
 /** The key to show for this currency: the dollar wording when the person uses USD. */

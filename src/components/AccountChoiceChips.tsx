@@ -15,7 +15,7 @@ import { palette, radii } from '@/src/theme/colors';
 import { currencyCopyKey, type TranslationKey } from '@/src/i18n/translations';
 import type { Account } from '@/src/types/finance';
 import {
-  BANK_PRESETS,
+  bankPresets,
   walletPresets,
   accountDisplayName,
   findBankByName,
@@ -291,6 +291,7 @@ export function BankQuickAdd({
   onAdded?: (id: string) => void;
 }) {
   const { t } = useLanguage();
+  const { currency } = useMoney();
   const { accounts, addBank } = useFinance();
   const [custom, setCustom] = useState('');
   const [busy, setBusy] = useState(false);
@@ -310,7 +311,7 @@ export function BankQuickAdd({
     }
   }
 
-  const unusedPresets = BANK_PRESETS.filter((name) => !findBankByName(accounts, name));
+  const unusedPresets = bankPresets(currency).filter((name) => !findBankByName(accounts, name));
 
   return (
     <View style={styles.addBlock}>
@@ -334,7 +335,7 @@ export function BankQuickAdd({
         <TextInput
           value={custom}
           onChangeText={setCustom}
-          placeholder={t('flow.bankNamePlaceholder')}
+          placeholder={t(currencyCopyKey('flow.bankNamePlaceholder', currency))}
           placeholderTextColor={palette.inkSoft}
           style={styles.input}
           editable={!busy}

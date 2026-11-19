@@ -396,7 +396,7 @@ export function PocketsSection() {
                         onChangeText={setWalletNameDraft}
                         placeholder={
                           acc.type === 'bank'
-                            ? t('flow.bankNamePlaceholder')
+                            ? t(currencyCopyKey('flow.bankNamePlaceholder', currency))
                             : t('flow.walletNamePlaceholder')
                         }
                         placeholderTextColor={palette.inkSoft}

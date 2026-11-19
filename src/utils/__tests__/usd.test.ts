@@ -1,5 +1,5 @@
 import type { Account, Transaction } from '@/src/types/finance';
-import { settleLiquidOverdrafts, walletPresets } from '@/src/utils/accounts';
+import { bankPresets, settleLiquidOverdrafts, walletPresets } from '@/src/utils/accounts';
 import { buildAntSpendTips } from '@/src/utils/antSpendTips';
 import { detectRecurring } from '@/src/utils/financeMath';
 import { applyAccountDelta } from '@/src/utils/ledger';
@@ -117,17 +117,29 @@ describe('starting in dollars', () => {
   it('suggests wallets people use with that currency', () => {
     expect(walletPresets('COP')).toEqual(['Nequi', 'Daviplata']);
     expect(walletPresets('USD')).toEqual(['PayPal', 'Venmo', 'Cash App']);
+    expect(bankPresets('USD')).toEqual(['Chase', 'Bank of America']);
+    expect(bankPresets('COP')).toEqual(['Bancolombia', 'Davivienda']);
   });
 
   it('swaps peso examples for dollar ones in both languages', () => {
-    const keys: TranslationKey[] = ['insights.searchHint', 'wealth.cardsEmpty', 'invest.presetCdt', 'flow.walletAddHint'];
+    const keys: TranslationKey[] = [
+      'insights.searchHint',
+      'wealth.cardsEmpty',
+      'invest.presetCdt',
+      'flow.walletAddHint',
+      'home.availableInfoBody',
+      'flow.paidWithMoneyHint',
+      'flow.bankNamePlaceholder',
+      'guide.step1Body',
+      'voice.example',
+    ];
     for (const key of keys) {
       const usd = currencyCopyKey(key, 'USD');
       expect(currencyCopyKey(key, 'COP')).toBe(key);
       for (const lang of ['en', 'es'] as const) {
         const text: string = translations[lang][usd];
         expect(text).toBeTruthy();
-        expect(text).not.toMatch(/CDT|credicheque|200k|200 mil|Nequi|Daviplata/);
+        expect(text).not.toMatch(/CDT|credicheque|200k|200 mil|Nequi|Daviplata|Ualá|Bancolombia|Davivienda/);
       }
     }
   });

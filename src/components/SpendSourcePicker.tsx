@@ -1,7 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
+import { useMoney } from '@/src/hooks/useMoney';
 import { useLanguage } from '@/src/i18n/LanguageContext';
+import { currencyCopyKey } from '@/src/i18n/translations';
 import { colors, radius, shadow } from '@/src/theme';
 import { palette, radii } from '@/src/theme/colors';
 import type { PaymentMethod } from '@/src/types/finance';
@@ -25,6 +27,7 @@ type Props = {
 /** Pocket money vs credit-line charge — not mixed with Nequi. */
 export function SpendSourcePicker({ value, onChange, showNoCards, quiet }: Props) {
   const { t } = useLanguage();
+  const { currency } = useMoney();
   const optStyle = (on: boolean) =>
     quiet ? [styles.segment, on && styles.segmentOn] : [styles.opt, on && styles.optOn];
   const textStyle = (on: boolean) => [styles.title, on && !quiet && styles.onText];
@@ -71,7 +74,7 @@ export function SpendSourcePicker({ value, onChange, showNoCards, quiet }: Props
         </View>
       ) : (
         <Text style={styles.hint}>
-          {value === 'card' ? t('flow.paidWithCardHint') : t('flow.paidWithMoneyHint')}
+          {value === 'card' ? t('flow.paidWithCardHint') : t(currencyCopyKey('flow.paidWithMoneyHint', currency))}
         </Text>
       )}
     </View>

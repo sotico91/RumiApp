@@ -28,7 +28,7 @@ import { useReviewPrompt } from '@/src/hooks/useReviewPrompt';
 import { usePro } from '@/src/hooks/usePro';
 import { useSettings } from '@/src/hooks/useSettings';
 import { useLanguage } from '@/src/i18n/LanguageContext';
-import type { TranslationKey } from '@/src/i18n/translations';
+import { currencyCopyKey, type TranslationKey } from '@/src/i18n/translations';
 import { colors, radius, scale, shadow, space, type } from '@/src/theme';
 import { projectMonth } from '@/src/utils/projection';
 import { categoryLabel } from '@/src/utils/categoryLabel';
@@ -227,9 +227,9 @@ export default function HomeScreen() {
                 </AppText>
                 <AppText color="secondary" style={styles.infoBody}>
                   {t(
-                    (moneyInfo === 'available'
-                      ? 'home.availableInfoBody'
-                      : 'home.savingsInfoBody') as TranslationKey
+                    moneyInfo === 'available'
+                      ? currencyCopyKey('home.availableInfoBody', settings.currency)
+                      : ('home.savingsInfoBody' as TranslationKey)
                   )}
                 </AppText>
                 {moneyInfo === 'available' ? (

@@ -207,9 +207,14 @@ export function QuickSpendForm({ onSaved, onOpenGuided, dictated, header }: Prop
         // Dictated for another day: same time of day, that date.
         createdAt: spentOn ? dictatedDate(daysAgo).toISOString() : undefined,
       });
-      await updateQuickTemplate({ categoryId: subId, amount: parsed, note: note.trim() || undefined });
-      // Picked by hand for this description: Rumi learns it for next time.
-      if (pickedCategoryId && note.trim()) await teachCategory(note, subId);
+      // Saved: from here nothing may keep the screen open or say the save failed.
+      try {
+        await updateQuickTemplate({ categoryId: subId, amount: parsed, note: note.trim() || undefined });
+        // Picked by hand for this description: Rumi learns it for next time.
+        if (pickedCategoryId && note.trim()) await teachCategory(note, subId);
+      } catch {
+        // A missed template or lesson is not worth an error after the spend is in.
+      }
 
       if (settings.notifyOnExpense) {
         const copy = movementNotifyCopy({

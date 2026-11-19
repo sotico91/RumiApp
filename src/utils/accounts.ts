@@ -229,7 +229,14 @@ export function removeWalletAccount(
   return { accounts: accounts.filter((a) => a.id !== id) };
 }
 
-export const BANK_PRESETS = ['Bancolombia', 'Davivienda'] as const;
+const BANK_PRESETS: Record<Currency, readonly string[]> = {
+  COP: ['Bancolombia', 'Davivienda'],
+  USD: ['Chase', 'Bank of America'],
+};
+
+export function bankPresets(currency: Currency): readonly string[] {
+  return BANK_PRESETS[currency];
+}
 
 export function slugBankId(name: string): string {
   const slug = name

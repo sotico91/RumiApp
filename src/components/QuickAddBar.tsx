@@ -84,11 +84,13 @@ export function QuickAddBar() {
             ),
         accountId,
       });
+      // Saved: close now. The steps below must not keep the sheet open if they fail or wait.
+      setSheetHabit(null);
       await updateQuickTemplate({
         categoryId: habit.categoryId,
         amount,
         note: resolvedNote,
-      });
+      }).catch(() => undefined);
 
       if (settings.notifyOnExpense) {
         const copy = movementNotifyCopy({
@@ -102,9 +104,8 @@ export function QuickAddBar() {
           accountId,
           note: resolvedNote,
         });
-        await notifyExpenseRegistered(copy.title, copy.body);
+        void notifyExpenseRegistered(copy.title, copy.body).catch(() => undefined);
       }
-      setSheetHabit(null);
     } finally {
       busyLock.current = false;
       setBusyId(null);

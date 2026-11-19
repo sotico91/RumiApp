@@ -12,6 +12,11 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-11-18
 
+- **Versión 1.16.2, Rumi en dólares sin ejemplos de Colombia:**
+  - **Sin Nequi ni Bancolombia en dólares:** quien usa USD ve PayPal y Venmo en la ayuda de "Disponible", en "¿Con qué pagaste?", en la guía y en el ejemplo de dictado ("20 dólares en almuerzo"). Los bancos sugeridos son Chase y Bank of America (`bankPresets`, como `walletPresets`). Las claves `…Usd` pasan por `currencyCopyKey`.
+  - **El registro rápido y el de un toque cierran apenas se guarda el gasto:** la plantilla, lo aprendido de la descripción y la notificación ya no pueden dejar la pantalla abierta si fallan o tardan.
+  - Recorrido `e2e/usd-quick-add.yaml`; `fresh-start` acepta `CURRENCY=USD`.
+
 - **Versión 1.16.1, "¿en qué mes…?":** "¿en qué mes compré la comida del gato?" respondía la comida de este mes; ahora busca en todo el historial y dice la fecha, como "¿cuándo…?". "Mes", "semana" o "año" después de "qué/cuál" ya no fijan el periodo, y "which month did I buy…?" responde la fecha en vez de sí/no.
 
 - **Versión 1.16.0, Pregúntale a Rumi como asesor** (plan en `docs/ASK_ENGINE.md`, pasos E y C):

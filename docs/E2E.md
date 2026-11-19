@@ -24,6 +24,7 @@ El simulador debe estar en **español**: los recorridos buscan los textos en esp
 |---|---|
 | `onboarding` | El saldo inicial queda en el banco principal. |
 | `quick-add` | Un gasto con descripción ("almuerzo") toma su categoría y sale del banco. |
+| `usd-quick-add` | En dólares, el registro rápido y el de un toque cierran su pantalla al guardar y descuentan del banco. |
 | `category-search` | Con más de 10 subcategorías aparece el buscador, y lo escrito elige el destino. |
 | `learn-correction` | Elegir otra categoría a mano enseña la descripción: la próxima vez va ahí. |
 | `teach-unknown` | Una descripción que Rumi no conoce aparece en Análisis; elegir su categoría mueve el gasto y la enseña. |
@@ -37,7 +38,7 @@ El simulador debe estar en **español**: los recorridos buscan los textos en esp
 | `ask-rumi` | En Análisis, una suma ("¿Cuánto gasté hoy?") sale sin etiqueta y un límite diario ("¿Cuánto puedo gastar hoy?") sale con "Estimación" y sus supuestos. Lo que responde cada pregunta lo prueba jest (`src/utils/ask/__tests__`). |
 | `streak` | El chip del encabezado empieza en 0 y abre "Empieza tu racha hoy" con el recordatorio a las 20:00; un gasto lo sube solo a 1; "Compartir mi racha" abre la tarjeta para historias; el recordatorio pasa a las 21:00. Las reglas de la racha y los comodines las prueba jest (`streak.test.ts`). |
 
-`subflows/` tiene pasos compartidos: `fresh-start` (datos limpios y onboarding con $1.000.000 en el banco) y `quick-spend` (registro rápido con monto y descripción).
+`subflows/` tiene pasos compartidos: `fresh-start` (datos limpios y onboarding con $1.000.000 en el banco; `CURRENCY: "USD"` elige dólares) y `quick-spend` (registro rápido con monto y descripción).
 
 ## Al escribir uno nuevo
 

@@ -2,7 +2,9 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { DictationPhase } from '@/src/hooks/useDictation';
+import { useMoney } from '@/src/hooks/useMoney';
 import { useLanguage } from '@/src/i18n/LanguageContext';
+import { currencyCopyKey } from '@/src/i18n/translations';
 import { palette, radii } from '@/src/theme/colors';
 import { tapFeedback } from '@/src/utils/selectFeedback';
 
@@ -35,6 +37,7 @@ export function DictationBar({
   onCancel,
 }: BarProps) {
   const { t } = useLanguage();
+  const { currency } = useMoney();
   const listening = phase === 'starting' || phase === 'listening';
 
   if (listening) {
@@ -51,7 +54,7 @@ export function DictationBar({
         <View style={styles.track}>
           <View style={[styles.level, { width }]} />
         </View>
-        <Text style={transcript ? styles.heardLive : styles.sub}>{transcript || t('voice.example')}</Text>
+        <Text style={transcript ? styles.heardLive : styles.sub}>{transcript || t(currencyCopyKey('voice.example', currency))}</Text>
         <View style={styles.actions}>
           <Pressable onPress={onCancel} accessibilityRole="button" style={styles.ghost} hitSlop={6}>
             <Text style={styles.ghostText}>{t('voice.cancel')}</Text>
@@ -78,7 +81,7 @@ export function DictationBar({
     ? error
     : heard
       ? `${t('voice.heard', { text: heard })}${noAmount ? ` ${t('voice.noAmount')}` : ''}`
-      : t('voice.example');
+      : t(currencyCopyKey('voice.example', currency));
 
   return (
     <Pressable
