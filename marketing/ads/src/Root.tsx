@@ -1,5 +1,6 @@
 import { Composition } from 'remotion';
 import { Ad, adSeconds, type AdProps } from './Ad';
+import { AppPreview, appPreviews, previewFrames } from './AppPreview';
 import { FPS } from './brand';
 import { ads } from './ads';
 import { Mascot, mascotFrames } from './Mascot';
@@ -39,6 +40,9 @@ export function RemotionRoot() {
       ))}
       {Object.entries(storeShots).map(([id, props]) => (
         <Composition key={id} id={id} component={StoreShot} defaultProps={props} width={1080} height={1920} fps={FPS} durationInFrames={1} />
+      ))}
+      {Object.entries(appPreviews).map(([id, props]) => (
+        <Composition key={id} id={id} component={AppPreview} defaultProps={props} width={886} height={1920} fps={FPS} durationInFrames={previewFrames(props)} />
       ))}
       <Composition id="social-avatar" component={SocialAvatar} width={1080} height={1080} fps={FPS} durationInFrames={1} />
       <Composition id="social-youtube-banner" component={YoutubeBanner} width={2560} height={1440} fps={FPS} durationInFrames={1} />

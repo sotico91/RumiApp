@@ -1,0 +1,9 @@
+appId: com.sotico91.rumi
+---
+- swipe: { start: "50%,30%", end: "50%,90%", duration: 500 }
+- swipe: { start: "50%,30%", end: "50%,90%", duration: 500 }
+- swipe: { start: "50%,30%", end: "50%,90%", duration: 500 }
+- tapOn: { id: "ask-input" }
+- inputText: "How much did I spend on coffee?"
+- tapOn: "Ask"
+- tapOn: "Ask Rumi"

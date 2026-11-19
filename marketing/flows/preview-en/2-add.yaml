@@ -1,0 +1,11 @@
+appId: com.sotico91.rumi
+---
+- tapOn: { id: "add-fab" }
+- tapOn: { id: "quick-amount" }
+- inputText: "12.50"
+- tapOn: "What for?"
+- tapOn: { id: "quick-note" }
+- inputText: "lunch"
+- tapOn: "What for?"
+- tapOn: "Save \\$12\\.50"
+- extendedWaitUntil: { visible: "Home", timeout: 10000 }

@@ -1,0 +1,5 @@
+appId: com.sotico91.rumi
+---
+- tapOn: "Home"
+- swipe: { start: "50%,72%", end: "50%,40%", duration: 1500 }
+- swipe: { start: "50%,40%", end: "50%,72%", duration: 1500 }

@@ -12,6 +12,9 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-11-19
 
+- **Versión 1.17.1, ranking compacto:** en Análisis, el "Ranking de categorías" pasa de tarjetas grandes a una tabla: una línea por subcategoría con su ícono, porcentaje y monto, y una nota corta debajo solo si pasó o va cerca del tope, va bien con su tope o es el gasto más frecuente. Ocupa cerca de un tercio de antes, porque el mosaico de arriba ya dibuja las partes.
+- **Tiendas para EE. UU.:** ficha es-US de Play en español con capturas en dólares, fichas en-GB, en-CA y en-AU, y el video de vista previa en inglés (`marketing/store/preview-en.mp4`).
+
 - **Versión 1.17.0, "¿A dónde se va tu plata?":** en Análisis, encima del ranking, el gasto del mes como un mosaico: un bloque por categoría, del tamaño de su parte, con su ícono, su color y 🐜 si tiene gastos hormiga. Arriba, una frase con la categoría que más se lleva y cuántos puntos subió o bajó frente a los mismos días del mes pasado. Tocar un bloque abre sus subcategorías y su cambio; las categorías de menos del 4% (o pasada la séptima) se juntan en "Otras". Sin librerías nuevas: el mosaico se arma con vistas (`src/utils/mosaic.ts`, `src/components/SpendMosaic.tsx`). Recorrido `e2e/spend-mosaic.yaml`.
 
 - **Versión 1.16.3, ningún movimiento sin categoría elegida:** un ingreso guardado sin tocar la categoría quedaba como Café, porque el flujo guiado arrancaba con `cafe` y el formulario completo y la edición elegían "Salario" o la primera subcategoría al cambiar de tipo. Ahora nada viene marcado: la categoría la elige la persona (o sale de lo que dictó o escribió en la descripción), y sin ella Ingreso no pasa del paso de categoría y ni el formulario completo ni la edición guardan ("Elige una categoría para guardarlo…"). Recorrido `e2e/income-needs-category.yaml`.

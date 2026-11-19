@@ -19,3 +19,11 @@ done
 - `play-feature-es.png` / `play-feature-en.png` — gráfico destacado de Play (1024×500): ícono, nombre, lema y la parte de arriba de Inicio (`FeatureGraphic` en `../ads/src/StoreShot.tsx`, usa `icon.png` de esta carpeta). Se generan con el mismo bucle cambiando el patrón a `'play-feature-[a-z]+'` y la salida a `../store/$id.png`.
 
 No hacen falta las de iPad: `supportsTablet` está apagado.
+
+## Video (vista previa de la App Store, en inglés y dólares)
+
+- `preview-en.mp4`: 29,8 s, 886×1920, H.264 + AAC estéreo (Apple pide 15–30 s, solo imágenes de la app; los títulos encima están permitidos). Escenas: Inicio, anotar un gasto, el mosaico "Where your money goes" y Pregúntale a Rumi.
+- Se graba en el simulador iPhone 17 Pro Max en en-US después de `../flows/seed-en.yaml`: `../flows/preview-en/record.sh <id del simulador> <carpeta>` graba las 4 escenas (cada una arranca con unos 20–30 s de calentamiento de Maestro). Los clips van, convertidos a 744 px de ancho, a `../ads/public/clips/preview-en/` (no se suben a git) y los segundos usados están en `appPreviews` de `../ads/src/AppPreview.tsx`.
+- Render: `cd marketing/ads && npx remotion render src/index.ts preview-en out/preview-en.mp4 --codec h264 --enforce-audio-track --audio-codec aac`.
+- App Store: se sube con la próxima versión enviada a revisión (en-US y los ingleses nuevos). Google Play solo acepta un enlace de YouTube: hay que subirlo a un canal y pegar la URL en la ficha.
+
