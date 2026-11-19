@@ -100,6 +100,7 @@ export function parseQuery(
     includesAny(q, L.earnedIncome) ||
     (includesAny(q, L.incomeWord) && !skipIncomeCategoryMatch(q) && !isIncomeUsedAsReference(q));
 
+  const when = includesAny(q, L.when);
   const wants: QueryWants = {
     streak: includesAny(q, L.streak),
     payFrom: includesAny(q, L.payFrom),
@@ -125,9 +126,11 @@ export function parseQuery(
     average: includesAny(q, L.average),
     budget: includesAny(q, L.budget),
     percent: includesAny(q, L.percent),
-    when: includesAny(q, L.when),
+    when,
     // "¿pagué el arriendo?" only as the opening words: "¿cuánto pagué…?" is an amount.
+    // "which month did I buy…?" asks for the date, not a yes/no.
     confirm:
+      !when &&
       !includesAny(q, ['cuanto', 'cuanta', 'cuantas', 'cuantos', 'how much', 'how many']) &&
       (includesAny(q, L.confirm) || /^[¿\s]*(?:ya\s+)?(?:pague|compre|pagamos)\b/.test(q)),
     list: includesAny(q, L.list),

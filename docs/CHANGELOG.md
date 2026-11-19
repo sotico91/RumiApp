@@ -12,6 +12,8 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-11-18
 
+- **Versión 1.16.1, "¿en qué mes…?":** "¿en qué mes compré la comida del gato?" respondía la comida de este mes; ahora busca en todo el historial y dice la fecha, como "¿cuándo…?". "Mes", "semana" o "año" después de "qué/cuál" ya no fijan el periodo, y "which month did I buy…?" responde la fecha en vez de sí/no.
+
 - **Versión 1.16.0, Pregúntale a Rumi como asesor** (plan en `docs/ASK_ENGINE.md`, pasos E y C):
   - **Cada respuesta dice qué tan segura es:** debajo del texto, "Estimación", "Deducido de tus datos" o "Por confirmar" con lo que supone ("Ritmo del día a día de este mes y de 3 meses anteriores", "Comparado con el mismo número de días de septiembre"). Las sumas de movimientos salen sin etiqueta (`basis`/`assumptions` en `AskResult`).
   - **Preguntas nuevas** (`src/utils/ask/advisor.ts`): "¿por qué tengo menos dinero?" (qué subió y si entró menos, frente a los mismos días del mes pasado), "¿en qué estoy gastando demasiado?" (topes pasados o que van más rápido que el mes, y categorías muy por encima de lo habitual a esta altura), "¿qué suscripciones / gastos fijos tengo?" (pagos que se repiten, Netflix incluido), y "¿cómo voy con mi presupuesto?" ahora dice el ritmo ("90% usado con el 65% del mes").

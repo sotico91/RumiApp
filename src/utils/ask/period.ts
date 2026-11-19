@@ -383,6 +383,11 @@ export function resolvePeriod(
   t: TFn,
   now = new Date()
 ): QueryPeriod {
+  // "¿en qué mes compré…?" asks for a date, it does not narrow the search to this month.
+  q = q.replace(
+    /\b(?:en\s+|in\s+)?(?:que|cual|which|what)\s+(?:mes|semana|ano|año|month|week|year)\b/g,
+    ' '
+  );
   const yearNow = now.getFullYear();
   const monthAlt = 'septiembre|setiembre';
   const months =

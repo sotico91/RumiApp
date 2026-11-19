@@ -177,6 +177,8 @@ describe('notes: how much and when', () => {
     ['¿cuándo fue la recarga de movistar?', 'when', `“recarga movistar”: el 22 de septiembre, por ${format(30_000)}.`],
     ['¿cuándo recargué a Claro?', 'when', `“claro”: el 24 de diciembre de 2025, por ${format(25_000)}.`],
     ['¿qué día tomé didi en septiembre?', 'when', 'No encontré movimientos con “didi” (Septiembre 2026).'],
+    ['¿en qué mes tomé didi?', 'when', `“didi” (todo tu historial): 2 veces, la última el 9 de octubre (${format(14_500)}). Total ${format(25_500)}.`],
+    ['which month did I take didi?', 'when', `“didi” (all your history): 2 times, the last on October 9 (${format(14_500)}). Total ${format(25_500)}.`],
     ['when did I take didi?', 'when', `“didi” (all your history): 2 times, the last on October 9 (${format(14_500)}). Total ${format(25_500)}.`],
   ])('%s', (q, intent, text) => {
     const r = askNotes(q, /[¿áéíóú]|^recarga/.test(q) ? 'es' : 'en');
