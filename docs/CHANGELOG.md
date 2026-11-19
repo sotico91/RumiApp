@@ -10,6 +10,10 @@ El detalle de cada cambio está en `git log`.
 - **Comentarios de código en inglés:** todos los comentarios del código van en inglés.
   Los textos que ve el usuario van en `src/i18n/translations.ts` (es/en).
 
+## 2026-11-19
+
+- **Versión 1.16.3, ningún movimiento sin categoría elegida:** un ingreso guardado sin tocar la categoría quedaba como Café, porque el flujo guiado arrancaba con `cafe` y el formulario completo y la edición elegían "Salario" o la primera subcategoría al cambiar de tipo. Ahora nada viene marcado: la categoría la elige la persona (o sale de lo que dictó o escribió en la descripción), y sin ella Ingreso no pasa del paso de categoría y ni el formulario completo ni la edición guardan ("Elige una categoría para guardarlo…"). Recorrido `e2e/income-needs-category.yaml`.
+
 ## 2026-11-18
 
 - **Versión 1.16.2, Rumi en dólares sin ejemplos de Colombia:**

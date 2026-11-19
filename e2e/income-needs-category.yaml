@@ -1,0 +1,21 @@
+# Income with no category picked cannot go on: nothing is preselected (it used
+# to be saved as Café). Picking one lets it through.
+appId: com.sotico91.rumi
+---
+- runFlow: subflows/fresh-start.yaml
+- tapOn:
+    id: "add-fab"
+- tapOn: "Ingreso"
+- tapOn:
+    id: "flow-amount"
+- inputText: "500000"
+- tapOn: "¿De cuánto fue?"
+- tapOn: "Continuar"
+- assertVisible: "¿Qué categoría encaja mejor?"
+- tapOn: "Continuar"
+- assertVisible: "Elige una categoría para guardarlo.*"
+- tapOn: "(OK|Entendido|Aceptar|Listo)"
+- assertVisible: "¿Qué categoría encaja mejor?"
+- tapOn: "Salario"
+- tapOn: "Continuar"
+- assertNotVisible: "¿Qué categoría encaja mejor?"

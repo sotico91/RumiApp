@@ -24,6 +24,7 @@ El simulador debe estar en **español**: los recorridos buscan los textos en esp
 |---|---|
 | `onboarding` | El saldo inicial queda en el banco principal. |
 | `quick-add` | Un gasto con descripción ("almuerzo") toma su categoría y sale del banco. |
+| `income-needs-category` | Un ingreso sin categoría elegida no pasa del paso de categoría; con "Salario" sigue. |
 | `usd-quick-add` | En dólares, el registro rápido y el de un toque cierran su pantalla al guardar y descuentan del banco. |
 | `category-search` | Con más de 10 subcategorías aparece el buscador, y lo escrito elige el destino. |
 | `learn-correction` | Elegir otra categoría a mano enseña la descripción: la próxima vez va ahí. |

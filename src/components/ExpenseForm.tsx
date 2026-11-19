@@ -121,14 +121,11 @@ export function ExpenseForm({
     : null;
   const [amount, setAmount] = useState(initialAmount ?? '');
   const [type, setType] = useState<TransactionType>('expense');
-  const [conceptId, setConceptId] = useState(
-    prefilledHit?.concept.id ?? spendConcepts[0]?.id ?? ''
-  );
+  // No category is picked for the person: a movement without one cannot be saved.
+  const [conceptId, setConceptId] = useState(prefilledHit?.concept.id ?? '');
   // Until the user picks a category, the description decides (as in quick add).
   const [manualCategory, setManualCategory] = useState(!!initialCategoryId);
-  const [categoryId, setCategoryId] = useState(
-    initialCategoryId ?? spendConcepts[0]?.subs[0]?.id ?? 'otros'
-  );
+  const [categoryId, setCategoryId] = useState(initialCategoryId ?? '');
   const [debtId, setDebtId] = useState<string | null>(
     () => openDebts(debts)[0]?.id ?? null
   );
@@ -247,12 +244,14 @@ export function ExpenseForm({
     setType(next);
     if (next !== 'debt_payment') setPayScope(null);
     if (next === 'income') {
-      setCategoryId('salario');
+      // The person picks where the income comes from; nothing is preselected.
+      setCategoryId('');
+      setManualCategory(false);
       setAccountId(defaultIncomeAccountId(accounts));
     } else if (next === 'expense') {
-      const first = spendConcepts[0];
-      setConceptId(first?.id ?? '');
-      setCategoryId(first?.subs[0]?.id ?? 'otros');
+      setConceptId('');
+      setCategoryId('');
+      setManualCategory(false);
       setAccountId(defaultSpendAccountId(accounts, { amount: parse(amount) ?? undefined }));
     } else if (next === 'debt_payment') {
       const first = liveDebts[0];
@@ -290,6 +289,13 @@ export function ExpenseForm({
         appAlert(t('flow.whichCard'), t('flow.noCardsBody'));
         return;
       }
+    }
+    if (
+      (type === 'expense' && !categoryId && !autoCreate) ||
+      (type === 'income' && !categoryChoices.some((c) => c.id === categoryId))
+    ) {
+      appAlert(t('flow.chooseCategory'), t('flow.chooseCategoryBody'));
+      return;
     }
 
     if (

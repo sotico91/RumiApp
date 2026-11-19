@@ -83,7 +83,7 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
   const [amount, setAmount] = useState('');
   const [type, setType] = useState<TransactionType>('expense');
   const [conceptId, setConceptId] = useState('');
-  const [categoryId, setCategoryId] = useState('otros');
+  const [categoryId, setCategoryId] = useState('');
   const [method, setMethod] = useState<PaymentMethod>('cash');
   const [accountId, setAccountId] = useState('cash');
   const [toAccountId, setToAccountId] = useState('savings');
@@ -138,14 +138,10 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
     if (!transaction) return;
     setAmount(String(transaction.amount));
     setType(transaction.type);
-    const nextCategoryId =
-      transaction.categoryId ?? (settings.spendConcepts?.[0]?.subs[0]?.id ?? 'otros');
+    // No category is filled in for the person: one without it waits for their pick.
+    const nextCategoryId = transaction.categoryId ?? '';
     setCategoryId(nextCategoryId);
-    setConceptId(
-      findSpendSub(settings.spendConcepts ?? [], nextCategoryId)?.concept.id ??
-        settings.spendConcepts?.[0]?.id ??
-        ''
-    );
+    setConceptId(findSpendSub(settings.spendConcepts ?? [], nextCategoryId)?.concept.id ?? '');
     const nextMethod = transaction.paymentMethod ?? 'cash';
     setMethod(nextMethod);
     const chargedId = transaction.creditDebtId
@@ -164,12 +160,10 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
 
   function selectType(next: TransactionType) {
     setType(next);
-    if (next === 'income') {
-      setCategoryId('salario');
-    } else if (next === 'expense') {
-      const first = spendConcepts.find((c) => c.id === conceptId) ?? spendConcepts[0];
-      setConceptId(first?.id ?? '');
-      setCategoryId(first?.subs[0]?.id ?? 'otros');
+    if (next === 'income' || next === 'expense') {
+      // A new kind needs its own category, picked by the person.
+      setConceptId('');
+      setCategoryId('');
     } else if (isPocketMove(next)) {
       setCategoryId('');
       // A card spend turned into a move starts from a pocket, not as a cash advance.
@@ -187,6 +181,10 @@ export function EditTransactionModal({ transaction, visible, onClose, onDelete }
     const parsed = parse(amount);
     if (!parsed) {
       appAlert(t('add.invalidTitle'), t('add.invalidMessage'), undefined, { tone: 'warning' });
+      return;
+    }
+    if ((type === 'expense' || type === 'income') && !categoryId) {
+      appAlert(t('flow.chooseCategory'), t('flow.chooseCategoryBody'));
       return;
     }
     // A bigger amount must still fit in the pocket (with this movement's own money back in it).

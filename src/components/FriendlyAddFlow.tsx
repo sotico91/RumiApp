@@ -15,7 +15,7 @@ import {
   type FriendlyIntent,
 } from '@/src/data/friendlyTemplates';
 import { categoriesForKind } from '@/src/data/categories';
-import { findConceptById, flattenSpendSubs } from '@/src/data/spendConcepts';
+import { findConceptById, findSpendSub, flattenSpendSubs } from '@/src/data/spendConcepts';
 import { useFundsCheck } from '@/src/hooks/useFundsCheck';
 import { useFinance } from '@/src/hooks/useFinance';
 import { useMoney } from '@/src/hooks/useMoney';
@@ -116,7 +116,8 @@ export function FriendlyAddFlow({
   const [intent, setIntent] = useState<FriendlyIntent>(initialIntent ?? 'spend');
   const [amount, setAmount] = useState(initialAmount ?? '');
   const [conceptId, setConceptId] = useState<string | null>(null);
-  const [categoryId, setCategoryId] = useState(dictated?.categoryId ?? 'cafe');
+  // Nothing preselected: the person (or what they dictated) picks the category.
+  const [categoryId, setCategoryId] = useState(dictated?.categoryId ?? '');
   const [debtId, setDebtId] = useState<string | null>(
     initialIntent === 'debt' ? initialDebtId ?? dictated?.debtId ?? null : null
   );
@@ -377,6 +378,10 @@ export function FriendlyAddFlow({
         setCategoryId(concept.subs[0]?.id ?? categoryId);
       }
     }
+    if (step === 2 && intent === 'earn' && !incomeChoices.some((c) => c.id === categoryId)) {
+      appAlert(t('flow.chooseCategory'), t('flow.chooseCategoryBody'));
+      return;
+    }
     if (step === 3 && intent === 'spend') {
       const concept = conceptId ? findConceptById(spendConcepts, conceptId) : undefined;
       if (!concept || !concept.subs.some((s) => s.id === categoryId)) {
@@ -423,6 +428,14 @@ export function FriendlyAddFlow({
         setStep(paymentStep);
         return;
       }
+    }
+    if (
+      (intent === 'earn' && !incomeChoices.some((c) => c.id === categoryId)) ||
+      (intent === 'spend' && !findSpendSub(spendConcepts, categoryId))
+    ) {
+      appAlert(t('flow.chooseCategory'), t('flow.chooseCategoryBody'));
+      setStep(2);
+      return;
     }
     if (!checkFunds({ type: intentToType(intent), amount: parsed, accountId })) return;
 
