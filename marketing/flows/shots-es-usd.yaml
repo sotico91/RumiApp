@@ -1,0 +1,42 @@
+# Six store captures in Spanish and dollars (after seed-es-usd.yaml and
+# seed-es-usd-extra.yaml), then copied from ~/.maestro/tests/<run>/takeScreenshot/ to marketing/store/ios-es-usd/.
+appId: com.sotico91.rumi
+---
+- tapOn: "Inicio"
+- scroll
+- swipe: { direction: DOWN }
+- swipe: { direction: DOWN }
+- waitForAnimationToEnd
+- takeScreenshot: 1-inicio
+- tapOn: { id: "add-fab" }
+- tapOn: { id: "quick-amount" }
+- inputText: "12.50"
+- tapOn: "¿En qué?"
+- tapOn: { id: "quick-note" }
+- inputText: "almuerzo"
+- tapOn: "¿De dónde salió?"
+- waitForAnimationToEnd
+- takeScreenshot: 2-agregar
+- swipe: { start: "50%,12%", end: "50%,95%", duration: 400 }
+- waitForAnimationToEnd
+- tapOn: "Plan"
+- swipe: { direction: DOWN }
+- tapOn: "Mis conceptos de gasto.*"
+- tapOn: "Topes del mes.*"
+- waitForAnimationToEnd
+- takeScreenshot: 3-plan
+- tapOn: "Análisis"
+- tapOn: { id: "ask-input" }
+- inputText: "¿Cuánto gasté en café este mes?"
+- tapOn: "Preguntar"
+- tapOn: "Pregúntale a Rumi"
+- waitForAnimationToEnd
+- takeScreenshot: 4-pregunta
+- tapOn: "Patrimonio"
+- swipe: { direction: DOWN }
+- swipe: { direction: DOWN }
+- waitForAnimationToEnd
+- takeScreenshot: 5-patrimonio
+- tapOn: "Actividad"
+- waitForAnimationToEnd
+- takeScreenshot: 6-actividad

@@ -2,6 +2,7 @@
 
 - `ios/` — App Store, iPhone 6.9" (1320×2868), tomadas en el simulador iPhone 17 Pro Max en español con los datos de demo de `../flows/seed.yaml`, `rec-todo.yaml` y `rec-billeteras.yaml`, más topes en Mercado, Café, Domicilio y Almuerzo. Barra de estado a las 9:41 (`xcrun simctl status_bar … override`).
 - `ios-en/` — lo mismo en inglés y **dólares**: simulador en en-US, cuenta nueva con USD (`../flows/seed-en.yaml`: $2,450.75 en el banco y gastos con centavos), más un salario de $3,200, un crédito "Car loan" ($3,800, cuota $389 pagada) y topes en Groceries, Coffee, Delivery y Lunch.
+- `ios-es-usd/` — en **español y dólares**, para quien está en EE. UU. con el teléfono en español (ficha es-US de Play). Simulador iPhone 17 Pro Max en es-US: `../flows/seed-es-usd.yaml`, luego `seed-es-usd-extra.yaml` (salario de $3,200, préstamo del carro de $3,800 con la cuota de $389 pagada, topes en Café, Domicilio y Mercado) y `shots-es-usd.yaml`, que toma las 6 capturas (se copian de `~/.maestro/tests/<run>/shots-es-usd/takeScreenshot/`). `play-es-usd/` y `play-feature-es-usd.png` son sus versiones para Play (`play-esus-*` y `play-feature-esus` en `StoreShot.tsx`).
 - `ios-6.3/` e `ios-en-6.3/` — las mismas en 1206×2622 JPG sin transparencia, el tamaño que App Store Connect pide ahora primero (iPhone con Dynamic Island, pantalla mediana). Se sacan de `ios/` con `sips -z 2622 1206` y `sips -s format jpeg`.
 - `play/` y `play-en/` — Google Play, teléfono (1080×1920): cada captura con un título encima. Los textos están en `../ads/src/StoreShot.tsx`.
 

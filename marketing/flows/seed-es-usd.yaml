@@ -1,0 +1,43 @@
+# Demo data in Spanish and US dollars (simulator in es-US), for the Spanish
+# listing shown in the United States: "Sofía" with $2,450.75 in the bank,
+# everyday spends with cents, a $3,200 salary and a car loan.
+appId: com.sotico91.rumi
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+- tapOn:
+    text: "Permitir"
+    optional: true
+- extendedWaitUntil:
+    visible: "Tu nombre"
+    timeout: 20000
+- tapOn: "Tu nombre"
+- inputText: "Sofía"
+- tapOn: "Suena bien"
+- tapOn: "Dólares \\(USD\\)"
+- tapOn: "Continuar"
+- tapOn: ".*Café"
+- tapOn: ".*Domicilio"
+- tapOn: ".*Taxi y apps"
+- tapOn: ".*Suscripciones"
+- tapOn: "Continuar"
+- tapOn:
+    id: "onboard-bank"
+- inputText: "2450.75"
+- tapOn: "PASO 4 DE 4"
+- tapOn: "Listo, vamos"
+- extendedWaitUntil:
+    visible: "Inicio"
+    timeout: 25000
+- runFlow: { file: spend.yaml, env: { AMOUNT: "86.40", NOTE: "mercado", SAVE: "86\\.40" } }
+- tapOn:
+    text: "Permitir"
+    optional: true
+- runFlow: { file: spend.yaml, env: { AMOUNT: "4.75", NOTE: "café", SAVE: "4\\.75" } }
+- runFlow: { file: spend.yaml, env: { AMOUNT: "12.50", NOTE: "almuerzo", SAVE: "12\\.50" } }
+- runFlow: { file: spend.yaml, env: { AMOUNT: "14.80", NOTE: "uber", SAVE: "14\\.80" } }
+- runFlow: { file: spend.yaml, env: { AMOUNT: "5.25", NOTE: "café", SAVE: "5\\.25" } }
+- runFlow: { file: spend.yaml, env: { AMOUNT: "23.90", NOTE: "domicilio", SAVE: "23\\.90" } }
+- runFlow: { file: spend.yaml, env: { AMOUNT: "15.49", NOTE: "netflix", SAVE: "15\\.49" } }
+- runFlow: { file: spend.yaml, env: { AMOUNT: "4.50", NOTE: "café", SAVE: "4\\.50" } }

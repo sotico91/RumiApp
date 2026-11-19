@@ -13,6 +13,13 @@ export const storeShots: Record<string, StoreShotProps> = {
   'play-4-pregunta': { image: 'ios/4-pregunta.png', title: 'Pregúntale a Rumi', subtitle: '“¿Cuánto gasté en café este mes?”' },
   'play-5-patrimonio': { image: 'ios/5-patrimonio.png', title: 'Cuentas, inversiones y deudas', subtitle: 'Todo tu dinero en un solo lugar' },
   'play-6-actividad': { image: 'ios/6-actividad.png', title: 'Cada movimiento, en orden', subtitle: 'Sin cuenta ni servidor: todo queda en tu teléfono' },
+  // Spanish in US dollars, for the es-US listing (Spanish speakers in the United States).
+  'play-esus-1-inicio': { image: 'ios-es-usd/1-inicio.png', title: 'Tu mes, de un vistazo', subtitle: 'Lo que entra, lo que sale y lo que te queda' },
+  'play-esus-2-agregar': { image: 'ios-es-usd/2-agregar.png', title: 'Anota un gasto en segundos', subtitle: 'Escribe “almuerzo” y Rumi lo clasifica' },
+  'play-esus-3-plan': { image: 'ios-es-usd/3-plan.png', title: 'Topes que te cuidan', subtitle: 'Sabes cuánto te queda en cada categoría' },
+  'play-esus-4-pregunta': { image: 'ios-es-usd/4-pregunta.png', title: 'Pregúntale a Rumi', subtitle: '“¿Cuánto gasté en café este mes?”' },
+  'play-esus-5-patrimonio': { image: 'ios-es-usd/5-patrimonio.png', title: 'Cuentas, ahorros y préstamos', subtitle: 'Todo tu dinero en un solo lugar' },
+  'play-esus-6-actividad': { image: 'ios-es-usd/6-actividad.png', title: 'Cada movimiento, en orden', subtitle: 'Sin cuenta ni servidor: todo queda en tu teléfono' },
   'play-en-1-home': { image: 'ios-en/1-home.png', title: 'Your month at a glance', subtitle: 'What comes in, what goes out, what’s left' },
   'play-en-2-add': { image: 'ios-en/2-add.png', title: 'Log a spend in seconds', subtitle: 'Type “lunch” and Rumi files it' },
   'play-en-3-plan': { image: 'ios-en/3-plan.png', title: 'Limits that look out for you', subtitle: 'See what’s left in every category' },
@@ -67,6 +74,11 @@ export const featureGraphics: Record<string, FeatureProps> = {
     image: 'ios/1-inicio.png',
     tagline: 'Cuentas claras, mente tranquila.',
     line: 'Gastos, topes y deudas en un solo lugar. Tus datos se quedan en tu teléfono.',
+  },
+  'play-feature-esus': {
+    image: 'ios-es-usd/1-inicio.png',
+    tagline: 'Cuentas claras, mente tranquila.',
+    line: 'Gastos, topes y préstamos en un solo lugar. Tus datos se quedan en tu teléfono.',
   },
   'play-feature-en': {
     image: 'ios-en/1-home.png',
