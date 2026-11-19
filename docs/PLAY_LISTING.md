@@ -92,6 +92,11 @@ Textos y respuestas para crear Rumi en Play Console y abrir la prueba cerrada. P
 | Gráfico destacado 1024×500 | `marketing/store/play-feature-es.png` / `play-feature-en.png` |
 | Capturas de teléfono | `marketing/store/play/` (es) y `marketing/store/play-en/` (en), las 6 |
 
+**Fichas por idioma (2026-11-19).** Play elige la ficha por el idioma del teléfono, no por el país; un idioma sin ficha cae en la predeterminada (es-419, en pesos). Por eso:
+- **es-419** (predeterminada): español y pesos, `play/` y `play-feature-es.png`.
+- **es-US**: español y **dólares**, para hispanohablantes en EE. UU. (`play-es-usd/`, `play-feature-es-usd.png`). El texto es el de es-419 con dólares, PayPal o Venmo, "renta" y "préstamos", sin Nequi ni credicheque.
+- **en-US**, **en-GB**, **en-CA** y **en-AU**: inglés y dólares (`play-en/`, `play-feature-en.png`), el mismo texto.
+
 ## Contenido de la app (Política → Contenido de la app)
 
 - **Política de privacidad:** la URL de arriba.

@@ -139,6 +139,8 @@ money,finance,savings,goals,debt,bills,wallet,personal,cash,planner,credit,card,
 
 ### Capturas
 
+**Por idioma:** la App Store también elige por el idioma del teléfono, y su único español (es-MX) sirve a Colombia y a EE. UU. Decidido el 2026-11-19: es-MX sigue en pesos (el mercado principal es Colombia); quien tenga el iPhone en español en EE. UU. ve pesos. Con la próxima versión enviada (1.17.0) se agregan en-GB, en-CA y en-AU con las capturas de en-US, porque las imágenes de una versión publicada no se pueden cambiar.
+
 App Store Connect pide primero el iPhone mediano (6,3"): `marketing/store/ios-6.3/` (es) y `marketing/store/ios-en-6.3/` (en), 1206×2622 JPG, las 6. Las de 6,9" (`ios/`, 1320×2868) no las acepta en esa casilla. Sin iPad.
 
 ## 4. Suscripción (Monetization → Subscriptions)
