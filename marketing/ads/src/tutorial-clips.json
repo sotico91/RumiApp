@@ -1,0 +1,182 @@
+{
+  "inicio-1": {
+    "file": "clips/tutorial/inicio-1.mp4",
+    "from": 20.8,
+    "to": 25.7
+  },
+  "cuentas-1": {
+    "file": "clips/tutorial/cuentas-1.mp4",
+    "from": 12.6,
+    "to": 13.8
+  },
+  "cuentas-2": {
+    "file": "clips/tutorial/cuentas-2.mp4",
+    "from": 8,
+    "to": 10.5
+  },
+  "cuentas-3": {
+    "file": "clips/tutorial/cuentas-3.mp4",
+    "from": 8,
+    "to": 11.7
+  },
+  "cuentas-4": {
+    "file": "clips/tutorial/cuentas-4.mp4",
+    "from": 8.2,
+    "to": 15
+  },
+  "conceptos-1": {
+    "file": "clips/tutorial/conceptos-1.mp4",
+    "from": 8,
+    "to": 10.4
+  },
+  "conceptos-2": {
+    "file": "clips/tutorial/conceptos-2.mp4",
+    "from": 8,
+    "to": 10.5
+  },
+  "conceptos-3": {
+    "file": "clips/tutorial/conceptos-3.mp4",
+    "from": 8.5,
+    "to": 14.7
+  },
+  "conceptos-4": {
+    "file": "clips/tutorial/conceptos-4.mp4",
+    "from": 8.4,
+    "to": 15.1
+  },
+  "conceptos-5": {
+    "file": "clips/tutorial/conceptos-5.mp4",
+    "from": 7.9,
+    "to": 17.3
+  },
+  "conceptos-6": {
+    "file": "clips/tutorial/conceptos-6.mp4",
+    "from": 8.4,
+    "to": 14.3
+  },
+  "conceptos-7": {
+    "file": "clips/tutorial/conceptos-7.mp4",
+    "from": 8.1,
+    "to": 10.4
+  },
+  "conceptos-8": {
+    "file": "clips/tutorial/conceptos-8.mp4",
+    "from": 8.1,
+    "to": 10.4
+  },
+  "gasto-1": {
+    "file": "clips/tutorial/gasto-1.mp4",
+    "from": 8,
+    "to": 19.9
+  },
+  "gasto-2": {
+    "file": "clips/tutorial/gasto-2.mp4",
+    "from": 9.2,
+    "to": 14
+  },
+  "gasto-3": {
+    "file": "clips/tutorial/gasto-3.mp4",
+    "from": 8.2,
+    "to": 9.4
+  },
+  "gasto-4": {
+    "file": "clips/tutorial/gasto-4.mp4",
+    "from": 7.8,
+    "to": 10.5
+  },
+  "gasto-5": {
+    "file": "clips/tutorial/gasto-5.mp4",
+    "from": 8.2,
+    "to": 13.2
+  },
+  "ingreso-1": {
+    "file": "clips/tutorial/ingreso-1.mp4",
+    "from": 12.8,
+    "to": 16.5
+  },
+  "ingreso-2": {
+    "file": "clips/tutorial/ingreso-2.mp4",
+    "from": 8.7,
+    "to": 15.4
+  },
+  "ingreso-3": {
+    "file": "clips/tutorial/ingreso-3.mp4",
+    "from": 8.2,
+    "to": 10.7
+  },
+  "ingreso-4": {
+    "file": "clips/tutorial/ingreso-4.mp4",
+    "from": 8.2,
+    "to": 9.8
+  },
+  "ingreso-5": {
+    "file": "clips/tutorial/ingreso-5.mp4",
+    "from": 8.2,
+    "to": 13.2
+  },
+  "mover-1": {
+    "file": "clips/tutorial/mover-1.mp4",
+    "from": 11.2,
+    "to": 14.9
+  },
+  "mover-2": {
+    "file": "clips/tutorial/mover-2.mp4",
+    "from": 8.5,
+    "to": 14.9
+  },
+  "mover-3": {
+    "file": "clips/tutorial/mover-3.mp4",
+    "from": 8.2,
+    "to": 10.4
+  },
+  "mover-4": {
+    "file": "clips/tutorial/mover-4.mp4",
+    "from": 8.2,
+    "to": 9.8
+  },
+  "mover-5": {
+    "file": "clips/tutorial/mover-5.mp4",
+    "from": 8.2,
+    "to": 13.2
+  },
+  "deudas-1": {
+    "file": "clips/tutorial/deudas-1.mp4",
+    "from": 11.3,
+    "to": 15.1
+  },
+  "deudas-2": {
+    "file": "clips/tutorial/deudas-2.mp4",
+    "from": 8,
+    "to": 29
+  },
+  "deudas-3": {
+    "file": "clips/tutorial/deudas-3.mp4",
+    "from": 8.4,
+    "to": 33.2
+  },
+  "deudas-5": {
+    "file": "clips/tutorial/deudas-5.mp4",
+    "from": 8,
+    "to": 19.9
+  },
+  "deudas-6": {
+    "file": "clips/tutorial/deudas-6.mp4",
+    "from": 10.2,
+    "to": 11.8
+  },
+  "deudas-7": {
+    "file": "clips/tutorial/deudas-7.mp4",
+    "from": 8.1,
+    "to": 15
+  },
+  "deudas-8": {
+    "file": "clips/tutorial/deudas-8.mp4",
+    "from": 8.2,
+    "to": 8.7
+  },
+  "cierre-1": {
+    "file": "clips/tutorial/cierre-1.mp4",
+    "from": 8.1,
+    "to": 9.3
+  }
+}

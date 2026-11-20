@@ -22,9 +22,10 @@ appId: com.sotico91.rumi
 - inputText: "2500000"
 - tapOn: "PASO 4 DE 4"
 - tapOn: "Listo, vamos"
+# The first-launch tips cover Home for about 18 s.
 - extendedWaitUntil:
     visible: "Inicio"
-    timeout: 10000
+    timeout: 25000
 - runFlow: { file: spend.yaml, env: { AMOUNT: "185000", NOTE: "mercado", SAVE: "185\\.000" } }
 - runFlow: { file: spend.yaml, env: { AMOUNT: "6500", NOTE: "café", SAVE: "6\\.500" } }
 - runFlow: { file: spend.yaml, env: { AMOUNT: "24000", NOTE: "almuerzo", SAVE: "24\\.000" } }

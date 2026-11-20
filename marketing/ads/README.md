@@ -39,4 +39,18 @@ Con la misma mascota (`mascotVideos` en `src/mascot-scenes.ts`; `voice/mascot.ts
 - **Las dos tiendas (2026-11-13):** los videos con final de tienda dicen "Gratis en Google Play y en la App Store", el botón "Android y iPhone" y usan `public/qr-descargar.png`, que abre `docs/descargar.html`: esa página manda a Google Play en Android y a la App Store en iPhone. El QR viejo (`qr-play.png`, solo Play) queda para referencia.
 - **Cuatro funciones (2026-11-13):** `rumi-dictar-es` (Díctaselo a Rumi: la frase llena monto, categoría, cuenta y fecha), `rumi-deudas-es` (plan para salir de deudas: la fecha gratis, el abono extra con meses antes, intereses y orden en Pro), `rumi-excel-es` (Exportar a Excel por año, Pro) y `rumi-diapago-es` ("Mi mes empieza el día"). Los textos de las tarjetas son los de la app; los montos son de ejemplo.
 
+## Tutorial "Cómo configurar Rumi" (`tutorial-es`, 16:9, ~5 min)
+
+Video largo para YouTube con capítulos: cuentas (Patrimonio), conceptos y topes (Plan), registrar un gasto, un ingreso, mover dinero y deudas (dónde se registran y cómo se paga una cuota). Es el enlace para quien pregunta cómo se usa la app.
+
+1. Guion y pasos: `src/tutorial.ts`. Cada paso es una frase de voz, un texto al lado del teléfono y, si la pantalla cambia, los comandos de Maestro que la cambian.
+2. `node --experimental-strip-types tutorial/record.ts` graba un clip por paso en el simulador encendido (**borra los datos de la app**: arranca con `../flows/seed.yaml`) y guarda en `src/tutorial-clips.json` dónde se mueve cada clip. `DRY=1` solo corre los pasos para revisar los selectores; `FROM=<capítulo>` con `SKIP_SEED=1` sigue desde un capítulo.
+3. `EDGE_TTS=~/.venvs/edge-tts/bin/edge-tts node --experimental-strip-types voice/tutorial.ts` genera la voz (`src/tutorial-voice.json`).
+4. `npx remotion render src/index.ts tutorial-es out/tutorial-es.mp4 --codec h264`.
+5. `node --experimental-strip-types tutorial/chapters.ts` imprime los capítulos para la descripción de YouTube.
+
+**Shorts por capítulo** (`tutorial-cuentas-es`, `tutorial-conceptos-es`, `tutorial-gasto-es`, `tutorial-ingreso-es`, `tutorial-mover-es`, `tutorial-deudas-es`; verticales, 30 a 70 s): los mismos clips y la misma voz, con un gancho al inicio y el QR al final (`src/TutorialShort.tsx`).
+
+Cada paso dura lo que su clip o lo que tarda su frase, lo que sea más largo; si la frase es más larga, el último cuadro se queda quieto, y si el clip es mucho más largo (escribir un formulario) se acelera hasta 2×. El simulador solo graba cuadros cuando la pantalla cambia, así que un clip termina en su último movimiento. Diseño: `src/TutorialVideo.tsx`; tiempos: `src/tutorial-timeline.ts`.
+
 Estrategia para llegar a más gente e ideas para los próximos videos: `../ESTRATEGIA.md`.
