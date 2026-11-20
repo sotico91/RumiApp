@@ -12,6 +12,7 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-11-20
 
+- **Versión 1.18.1, videos sin pantalla negra:** en iPhone, "Ver los videos en YouTube" dejaba la pantalla en negro (la app de YouTube no abría bien la playlist). Ahora la guía se cierra y la playlist se abre dentro de Rumi en el navegador del sistema (`expo-web-browser`).
 - **Versión 1.18.0, videos en la guía:** la guía "?" tiene un botón "Ver los videos en YouTube" que abre la playlist "Cómo usar Rumi" del canal @rumifinanzas. Los títulos de los Shorts del canal pasan a frases que la gente busca ("Cómo controlar tus gastos…", "Gastos hormiga…", "Presupuesto por quincena…").
 
 ## 2026-11-19

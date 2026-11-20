@@ -1,7 +1,7 @@
 {
   "name": "rumi",
   "main": "expo-router/entry",
-  "version": "1.18.0",
+  "version": "1.18.1",
   "private": true,
   "license": "UNLICENSED",
   "author": {
@@ -36,6 +36,7 @@
     "expo-symbols": "~57.0.3",
     "expo-system-ui": "~57.0.4",
     "expo-updates": "~57.0.26",
+    "expo-web-browser": "~57.0.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.3",

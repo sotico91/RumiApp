@@ -1,5 +1,6 @@
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as WebBrowser from 'expo-web-browser';
 
 import { AppModal } from '@/src/components/AppModal';
 import { useLanguage } from '@/src/i18n/LanguageContext';
@@ -75,7 +76,14 @@ export function HowToGuideSheet({ visible, onClose }: Props) {
             accessibilityRole="link"
             onPress={() => {
               tapFeedback();
-              void Linking.openURL(TUTORIAL_PLAYLIST_URL).catch(() => {});
+              onClose();
+              // Close the sheet first, then show the playlist in an in-app browser:
+              // the YouTube iOS app opened a black screen for this playlist link.
+              setTimeout(() => {
+                WebBrowser.openBrowserAsync(TUTORIAL_PLAYLIST_URL).catch(() =>
+                  Linking.openURL(TUTORIAL_PLAYLIST_URL).catch(() => {}),
+                );
+              }, 350);
             }}
             style={({ pressed }) => [sheetStyles.secondary, styles.videos, pressed && styles.pressed]}>
             <Text style={sheetStyles.secondaryText}>▶ {t('guide.videos')}</Text>
