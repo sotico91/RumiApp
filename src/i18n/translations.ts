@@ -1165,6 +1165,7 @@ export const translations = {
     'guide.openA11y': 'How to use Rumi',
     'guide.title': 'How to use Rumi',
     'guide.close': 'Got it — I’ll try it',
+    'guide.videos': 'Watch the videos on YouTube',
     'guide.kicker': 'First day, in this order',
     'guide.introTitle': 'Start with one real expense',
     'guide.introBody':
@@ -2777,6 +2778,7 @@ export const translations = {
     'guide.openA11y': 'Cómo usar Rumi',
     'guide.title': 'Cómo usar Rumi',
     'guide.close': 'Listo, lo pruebo',
+    'guide.videos': 'Ver los videos en YouTube',
     'guide.kicker': 'Primer día, en este orden',
     'guide.introTitle': 'Empieza con un gasto real',
     'guide.introBody':

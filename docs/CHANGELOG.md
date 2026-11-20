@@ -10,6 +10,10 @@ El detalle de cada cambio está en `git log`.
 - **Comentarios de código en inglés:** todos los comentarios del código van en inglés.
   Los textos que ve el usuario van en `src/i18n/translations.ts` (es/en).
 
+## 2026-11-20
+
+- **Versión 1.18.0, videos en la guía:** la guía "?" tiene un botón "Ver los videos en YouTube" que abre la playlist "Cómo usar Rumi" del canal @rumifinanzas. Los títulos de los Shorts del canal pasan a frases que la gente busca ("Cómo controlar tus gastos…", "Gastos hormiga…", "Presupuesto por quincena…").
+
 ## 2026-11-19
 
 - **Versión 1.17.3, mosaico claro:** la tarjeta oscura de la 1.17.2 cortaba con el fondo crema de la app. Ahora "¿A dónde se va tu plata?" es una tarjeta blanca como las demás: bloques en un tono suave del color de cada categoría con texto oscuro, borde del color al elegirlos, y **todos** llevan su ícono en un círculo de su color (los pequeños, solo el ícono; su nombre y % están en la leyenda). La etiqueta del cambio frente al mes pasado usa los colores claros de alerta y de éxito. Video de la App Store regrabado con este diseño y con las mismas cifras en todas las escenas.

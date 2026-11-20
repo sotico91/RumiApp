@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppModal } from '@/src/components/AppModal';
@@ -6,6 +6,7 @@ import { useLanguage } from '@/src/i18n/LanguageContext';
 import { useMoney } from '@/src/hooks/useMoney';
 import { currencyCopyKey, type TranslationKey } from '@/src/i18n/translations';
 import { sheetStyles } from '@/src/components/ui';
+import { TUTORIAL_PLAYLIST_URL } from '@/src/constants/store';
 import { colors } from '@/src/theme';
 import { palette } from '@/src/theme/colors';
 import { tapFeedback } from '@/src/utils/selectFeedback';
@@ -70,6 +71,15 @@ export function HowToGuideSheet({ visible, onClose }: Props) {
             ))}
             <Text style={styles.hint}>{t('guide.hint')}</Text>
           </ScrollView>
+          <Pressable
+            accessibilityRole="link"
+            onPress={() => {
+              tapFeedback();
+              void Linking.openURL(TUTORIAL_PLAYLIST_URL).catch(() => {});
+            }}
+            style={({ pressed }) => [sheetStyles.secondary, styles.videos, pressed && styles.pressed]}>
+            <Text style={sheetStyles.secondaryText}>▶ {t('guide.videos')}</Text>
+          </Pressable>
           <Pressable
             accessibilityRole="button"
             onPress={() => {
@@ -145,6 +155,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
     color: palette.inkMuted,
+  },
+  videos: {
+    marginTop: 8,
+  },
+  pressed: {
+    opacity: 0.7,
   },
   done: {
     marginTop: 8,

@@ -13,3 +13,6 @@ export const PRIVACY_POLICY_FALLBACK_URL =
   'https://raw.githubusercontent.com/sotico91/RumiApp/main/docs/privacy-policy.html';
 
 export const STORE_SUPPORT_URL = `mailto:${SUPPORT_EMAIL}`;
+
+/** YouTube playlist "Cómo usar Rumi": short how-to videos, opened from the guide sheet. */
+export const TUTORIAL_PLAYLIST_URL = 'https://www.youtube.com/playlist?list=PLSmkJG60vH7o';
