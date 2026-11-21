@@ -36,3 +36,7 @@ cd marketing/ads
 npx remotion still src/index.ts store2-es-1-play ../store/v2/play-es/1.png --public-dir ../store
 ```
 
+## Diseño 3 (`v3/`, 2026-11-20) — el que está en Google Play
+
+Verbo gigante + una línea, la parte clave de la pantalla ampliada en una tarjeta, Rumi (la mascota) con una cara distinta por imagen y un globo con un mensaje positivo, y la mano 👆 donde hay algo que tocar. 7 imágenes por idioma, con las capturas nuevas de `../flows/record-store-shots.sh` (incluye el mosaico). Textos, recortes y gestos: `../ads/src/StoreShotV3.tsx` (ids `store3-<es|en|esus>-<n>-<play|ios69|ios63>`). Play no acepta transparencia: se suben los JPG de `v3/play-*-jpg/` (`sips -s format jpeg`). Subidas por API el 2026-11-20 a es-419, es-US, en-US, en-GB, en-CA y en-AU. App Store: van con la próxima versión enviada a revisión (`v3/ios69-*` y `v3/ios63-*`).
+

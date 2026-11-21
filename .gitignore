@@ -65,3 +65,4 @@ credentials/
 modules/*/android/build/
 marketing/store/v2/*/
 marketing/store/v3/*/
+marketing/store/v3/*-jpg/
