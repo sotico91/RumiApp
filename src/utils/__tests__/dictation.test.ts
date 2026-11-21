@@ -335,3 +335,35 @@ describe('parseDictation: paying a debt', () => {
     expect(parseDictation('pagué la cuota 300 mil', { accounts, now }).type).toBe('expense');
   });
 });
+
+describe('nearSpan / nearAlternatives (TV or radio in the room)', () => {
+  const { nearSpan, nearAlternatives } = require('@/src/utils/dictation') as typeof import('@/src/utils/dictation');
+
+  it('cuts quiet words before and after the loud ones', () => {
+    expect(nearSpan([2, 2, 8, 9, 7, 2])).toEqual({ start: 2, end: 5 });
+  });
+
+  it('keeps a quiet word in the middle', () => {
+    expect(nearSpan([8, 2, 8])).toEqual({ start: 0, end: 3 });
+  });
+
+  it('keeps everything when the whole take was quiet', () => {
+    expect(nearSpan([1, 2, 3])).toEqual({ start: 0, end: 3 });
+  });
+
+  it('drops the TV words from the guesses', () => {
+    const alts = [
+      { transcript: 'goles del partido almuerzo 20 mil' },
+      { transcript: 'goles del partido almuerzo 20000 pesos' },
+      { transcript: 'almuerzo 20 mil' },
+    ];
+    const near = nearAlternatives(alts, [2, 3, 2, 8, 9, 9]);
+    expect(near.map((a) => a.transcript)).toEqual(['almuerzo 20 mil', 'almuerzo 20000 pesos']);
+    expect(bestDictation(near)?.movement.amount).toBe(20000);
+  });
+
+  it('leaves the guesses alone when the levels do not match the words', () => {
+    const alts = [{ transcript: 'almuerzo 20 mil' }];
+    expect(nearAlternatives(alts, [8])).toBe(alts);
+  });
+});

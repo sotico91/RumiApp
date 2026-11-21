@@ -780,3 +780,50 @@ export function dictationVocabulary(names: string[]): string[] {
   // Recognizers take a short list; keep the user's own names first.
   return out.slice(0, 100);
 }
+
+/**
+ * In a loud place the recognizer also writes down a TV or radio. The person
+ * talks right into the phone, so their words come in louder than a voice
+ * across the room. Given how loud the mic was while each word arrived
+ * (recognizer volume, -2..10), returns the words spoken close to the phone:
+ * quiet words before the first loud one and after the last loud one are cut.
+ * Words in the middle stay, so a pause mid-sentence never loses anything.
+ * When the whole take was quiet there is nothing to compare against: keep it all.
+ */
+export const NEAR_MIN_PEAK = 4;
+export const NEAR_RATIO = 0.5;
+
+export function nearSpan(levels: number[]): { start: number; end: number } {
+  const peak = levels.length ? Math.max(...levels) : 0;
+  if (peak < NEAR_MIN_PEAK) return { start: 0, end: levels.length };
+  const near = (l: number) => l >= peak * NEAR_RATIO;
+  const start = levels.findIndex(near);
+  let end = levels.length;
+  while (end > start && !near(levels[end - 1])) end--;
+  return { start, end };
+}
+
+/**
+ * Cuts the far words (see nearSpan) out of the recognizer's guesses. `levels`
+ * belong to the first guess; the others are cut the same way only when they
+ * have the same number of words, otherwise they are dropped.
+ */
+export function nearAlternatives(
+  alternatives: HeardAlternative[],
+  levels: number[]
+): HeardAlternative[] {
+  const top = alternatives[0]?.transcript?.trim();
+  if (!top) return alternatives;
+  const words = top.split(/\s+/);
+  if (words.length !== levels.length) return alternatives;
+  const { start, end } = nearSpan(levels);
+  if (start === 0 && end === words.length) return alternatives;
+  if (end <= start) return alternatives;
+  const out: HeardAlternative[] = [];
+  for (const alt of alternatives) {
+    const w = alt.transcript?.trim().split(/\s+/) ?? [];
+    if (w.length !== words.length) continue;
+    out.push({ ...alt, transcript: w.slice(start, end).join(' ') });
+  }
+  return out;
+}

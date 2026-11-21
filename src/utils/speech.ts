@@ -88,6 +88,10 @@ export async function pickLocale(
  * - Android uses the voice recognition mic source, which applies the phone's
  *   own noise suppression; silence limits end the take soon after the person
  *   stops talking, so less room noise gets in.
+ * - Noise suppression does not remove other voices (a TV, a radio). For
+ *   those, useDictation drops the quiet words at the start and end of a take
+ *   (a voice across the room comes in softer than one into the phone) and ends
+ *   the take once a movement was heard close by, or after 8 s.
  */
 export function listenOptions(
   lang: string,

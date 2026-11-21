@@ -12,6 +12,7 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-11-20
 
+- **Versión 1.18.2, dictado con TV o radio de fondo:** la supresión de ruido del teléfono quita el ruido parejo pero no otras voces, así que el dictado escribía lo que decía un televisor. Ahora Rumi mide qué tan fuerte llega cada palabra: la voz de quien habla al teléfono llega más fuerte que una del otro lado del cuarto, y las palabras suaves al principio y al final de la toma se descartan (`nearSpan` / `nearAlternatives` en `src/utils/dictation.ts`). Además la toma termina sola 1,3 s después de que se oyó de cerca un monto con descripción, y nunca dura más de 8 s, porque con un televisor prendido el reconocedor nunca detecta silencio.
 - **Versión 1.18.1, videos sin pantalla negra:** en iPhone, "Ver los videos en YouTube" dejaba la pantalla en negro (la app de YouTube no abría bien la playlist). Ahora la guía se cierra y la playlist se abre dentro de Rumi en el navegador del sistema (`expo-web-browser`).
 - **Versión 1.18.0, videos en la guía:** la guía "?" tiene un botón "Ver los videos en YouTube" que abre la playlist "Cómo usar Rumi" del canal @rumifinanzas. Los títulos de los Shorts del canal pasan a frases que la gente busca ("Cómo controlar tus gastos…", "Gastos hormiga…", "Presupuesto por quincena…").
 

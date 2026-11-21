@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useLanguage } from '@/src/i18n/LanguageContext';
-import { bestDictation, type DictatedMovement, type DictationOptions } from '@/src/utils/dictation';
+import {
+  bestDictation,
+  NEAR_MIN_PEAK,
+  NEAR_RATIO,
+  nearAlternatives,
+  type DictatedMovement,
+  type DictationOptions,
+} from '@/src/utils/dictation';
 import { listenOptions, pickLocale, speechAvailable, speechModule, type SpeechEvents } from '@/src/utils/speech';
 
 export type DictationPhase = 'idle' | 'starting' | 'listening' | 'denied' | 'notHeard' | 'failed';
@@ -24,6 +31,14 @@ const failedRungs = new Set<Rung>();
 /** A take that ends this soon with nothing heard did not really start. */
 const QUICK_FAIL_MS = 2500;
 const RETRY_DELAY_MS = 400;
+/**
+ * A TV or radio never goes quiet, so the recognizer's own end-of-speech never
+ * comes. Once what was said close to the phone reads as a movement (amount and
+ * description), the take ends this long after the person's last word…
+ */
+const SETTLE_MS = 1300;
+/** …and no take runs longer than this. */
+const MAX_TAKE_MS = 8000;
 
 /**
  * Listen once and read the sentence as a movement. `onHeard` gets the guess
@@ -48,6 +63,44 @@ export function useDictation(
   const take = useRef<{ lang: string; rungs: Rung[]; startedAt: number } | null>(null);
   // The failed take's own "end" arrives after the retry starts: skip it.
   const retrying = useRef(false);
+  // Volume gate: how loud the mic was while each word of the first guess came in.
+  const wordLevels = useRef<number[]>([]);
+  const prevWords = useRef<string[]>([]);
+  const segmentPeak = useRef(-2);
+  const takePeak = useRef(-2);
+  const lastRaw = useRef(-2);
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const maxTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearTimers = useCallback(() => {
+    if (settleTimer.current) clearTimeout(settleTimer.current);
+    if (maxTimer.current) clearTimeout(maxTimer.current);
+    settleTimer.current = null;
+    maxTimer.current = null;
+  }, []);
+
+  /** Ends the take with what was heard (same as the person tapping stop). */
+  const finishTake = useCallback(() => {
+    clearTimers();
+    const mod = speechModule();
+    if (mod && active.current) mod.stop();
+  }, [clearTimers]);
+
+  /** Tags the words of the newest first guess with the loudness they came in at. */
+  const trackLevels = useCallback((top: string) => {
+    const words = top.trim() ? top.trim().split(/\s+/) : [];
+    const prev = prevWords.current;
+    let same = 0;
+    while (same < words.length && same < prev.length && words[same] === prev[same]) same++;
+    const seg = segmentPeak.current;
+    const levels = wordLevels.current.slice(0, same);
+    for (let i = same; i < words.length; i++) levels.push(Math.max(seg, wordLevels.current[i] ?? -2));
+    wordLevels.current = levels;
+    prevWords.current = words;
+    // The next words start at whatever the mic hears now.
+    segmentPeak.current = lastRaw.current;
+    return seg;
+  }, []);
 
   const listen = useCallback((lang: string, rung: Rung) => {
     const mod = speechModule();
@@ -85,7 +138,8 @@ export function useDictation(
   const deliver = useCallback((alternatives: { transcript: string; confidence?: number }[]) => {
     if (delivered.current) return;
     const { onHeard, vocabulary: _v, ...parseOptions } = latest.current;
-    const best = bestDictation(alternatives, { ...parseOptions, now: new Date() });
+    const near = nearAlternatives(alternatives, wordLevels.current);
+    const best = bestDictation(near.length ? near : alternatives, { ...parseOptions, now: new Date() });
     if (!best) return;
     delivered.current = true;
     onHeard(best);
@@ -97,17 +151,37 @@ export function useDictation(
     const subs = [
       mod.addListener('start', () => {
         retrying.current = false;
-        if (active.current) setPhase('listening');
+        if (!active.current) return;
+        setPhase('listening');
+        if (maxTimer.current) clearTimeout(maxTimer.current);
+        maxTimer.current = setTimeout(finishTake, MAX_TAKE_MS);
       }),
       mod.addListener('result', (ev: SpeechEvents['result']) => {
         if (!active.current) return;
         const alternatives = ev.results.map((r) => ({ transcript: r.transcript, confidence: r.confidence }));
         lastAlternatives.current = alternatives;
+        const seg = trackLevels(alternatives[0]?.transcript ?? '');
         setTranscript(alternatives[0]?.transcript ?? '');
-        if (ev.isFinal) deliver(alternatives);
+        if (ev.isFinal) {
+          clearTimers();
+          deliver(alternatives);
+          return;
+        }
+        // Only words said close to the phone keep the take open.
+        if (takePeak.current >= NEAR_MIN_PEAK && seg < takePeak.current * NEAR_RATIO) return;
+        const { onHeard: _o, vocabulary: _v, ...parseOptions } = latest.current;
+        const near = nearAlternatives(alternatives, wordLevels.current);
+        const best = bestDictation(near.length ? near : alternatives, { ...parseOptions, now: new Date() });
+        if (best && best.movement.amount !== null && best.movement.note) {
+          if (settleTimer.current) clearTimeout(settleTimer.current);
+          settleTimer.current = setTimeout(finishTake, SETTLE_MS);
+        }
       }),
       mod.addListener('volumechange', (ev: SpeechEvents['volumechange']) => {
         // -2..10 from the recognizer; below 0 is silence.
+        lastRaw.current = ev.value;
+        segmentPeak.current = Math.max(segmentPeak.current, ev.value);
+        takePeak.current = Math.max(takePeak.current, ev.value);
         setLevel(Math.max(0, Math.min(1, ev.value / 10)));
       }),
       mod.addListener('error', (ev: SpeechEvents['error']) => {
@@ -115,6 +189,7 @@ export function useDictation(
         // Permissions were checked before starting: a "not-allowed" here is the
         // module reporting any failure to start (audio engine, recognizer).
         if (ev.error !== 'no-speech' && ev.error !== 'speech-timeout' && retryNextRung()) return;
+        clearTimers();
         active.current = false;
         setLevel(0);
         if (ev.error === 'no-speech' || ev.error === 'speech-timeout') setPhase('notHeard');
@@ -126,6 +201,7 @@ export function useDictation(
       mod.addListener('end', () => {
         if (!active.current || retrying.current) return;
         if (!delivered.current && retryNextRung()) return;
+        clearTimers();
         active.current = false;
         setLevel(0);
         // Stopped by hand before a final result: use what was heard so far.
@@ -135,10 +211,11 @@ export function useDictation(
     ];
     return () => {
       subs.forEach((s) => s.remove());
+      clearTimers();
       if (active.current) mod.abort();
       active.current = false;
     };
-  }, [deliver, retryNextRung]);
+  }, [deliver, retryNextRung, trackLevels, clearTimers, finishTake]);
 
   const start = useCallback(async () => {
     const mod = speechModule();
@@ -147,6 +224,12 @@ export function useDictation(
     setTranscript('');
     setLevel(0);
     lastAlternatives.current = [];
+    wordLevels.current = [];
+    prevWords.current = [];
+    segmentPeak.current = -2;
+    takePeak.current = -2;
+    lastRaw.current = -2;
+    clearTimers();
     delivered.current = false;
     try {
       const perm = await mod.requestPermissionsAsync();
@@ -168,24 +251,22 @@ export function useDictation(
       active.current = false;
       setPhase('failed');
     }
-  }, [language, listen]);
+  }, [language, listen, clearTimers]);
 
   /** Done talking: finish with what was heard. */
-  const stop = useCallback(() => {
-    const mod = speechModule();
-    if (mod && active.current) mod.stop();
-  }, []);
+  const stop = finishTake;
 
   /** Close without using anything. */
   const cancel = useCallback(() => {
     const mod = speechModule();
     active.current = false;
     delivered.current = true;
+    clearTimers();
     if (mod) mod.abort();
     setPhase('idle');
     setLevel(0);
     setTranscript('');
-  }, []);
+  }, [clearTimers]);
 
   const dismiss = useCallback(() => setPhase('idle'), []);
 
