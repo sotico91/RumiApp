@@ -64,3 +64,4 @@ credentials/
 # Local Expo module build output
 modules/*/android/build/
 marketing/store/v2/*/
+marketing/store/v3/*/

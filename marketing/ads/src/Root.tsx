@@ -8,6 +8,7 @@ import { mascotVideos } from './mascot-scenes';
 import { FacebookCover, SocialAvatar, YoutubeBanner } from './SocialKit';
 import { FeatureGraphic, featureGraphics, StoreShot, storeShots } from './StoreShot';
 import { NeedVideo, needFrames, needVideos } from './NeedVideo';
+import { PlataVideo, plataFrames } from './PlataVideo';
 import { Prima, primaFrames } from './PrimaVideo';
 import { StoreShotV2, storeShotsV2 } from './StoreShotV2';
 import { StoreShotV3, storeShotsV3 } from './StoreShotV3';
@@ -59,6 +60,7 @@ export function RemotionRoot() {
       {Object.entries(needVideos).map(([id, props]) => (
         <Composition key={id} id={id} component={NeedVideo} defaultProps={props} width={1080} height={1920} fps={FPS} durationInFrames={needFrames(props)} />
       ))}
+      <Composition id="rumi-quincena-se-fue-es" component={PlataVideo} width={1080} height={1920} fps={FPS} durationInFrames={plataFrames} />
       <Composition id="rumi-prima-promo-es" component={Prima} width={1920} height={1080} fps={FPS} durationInFrames={primaFrames} />
       <Composition id="tutorial-es" component={Tutorial} width={1920} height={1080} fps={FPS} durationInFrames={tutorialFrames} />
       {Object.keys(shortHooks).map((id) => (
