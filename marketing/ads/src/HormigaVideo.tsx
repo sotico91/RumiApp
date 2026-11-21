@@ -258,7 +258,7 @@ export function HormigaVideo() {
   const bright = interpolate(frame, [rumiAt, rumiAt + f(0.4), total - f(1.5), total], [0, 0.13, 0.13, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   // Scenes 1 and 2 share the March (one continuous shot).
   const marchFrames = f(SCENE[0] + SCENE[1]);
-  const scenes = [null, null, <Pile />, <Totals />, <Name />, <RumiEnters seconds={SCENE[5]} text={['¡Yo te los', 'encuentro!']} />, <MarkThem />, <SeeThem />, <End />];
+  const scenes = [null, null, <Pile />, <Totals />, <Name />, <RumiEnters voice="voice/hormiga/6.mp3" text={['¡Yo te los', 'encuentro!']} />, <MarkThem />, <SeeThem />, <End />];
   return (
     <AbsoluteFill>
       <Audio src={staticFile('music/im-fine.mp3')} volume={tense} />

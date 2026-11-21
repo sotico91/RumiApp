@@ -53,7 +53,22 @@ function mouthAt(frame: number, list: Scene[]): number {
 /** Still expressions for pictures: smile, a wide grin, a wink, or happy closed eyes with a grin. */
 export type RumiMood = 'smile' | 'grin' | 'wink' | 'happy';
 
-export function Rumi({ talk, wave, look, still, mood }: { talk: number; wave: number; look: number; still?: boolean; mood?: RumiMood }) {
+/** `smileTalk`: while talking the mouth is a smile that opens with the voice, not an oval. */
+export function Rumi({
+  talk,
+  wave,
+  look,
+  still,
+  mood,
+  smileTalk,
+}: {
+  talk: number;
+  wave: number;
+  look: number;
+  still?: boolean;
+  mood?: RumiMood;
+  smileTalk?: boolean;
+}) {
   const frame = useCurrentFrame();
   const blink = !still && (frame % 96 < 4 || frame % 211 < 4) ? 0.1 : 1;
   const armSwing = Math.sin(frame / 3.2) * 28 * wave;
@@ -112,6 +127,11 @@ export function Rumi({ talk, wave, look, still, mood }: { talk: number; wave: nu
           <g>
             <path d="M-58 50 Q 0 130 58 50 Z" fill={brand.petrol900} strokeLinejoin="round" />
             <path d="M-30 86 Q 0 110 30 86 Q 0 74 -30 86 Z" fill="#E2475F" />
+          </g>
+        ) : smileTalk && talk >= 0.05 ? (
+          <g>
+            <path d={`M${-40 - talk * 22} 52 Q 0 ${70 + talk * 90} ${40 + talk * 22} 52 Z`} fill={brand.petrol900} />
+            <path d={`M${-16 - talk * 8} ${52 + talk * 34} Q 0 ${58 + talk * 42} ${16 + talk * 8} ${52 + talk * 34} Q 0 ${48 + talk * 26} ${-16 - talk * 8} ${52 + talk * 34} Z`} fill="#E2475F" />
           </g>
         ) : talk < 0.05 ? (
           <path d="M-36 58 Q 0 92 36 58" fill="none" stroke={brand.petrol900} strokeWidth={10} strokeLinecap="round" />
