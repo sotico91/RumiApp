@@ -1,6 +1,6 @@
 import { AbsoluteFill, Img, staticFile, useVideoConfig } from 'remotion';
 import { brand, fonts } from './brand';
-import { Rumi } from './Mascot';
+import { Rumi, type RumiMood } from './Mascot';
 
 // Store screenshots, third design (2026-11-20), after looking at what makes big apps' listings
 // readable at thumbnail size: one giant verb, the key number pulled out of the phone and enlarged,
@@ -21,8 +21,8 @@ type Shot = {
   tap?: { x: number; y: number };
   /** Phone on the left (1) or right (-1); Rumi and the card go on the other side. */
   side: 1 | -1;
-  /** Rumi's pose: wave 0..1 lifts the arm, talk 0..1 opens the mouth. */
-  rumi: { wave: number; talk: number };
+  /** Rumi's pose (wave 0..1 lifts the arm), face, and what it says in its bubble. */
+  rumi: { wave: number; mood: RumiMood; say: L };
   /** The last shot shows the privacy card instead of a zoom. */
   privacy?: boolean;
 };
@@ -34,7 +34,7 @@ const shots: Shot[] = [
     line: { es: 'cuánto te queda hoy', en: 'what’s left today', esus: 'cuánto te queda hoy' },
     zoom: { x: 0.02, y: 0.24, w: 0.72, h: 0.11 },
     side: 1,
-    rumi: { wave: 1, talk: 0.5 },
+    rumi: { wave: 1, mood: 'happy', say: { es: '¡Vas bien este mes!', en: 'You’re doing great!', esus: '¡Vas bien este mes!' } },
   },
   {
     image: { es: 'ios/2-agregar.png', en: 'ios-en/2-add.png', esus: 'ios-es-usd/2-agregar.png' },
@@ -43,7 +43,7 @@ const shots: Shot[] = [
     zoom: { x: 0.04, y: 0.34, w: 0.92, h: 0.09 },
     tap: { x: 0.8, y: 0.838 },
     side: -1,
-    rumi: { wave: 0.4, talk: 0.3 },
+    rumi: { wave: 0.4, mood: 'wink', say: { es: '¡Listo, anotado!', en: 'Done, logged!', esus: '¡Listo, anotado!' } },
   },
   {
     image: { es: 'ios/3-mosaico.png', en: 'ios-en/3-mosaic.png', esus: 'ios-es-usd/3-mosaico.png' },
@@ -51,7 +51,7 @@ const shots: Shot[] = [
     line: { es: 'a dónde se va tu plata', en: 'where your money goes', esus: 'a dónde se va tu dinero' },
     zoom: { x: 0.03, y: 0.06, w: 0.94, h: 0.44 },
     side: 1,
-    rumi: { wave: 0.7, talk: 0.7 },
+    rumi: { wave: 0.7, mood: 'grin', say: { es: '¡Ya sabes a dónde se va!', en: 'Now you know where it goes!', esus: '¡Ya sabes a dónde se va!' } },
   },
   {
     image: { es: 'ios/4-plan.png', en: 'ios-en/4-plan.png', esus: 'ios-es-usd/4-plan.png' },
@@ -59,7 +59,7 @@ const shots: Shot[] = [
     line: { es: 'lo que gastas con topes', en: 'your spending with limits', esus: 'lo que gastas con topes' },
     zoom: { x: 0.04, y: 0.6, w: 0.92, h: 0.19 },
     side: -1,
-    rumi: { wave: 0, talk: 0.2 },
+    rumi: { wave: 0, mood: 'wink', say: { es: 'Te aviso antes de pasarte', en: 'I’ll warn you before you overspend', esus: 'Te aviso antes de pasarte' } },
   },
   {
     image: { es: 'ios/5-pregunta.png', en: 'ios-en/5-ask.png', esus: 'ios-es-usd/5-pregunta.png' },
@@ -68,7 +68,7 @@ const shots: Shot[] = [
     zoom: { x: 0.04, y: 0.415, w: 0.92, h: 0.15 },
     tap: { x: 0.155, y: 0.37 },
     side: 1,
-    rumi: { wave: 0.6, talk: 0.9 },
+    rumi: { wave: 0.6, mood: 'grin', say: { es: '¡Pregúntame lo que quieras!', en: 'Ask me anything!', esus: '¡Pregúntame lo que quieras!' } },
   },
   {
     image: { es: 'ios/6-patrimonio.png', en: 'ios-en/6-wealth.png', esus: 'ios-es-usd/6-patrimonio.png' },
@@ -80,14 +80,14 @@ const shots: Shot[] = [
     },
     zoom: { x: 0.02, y: 0.14, w: 0.75, h: 0.12 },
     side: -1,
-    rumi: { wave: 0.3, talk: 0.4 },
+    rumi: { wave: 0.3, mood: 'happy', say: { es: 'Todo en un solo lugar', en: 'All in one place', esus: 'Todo en un solo lugar' } },
   },
   {
     image: { es: 'ios/7-actividad.png', en: 'ios-en/7-activity.png', esus: 'ios-es-usd/7-actividad.png' },
     verb: { es: 'Tuyo', en: 'Yours', esus: 'Tuyo' },
     line: { es: 'sin cuenta y sin conectar tu banco', en: 'no account, no bank login', esus: 'sin cuenta y sin conectar tu banco' },
     side: 1,
-    rumi: { wave: 1, talk: 0.6 },
+    rumi: { wave: 1, mood: 'smile', say: { es: 'Solo tú los ves', en: 'Only you see them', esus: 'Solo tú los ves' } },
     privacy: true,
   },
 ];
@@ -200,7 +200,8 @@ export function StoreShotV3({ index, lang }: StoreShotV3Props) {
   // The phone hangs off its side a little, like it's being held up to you.
   const phoneLeft = s.side > 0 ? W * 0.02 : W - phoneW - W * 0.02 - bezel * 2;
   const handSize = 230 * u;
-  const rumiScale = (tall ? 0.85 : 0.78) * u;
+  // Small enough to sit whole inside the frame, arms included.
+  const rumiScale = (tall ? 0.56 : 0.52) * u;
   const verbSize = (s.verb[lang].length > 7 ? 168 : 200) * u;
 
   return (
@@ -308,13 +309,44 @@ export function StoreShotV3({ index, lang }: StoreShotV3Props) {
           position: 'absolute',
           width: 840 * rumiScale,
           height: 600 * rumiScale,
-          left: s.side > 0 ? W - 840 * rumiScale + 110 * u : -110 * u,
-          top: H - 600 * rumiScale - (tall ? 90 : 20) * u,
+          left: s.side > 0 ? W - 840 * rumiScale - 50 * u : 40 * u,
+          top: H - 600 * rumiScale - (tall ? 70 : 30) * u,
           filter: `drop-shadow(0 ${20 * u}px ${30 * u}px rgba(11,31,41,0.3))`,
         }}>
         <div style={{ width: 840, height: 600, transform: `scale(${rumiScale})`, transformOrigin: 'left top' }}>
-          <Rumi talk={s.rumi.talk} wave={s.rumi.wave} look={0} still />
+          <Rumi talk={0} wave={s.rumi.wave} look={0} still mood={s.rumi.mood} />
         </div>
+      </div>
+      {/* Rumi's bubble, above it and pointing down at it. */}
+      <div
+        style={{
+          position: 'absolute',
+          [s.side > 0 ? 'right' : 'left']: 40 * u,
+          top: H - 600 * rumiScale - (tall ? 70 : 30) * u - 96 * u,
+          maxWidth: 520 * u,
+          padding: `${20 * u}px ${30 * u}px`,
+          borderRadius: 34 * u,
+          background: brand.petrol700,
+          color: '#FFFFFF',
+          fontFamily: fonts.body,
+          fontWeight: 700,
+          fontSize: 38 * u,
+          lineHeight: 1.15,
+          boxShadow: `0 ${14 * u}px ${30 * u}px rgba(11,31,41,0.3)`,
+          textAlign: 'center',
+        }}>
+        {s.rumi.say[lang]}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: -14 * u,
+            [s.side > 0 ? 'right' : 'left']: 150 * u,
+            width: 30 * u,
+            height: 30 * u,
+            background: brand.petrol700,
+            transform: 'rotate(45deg)',
+          }}
+        />
       </div>
     </AbsoluteFill>
   );

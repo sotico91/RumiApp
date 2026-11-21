@@ -50,7 +50,10 @@ function mouthAt(frame: number, list: Scene[]): number {
   return 0;
 }
 
-export function Rumi({ talk, wave, look, still }: { talk: number; wave: number; look: number; still?: boolean }) {
+/** Still expressions for pictures: smile, a wide grin, a wink, or happy closed eyes with a grin. */
+export type RumiMood = 'smile' | 'grin' | 'wink' | 'happy';
+
+export function Rumi({ talk, wave, look, still, mood }: { talk: number; wave: number; look: number; still?: boolean; mood?: RumiMood }) {
   const frame = useCurrentFrame();
   const blink = !still && (frame % 96 < 4 || frame % 211 < 4) ? 0.1 : 1;
   const armSwing = Math.sin(frame / 3.2) * 28 * wave;
@@ -92,16 +95,25 @@ export function Rumi({ talk, wave, look, still }: { talk: number; wave: number; 
         >
           R
         </text>
-        {[-1, 1].map((side) => (
+        {[-1, 1].map((side) =>
+          mood === 'happy' || (mood === 'wink' && side === 1) ? (
+            <path key={side} d={`M${side * 160 - 34} -24 Q ${side * 160} -66 ${side * 160 + 34} -24`} fill="none" stroke={brand.petrol900} strokeWidth={12} strokeLinecap="round" />
+          ) : (
           <g key={side} transform={`translate(${side * 160} -32) scale(1 ${blink})`}>
             <ellipse rx={38} ry={44} fill="#fff" />
             <circle cx={look * 12} cy={4} r={20} fill={brand.petrol900} />
             <circle cx={look * 12 + 7} cy={-4} r={6} fill="#fff" />
           </g>
-        ))}
+          ),
+        )}
         <ellipse cx={-165} cy={40} rx={34} ry={16} fill="#FF3F6C" opacity={0.28} />
         <ellipse cx={165} cy={40} rx={34} ry={16} fill="#FF3F6C" opacity={0.28} />
-        {talk < 0.05 ? (
+        {mood === 'grin' || mood === 'happy' || mood === 'wink' ? (
+          <g>
+            <path d="M-58 50 Q 0 130 58 50 Z" fill={brand.petrol900} strokeLinejoin="round" />
+            <path d="M-30 86 Q 0 110 30 86 Q 0 74 -30 86 Z" fill="#E2475F" />
+          </g>
+        ) : talk < 0.05 ? (
           <path d="M-36 58 Q 0 92 36 58" fill="none" stroke={brand.petrol900} strokeWidth={10} strokeLinecap="round" />
         ) : (
           <g transform="translate(0 70)">
