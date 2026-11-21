@@ -4,18 +4,18 @@
 appId: com.sotico91.rumi
 ---
 - tapOn: "Wealth"
-- scrollUntilVisible: { element: "Add a loan" }
+- scrollUntilVisible: { element: "Add a loan", centerElement: true }
 - tapOn: "Add a loan"
 - tapOn: { id: "debt-name" }
 - inputText: "Car loan"
-- tapOn: "Remaining balance"
+# The keyboard covers the labels: scroll each field into view before tapping it.
+- scrollUntilVisible: { element: { id: "debt-balance" }, centerElement: true }
 - tapOn: { id: "debt-balance" }
 - inputText: "3800"
-- tapOn: "Remaining balance"
+- scrollUntilVisible: { element: "Fixed monthly installment", centerElement: true }
 - tapOn: { below: "Fixed monthly installment" }
 - inputText: "389"
-- tapOn: "Remaining balance"
-- scroll
+- scrollUntilVisible: { element: "Save", centerElement: true }
 - tapOn: "Save"
 - tapOn: { text: "Allow", optional: true }
 - tapOn: "Pay installment"

@@ -16,18 +16,18 @@ appId: com.sotico91.rumi
 - tapOn: "Sí, guardar"
 - extendedWaitUntil: { visible: "Inicio", timeout: 10000 }
 - tapOn: "Patrimonio"
-- scrollUntilVisible: { element: "Agregar crédito" }
+- scrollUntilVisible: { element: "Agregar crédito", centerElement: true }
 - tapOn: "Agregar crédito"
 - tapOn: { id: "debt-name" }
 - inputText: "Préstamo del carro"
-- tapOn: "Saldo que aún debes"
+# The keyboard covers the labels: scroll each field into view before tapping it.
+- scrollUntilVisible: { element: { id: "debt-balance" }, centerElement: true }
 - tapOn: { id: "debt-balance" }
 - inputText: "3800"
-- tapOn: "Saldo que aún debes"
+- scrollUntilVisible: { element: "Cuota mensual fija", centerElement: true }
 - tapOn: { below: "Cuota mensual fija" }
 - inputText: "389"
-- tapOn: "Saldo que aún debes"
-- scroll
+- scrollUntilVisible: { element: "Guardar", centerElement: true }
 - tapOn: "Guardar"
 - tapOn: { text: "Permitir", optional: true }
 - tapOn: "Pagar cuota"
