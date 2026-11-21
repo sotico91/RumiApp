@@ -24,7 +24,7 @@ const shots: Shot[] = [
   {
     image: { es: 'ios/1-inicio.png', en: 'ios-en/1-home.png', esus: 'ios-es-usd/1-inicio.png' },
     kicker: { es: 'Gastos claros', en: 'Clear spending', esus: 'Gastos claros' },
-    title: { es: 'Sabe en qué se te va la plata', en: 'See where your money goes', esus: 'Sabe en qué se te va el dinero' },
+    title: { es: 'Sabe cuánto te queda hoy', en: 'Know what’s left today', esus: 'Sabe cuánto te queda hoy' },
     subtitle: {
       es: 'Lo que tienes hoy y cómo va tu mes, de un vistazo',
       en: 'What you have today and how your month is going',
@@ -46,7 +46,19 @@ const shots: Shot[] = [
     turn: -1,
   },
   {
-    image: { es: 'ios/3-plan.png', en: 'ios-en/3-plan.png', esus: 'ios-es-usd/3-plan.png' },
+    image: { es: 'ios/3-mosaico.png', en: 'ios-en/3-mosaic.png', esus: 'ios-es-usd/3-mosaico.png' },
+    kicker: { es: 'Gastos hormiga', en: 'Small leaks', esus: 'Gastos hormiga' },
+    title: { es: '¿A dónde se va tu plata?', en: 'Where your money goes', esus: '¿A dónde se va tu dinero?' },
+    subtitle: {
+      es: 'Cada categoría, del tamaño de lo que te cuesta',
+      en: 'Every category, sized by what it costs you',
+      esus: 'Cada categoría, del tamaño de lo que te cuesta',
+    },
+    tap: { x: 0.3, y: 0.5 },
+    turn: 1,
+  },
+  {
+    image: { es: 'ios/4-plan.png', en: 'ios-en/4-plan.png', esus: 'ios-es-usd/4-plan.png' },
     kicker: { es: 'Presupuesto', en: 'Budget', esus: 'Presupuesto' },
     title: { es: 'Topes que te cuidan', en: 'Limits that look out for you', esus: 'Topes que te cuidan' },
     subtitle: {
@@ -55,10 +67,10 @@ const shots: Shot[] = [
       esus: 'Ves cuánto te queda en cada categoría antes de pasarte',
     },
     tap: { x: 0.49, y: 0.69 },
-    turn: 1,
+    turn: -1,
   },
   {
-    image: { es: 'ios/4-pregunta.png', en: 'ios-en/4-ask.png', esus: 'ios-es-usd/4-pregunta.png' },
+    image: { es: 'ios/5-pregunta.png', en: 'ios-en/5-ask.png', esus: 'ios-es-usd/5-pregunta.png' },
     kicker: { es: 'Pregúntale a Rumi', en: 'Ask Rumi', esus: 'Pregúntale a Rumi' },
     title: { es: '“¿Cuánto gasté en café?”', en: '“How much on coffee?”', esus: '“¿Cuánto gasté en café?”' },
     subtitle: {
@@ -67,10 +79,10 @@ const shots: Shot[] = [
       esus: 'Pregunta como hablas y Rumi responde con tus números',
     },
     tap: { x: 0.155, y: 0.37 },
-    turn: -1,
+    turn: 1,
   },
   {
-    image: { es: 'ios/5-patrimonio.png', en: 'ios-en/5-wealth.png', esus: 'ios-es-usd/5-patrimonio.png' },
+    image: { es: 'ios/6-patrimonio.png', en: 'ios-en/6-wealth.png', esus: 'ios-es-usd/6-patrimonio.png' },
     kicker: { es: 'Todo en un lugar', en: 'All in one place', esus: 'Todo en un lugar' },
     title: { es: 'Efectivo, Nequi, banco y deudas', en: 'Cash, bank, savings and loans', esus: 'Efectivo, banco, ahorros y préstamos' },
     subtitle: {
@@ -79,10 +91,10 @@ const shots: Shot[] = [
       esus: 'Agrega tus cuentas y mira cuánto tienes de verdad',
     },
     tap: { x: 0.165, y: 0.422 },
-    turn: 1,
+    turn: -1,
   },
   {
-    image: { es: 'ios/6-actividad.png', en: 'ios-en/6-activity.png', esus: 'ios-es-usd/6-actividad.png' },
+    image: { es: 'ios/7-actividad.png', en: 'ios-en/7-activity.png', esus: 'ios-es-usd/7-actividad.png' },
     kicker: { es: '100 % privado', en: '100% private', esus: '100 % privado' },
     title: { es: 'Sin conectar tu banco', en: 'No bank login needed', esus: 'Sin conectar tu banco' },
     subtitle: {
@@ -90,7 +102,7 @@ const shots: Shot[] = [
       en: 'No account, no server: it stays encrypted on your phone',
       esus: 'Sin cuenta ni servidor: todo queda cifrado en tu teléfono',
     },
-    turn: -1,
+    turn: 1,
   },
 ];
 

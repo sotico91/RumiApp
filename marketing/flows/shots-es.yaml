@@ -1,0 +1,47 @@
+# Seven store captures in Spanish (after seed.yaml + seed-es-extra.yaml for pesos,
+# or seed-es-usd.yaml + seed-es-usd-extra.yaml for dollars). AMOUNT is the spend
+# typed on the add screen ("24000" or "12.50"). Run through record-store-shots.sh.
+appId: com.sotico91.rumi
+---
+- tapOn: "Inicio"
+- scroll
+- swipe: { direction: DOWN }
+- swipe: { direction: DOWN }
+- waitForAnimationToEnd
+- takeScreenshot: 1-inicio
+- tapOn: { id: "add-fab" }
+- tapOn: { id: "quick-amount" }
+- inputText: ${AMOUNT}
+- tapOn: "¿En qué?"
+- tapOn: { id: "quick-note" }
+- inputText: "almuerzo"
+- tapOn: "¿De dónde salió?"
+- waitForAnimationToEnd
+- takeScreenshot: 2-agregar
+- swipe: { start: "50%,12%", end: "50%,95%", duration: 400 }
+- waitForAnimationToEnd
+- tapOn: "Plan"
+- swipe: { direction: DOWN }
+- tapOn: "Mis conceptos de gasto.*"
+- tapOn: "Topes del mes.*"
+- waitForAnimationToEnd
+- takeScreenshot: 4-plan
+- tapOn: "Análisis"
+- tapOn: { id: "ask-input" }
+- inputText: "¿Cuánto gasté en café este mes?"
+- tapOn: "Preguntar"
+- tapOn: "Pregúntale a Rumi"
+- waitForAnimationToEnd
+- takeScreenshot: 5-pregunta
+- scrollUntilVisible: { element: "(?i)¿a dónde se va tu plata\\?", direction: DOWN }
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: 3-mosaico
+- tapOn: "Patrimonio"
+- swipe: { direction: DOWN }
+- swipe: { direction: DOWN }
+- waitForAnimationToEnd
+- takeScreenshot: 6-patrimonio
+- tapOn: "Actividad"
+- waitForAnimationToEnd
+- takeScreenshot: 7-actividad

@@ -1,0 +1,46 @@
+# Seven store captures in English and dollars (after seed-en.yaml +
+# seed-en-extra.yaml). Run through record-store-shots.sh.
+appId: com.sotico91.rumi
+---
+- tapOn: "Home"
+- scroll
+- swipe: { direction: DOWN }
+- swipe: { direction: DOWN }
+- waitForAnimationToEnd
+- takeScreenshot: 1-home
+- tapOn: { id: "add-fab" }
+- tapOn: { id: "quick-amount" }
+- inputText: "12.50"
+- tapOn: "What for?"
+- tapOn: { id: "quick-note" }
+- inputText: "lunch"
+- tapOn: "Paid from"
+- waitForAnimationToEnd
+- takeScreenshot: 2-add
+- swipe: { start: "50%,12%", end: "50%,95%", duration: 400 }
+- waitForAnimationToEnd
+- tapOn: "Plan"
+- swipe: { direction: DOWN }
+- tapOn: "My categories.*"
+- tapOn: "Monthly limits.*"
+- waitForAnimationToEnd
+- takeScreenshot: 4-plan
+- tapOn: "Insights"
+- tapOn: { id: "ask-input" }
+- inputText: "How much did I spend on coffee this month?"
+- tapOn: "Ask"
+- tapOn: "Ask Rumi"
+- waitForAnimationToEnd
+- takeScreenshot: 5-ask
+- scrollUntilVisible: { element: "(?i)where your money goes", direction: DOWN }
+- scroll
+- waitForAnimationToEnd
+- takeScreenshot: 3-mosaic
+- tapOn: "Wealth"
+- swipe: { direction: DOWN }
+- swipe: { direction: DOWN }
+- waitForAnimationToEnd
+- takeScreenshot: 6-wealth
+- tapOn: "Activity"
+- waitForAnimationToEnd
+- takeScreenshot: 7-activity

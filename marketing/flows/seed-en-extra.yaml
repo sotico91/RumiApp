@@ -1,0 +1,48 @@
+# After seed-en.yaml (English, dollars): a $3,800 car loan with its $389
+# installment paid, and limits on Coffee ($30), Delivery ($60) and Groceries
+# ($350) (3 is the free plan's limit).
+appId: com.sotico91.rumi
+---
+- tapOn: "Wealth"
+- scrollUntilVisible: { element: "Add a loan" }
+- tapOn: "Add a loan"
+- tapOn: { id: "debt-name" }
+- inputText: "Car loan"
+- tapOn: "Remaining balance"
+- tapOn: { id: "debt-balance" }
+- inputText: "3800"
+- tapOn: "Remaining balance"
+- tapOn: { below: "Fixed monthly installment" }
+- inputText: "389"
+- tapOn: "Remaining balance"
+- scroll
+- tapOn: "Save"
+- tapOn: { text: "Allow", optional: true }
+- tapOn: "Pay installment"
+- tapOn: "How much was it?"
+- repeat:
+    while: { notVisible: "Yes, save it" }
+    times: 4
+    commands:
+      - tapOn: "Continue"
+      - waitForAnimationToEnd
+- tapOn: "Yes, save it"
+- extendedWaitUntil: { visible: "Wealth", timeout: 10000 }
+- tapOn: "Plan"
+- tapOn: "My categories.*"
+- tapOn: "Food.*subcategor.*"
+- tapOn: { text: ".*Set one.*", index: 0 }
+- inputText: "30"
+- tapOn: "Monthly limit"
+- tapOn: { text: "Save", index: 0 }
+- waitForAnimationToEnd
+- tapOn: { text: ".*Set one.*", index: 0 }
+- inputText: "60"
+- tapOn: "Monthly limit"
+- tapOn: { text: "Save", index: 0 }
+- waitForAnimationToEnd
+- tapOn: { text: ".*Set one.*", index: 0 }
+- inputText: "350"
+- tapOn: "Monthly limit"
+- tapOn: { text: "Save", index: 0 }
+- waitForAnimationToEnd
