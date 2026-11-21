@@ -27,3 +27,12 @@ No hacen falta las de iPad: `supportsTablet` está apagado.
 - Render: `cd marketing/ads && npx remotion render src/index.ts preview-en out/preview-en.mp4 --codec h264 --enforce-audio-track --audio-codec aac`.
 - App Store: se sube con la próxima versión enviada a revisión (en-US y los ingleses nuevos). Google Play solo acepta un enlace de YouTube: hay que subirlo a un canal y pegar la URL en la ficha.
 
+## Diseño 2 (`v2/`, 2026-11-20)
+
+Fondo cálido con monedas 3D, el teléfono inclinado en perspectiva, una mano 👆 tocando lo que se hace en esa pantalla y el beneficio como titular; en la de privacidad, una tarjeta 🔒 en vez de la mano. Mismo diseño para Play (1080×1920) y App Store (1320×2868 y 1206×2622 JPG). Textos y punto de toque de cada captura: `../ads/src/StoreShotV2.tsx` (ids `store2-<es|en|esus>-<n>-<play|ios69|ios63>`). Salen en `v2/<tamaño>-<idioma>/` (fuera de git; `sheet-es.png` y `sheet-en.png` son las hojas para revisar):
+
+```sh
+cd marketing/ads
+npx remotion still src/index.ts store2-es-1-play ../store/v2/play-es/1.png --public-dir ../store
+```
+
