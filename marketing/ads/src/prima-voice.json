@@ -1,0 +1,62 @@
+{
+  "Llegó la prima. ¿Ya sabes en qué se te va a ir?": {
+    "file": "voice/fc23610e3bb6.mp3",
+    "seconds": 3.44
+  },
+  "Rumi. Que la prima te rinda. Descárgala gratis.": {
+    "file": "voice/6a94beba107c.mp3",
+    "seconds": 5.17
+  },
+  "Antes de que se esfume, anótala en Rumi. Toca el botón más.": {
+    "file": "voice/6282a0d5a17a.mp3",
+    "seconds": 5.1
+  },
+  "Elige Ingreso.": {
+    "file": "voice/7e5b24b1b113.mp3",
+    "seconds": 1.03
+  },
+  "Escribe cuánto te llegó. Por ejemplo, un millón ochocientos mil.": {
+    "file": "voice/ea5c43121026.mp3",
+    "seconds": 5.34
+  },
+  "Es tu prima, así que va en Bonos.": {
+    "file": "voice/a98e1ac0bb74.mp3",
+    "seconds": 2.55
+  },
+  "Llega a tu cuenta del banco.": {
+    "file": "voice/9e004ce1387f.mp3",
+    "seconds": 1.58
+  },
+  "Guardas, y ya sabes con cuánto cuentas.": {
+    "file": "voice/e15c256736a4.mp3",
+    "seconds": 2.88
+  },
+  "Ahora sepárale una parte. En Patrimonio, crea una meta.": {
+    "file": "voice/f0b1b516d4b2.mp3",
+    "seconds": 4.98
+  },
+  "Ponle nombre, cuánto quieres juntar y para cuándo.": {
+    "file": "voice/5a280cf0a78d.mp3",
+    "seconds": 3.22
+  },
+  "Rumi te dice cuánto apartar cada mes para llegar.": {
+    "file": "voice/54f13191db49.mp3",
+    "seconds": 2.88
+  },
+  "Y de una vez le metes una parte de la prima.": {
+    "file": "voice/1b7e051f4e87.mp3",
+    "seconds": 2.57
+  },
+  "¿Te alcanza para un antojo? Pregúntale a Rumi.": {
+    "file": "voice/7d0b48d06bd9.mp3",
+    "seconds": 3.75
+  },
+  "Por ejemplo: ¿me alcanza para unos tenis de trescientos mil?": {
+    "file": "voice/63477a08349e.mp3",
+    "seconds": 3.63
+  },
+  "Y aquí ves a dónde se va tu plata, para que la prima te rinda.": {
+    "file": "voice/67e7792e6397.mp3",
+    "seconds": 3.7
+  }
+}

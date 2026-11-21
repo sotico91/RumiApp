@@ -6,15 +6,20 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { primaChapters, primaEnd, primaIntro } from '../src/prima.ts';
 import { tutorialChapters, tutorialEnd } from '../src/tutorial.ts';
+
+// SCRIPT=prima speaks the prima promo (src/prima.ts) into src/prima-voice.json instead.
+const PRIMA = process.env.SCRIPT === 'prima';
+const chapters = PRIMA ? primaChapters : tutorialChapters;
 
 const VOICE = process.env.VOICE ?? 'es-CO-SalomeNeural';
 // A little slower than her default, so each step is easy to follow.
 const RATE = process.env.RATE ?? '-6%';
 const tts = process.env.EDGE_TTS ?? 'edge-tts';
 
-const lines = new Set<string>([tutorialEnd.say]);
-for (const c of tutorialChapters) for (const s of c.steps) lines.add(s.say);
+const lines = new Set<string>(PRIMA ? [primaIntro.say, primaEnd.say] : [tutorialEnd.say]);
+for (const c of chapters) for (const s of c.steps) lines.add(s.say);
 
 /** Seconds until the last audible sample; the files end in about a second of silence. */
 function speechEnd(mp3: string): number {
@@ -39,4 +44,4 @@ for (const text of lines) {
   out[text] = { file, seconds };
   console.log(`${seconds.toFixed(2)}s  ${text}`);
 }
-writeFileSync('src/tutorial-voice.json', `${JSON.stringify(out, null, 2)}\n`);
+writeFileSync(PRIMA ? 'src/prima-voice.json' : 'src/tutorial-voice.json', `${JSON.stringify(out, null, 2)}\n`);

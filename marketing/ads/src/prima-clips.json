@@ -1,0 +1,115 @@
+{
+  "prima-1": {
+    "file": "clips/prima/prima-1.mp4",
+    "from": 12.2,
+    "to": 14.2,
+    "tap": {
+      "x": 0.878,
+      "y": 0.831
+    }
+  },
+  "prima-2": {
+    "file": "clips/prima/prima-2.mp4",
+    "from": 8.4,
+    "to": 10.2,
+    "tap": {
+      "x": 0.387,
+      "y": 0.333
+    }
+  },
+  "prima-3": {
+    "file": "clips/prima/prima-3.mp4",
+    "from": 8.6,
+    "to": 15,
+    "tap": {
+      "x": 0.532,
+      "y": 0.47
+    }
+  },
+  "prima-4": {
+    "file": "clips/prima/prima-4.mp4",
+    "from": 8.2,
+    "to": 10.9,
+    "tap": {
+      "x": 0.646,
+      "y": 0.494
+    }
+  },
+  "prima-5": {
+    "file": "clips/prima/prima-5.mp4",
+    "from": 8.3,
+    "to": 9.8,
+    "tap": {
+      "x": 0.682,
+      "y": 0.915
+    }
+  },
+  "prima-6": {
+    "file": "clips/prima/prima-6.mp4",
+    "from": 8.3,
+    "to": 13.3,
+    "tap": {
+      "x": 0.682,
+      "y": 0.915
+    }
+  },
+  "meta-1": {
+    "file": "clips/prima/meta-1.mp4",
+    "from": 13.1,
+    "to": 18.2,
+    "tap": {
+      "x": 0.699,
+      "y": 0.924
+    }
+  },
+  "meta-2": {
+    "file": "clips/prima/meta-2.mp4",
+    "from": 8,
+    "to": 21.3,
+    "tap": {
+      "x": 0.5,
+      "y": 0.652
+    }
+  },
+  "meta-3": {
+    "file": "clips/prima/meta-3.mp4",
+    "from": 8.1,
+    "to": 10.3,
+    "tap": {
+      "x": 0.729,
+      "y": 0.517
+    }
+  },
+  "meta-4": {
+    "file": "clips/prima/meta-4.mp4",
+    "from": 8.1,
+    "to": 23.8,
+    "tap": {
+      "x": 0.193,
+      "y": 0.36
+    }
+  },
+  "claro-1": {
+    "file": "clips/prima/claro-1.mp4",
+    "from": 8,
+    "to": 9.2,
+    "tap": {
+      "x": 0.899,
+      "y": 0.924
+    }
+  },
+  "claro-2": {
+    "file": "clips/prima/claro-2.mp4",
+    "from": 15.5,
+    "to": 35.1,
+    "tap": {
+      "x": 0.5,
+      "y": 0.348
+    }
+  },
+  "claro-3": {
+    "file": "clips/prima/claro-3.mp4",
+    "from": 15.8,
+    "to": 28.4
+  }
+}

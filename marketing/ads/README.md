@@ -54,3 +54,12 @@ Video largo para YouTube con capítulos: cuentas (Patrimonio), conceptos y topes
 Cada paso dura lo que su clip o lo que tarda su frase, lo que sea más largo; si la frase es más larga, el último cuadro se queda quieto, y si el clip es mucho más largo (escribir un formulario) se acelera hasta 2×. El simulador solo graba cuadros cuando la pantalla cambia, así que un clip termina en su último movimiento. Diseño: `src/TutorialVideo.tsx`; tiempos: `src/tutorial-timeline.ts`.
 
 Estrategia para llegar a más gente e ideas para los próximos videos: `../ESTRATEGIA.md`.
+
+## Llegó la prima (`rumi-prima-promo-es`, 16:9, ~73 s)
+
+Promo de diciembre para YouTube y el video de la ficha de Google Play: anotar la prima como ingreso (Bonos), crear una meta y aportarle, preguntarle a Rumi si alcanza para unos tenis y ver a dónde se va la plata. Una mano 👆 toca en el teléfono donde se toca en cada paso. Guion: `src/prima.ts`; video: `src/PrimaVideo.tsx`.
+
+1. `SCRIPT=prima EDGE_TTS=… node --experimental-strip-types voice/tutorial.ts` (voz → `src/prima-voice.json`)
+2. `SCRIPT=prima node --experimental-strip-types tutorial/record.ts` graba cada paso en el simulador (borra sus datos y carga `../flows/seed.yaml`) y guarda en `src/prima-clips.json` el tramo útil y, en los pasos con `hand: true`, dónde está el primer `tapOn` (con `maestro hierarchy`). Revisa ese punto en un cuadro del clip: si la pantalla se mueve antes del toque, corrígelo a mano en el JSON.
+3. `npm run render -- rumi-prima-promo-es` (o `npx remotion render src/index.ts rumi-prima-promo-es out/rumi-prima-promo-es.mp4`).
+

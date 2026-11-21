@@ -11,6 +11,8 @@ export type TutorialStep = {
   text: string;
   /** Maestro commands (YAML list) run while this step records. */
   flow?: string;
+  /** Show a hand tapping the flow's first `tapOn` (where it is comes from record.ts). */
+  hand?: boolean;
 };
 
 export type TutorialChapter = { id: string; title: string; steps: TutorialStep[] };
