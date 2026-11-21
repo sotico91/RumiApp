@@ -39,12 +39,12 @@ const SPENDS = [
 // Seconds into line 2 when each spend is named.
 const SPEND_AT = [1.9, 2.9, 3.9, 4.9, 5.8, 6.8, 8.5, 9.4];
 
-const money = (n: number) => `$${Math.max(0, Math.round(n)).toLocaleString('es-CO').replace(/,/g, '.')}`;
+export const money = (n: number) => `$${Math.max(0, Math.round(n)).toLocaleString('es-CO').replace(/,/g, '.')}`;
 
-const cream = 'linear-gradient(180deg, #FFFBF5 0%, #FFF1E4 60%, #FFE2CF 100%)';
-const dark = `linear-gradient(160deg, ${brand.petrol700}, ${brand.petrol900})`;
+export const cream = 'linear-gradient(180deg, #FFFBF5 0%, #FFF1E4 60%, #FFE2CF 100%)';
+export const dark = `linear-gradient(160deg, ${brand.petrol700}, ${brand.petrol900})`;
 
-function usePop(delay = 0, damping = 14) {
+export function usePop(delay = 0, damping = 14) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   return spring({ frame: frame - f(delay), fps, config: { damping }, durationInFrames: 18 });
@@ -252,18 +252,18 @@ function Truth() {
 }
 
 /** 6. Rumi jumps in. */
-function RumiEnters({ seconds }: { seconds: number }) {
+export function RumiEnters({ seconds, text = ['¡Para eso', 'estoy yo!'] }: { seconds: number; text?: [string, string] }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const jump = spring({ frame, fps, config: { damping: 9, stiffness: 90 }, durationInFrames: 24 });
   const talk = frame < f(seconds - 0.3) ? Math.abs(Math.sin(frame / 2.6)) * 0.8 : 0;
-  const text = usePop(0.4, 12);
+  const shown = usePop(0.4, 12);
   return (
     <AbsoluteFill style={{ background: cream, alignItems: 'center' }}>
-      <div style={{ fontFamily: fonts.display, fontWeight: 700, fontSize: 120, color: brand.coral, marginTop: 260, textAlign: 'center', opacity: text, transform: `scale(${0.8 + text * 0.2})` }}>
-        ¡Para eso
+      <div style={{ fontFamily: fonts.display, fontWeight: 700, fontSize: 120, color: brand.coral, marginTop: 260, textAlign: 'center', opacity: shown, transform: `scale(${0.8 + shown * 0.2})` }}>
+        {text[0]}
         <br />
-        estoy yo!
+        {text[1]}
       </div>
       <div style={{ position: 'absolute', left: (1080 - 840 * 1.15) / 2, top: 820 + (1 - jump) * 900, width: 840, height: 600, transform: 'scale(1.15)', transformOrigin: 'left top' }}>
         <Rumi talk={talk} wave={1} look={0} />
@@ -278,9 +278,21 @@ function RumiEnters({ seconds }: { seconds: number }) {
 
 const SCREEN_W = 600;
 const SCREEN_H = Math.round((SCREEN_W * 2622) / 1206);
-const fill = { position: 'absolute' as const, inset: 0, width: '100%', height: '100%', objectFit: 'cover' as const };
+export const fill = { position: 'absolute' as const, inset: 0, width: '100%', height: '100%', objectFit: 'cover' as const };
 
-function Phone({ children, title, sub, tapAt }: { children: React.ReactNode; title: string; sub: string; tapAt?: number }) {
+export function Phone({
+  children,
+  title,
+  sub,
+  tapAt,
+  tap = { x: 0.878, y: 0.831 },
+}: {
+  children: React.ReactNode;
+  title: string;
+  sub: string;
+  tapAt?: number;
+  tap?: { x: number; y: number };
+}) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const pop = spring({ frame, fps, config: { damping: 16 }, durationInFrames: 14 });
@@ -288,7 +300,6 @@ function Phone({ children, title, sub, tapAt }: { children: React.ReactNode; tit
   const arrive = tapAt === undefined ? 0 : spring({ frame, fps, config: { damping: 18, stiffness: 120 }, durationInFrames: Math.max(8, press) });
   const fade = interpolate(frame, [press + f(0.45), press + f(0.75)], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const ripple = interpolate(frame, [press, press + f(0.5)], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
-  const tap = { x: 0.878, y: 0.831 };
   return (
     <AbsoluteFill style={{ background: cream }}>
       <div style={{ position: 'absolute', top: 110, left: 60, right: 60, textAlign: 'center' }}>
@@ -371,7 +382,7 @@ function See() {
   );
 }
 
-function End() {
+export function End() {
   const frame = useCurrentFrame();
   const pop = usePop(0, 14);
   const talk = frame < f(5.5) ? Math.abs(Math.sin(frame / 2.6)) * 0.7 : 0;
@@ -387,7 +398,8 @@ function End() {
         <div style={{ fontFamily: fonts.body, fontSize: 40, color: '#CFE0E3', marginTop: 22 }}>Android y iPhone · sin conectar tu banco</div>
       </div>
       <div style={{ position: 'absolute', bottom: 30, left: (1080 - 840 * 0.9) / 2, width: 840, height: 600, transform: 'scale(0.9)', transformOrigin: 'left top' }}>
-        <Rumi talk={talk} wave={1} look={0} />
+        {/* Smiling while it talks, then a big happy grin. */}
+        <Rumi talk={talk} wave={1} look={0} mood={talk > 0.05 ? undefined : 'happy'} />
       </div>
     </AbsoluteFill>
   );

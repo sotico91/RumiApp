@@ -16,6 +16,7 @@ import { execFileSync, spawn } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { hormigaChapters } from '../src/hormiga.ts';
 import { primaChapters } from '../src/prima.ts';
 import { tutorialChapters } from '../src/tutorial.ts';
 
@@ -25,8 +26,10 @@ const SIM = process.env.SIM ?? sh('xcrun', ['simctl', 'list', 'devices', 'booted
 if (!SIM) throw new Error('No booted simulator');
 const MAESTRO = process.env.MAESTRO ?? join(homedir(), '.maestro-cli/maestro/bin/maestro');
 const DRY = process.env.DRY === '1';
-const SCRIPT = process.env.SCRIPT === 'prima' ? 'prima' : 'tutorial';
-const chapters = SCRIPT === 'prima' ? primaChapters : tutorialChapters;
+const scripts = { tutorial: tutorialChapters, prima: primaChapters, hormiga: hormigaChapters };
+const SCRIPT = (process.env.SCRIPT ?? 'tutorial') as keyof typeof scripts;
+const chapters = scripts[SCRIPT];
+if (!chapters) throw new Error(`Unknown SCRIPT ${SCRIPT}`);
 const OUT = `public/clips/${SCRIPT}`;
 const CLIPS = `src/${SCRIPT}-clips.json`;
 mkdirSync(OUT, { recursive: true });
