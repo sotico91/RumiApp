@@ -6,7 +6,7 @@ import { ads } from './ads';
 import { Mascot, mascotFrames } from './Mascot';
 import { MoneyEnVideo, moneyEnFrames } from './MoneyEnVideo';
 import { mascotVideos } from './mascot-scenes';
-import { FacebookCover, SocialAvatar, YoutubeBanner } from './SocialKit';
+import { FacebookCover, SocialAvatar, YoutubeBanner, YoutubeBannerEn } from './SocialKit';
 import { FeatureGraphic, featureGraphics, StoreShot, storeShots } from './StoreShot';
 import { NeedVideo, needFrames, needVideos } from './NeedVideo';
 import { HormigaVideo, hormigaFrames } from './HormigaVideo';
@@ -72,6 +72,8 @@ export function RemotionRoot() {
       ))}
       <Composition id="social-avatar" component={SocialAvatar} width={1080} height={1080} fps={FPS} durationInFrames={1} />
       <Composition id="social-youtube-banner" component={YoutubeBanner} width={2560} height={1440} fps={FPS} durationInFrames={1} />
+      <Composition id="social-avatar-en" component={SocialAvatar} defaultProps={{ petrol: true }} width={1080} height={1080} fps={FPS} durationInFrames={1} />
+      <Composition id="social-youtube-banner-en" component={YoutubeBannerEn} width={2560} height={1440} fps={FPS} durationInFrames={1} />
       <Composition id="social-facebook-cover" component={FacebookCover} width={1640} height={624} fps={FPS} durationInFrames={1} />
     </>
   );

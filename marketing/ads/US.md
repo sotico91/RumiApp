@@ -272,7 +272,7 @@ Creado el 2026-11-21 con la cuenta de Rumi: **Rumi · Money Tracker** (@rumimone
 - "Budget app with no bank link 🔒 Your data stays on your phone": https://youtube.com/shorts/Nvv5NXq655c (`rumi-nobank-en`)
 - "Can I afford it? 👟 Ask your budget app before you buy": https://youtube.com/shorts/GeglQyj5ylE (`rumi-afford-en`)
 
-Pendiente: una portada en inglés (la de `marketing/redes/youtube-banner.png` está en español).
+Foto y portada propias: `marketing/redes/avatar-en.png` (la misma mascota sobre petróleo, para distinguirlo del canal en español, que va sobre crema) y `marketing/redes/youtube-banner-en.png` ("Know where your money goes. No bank link."). Composiciones `social-avatar-en` y `social-youtube-banner-en` en `src/SocialKit.tsx`.
 
 ## Pauta pagada: en pausa (2026-11-21)
 
