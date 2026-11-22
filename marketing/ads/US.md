@@ -23,7 +23,7 @@ Dos públicos, en grupos y campañas separados para poder medirlos por aparte:
   - Locale es-MX, con las 7 capturas de `marketing/store/v3/ios63-esus/` (APP_IPHONE_61).
   - Texto promocional: "Anota tus gastos en dólares en segundos, mira a dónde se va tu dinero y pregúntale a Rumi. Sin conectar tu banco."
   - ID `8cf0205d-4fb8-43fe-a236-061804924009`. URL: https://apps.apple.com/us/app/rumi-gastos-y-presupuesto/id6834433231?ppid=8cf0205d-4fb8-43fe-a236-061804924009
-  - Apple tiene que aprobarla, con un envío aparte de la versión de la app, antes de poder usarla en Apple Ads. En Apple Ads se elige en el grupo de anuncios en español: Ad Variation → Custom Product Page.
+  - Enviada a revisión el 2026-11-21 en un envío aparte de la versión de la app (envío `a23525b2`, WAITING_FOR_REVIEW). Apple tiene que aprobarla antes de poder usarla en Apple Ads. En Apple Ads se elige en el grupo de anuncios en español: Ad Variation → Custom Product Page.
 
 ## Apple Ads (App Store)
 
