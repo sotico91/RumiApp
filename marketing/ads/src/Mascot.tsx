@@ -61,6 +61,7 @@ export function Rumi({
   still,
   mood,
   smileTalk,
+  onDark,
 }: {
   talk: number;
   wave: number;
@@ -68,6 +69,8 @@ export function Rumi({
   still?: boolean;
   mood?: RumiMood;
   smileTalk?: boolean;
+  /** On a petrol background the petrol back bill disappears: draw it a lighter blue. */
+  onDark?: boolean;
 }) {
   const frame = useCurrentFrame();
   const blink = !still && (frame % 96 < 4 || frame % 211 < 4) ? 0.1 : 1;
@@ -78,9 +81,9 @@ export function Rumi({
     <svg viewBox="-420 -300 840 600" width={840} height={600} style={{ overflow: 'visible' }}>
       {/* back bill */}
       <g transform="translate(-40 -70) rotate(-14)">
-        <rect x={-300} y={-125} width={600} height={250} rx={44} fill={brand.petrol700} />
-        <rect x={-272} y={-98} width={544} height={196} rx={28} fill="none" stroke="#5E7683" strokeWidth={9} />
-        <circle cx={0} cy={0} r={60} fill="none" stroke="#5E7683" strokeWidth={9} />
+        <rect x={-300} y={-125} width={600} height={250} rx={44} fill={onDark ? '#5B8799' : brand.petrol700} />
+        <rect x={-272} y={-98} width={544} height={196} rx={28} fill="none" stroke={onDark ? '#A8C6D1' : '#5E7683'} strokeWidth={9} />
+        <circle cx={0} cy={0} r={60} fill="none" stroke={onDark ? '#A8C6D1' : '#5E7683'} strokeWidth={9} />
       </g>
       {/* arms */}
       <g stroke={brand.petrol900} strokeWidth={16} strokeLinecap="round" fill={PAPER}>

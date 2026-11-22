@@ -33,7 +33,7 @@ export function SocialAvatar({ petrol = false }: { petrol?: boolean }) {
         }}
       />
       <div style={{ transform: 'scale(0.95)', marginLeft: 20 }}>
-        <Rumi talk={0} wave={0} look={0} still />
+        <Rumi talk={0} wave={0} look={0} still onDark={petrol} />
       </div>
     </AbsoluteFill>
   );
@@ -61,7 +61,7 @@ function Cover({ safeW, safeH, scale, copy = ES }: { safeW: number; safeH: numbe
       >
         <div style={{ width: 840 * scale * 0.55, height: 600 * scale * 0.55, position: 'relative' }}>
           <div style={{ position: 'absolute', left: 0, top: 0, transform: `scale(${scale * 0.55})`, transformOrigin: 'top left' }}>
-            <Rumi talk={0} wave={0} look={0.4} still />
+            <Rumi talk={0} wave={0} look={0.4} still onDark={copy === EN} />
           </div>
         </div>
         <div>
