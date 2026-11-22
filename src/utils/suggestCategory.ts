@@ -1,7 +1,7 @@
 import { CREDITS_CONCEPT_ID, findSpendSub, isGeneralSubName } from '@/src/data/spendConcepts';
 import type { Transaction } from '@/src/types/finance';
 import type { SpendConcept } from '@/src/types/settings';
-import { STOPWORDS } from '@/src/utils/ask/text';
+import { escapeRegExp, STOPWORDS } from '@/src/utils/ask/text';
 
 /** Category a new spend kind creates when the user has none for it (copy: `newCat.<id>`). */
 export type NewConceptId =
@@ -342,7 +342,7 @@ export const SPEND_KINDS: SpendKind[] = [
   {
     words: [
       'veterinario', 'veterinaria', 'concentrado', 'mascota', 'mascotas', 'perro', 'gato', 'arena gato', 'vet',
-      'pet', 'pets', 'dog', 'cat',
+      'perrito', 'perrita', 'gatito', 'gatita', 'pet', 'pets', 'dog', 'cat', 'puppy', 'kitten',
     ],
     concept: ['mascotas', 'mascota', 'pets', 'pet'],
     create: { concept: 'pets', sub: 'pets' },
@@ -694,6 +694,57 @@ function byKeyword(match: KindMatch, concepts: SpendConcept[]): CategorySuggesti
       isAnt: kind.create.isAnt === true,
     },
   };
+}
+
+/** A kind of spend named in a question, where (character index in the folded text) and by which word. */
+export type KindInText = { kind: SpendKind; word: string; index: number };
+
+/**
+ * Every kind of spend a text names, in reading order, exact words only (a
+ * question is not a note: "compre" must not pass for a typo of anything).
+ */
+export function kindsInText(text: string): KindInText[] {
+  const t = fold(text);
+  const out: KindInText[] = [];
+  for (const kind of SPEND_KINDS) {
+    let best: KindInText | null = null;
+    for (const k of kind.words) {
+      const p = fold(k);
+      // Same endings noteWords tolerates: "perros" is "perro".
+      const re = new RegExp(`(?:^|[^a-z0-9])(${escapeRegExp(p)}(?:s|es)?)(?=[^a-z0-9]|$)`);
+      const m = re.exec(t);
+      if (!m) continue;
+      const index = m.index + m[0].indexOf(m[1]);
+      if (!best || index < best.index || (index === best.index && p.length > best.word.length)) {
+        best = { kind, word: p, index };
+      }
+    }
+    if (best) out.push(best);
+  }
+  return out.sort((a, b) => a.index - b.index);
+}
+
+/**
+ * The user's own place for a kind of spend: one sub, or the whole category
+ * when the word names the category itself ("mascota", "transporte"). Null
+ * when they have nowhere for it yet.
+ */
+export function homeForKind(
+  found: KindInText,
+  spendConcepts: SpendConcept[]
+): { conceptId: string; subIds: string[]; name: string } | null {
+  const concepts = suggestible(spendConcepts);
+  const match: KindMatch = { kind: found.kind, word: found.word };
+  const s = byKeyword(match, concepts);
+  const homeId = s.create ? s.create.conceptId : s.conceptId;
+  const concept = concepts.find((c) => c.id === homeId);
+  if (!concept) return null;
+  const namesCategory = found.kind.concept.some((name) => wordMatches(fold(name), found.word));
+  if (s.create || namesCategory) {
+    return { conceptId: concept.id, subIds: concept.subs.map((x) => x.id), name: concept.name };
+  }
+  const sub = concept.subs.find((x) => x.id === s.subId)!;
+  return { conceptId: concept.id, subIds: [sub.id], name: `${concept.name}/${sub.name}` };
 }
 
 /**

@@ -173,13 +173,13 @@ describe('notes: how much and when', () => {
     ['¿cuánto gasté en una recarga a movistar?', 'noteNeedle', `Coincidencias de “movistar” (todo tu historial): ${format(30_000)} en 1 movimiento (22 de septiembre).`],
     ['¿cuánto gasté en movistar?', 'looseNote', `Coincidencias de “movistar” (todo tu historial): ${format(30_000)} en 1 movimiento (22 de septiembre).`],
     ['recarga movistar', 'looseNote', `Coincidencias de “recarga movistar” (todo tu historial): ${format(30_000)} en 1 movimiento (22 de septiembre).`],
-    ['¿qué día tomé didi?', 'when', `“didi” (todo tu historial): 2 veces, la última el 9 de octubre (${format(14_500)}). Total ${format(25_500)}.`],
+    ['¿qué día tomé didi?', 'when', `“didi” (todo tu historial): 2 veces, ${format(25_500)} en total. 9 de octubre: Didi a casa ${format(14_500)} · 2 de octubre: Didi oficina ${format(11_000)}.`],
     ['¿cuándo fue la recarga de movistar?', 'when', `“recarga movistar”: el 22 de septiembre, por ${format(30_000)}.`],
     ['¿cuándo recargué a Claro?', 'when', `“claro”: el 24 de diciembre de 2025, por ${format(25_000)}.`],
     ['¿qué día tomé didi en septiembre?', 'when', 'No encontré movimientos con “didi” (Septiembre 2026).'],
-    ['¿en qué mes tomé didi?', 'when', `“didi” (todo tu historial): 2 veces, la última el 9 de octubre (${format(14_500)}). Total ${format(25_500)}.`],
-    ['which month did I take didi?', 'when', `“didi” (all your history): 2 times, the last on October 9 (${format(14_500)}). Total ${format(25_500)}.`],
-    ['when did I take didi?', 'when', `“didi” (all your history): 2 times, the last on October 9 (${format(14_500)}). Total ${format(25_500)}.`],
+    ['¿en qué mes tomé didi?', 'when', `“didi” (todo tu historial): 2 veces, ${format(25_500)} en total. 9 de octubre: Didi a casa ${format(14_500)} · 2 de octubre: Didi oficina ${format(11_000)}.`],
+    ['which month did I take didi?', 'when', `“didi” (all your history): 2 times, ${format(25_500)} in all. October 9: Didi a casa ${format(14_500)} · October 2: Didi oficina ${format(11_000)}.`],
+    ['when did I take didi?', 'when', `“didi” (all your history): 2 times, ${format(25_500)} in all. October 9: Didi a casa ${format(14_500)} · October 2: Didi oficina ${format(11_000)}.`],
   ])('%s', (q, intent, text) => {
     const r = askNotes(q, /[¿áéíóú]|^recarga/.test(q) ? 'es' : 'en');
     expect(r.intent).toBe(intent);

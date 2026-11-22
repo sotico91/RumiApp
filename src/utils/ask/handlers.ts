@@ -697,8 +697,16 @@ const when: Handler = (ctx) => {
   const [last] = newestFirst(txs);
   const params = { label, period, date: dateOf(ctx, last), amount: format(last.amount) };
   if (txs.length === 1) return { text: t('search.answerWhenOne', params), txs, period };
+  // "¿En qué fecha…?" with several: every date (newest first), what it was and how much.
+  const newest = newestFirst(txs);
+  const shown = newest
+    .slice(0, MAX_LISTED)
+    .map((x) => `${dateOf(ctx, x)}: ${describe(ctx, x)} ${format(x.amount)}`)
+    .join(' · ');
+  const more = txs.length - MAX_LISTED;
+  const items = more > 0 ? t('search.whenMore', { items: shown, more }) : shown;
   return {
-    text: t('search.answerWhenMany', { ...params, count: txs.length, total: format(sum(txs)) }),
+    text: t('search.answerWhenMany', { ...params, count: txs.length, total: format(sum(txs)), items }),
     txs,
     period,
   };

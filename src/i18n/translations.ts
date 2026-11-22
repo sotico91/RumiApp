@@ -1452,7 +1452,8 @@ export const translations = {
       'Matches for “{label}” ({period}): {amount} in {count} {count|transaction|transactions} ({dates}).',
     'search.answerWhenOne': '“{label}”: {date}, {amount}.',
     'search.answerWhenMany':
-      '“{label}” ({period}): {count} times, the last on {date} ({amount}). Total {total}.',
+      '“{label}” ({period}): {count} times, {total} in all. {items}.',
+    'search.whenMore': '{items} · and {more} more',
     'search.answerWhenNone': 'No movements with “{label}” ({period}).',
     'search.periodAllTime': 'all your history',
     'search.answerNoteCount': '“{label}” ({period}): {count} {count|time|times}, {amount} in total.',
@@ -3066,7 +3067,8 @@ export const translations = {
       'Coincidencias de “{label}” ({period}): {amount} en {count} {count|movimiento|movimientos} ({dates}).',
     'search.answerWhenOne': '“{label}”: el {date}, por {amount}.',
     'search.answerWhenMany':
-      '“{label}” ({period}): {count} veces, la última el {date} ({amount}). Total {total}.',
+      '“{label}” ({period}): {count} veces, {total} en total. {items}.',
+    'search.whenMore': '{items} · y {more} más',
     'search.answerWhenNone': 'No encontré movimientos con “{label}” ({period}).',
     'search.periodAllTime': 'todo tu historial',
     'search.answerNoteCount': '“{label}” ({period}): {count} {count|vez|veces}, {amount} en total.',

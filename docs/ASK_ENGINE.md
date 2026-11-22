@@ -11,6 +11,7 @@ Cómo funciona el motor de "Pregúntale a Rumi", qué se encontró en la auditor
   - `cashRoom = disponible − cuentas pendientes`.
   - `room` = el menor de los dos; `perDay = room / días que faltan`.
   - `projectedLeft = incomeRoom − gasto del día a día que falta a tu ritmo`. Así "puedo gastar hoy", "puedo comprar X", "me queda" y "fin de mes" encadenan los mismos números.
+- **Palabras de gasto (desde 1.18.3):** `detectCategories` lee la pregunta con `kindsInText` / `homeForKind` de `suggestCategory.ts`, las mismas palabras que archivan las notas: "gasolina" llega a Transporte/Gasolina aunque la pregunta no nombre la categoría (puntaje bajo: un nombre de categoría escrito gana). Un tipo después de "de/del/para/for my" es para quién fue y manda ("la comida de mi mascota" → Mascotas entera, salvo que se nombre una subcategoría suya). Si no hay categoría para eso, las palabras de los otros tipos no cuentan y responde la búsqueda en notas.
 - **Certeza (desde 1.16.0):** cada respuesta trae `basis` y `assumptions` en `AskResult`.
   - `fact`: sumas de movimientos y saldos. Sin etiqueta.
   - `inference`: leído de patrones (por qué, en qué te pasas, recurrentes, recortes, coincidencia parcial de notas).

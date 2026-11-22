@@ -10,6 +10,10 @@ El detalle de cada cambio está en `git log`.
 - **Comentarios de código en inglés:** todos los comentarios del código van en inglés.
   Los textos que ve el usuario van en `src/i18n/translations.ts` (es/en).
 
+## 2026-11-21
+
+- **Versión 1.18.3, Rumi entiende las cosas por su nombre de todos los días:** "¿en qué fecha compré la comida de mi mascota?" respondía con todo lo de Comida, porque "comida" coincidía con el nombre de una categoría y "mascota" solo a medias. Ahora las preguntas pasan por las mismas palabras que archivan las notas (`SPEND_KINDS`): "gasolina", "tanqueé", "el perro", "veterinario", "mercado" o "mantenimiento de la moto" llegan a la categoría de la persona para eso aunque se llame distinto. Lo que va después de "de/del/para/for my" es para quién o para qué fue y decide ("la comida de mi mascota" es Mascotas; "el concentrado del perro", su subcategoría). Sin categoría de mascotas, "comida" ya no responde con toda la comida: busca en las notas. Singular y plural cuentan igual ("mascota" = "Mascotas"). Cuando pasó varias veces, la respuesta da cada fecha con qué fue y cuánto (hasta 5). Pruebas en `src/utils/ask/__tests__/spendKinds.test.ts`.
+
 ## 2026-11-20
 
 - **Versión 1.18.2, dictado con TV o radio de fondo:** la supresión de ruido del teléfono quita el ruido parejo pero no otras voces, así que el dictado escribía lo que decía un televisor. Ahora Rumi mide qué tan fuerte llega cada palabra: la voz de quien habla al teléfono llega más fuerte que una del otro lado del cuarto, y las palabras suaves al principio y al final de la toma se descartan (`nearSpan` / `nearAlternatives` en `src/utils/dictation.ts`). Además la toma termina sola 1,3 s después de que se oyó de cerca un monto con descripción, y nunca dura más de 8 s, porque con un televisor prendido el reconocedor nunca detecta silencio.

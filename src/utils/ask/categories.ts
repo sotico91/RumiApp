@@ -2,9 +2,10 @@ import { CATEGORIES } from '@/src/data/financeDefaults';
 import { CREDITS_CONCEPT_ID, findSpendSub, flattenSpendSubs } from '@/src/data/spendConcepts';
 import type { Transaction } from '@/src/types/finance';
 import type { SpendConcept } from '@/src/types/settings';
+import { homeForKind, kindsInText } from '@/src/utils/suggestCategory';
 import { isExpenseTx, isObligationTx } from './ledger';
 import { MONTHS_EN, MONTHS_ES } from './period';
-import { hasStem, includesAny, normalize, tokenize } from './text';
+import { escapeRegExp, hasStem, includesAny, normalize, tokenize } from './text';
 
 export const CATEGORY_ALIASES: Record<string, string[]> = {
   cafe: ['cafe', 'café', 'coffee', 'cafes'],
@@ -123,7 +124,8 @@ export function scorePhraseInQuery(q: string, phrase: string): number {
 
   let hits = 0;
   for (const token of pTokens) {
-    if (qTokens.has(token)) {
+    // Singular and plural are the same word: "mascota" is "Mascotas".
+    if (qTokens.has(token) || qTokens.has(`${token}s`) || (token.endsWith('s') && qTokens.has(token.slice(0, -1)))) {
       hits += 1;
       continue;
     }
@@ -152,15 +154,60 @@ export type CategoryHit = {
   displayName?: string;
 };
 
+// "comida de mi mascota", "aceite para el carro", "uniforme del colegio".
+const FOR_WHOM = /(?:^|[^a-z0-9])(?:de|del|para|pa|for|of)\s+(?:(?:mi|mis|el|la|los|las|tu|tus|su|sus|my|the|our|nuestro|nuestra|nuestros|nuestras)\s+)?$/;
+
+/**
+ * The kind of spend the question is about, read with the same words that
+ * file notes into categories ("gasolina" is the user's fuel sub, "perro" their
+ * pets category). A kind after "de/para/for my" is who or what the spend was
+ * for and it decides: "la comida de mi mascota" is a pet spend, not food. It
+ * answers with that whole category unless the question names one of its subs
+ * ("el concentrado del perro"). `skip` are the other kinds' words, so the name
+ * match does not pick them back up.
+ */
+function kindInQuestion(
+  q: string,
+  spendConcepts: SpendConcept[]
+): { hit: CategoryHit | null; forWhom: boolean; skip: string[] } | null {
+  const kinds = kindsInText(q);
+  if (kinds.length === 0) return null;
+  const owner = kinds.find((k) => FOR_WHOM.test(q.slice(0, k.index)));
+  const home = homeForKind(owner ?? kinds[0], spendConcepts);
+  let hit: CategoryHit | null = null;
+  if (home && owner) {
+    const concept = spendConcepts.find((c) => c.id === home.conceptId)!;
+    const named = concept.subs.filter((sub) => scorePhraseInQuery(q, sub.name) > 0);
+    const subs = named.length > 0 ? named : concept.subs;
+    hit = {
+      ids: subs.map((sub) => sub.id),
+      label: subs.length === 1 ? subs[0].id : concept.id,
+      score: 90,
+      displayName: subs.length === 1 ? `${concept.name}/${subs[0].name}` : concept.name,
+    };
+  } else if (home) {
+    hit = { ids: home.subIds, label: home.subIds.length === 1 ? home.subIds[0] : home.conceptId, score: 30, displayName: home.name };
+  }
+  return { hit, forWhom: !!owner, skip: owner ? kinds.filter((k) => k !== owner).map((k) => k.word) : [] };
+}
+
 /**
  * Ranked match against user spend tree first, then legacy aliases.
  * Longer / more specific phrases win so "luz" beats vague concept names.
  */
 export function detectCategories(
-  q: string,
+  question: string,
   spendConcepts: SpendConcept[] = []
 ): CategoryHit | null {
+  const kind = kindInQuestion(question, spendConcepts);
+  if (kind?.forWhom && kind.hit) return kind.hit;
+  // Who it was for has no category: the other words must not answer for it.
+  const q = kind?.forWhom
+    ? kind.skip.reduce((text, w) => text.replace(new RegExp(`(^|[^a-z0-9])${escapeRegExp(w)}(?:s|es)?(?=[^a-z0-9]|$)`, 'g'), '$1'), question)
+    : question;
   const candidates: CategoryHit[] = [];
+  // A kind word with no category name in it ("gasolina" → Transporte/Combustible): low, names win.
+  if (kind?.hit) candidates.push(kind.hit);
 
   if (includesAny(q, ['restaurante', 'restaurantes', 'restaurant', 'comida', 'food', 'alimentos'])) {
     // Prefer user's food-like concept tree if present.
