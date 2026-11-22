@@ -262,3 +262,18 @@ Cada semana, por campaña y por idioma:
 - **Retención al día 1 y al día 7** (Play Console y App Store Connect). Si la gente instala y no vuelve, el problema está en la app o en el público, no en el anuncio.
 
 Para atribuir las instalaciones, no usar el total de RevenueCat: lo inflan los robots de Google y la revisión de Apple (ver la nota del 2026-11-20).
+
+## Canal de YouTube en inglés
+
+Creado el 2026-11-21 con la cuenta de Rumi: **Rumi · Money Tracker** (@rumimoneyapp). Es aparte de @rumifinanzas para que YouTube recomiende los videos a gente que habla inglés (EE. UU., Reino Unido, Canadá). Cada video lleva el idioma "Inglés (Estados Unidos)", la descripción en inglés y el enlace de `descargar.html`. Publicados (públicos):
+
+- "Where did my money go? 💸 Budget app that shows you (no bank link)": https://youtube.com/shorts/WUG7k611WDY (`rumi-where-money-en`)
+- "What your daily coffee really costs ☕ $1,320 a year": https://youtube.com/shorts/ZYEJiAbvXP0 (`rumi-coffee-en`)
+- "Budget app with no bank link 🔒 Your data stays on your phone": https://youtube.com/shorts/Nvv5NXq655c (`rumi-nobank-en`)
+- "Can I afford it? 👟 Ask your budget app before you buy": https://youtube.com/shorts/GeglQyj5ylE (`rumi-afford-en`)
+
+Pendiente: una portada en inglés (la de `marketing/redes/youtube-banner.png` está en español).
+
+## Pauta pagada: en pausa (2026-11-21)
+
+Las cuentas de Google Ads y Apple Ads quedaron creadas, pero no se publicó nada. Rumi todavía no tiene suscripciones pagadas y no se sabe qué parte de los que descargan termina pagando, así que pagar por descarga hoy pierde plata. Primero usuarios gratis (videos, comunidades, reseñas, ficha); la prueba pagada se retoma cuando haya datos de conversión a Pro, empezando por Apple Ads (solo resultados de búsqueda en EE. UU.), porque en EE. UU. pesa más el iPhone. Google Ads tiene en borrador una campaña de app Android para EE. UU. en inglés con los textos y videos de arriba.
