@@ -19,6 +19,12 @@ Dos públicos, en grupos y campañas separados para poder medirlos por aparte:
 
   La opción 2 es la recomendada. Play no tiene este problema: su ficha es-US ya está en dólares.
 
+  **Hecho el 2026-11-21:** página personalizada "EE. UU. en español (USD)" creada por la API.
+  - Locale es-MX, con las 7 capturas de `marketing/store/v3/ios63-esus/` (APP_IPHONE_61).
+  - Texto promocional: "Anota tus gastos en dólares en segundos, mira a dónde se va tu dinero y pregúntale a Rumi. Sin conectar tu banco."
+  - ID `8cf0205d-4fb8-43fe-a236-061804924009`. URL: https://apps.apple.com/us/app/rumi-gastos-y-presupuesto/id6834433231?ppid=8cf0205d-4fb8-43fe-a236-061804924009
+  - Apple tiene que aprobarla, con un envío aparte de la versión de la app, antes de poder usarla en Apple Ads. En Apple Ads se elige en el grupo de anuncios en español: Ad Variation → Custom Product Page.
+
 ## Apple Ads (App Store)
 
 Apple no deja escribir el texto del anuncio: muestra el nombre, el subtítulo, el ícono y las primeras capturas de la ficha (o de la página personalizada). Lo que se elige son las **palabras clave**, el **tipo de coincidencia** y la **oferta por toque (CPT)**.
