@@ -410,3 +410,399 @@ export function CardEn() {
   );
 }
 export const cardEnFrames = timeline('card-en', 5).frames;
+
+/* ---------- "Forgot a bill again?" (bills-en) ---------- */
+
+function Forgot() {
+  const a = usePop(0.1, 9);
+  return (
+    <AbsoluteFill style={{ background: cream, alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+      <div style={{ fontSize: 240, transform: `scale(${0.6 + a * 0.4}) rotate(${(1 - a) * -20}deg)` }}>😬</div>
+      <div style={{ ...big, fontSize: 120, color: brand.ink, marginTop: 20, lineHeight: 1.1 }}>Forgot a bill</div>
+      <div style={{ ...big, fontSize: 120, color: brand.coral, lineHeight: 1.1 }}>again?</div>
+    </AbsoluteFill>
+  );
+}
+
+/** Rent due on the 1st, paid on the 6th: the late days light up. */
+function LateDays() {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  return (
+    <AbsoluteFill style={{ background: cream, alignItems: 'center' }}>
+      <div style={{ ...big, fontSize: 96, color: brand.ink, marginTop: 220 }}>🏠 Rent</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 250px)', gap: 30, marginTop: 70 }}>
+        {[1, 2, 3, 4, 5, 6].map((d, i) => {
+          const p = spring({ frame: frame - f(0.2 + i * 0.28), fps, config: { damping: 13 }, durationInFrames: 14 });
+          const due = d === 1;
+          const paid = d === 6;
+          return (
+            <div key={d} style={{ ...card, height: 250, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: p, transform: `scale(${0.8 + p * 0.2})`, background: paid ? brand.coral : due ? '#FFFFFF' : '#FBE3D9' }}>
+              <div style={{ ...big, fontSize: 96, color: paid ? '#FFFFFF' : brand.ink }}>{d}</div>
+              <div style={{ ...body, fontSize: 34, color: paid ? '#FFFFFF' : due ? brand.petrol700 : brand.coral }}>{due ? 'Due' : paid ? 'Paid 😅' : 'Late'}</div>
+            </div>
+          );
+        })}
+      </div>
+    </AbsoluteFill>
+  );
+}
+
+/** The app's suggested reminders (reminder.suggestTitle / suggestHint / suggestMeta / suggestAdd). */
+function Suggested() {
+  const rows = [
+    { name: 'Rent', day: 1, amount: '$1,450' },
+    { name: 'Phone', day: 12, amount: '$65' },
+    { name: 'Car insurance', day: 20, amount: '$138' },
+  ];
+  return (
+    <AppCard title="Reminders" sub="suggested for you">
+      <div style={{ ...card, padding: '40px 46px' }}>
+        <div style={{ ...big, fontSize: 54, color: brand.ink }}>Suggested for you</div>
+        <div style={{ fontFamily: fonts.body, fontSize: 36, color: '#5B6B73', marginTop: 12, lineHeight: 1.35 }}>
+          You pay these every month and they have no reminder yet. We remind you the day before, at 9:00.
+        </div>
+        {rows.map((r) => (
+          <div key={r.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '2px solid #EEE6DE', marginTop: 26, paddingTop: 26 }}>
+            <div>
+              <div style={{ ...body, fontSize: 44, color: brand.ink }}>{r.name}</div>
+              <div style={{ fontFamily: fonts.body, fontSize: 34, color: '#5B6B73' }}>
+                Usually paid on day {r.day} · {r.amount}
+              </div>
+            </div>
+            <div style={{ ...body, fontSize: 34, color: '#FFFFFF', background: brand.coral, borderRadius: 999, padding: '14px 26px' }}>Remind me</div>
+          </div>
+        ))}
+      </div>
+    </AppCard>
+  );
+}
+
+/** A push notification dropping in (title + body, the app's own copy). */
+function Push({ title, sub, head, text }: { title: string; sub: string; head: string; text: string }) {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const drop = spring({ frame: frame - f(0.5), fps, config: { damping: 12 }, durationInFrames: 18 });
+  return (
+    <AbsoluteFill style={{ background: cream }}>
+      <div style={{ position: 'absolute', top: 110, left: 60, right: 60, textAlign: 'center' }}>
+        <div style={{ ...big, fontSize: 108, color: brand.coral }}>{title}</div>
+        <div style={{ ...body, fontSize: 54, color: brand.ink, marginTop: 10 }}>{sub}</div>
+      </div>
+      <div style={{ position: 'absolute', top: 600 + (1 - drop) * -300, left: 70, right: 70, opacity: drop, borderRadius: 44, padding: '34px 40px', background: 'rgba(255,255,255,0.95)', boxShadow: '0 24px 50px rgba(11,31,41,0.22)', display: 'flex', gap: 28 }}>
+        <Img src={staticFile('icon.png')} style={{ width: 96, height: 96, borderRadius: 24 }} />
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ ...body, fontSize: 40, color: brand.ink }}>{head}</div>
+            <div style={{ fontFamily: fonts.body, fontSize: 32, color: '#7A868C' }}>9:00 AM</div>
+          </div>
+          <div style={{ fontFamily: fonts.body, fontSize: 38, color: brand.ink, marginTop: 8, lineHeight: 1.3 }}>{text}</div>
+        </div>
+      </div>
+      <Sequence from={f(0.5)} durationInFrames={f(1)}>
+        <Audio src={staticFile('sfx/success.mp3')} volume={0.5} />
+      </Sequence>
+    </AbsoluteFill>
+  );
+}
+
+/** Already logged: the reminder is skipped (reminder.body: "If you already logged it, Rumi skips that reminder"). */
+function Quiet() {
+  const p = usePop(1.2, 12);
+  return (
+    <AppCard title="Already paid?" sub="then no reminder">
+      <div style={{ ...card, padding: '40px 46px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 26 }}>
+          <div style={{ fontSize: 70 }}>🏠</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ ...body, fontSize: 46, color: brand.ink }}>Rent · $1,450</div>
+            <div style={{ fontFamily: fonts.body, fontSize: 36, color: GREEN }}>Logged on Nov 30</div>
+          </div>
+          <div style={{ fontSize: 70, color: GREEN }}>✓</div>
+        </div>
+        <div style={{ ...body, fontSize: 40, color: brand.petrol700, marginTop: 34, opacity: p }}>🔕 Reminder skipped this month</div>
+      </div>
+    </AppCard>
+  );
+}
+
+export function BillsEn() {
+  const id = 'bills-en';
+  return (
+    <Shell
+      id={id}
+      rumiAt={5}
+      scenes={[
+        <Forgot />,
+        <LateDays />,
+        <BigCount kicker="Late fee" to={75} at={[0.5, 1.6]} under="for money you already had 🤦" underAt={2.2} />,
+        <BigCount kicker="Four times a year" from={75} to={300} at={[0.6, 2.2]} under="for nothing" underAt={2.6} bg={dark} tone="#FF6B4A" />,
+        <Truth a="The money was there." b="The reminder wasn’t." />,
+        <RumiEnters voice={`voice/${id}/6.mp3`} text={['I never', 'forget!']} />,
+        <Suggested />,
+        <Push title="The day before" sub="with the usual amount" head="Rumi reminder" text="Already paid Rent? Usually $1,450. Tap to log it." />,
+        <Quiet />,
+        <End id={id} tagline="Never miss a bill." />,
+      ]}
+    />
+  );
+}
+export const billsEnFrames = timeline('bills-en', 5).frames;
+
+/* ---------- "January broke" (january-en) ---------- */
+
+const DECEMBER = [
+  { icon: '🎁', name: 'Gifts', amount: 640 },
+  { icon: '🍝', name: 'Dinner out', amount: 210 },
+  { icon: '✈️', name: 'Flights', amount: 780 },
+  { icon: '🎄', name: 'Decorations', amount: 120 },
+  { icon: '🧶', name: 'Ugly sweater party', amount: 350 },
+];
+
+function Holidays() {
+  const a = usePop(0.1, 9);
+  const b = usePop(1.6, 12);
+  return (
+    <AbsoluteFill style={{ background: cream, alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+      <div style={{ fontSize: 220, transform: `scale(${0.6 + a * 0.4})` }}>🎄</div>
+      <div style={{ ...big, fontSize: 130, color: brand.ink, marginTop: 20 }}>December</div>
+      <div style={{ ...big, fontSize: 80, color: brand.coral, marginTop: 20, opacity: b }}>It’s the holidays! 🎉</div>
+    </AbsoluteFill>
+  );
+}
+
+/** December's spends piling onto the card, one per sentence of the line. */
+function DecemberPile() {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const t = frame / fps;
+  const at = voiceOf('january-en').dripAt;
+  const shown = at.filter((x) => t >= x).length;
+  const total = DECEMBER.slice(0, shown).reduce((s, x) => s + x.amount, 0);
+  return (
+    <AbsoluteFill style={{ background: cream, alignItems: 'center' }}>
+      <div style={{ ...body, fontSize: 48, color: brand.petrol700, marginTop: 150, letterSpacing: 3, textTransform: 'uppercase' }}>💳 On the card</div>
+      <div style={{ ...big, fontSize: 170, color: brand.coral, fontVariantNumeric: 'tabular-nums' }}>{usd(total)}</div>
+      <div style={{ position: 'absolute', top: 560, left: 80, right: 80 }}>
+        {DECEMBER.slice(0, shown).map((s, i) => {
+          const enter = spring({ frame: f(t - at[i]), fps, config: { damping: 13 }, durationInFrames: 14 });
+          return (
+            <div key={i} style={{ ...card, display: 'flex', alignItems: 'center', gap: 26, height: 160, marginBottom: 26, padding: '0 40px', opacity: Math.min(1, enter * 1.5), transform: `translateX(${(1 - enter) * 300}px)` }}>
+              <div style={{ fontSize: 80 }}>{s.icon}</div>
+              <div style={{ flex: 1, ...body, fontSize: 52, color: brand.ink }}>{s.name}</div>
+              <div style={{ ...big, fontSize: 60, color: brand.coral }}>-{usd(s.amount)}</div>
+            </div>
+          );
+        })}
+      </div>
+      {at.map((x, i) => (
+        <Sequence key={i} from={f(x)} durationInFrames={f(0.6)}>
+          <Audio src={staticFile('sfx/pop.mp3')} volume={0.35} />
+        </Sequence>
+      ))}
+    </AbsoluteFill>
+  );
+}
+
+function LimitBar({ name, spent, limit, delay }: { name: string; spent: number; limit: number; delay: number }) {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const p = spring({ frame: frame - f(delay), fps, config: { damping: 16 }, durationInFrames: 20 });
+  const pct = spent / limit;
+  const color = pct >= 0.8 ? brand.coral : pct >= 0.6 ? brand.gold : GREEN;
+  return (
+    <div style={{ marginTop: 34, opacity: Math.min(1, p * 1.5) }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <div style={{ ...body, fontSize: 46, color: brand.ink }}>{name}</div>
+        <div style={{ fontFamily: fonts.body, fontSize: 36, color: '#5B6B73' }}>Limit {usd(limit)} a month</div>
+      </div>
+      <div style={{ height: 34, borderRadius: 17, background: '#EFE7DF', marginTop: 14, overflow: 'hidden' }}>
+        <div style={{ width: `${pct * 100 * p}%`, height: '100%', borderRadius: 17, background: color }} />
+      </div>
+      <div style={{ fontFamily: fonts.body, fontSize: 34, color, marginTop: 8 }}>
+        {usd(spent)} used · {usd(limit - spent)} left
+      </div>
+    </div>
+  );
+}
+
+function Limits() {
+  return (
+    <AppCard title="Limits" sub="for every category">
+      <div style={{ ...card, padding: '30px 46px 44px' }}>
+        <LimitBar name="🎁 Gifts" spent={340} limit={400} delay={0.6} />
+        <LimitBar name="🍝 Going out" spent={110} limit={250} delay={0.9} />
+        <LimitBar name="✈️ Travel" spent={380} limit={600} delay={1.2} />
+      </div>
+    </AppCard>
+  );
+}
+
+export function JanuaryEn() {
+  const id = 'january-en';
+  return (
+    <Shell
+      id={id}
+      rumiAt={4}
+      scenes={[
+        <Holidays />,
+        <DecemberPile />,
+        <BigCount kicker="January 3 · card bill" to={2100} at={[1.2, 2.8]} under="Happy new year 😵" underAt={3} bg={dark} tone="#FF6B4A" />,
+        <Truth a="The holidays aren’t the problem." b="Spending with no limit is." />,
+        <RumiEnters voice={`voice/${id}/5.mp3`} text={['Let’s', 'plan it!']} />,
+        <Limits />,
+        <Chat
+          q="How are my limits?"
+          a={
+            <>
+              No limit exceeded, but <b>Gifts</b> is going fast: <b style={{ color: brand.coral }}>85% used</b> with 40% of the month gone.
+            </>
+          }
+        />,
+        <End id={id} tagline="Enjoy December. Start January calm." />,
+      ]}
+    />
+  );
+}
+export const januaryEnFrames = timeline('january-en', 4).frames;
+
+/* ---------- "Saving for something?" (goal-en) ---------- */
+
+function TripDream() {
+  const a = usePop(0.1, 9);
+  return (
+    <AbsoluteFill style={{ background: cream, alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+      <div style={{ fontSize: 240, transform: `scale(${0.6 + a * 0.4})` }}>🏝️</div>
+      <div style={{ ...big, fontSize: 110, color: brand.ink, marginTop: 20, lineHeight: 1.1 }}>Saving for a trip</div>
+      <div style={{ ...big, fontSize: 80, color: brand.petrol700, marginTop: 20 }}>for a whole year…</div>
+    </AbsoluteFill>
+  );
+}
+
+/** Twelve months of saving on and off; the three phrases of the line light up their kind of month. */
+function OnAndOff() {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const t = frame / fps;
+  const at = voiceOf('goal-en').dripAt;
+  // Deposits by month (negative = taken back); total $340.
+  const months = [100, 0, 60, -80, 100, 0, 0, 40, -60, 100, 80, 0];
+  const kinds = (m: number) => (m > 0 ? 0 : m === 0 ? 1 : 2);
+  return (
+    <AbsoluteFill style={{ background: cream, alignItems: 'center' }}>
+      <div style={{ ...body, fontSize: 48, color: brand.petrol700, marginTop: 200, letterSpacing: 3, textTransform: 'uppercase' }}>Every month</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, height: 700, marginTop: 40 }}>
+        {months.map((m, i) => {
+          const on = t >= (at[kinds(m)] ?? 0);
+          const p = spring({ frame: frame - f(0.2 + i * 0.12), fps, config: { damping: 14 }, durationInFrames: 12 });
+          const h = Math.abs(m) * 2.6 * p;
+          return (
+            <div key={i} style={{ width: 62, height: 600, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+              <div style={{ height: 260, display: 'flex', alignItems: 'flex-end' }}>
+                {m > 0 ? <div style={{ width: 54, height: h, borderRadius: 14, background: on ? GREEN : '#CFE5D8' }} /> : null}
+              </div>
+              <div style={{ width: 62, height: 6, background: m === 0 && on ? brand.coral : '#D9CFC6', borderRadius: 3 }} />
+              <div style={{ height: 260 }}>{m < 0 ? <div style={{ width: 54, height: h, borderRadius: 14, background: on ? brand.coral : '#F3C9B8' }} /> : null}</div>
+              <div style={{ ...body, fontSize: 26, color: '#7A868C' }}>{'JFMAMJJASOND'[i]}</div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ ...big, fontSize: 60, color: brand.ink, marginTop: 20 }}>
+        <span style={{ color: GREEN }}>+$100</span> · <span style={{ color: brand.coral }}>$0</span> · <span style={{ color: brand.coral }}>−$80</span>
+      </div>
+    </AbsoluteFill>
+  );
+}
+
+function YearLater() {
+  const frame = useCurrentFrame();
+  const n = interpolate(frame, [f(1.2), f(2.4)], [0, 340], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const b = usePop(3, 12);
+  const pct = (n / 2000) * 100;
+  return (
+    <AbsoluteFill style={{ background: dark, alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 90px' }}>
+      <div style={{ ...body, fontSize: 56, color: brand.gold, letterSpacing: 3, textTransform: 'uppercase' }}>A year later</div>
+      <div style={{ ...big, fontSize: 220, color: '#FF6B4A', fontVariantNumeric: 'tabular-nums', lineHeight: 1.15 }}>{usd(n)}</div>
+      <div style={{ width: 860, height: 40, borderRadius: 20, background: 'rgba(255,255,255,0.15)', marginTop: 20, overflow: 'hidden' }}>
+        <div style={{ width: `${pct}%`, height: '100%', background: '#FF6B4A' }} />
+      </div>
+      <div style={{ ...big, fontSize: 76, color: brand.cream, marginTop: 34, opacity: b }}>The trip costs $2,000 🏝️</div>
+    </AbsoluteFill>
+  );
+}
+
+/** The app's new-goal form (goals.name / target / when). */
+function GoalForm() {
+  const fields = [
+    { label: 'What are you saving for?', value: '🏝️ Trip', at: 0.4 },
+    { label: 'How much do you need?', value: '$2,000', at: 1.1 },
+    { label: 'By when?', value: 'In 10 months', at: 1.8 },
+  ];
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  return (
+    <AppCard title="+ Goal" sub="what, how much, by when" delay={0.1}>
+      <div style={{ ...card, padding: '20px 46px 40px' }}>
+        {fields.map((x) => {
+          const p = spring({ frame: frame - f(x.at), fps, config: { damping: 14 }, durationInFrames: 14 });
+          return (
+            <div key={x.label} style={{ marginTop: 30, opacity: Math.min(1, p * 1.5) }}>
+              <div style={{ fontFamily: fonts.body, fontSize: 36, color: '#5B6B73' }}>{x.label}</div>
+              <div style={{ ...big, fontSize: 64, color: brand.ink, marginTop: 6, borderBottom: `4px solid ${brand.coral}`, paddingBottom: 10 }}>{x.value}</div>
+            </div>
+          );
+        })}
+      </div>
+    </AppCard>
+  );
+}
+
+/** The goal card: saved of target and the monthly amount (goals.saved / goals.monthly). */
+function GoalCard({ saved, done = false }: { saved: [number, number]; done?: boolean }) {
+  const frame = useCurrentFrame();
+  const n = interpolate(frame, [f(0.6), f(2.2)], saved, { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const pct = Math.min(100, (n / 2000) * 100);
+  const party = usePop(2.2, 10);
+  return (
+    <AppCard title={done ? 'Made it!' : 'Your plan'} sub={done ? 'goal reached' : 'how much each month'} delay={0.1}>
+      <div style={{ ...card, padding: '40px 46px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <div style={{ ...big, fontSize: 60, color: brand.ink }}>🏝️ Trip</div>
+          <div style={{ ...body, fontSize: 40, color: brand.petrol700 }}>{Math.round(pct)}%</div>
+        </div>
+        <div style={{ fontFamily: fonts.body, fontSize: 42, color: brand.ink, marginTop: 10 }}>
+          {usd(n)} of $2,000
+        </div>
+        <div style={{ height: 40, borderRadius: 20, background: '#EFE7DF', marginTop: 20, overflow: 'hidden' }}>
+          <div style={{ width: `${pct}%`, height: '100%', borderRadius: 20, background: GREEN }} />
+        </div>
+        <div style={{ fontFamily: fonts.body, fontSize: 42, color: done ? GREEN : brand.ink, marginTop: 26, lineHeight: 1.35, opacity: done ? party : 1 }}>
+          {done ? <b>Goal reached! 🎉</b> : <>Put in <b style={{ color: GREEN }}>$166 a month</b> to get there by <b>September 2027</b>.</>}
+        </div>
+      </div>
+    </AppCard>
+  );
+}
+
+export function GoalEn() {
+  const id = 'goal-en';
+  return (
+    <Shell
+      id={id}
+      rumiAt={4}
+      scenes={[
+        <TripDream />,
+        <OnAndOff />,
+        <YearLater />,
+        <Truth a="It’s not that you can’t save." b="You just don’t have a plan." />,
+        <RumiEnters voice={`voice/${id}/5.mp3`} text={['Let’s make', 'a plan!']} />,
+        <GoalForm />,
+        <GoalCard saved={[340, 340]} />,
+        <GoalCard saved={[340, 2000]} done />,
+        <End id={id} tagline="Save for what you want." />,
+      ]}
+    />
+  );
+}
+export const goalEnFrames = timeline('goal-en', 4).frames;

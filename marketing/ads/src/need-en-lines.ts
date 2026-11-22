@@ -36,4 +36,49 @@ export const NEED_EN: Record<string, { lines: string[]; drip?: number }> = {
       'Rumi. Free on the App Store and Google Play. No bank link.',
     ],
   },
+  // "Forgot a bill again?": rent due on the 1st, paid on the 6th, $75 late fee; four times a year = $300.
+  'bills-en': {
+    lines: [
+      'Forgot a bill again?',
+      'Rent was due on the first. You paid it on the sixth.',
+      'Late fee: seventy-five dollars. For money you already had.',
+      'Four times a year, and that’s three hundred dollars, for nothing.',
+      'The money was there. The reminder wasn’t.',
+      'I never forget!',
+      'I notice what you pay every month, and suggest a reminder for each one.',
+      'The day before, I remind you, with the usual amount.',
+      'And if you already paid, I stay quiet.',
+      'Rumi. Free on the App Store and Google Play. No bank link.',
+    ],
+  },
+  // "January broke": December with no limits, then a $2,100 card bill.
+  'january-en': {
+    drip: 1,
+    lines: [
+      'December. Gifts, parties, a trip home. It’s the holidays!',
+      'Gifts. Dinner out. Flights. Decorations. The ugly sweater party.',
+      'Then January comes, with a two thousand one hundred dollar card bill.',
+      'The holidays aren’t the problem. Spending with no limit is.',
+      'Let’s plan it!',
+      'Put a monthly limit on gifts, going out and travel.',
+      'And ask me how you’re doing. I warn you before you go over.',
+      'Rumi. Free on the App Store and Google Play. No bank link.',
+    ],
+  },
+  // "Saving for something?": a year of saving on and off, $340 of a $2,000 trip.
+  // ($2,000 − $340) / 10 months ≈ $166 a month, by September 2027.
+  'goal-en': {
+    drip: 1,
+    lines: [
+      'You’ve been saving for a trip for a whole year.',
+      'Some months, a hundred. Some months, nothing. Some months, you take it back.',
+      'A year later: three hundred forty dollars. The trip costs two thousand.',
+      'It’s not that you can’t save. You just don’t have a plan.',
+      'Let’s make a plan!',
+      'Tell me what it’s for, how much, and by when.',
+      'I tell you exactly how much to put in each month.',
+      'Then watch it grow, until you get there.',
+      'Rumi. Free on the App Store and Google Play. No bank link.',
+    ],
+  },
 };

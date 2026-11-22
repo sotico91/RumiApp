@@ -273,6 +273,9 @@ Creado el 2026-11-21 con la cuenta de Rumi: **Rumi · Money Tracker** (@rumimone
 - "Can I afford it? 👟 Ask your budget app before you buy": https://youtube.com/shorts/GeglQyj5ylE (`rumi-afford-en`)
 - "It's just $5... right? 🐜 Small spends that cost $3,720 a year": https://youtube.com/shorts/BypZbSIZf3E (`rumi-small-spends-en`)
 - "Why your credit card balance never goes down 💳 (the minimum payment trap)": https://youtube.com/shorts/oU1ZUYUoYAg (`rumi-card-en`)
+- "Forgot a bill again? 😬 Stop paying late fees": https://youtube.com/shorts/XSpjE3Z7oOg (`rumi-bills-en`)
+- "Broke in January? 🎄 How to budget the holidays": https://youtube.com/shorts/6gYKqqgFaHg (`rumi-january-en`)
+- Pendiente de subir: `rumi-goal-en` ("Saving for something?", ya renderizado en `out/`).
 
 Foto y portada propias: `marketing/redes/avatar-en.png` (la misma mascota sobre petróleo, para distinguirlo del canal en español, que va sobre crema) y `marketing/redes/youtube-banner-en.png` ("Know where your money goes. No bank link."). Composiciones `social-avatar-en` y `social-youtube-banner-en` en `src/SocialKit.tsx`.
 

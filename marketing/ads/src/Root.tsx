@@ -5,7 +5,7 @@ import { FPS } from './brand';
 import { ads } from './ads';
 import { Mascot, mascotFrames } from './Mascot';
 import { MoneyEnVideo, moneyEnFrames } from './MoneyEnVideo';
-import { CardEn, cardEnFrames, SmallSpendsEn, smallSpendsEnFrames } from './NeedEn';
+import { BillsEn, billsEnFrames, CardEn, cardEnFrames, GoalEn, goalEnFrames, JanuaryEn, januaryEnFrames, SmallSpendsEn, smallSpendsEnFrames } from './NeedEn';
 import { mascotVideos } from './mascot-scenes';
 import { FacebookCover, SocialAvatar, YoutubeBanner, YoutubeBannerEn } from './SocialKit';
 import { FeatureGraphic, featureGraphics, StoreShot, storeShots } from './StoreShot';
@@ -68,6 +68,9 @@ export function RemotionRoot() {
       <Composition id="rumi-where-money-en" component={MoneyEnVideo} width={1080} height={1920} fps={FPS} durationInFrames={moneyEnFrames} />
       <Composition id="rumi-small-spends-en" component={SmallSpendsEn} width={1080} height={1920} fps={FPS} durationInFrames={smallSpendsEnFrames} />
       <Composition id="rumi-card-en" component={CardEn} width={1080} height={1920} fps={FPS} durationInFrames={cardEnFrames} />
+      <Composition id="rumi-bills-en" component={BillsEn} width={1080} height={1920} fps={FPS} durationInFrames={billsEnFrames} />
+      <Composition id="rumi-january-en" component={JanuaryEn} width={1080} height={1920} fps={FPS} durationInFrames={januaryEnFrames} />
+      <Composition id="rumi-goal-en" component={GoalEn} width={1080} height={1920} fps={FPS} durationInFrames={goalEnFrames} />
       <Composition id="rumi-prima-promo-es" component={Prima} width={1920} height={1080} fps={FPS} durationInFrames={primaFrames} />
       <Composition id="tutorial-es" component={Tutorial} width={1920} height={1080} fps={FPS} durationInFrames={tutorialFrames} />
       {Object.keys(shortHooks).map((id) => (
