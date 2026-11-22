@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from 'react';
 import {
   AbsoluteFill,
   Audio,
@@ -178,6 +178,11 @@ function Card({ children, delay = 6 }: { children: ReactNode; delay?: number }) 
 const label = { fontSize: 34, color: '#5B6B73', fontWeight: 500 } as const;
 const big = { fontFamily: fonts.display, fontWeight: 700, fontSize: 64, color: brand.petrol900 } as const;
 const cop = (n: number) => `$${Math.round(n).toLocaleString('es-CO').replace(/,/g, '.')}`;
+const usd = (n: number) => `$${Math.round(n).toLocaleString('en-US')}`;
+
+/** English videos (`lang: 'en'`): the cards switch their copy and show dollars. */
+const LangContext = createContext<'es' | 'en'>('es');
+const useEn = () => useContext(LangContext) === 'en';
 
 function QuickCard() {
   const frame = useCurrentFrame();
@@ -270,16 +275,27 @@ function LimitCard({ scene }: { scene: Scene }) {
 function AntsCard() {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const items: [string, number][] = [
-    ['Café', 4500],
-    ['Galletas', 2000],
-    ['Café', 5000],
-    ['Gaseosa', 3500],
-    ['Café', 4500],
-    ['Chicle', 1500],
-  ];
+  const en = useEn();
+  const money = en ? usd : cop;
+  const items: [string, number][] = en
+    ? [
+        ['Coffee', 5],
+        ['Snacks', 3],
+        ['Coffee', 6],
+        ['Soda', 2],
+        ['Coffee', 5],
+        ['Gum', 2],
+      ]
+    : [
+        ['Café', 4500],
+        ['Galletas', 2000],
+        ['Café', 5000],
+        ['Gaseosa', 3500],
+        ['Café', 4500],
+        ['Chicle', 1500],
+      ];
   const shown = items.filter((_, i) => frame > 20 + i * 12);
-  const total = interpolate(frame, [20, 20 + items.length * 12 + 20], [0, 86000], {
+  const total = interpolate(frame, [20, 20 + items.length * 12 + 20], [0, en ? 96 : 86000], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
@@ -297,12 +313,12 @@ function AntsCard() {
               transform: `scale(${pop(frame, fps, 20 + i * 12)})`,
             }}
           >
-            🐜 {name} {cop(n)}
+            🐜 {name} {money(n)}
           </div>
         ))}
       </div>
-      <div style={{ ...label, marginTop: 40 }}>Gastos hormiga este mes</div>
-      <div style={{ ...big, fontSize: 100, color: brand.coral }}>{cop(total)}</div>
+      <div style={{ ...label, marginTop: 40 }}>{en ? 'Small spends this month' : 'Gastos hormiga este mes'}</div>
+      <div style={{ ...big, fontSize: 100, color: brand.coral }}>{money(total)}</div>
     </Card>
   );
 }
@@ -385,7 +401,10 @@ function ForecastCard() {
 function PrivacyCard() {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const rows = ['Sin cuenta ni correo', 'Sin conectar tu banco', 'Datos cifrados en tu teléfono'];
+  const en = useEn();
+  const rows = en
+    ? ['No account, no email', 'No bank link', 'Data encrypted on your phone']
+    : ['Sin cuenta ni correo', 'Sin conectar tu banco', 'Datos cifrados en tu teléfono'];
   return (
     <Card>
       <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 30 }}>
@@ -394,7 +413,7 @@ function PrivacyCard() {
           <path d="M20 28 V20 a12 12 0 0 1 24 0 V28" fill="none" stroke={brand.petrol700} strokeWidth={7} />
           <circle cx={32} cy={44} r={5} fill={brand.gold} />
         </svg>
-        <div style={{ ...big, fontSize: 52 }}>Solo tú los ves</div>
+        <div style={{ ...big, fontSize: 52 }}>{en ? 'Only you see it' : 'Solo tú los ves'}</div>
       </div>
       {rows.map((r, i) => (
         <div
@@ -877,8 +896,9 @@ function Confetti() {
 function TintoCard() {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const en = useEn();
   const shown = Math.max(0, Math.min(22, Math.floor((frame - 20) / 3)));
-  const total = interpolate(frame, [20, 20 + 22 * 3], [0, 99000], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const total = interpolate(frame, [20, 20 + 22 * 3], [0, en ? 110 : 99000], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   return (
     <Card>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, minHeight: 190 }}>
@@ -888,9 +908,9 @@ function TintoCard() {
           </span>
         ))}
       </div>
-      <div style={{ ...label, marginTop: 24 }}>{cop(4500)} × 22 días</div>
-      <div style={{ ...big, fontSize: 100, color: brand.coral }}>{cop(total)}</div>
-      <div style={{ ...label }}>al mes</div>
+      <div style={{ ...label, marginTop: 24 }}>{en ? `${usd(5)} × 22 workdays` : `${cop(4500)} × 22 días`}</div>
+      <div style={{ ...big, fontSize: 100, color: brand.coral }}>{en ? usd(total) : cop(total)}</div>
+      <div style={{ ...label }}>{en ? 'a month' : 'al mes'}</div>
     </Card>
   );
 }
@@ -898,12 +918,13 @@ function TintoCard() {
 function TintoYearCard() {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const total = interpolate(frame, [15, 60], [99000, 1188000], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  const en = useEn();
+  const total = interpolate(frame, [15, 60], en ? [110, 1320] : [99000, 1188000], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const note = pop(frame, fps, 66);
   return (
     <Card>
-      <div style={label}>{cop(99000)} × 12 meses</div>
-      <div style={{ ...big, fontSize: 112, color: brand.coral }}>{cop(total)}</div>
+      <div style={label}>{en ? `${usd(110)} × 12 months` : `${cop(99000)} × 12 meses`}</div>
+      <div style={{ ...big, fontSize: 112, color: brand.coral }}>{en ? usd(total) : cop(total)}</div>
       <div
         style={{
           marginTop: 26,
@@ -915,7 +936,7 @@ function TintoYearCard() {
           transform: `translateY(${(1 - note) * 24}px)`,
         }}
       >
-        🐜 Solo en tintos, en un año
+        {en ? '🐜 Just on coffee, in one year' : '🐜 Solo en tintos, en un año'}
       </div>
     </Card>
   );
@@ -990,6 +1011,15 @@ function ChatCard({ scene }: { scene: Scene }) {
 }
 
 function LockCard() {
+  if (useEn()) {
+    return (
+      <Card>
+        <Row delay={18} icon="👆" title="Face ID or fingerprint lock" detail="Or your phone's passcode" />
+        <Row delay={32} icon="🚫" title="No ads, no tracking" />
+        <Row delay={46} icon={check} title="We never sell your data" detail="Your money data stays on your phone" />
+      </Card>
+    );
+  }
   return (
     <Card>
       <Row delay={18} icon="👆" title="Bloqueo con huella" detail="O con el PIN de tu teléfono" />
@@ -1661,6 +1691,7 @@ export function Mascot({ id }: { id: string }) {
   const look = solo ? 0 : Math.min(1, (frame - current.start) / 10) * -0.2 + Math.sin(frame / 40) * 0.6;
 
   return (
+    <LangContext.Provider value={video.lang ?? 'es'}>
     <AbsoluteFill style={{ background: brand.cream }}>
       <div
         style={{
@@ -1725,6 +1756,7 @@ export function Mascot({ id }: { id: string }) {
           </Sequence>
         ))}
     </AbsoluteFill>
+    </LangContext.Provider>
   );
 }
 

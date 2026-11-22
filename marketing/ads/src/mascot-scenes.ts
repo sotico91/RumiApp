@@ -60,7 +60,16 @@ export type Scene = {
 };
 
 /** One mascot video: its scenes and the button on the closing card (with a QR when `qr` is set). */
-export type MascotVideo = { scenes: Scene[]; cta: string; tagline: string; qr?: string; confetti?: boolean };
+/** `lang: 'en'`: English cards and dollars; `voice`: the TTS voice (default es-CO-SalomeNeural). */
+export type MascotVideo = {
+  scenes: Scene[];
+  cta: string;
+  tagline: string;
+  qr?: string;
+  confetti?: boolean;
+  lang?: 'es' | 'en';
+  voice?: string;
+};
 
 export const mascotScenes: Scene[] = [
   {
@@ -521,7 +530,84 @@ export const PLAY_URL = 'https://play.google.com/store/apps/details?id=com.sotic
 
 export const TESTER_URL = 'https://sotico91.github.io/RumiApp/probar.html';
 
+// English, for the US ads (marketing/ads/US.md). Dollars, US spends; claims match the app and Play's Data safety.
+const EN_END = 'Rumi. Free on Google Play and the App Store.';
+export const EN_VOICE = 'en-US-AvaNeural';
+
+export const coffeeScenes: Scene[] = [
+  {
+    kind: 'hello',
+    title: 'How much goes to coffee?',
+    say: 'A five-dollar coffee every workday? That’s nothing… right?',
+  },
+  {
+    kind: 'tinto',
+    title: 'Do the math',
+    say: 'Five dollars, times twenty-two workdays: a hundred and ten dollars a month.',
+  },
+  {
+    kind: 'tintoYear',
+    title: 'Over $1,300 a year',
+    say: 'And in a year, more than thirteen hundred dollars! Without even noticing.',
+  },
+  {
+    kind: 'ants',
+    title: 'Catch the small spends',
+    say: 'I show you the small spends that add up, and you decide which ones are worth it.',
+  },
+  { kind: 'end', title: 'Rumi', say: EN_END },
+];
+
+/** The 15-second cut: the hook, the month, the store. */
+export const coffeeShortScenes: Scene[] = [
+  coffeeScenes[0],
+  { kind: 'tinto', title: 'Do the math', say: 'That’s a hundred and ten dollars a month.' },
+  { kind: 'end', title: 'Rumi', say: EN_END },
+];
+
+export const noBankScenes: Scene[] = [
+  {
+    kind: 'hello',
+    title: 'Your bank login to an app?',
+    say: 'Would you give your bank password to a budgeting app? I don’t ask for it.',
+  },
+  {
+    kind: 'privacy',
+    title: 'Your data, on your phone',
+    say: 'No account, no email, and no bank link. Your data stays encrypted on your phone.',
+  },
+  {
+    kind: 'lock',
+    title: 'Only you get in',
+    say: 'Lock me with Face ID or your fingerprint. No ads, and I never sell your data.',
+  },
+  { kind: 'end', title: 'Rumi', say: 'Rumi. Your money, clear and private. Free on Google Play and the App Store.' },
+];
+
+// Rumi's answer copies the app's English text (search.answerAffordYes).
+export const affordScenes: Scene[] = [
+  {
+    kind: 'hello',
+    title: 'Can I afford new sneakers?',
+    say: 'I asked Rumi if I can afford a hundred-and-twenty-dollar pair of sneakers. Look what it said.',
+  },
+  {
+    kind: 'chat',
+    title: 'I asked Rumi',
+    say: 'It checks how my month is going, and tells me where I’d end up if I buy them. So I decide without the guilt.',
+    chat: [
+      'Can I afford sneakers for $120?',
+      'If you buy $120, at your current pace you would still end the month with about $340 left.',
+    ],
+  },
+  { kind: 'end', title: 'Rumi', say: EN_END },
+];
+
 export const mascotVideos: Record<string, MascotVideo> = {
+  'rumi-coffee-en': { scenes: coffeeScenes, cta: 'Android & iPhone', tagline: 'Know where your money goes.', qr: 'qr-descargar.png', lang: 'en', voice: EN_VOICE },
+  'rumi-coffee-15-en': { scenes: coffeeShortScenes, cta: 'Android & iPhone', tagline: 'Know where your money goes.', qr: 'qr-descargar.png', lang: 'en', voice: EN_VOICE },
+  'rumi-nobank-en': { scenes: noBankScenes, cta: 'Android & iPhone', tagline: 'No bank link. No ads.', qr: 'qr-descargar.png', lang: 'en', voice: EN_VOICE },
+  'rumi-afford-en': { scenes: affordScenes, cta: 'Android & iPhone', tagline: 'Spend without the guilt.', qr: 'qr-descargar.png', lang: 'en', voice: EN_VOICE },
   'rumi-habla-es': { scenes: mascotScenes, cta: 'Muy pronto en tu tienda', tagline: 'Cuentas claras, mente tranquila.' },
   'rumi-recuerda-es': { scenes: reminderScenes, cta: 'Muy pronto en tu tienda', tagline: 'Para que ningún pago se te pase.' },
   'rumi-pruebame-es': {

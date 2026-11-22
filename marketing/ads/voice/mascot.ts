@@ -10,7 +10,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { mascotVideos } from '../src/mascot-scenes.ts';
 
-const VOICE = process.env.VOICE ?? 'es-CO-SalomeNeural';
+const DEFAULT_VOICE = process.env.VOICE ?? 'es-CO-SalomeNeural';
 const RATE = process.env.RATE ?? '-4%';
 const tts = process.env.EDGE_TTS ?? 'edge-tts';
 const AZURE_FILE = new URL('../../../credentials/azure-speech.json', import.meta.url);
@@ -21,8 +21,8 @@ const PROVIDER = azure ? 'azure' : 'edge';
 const xml = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /** Azure Speech REST: same neural voice and rate as edge-tts, 24 kHz mono mp3. */
-async function azureSpeak(text: string, path: string) {
-  const ssml = `<speak version="1.0" xml:lang="es-CO"><voice name="${VOICE}"><prosody rate="${RATE}">${xml(text)}</prosody></voice></speak>`;
+async function azureSpeak(text: string, path: string, VOICE: string) {
+  const ssml = `<speak version="1.0" xml:lang="${VOICE.split('-').slice(0, 2).join('-')}"><voice name="${VOICE}"><prosody rate="${RATE}">${xml(text)}</prosody></voice></speak>`;
   for (let i = 0; ; i++) {
     const r = await fetch(`https://${azure!.region}.tts.speech.microsoft.com/cognitiveservices/v1`, {
       method: 'POST',
@@ -67,11 +67,11 @@ function envelope(mp3: string): number[] {
 
 mkdirSync('public/voice', { recursive: true });
 const out: Record<string, { file: string; seconds: number; mouth: number[] }> = {};
-for (const { say } of Object.values(mascotVideos).flatMap((v) => v.scenes)) {
+for (const { say, VOICE } of Object.values(mascotVideos).flatMap((v) => v.scenes.map((s) => ({ say: s.say, VOICE: v.voice ?? DEFAULT_VOICE })))) {
   if (out[say]) continue;
   const file = `voice/${createHash('sha1').update(`${PROVIDER === 'azure' ? 'azure|' : ''}${VOICE}|${RATE}|${say}`).digest('hex').slice(0, 12)}.mp3`;
   if (!existsSync(`public/${file}`)) {
-    if (azure) await azureSpeak(say, `public/${file}`);
+    if (azure) await azureSpeak(say, `public/${file}`, VOICE);
     else execFileSync(tts, ['--voice', VOICE, `--rate=${RATE}`, '--text', say, '--write-media', `public/${file}`]);
   }
   const mouth = envelope(`public/${file}`);

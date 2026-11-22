@@ -196,7 +196,9 @@ Configuración inicial:
 - Oferta: CPI objetivo de USD 2,50 (inglés) y USD 1,50 (español).
 - Presupuesto: USD 10 a 15 al día por campaña.
 
-Límites: hasta 5 títulos de 30 caracteres y 5 descripciones de 90. Imágenes: las capturas v3 y el gráfico destacado. Videos: el de vista previa (`marketing/store/preview-en.mp4`) y los reels.
+Límites: hasta 5 títulos de 30 caracteres y 5 descripciones de 90. Imágenes: las capturas v3 y el gráfico destacado. Videos: el de vista previa (`marketing/store/preview-en.mp4`) y los reels en inglés (`rumi-coffee-en`, `rumi-coffee-15-en`, `rumi-nobank-en`, `rumi-afford-en`; ver `README.md`). Google los pide en YouTube: subirlos al canal como no listados.
+
+**Voz:** los reels en inglés usan edge-tts, que sirve de borrador. Para pautar con dinero, generar la misma voz con Azure Speech (`credentials/azure-speech.json`; `voice/mascot.ts` la usa sola si existe) y volver a renderizar.
 
 ### Inglés
 
