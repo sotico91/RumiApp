@@ -4,6 +4,7 @@ import { AppPreview, appPreviews, previewFrames } from './AppPreview';
 import { FPS } from './brand';
 import { ads } from './ads';
 import { Mascot, mascotFrames } from './Mascot';
+import { MoneyEnVideo, moneyEnFrames } from './MoneyEnVideo';
 import { mascotVideos } from './mascot-scenes';
 import { FacebookCover, SocialAvatar, YoutubeBanner } from './SocialKit';
 import { FeatureGraphic, featureGraphics, StoreShot, storeShots } from './StoreShot';
@@ -63,6 +64,7 @@ export function RemotionRoot() {
       ))}
       <Composition id="rumi-gastos-hormiga-es" component={HormigaVideo} width={1080} height={1920} fps={FPS} durationInFrames={hormigaFrames} />
       <Composition id="rumi-quincena-se-fue-es" component={PlataVideo} width={1080} height={1920} fps={FPS} durationInFrames={plataFrames} />
+      <Composition id="rumi-where-money-en" component={MoneyEnVideo} width={1080} height={1920} fps={FPS} durationInFrames={moneyEnFrames} />
       <Composition id="rumi-prima-promo-es" component={Prima} width={1920} height={1080} fps={FPS} durationInFrames={primaFrames} />
       <Composition id="tutorial-es" component={Tutorial} width={1920} height={1080} fps={FPS} durationInFrames={tutorialFrames} />
       {Object.keys(shortHooks).map((id) => (

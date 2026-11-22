@@ -3,7 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 ids=("$@")
-[[ ${#ids[@]} -gt 0 ]] || ids=(anota-es pregunta-es hormiga-es todo-es billeteras-es privacidad-es rumi-habla-es rumi-recuerda-es rumi-pruebame-es rumi-lanzamiento-es rumi-habla-play-es rumi-recuerda-play-es rumi-tintos-es rumi-quincena-es rumi-alcanza-es rumi-banco-es rumi-prima-es rumi-reto-enero-es rumi-metas-es rumi-iphone-es rumi-dictar-es rumi-deudas-es rumi-excel-es rumi-diapago-es rumi-coffee-en rumi-coffee-15-en rumi-nobank-en rumi-afford-en)
+[[ ${#ids[@]} -gt 0 ]] || ids=(anota-es pregunta-es hormiga-es todo-es billeteras-es privacidad-es rumi-habla-es rumi-recuerda-es rumi-pruebame-es rumi-lanzamiento-es rumi-habla-play-es rumi-recuerda-play-es rumi-tintos-es rumi-quincena-es rumi-alcanza-es rumi-banco-es rumi-prima-es rumi-reto-enero-es rumi-metas-es rumi-iphone-es rumi-dictar-es rumi-deudas-es rumi-excel-es rumi-diapago-es rumi-coffee-en rumi-coffee-15-en rumi-nobank-en rumi-afford-en rumi-where-money-en)
 for id in "${ids[@]}"; do
   npx remotion render src/index.ts "$id" "out/$id.mp4" --codec h264 --log error
 done
