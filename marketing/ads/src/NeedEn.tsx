@@ -1,27 +1,43 @@
-import type { ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from 'react';
 import { AbsoluteFill, Audio, Img, interpolate, OffthreadVideo, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { brand, fonts, FPS } from './brand';
 import { Rumi } from './Mascot';
 import mouths from './mouths.json';
-import voices from './need-en-voice.json';
+import enVoices from './need-en-voice.json';
+import esVoices from './need-es-voice.json';
 import { cream, dark, fill, mouthAt, Phone, RumiEnters, usePop } from './PlataVideo';
 
 // English need reels, the series after "Where did my money go?" (MoneyEnVideo): the problem in
 // dollars with our own animation, then Rumi jumps in and the app solves it. Each episode is a
 // list of scenes; scene i plays line i of src/need-en-lines.ts (public/voice/<id>/<i+1>.mp3).
-const f = (s: number) => Math.round(s * FPS);
+// The shared pieces (Shell, BigCount, Truth, AppCard, Chat, Push, LimitBar, End) also serve the
+// Spanish episodes in src/NeedEs.tsx: an id ending in -es switches their copy and money to
+// Spanish and pesos.
+export const f = (s: number) => Math.round(s * FPS);
 const usd = (n: number, cents = false) =>
   `$${Math.max(0, n).toLocaleString('en-US', { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 })}`;
-const big = { fontFamily: fonts.display, fontWeight: 700 } as const;
-const body = { fontFamily: fonts.body, fontWeight: 700 } as const;
-const card = { borderRadius: 36, background: '#FFFFFF', boxShadow: '0 14px 30px rgba(11,31,41,0.12)' } as const;
-const GREEN = '#1F8A5B';
+/** Pesos as the app shows them: $3.200.000, no decimals. */
+export const cop = (n: number) => `$${String(Math.max(0, Math.round(n))).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
+export const big = { fontFamily: fonts.display, fontWeight: 700 } as const;
+export const body = { fontFamily: fonts.body, fontWeight: 700 } as const;
+export const card = { borderRadius: 36, background: '#FFFFFF', boxShadow: '0 14px 30px rgba(11,31,41,0.12)' } as const;
+export const GREEN = '#1F8A5B';
 
 type Voice = { seconds: number[]; dripAt: number[] };
-const voiceOf = (id: string) => (voices as Record<string, Voice>)[id];
+export const voiceOf = (id: string) => ({ ...enVoices, ...esVoices } as Record<string, Voice>)[id];
+
+type Lang = 'en' | 'es';
+const LangContext = createContext<Lang>('en');
+const useLang = () => useContext(LangContext);
+const COPY = {
+  en: { ask: 'Ask', askSub: 'in your own words', cta: 'Download free', note: 'iPhone & Android · no bank link', time: '9:00 AM', limit: (x: string) => `Limit ${x} a month`, used: (a: string, b: string) => `${a} used · ${b} left` },
+  es: { ask: 'Pregúntale', askSub: 'con tus palabras', cta: 'Descárgala gratis', note: 'Android y iPhone · sin conectar tu banco', time: '9:00 a. m.', limit: (x: string) => `Tope ${x} al mes`, used: (a: string, b: string) => `${a} usado · quedan ${b}` },
+};
+const useCopy = () => COPY[useLang()];
+const useMoney = () => (useLang() === 'es' ? cop : usd);
 
 /** Scene lengths: the line plus a breath, at least `min` seconds; Rumi's jump a bit longer; the end lingers. */
-function timeline(id: string, rumiAt: number, min = 2.6) {
+export function timeline(id: string, rumiAt: number, min = 2.6) {
   const s = voiceOf(id).seconds;
   const scene = s.map((v, i) => (i === s.length - 1 ? v + 1.4 : i === rumiAt ? Math.max(2.2, v + 0.6) : Math.max(min, v + 0.45)));
   const start = scene.reduce<number[]>((acc, x, i) => [...acc, i === 0 ? 0 : acc[i - 1] + scene[i - 1]], []);
@@ -29,13 +45,14 @@ function timeline(id: string, rumiAt: number, min = 2.6) {
 }
 
 /** Plays the scenes with their lines; tense music until Rumi comes in, brighter after. */
-function Shell({ id, rumiAt, scenes }: { id: string; rumiAt: number; scenes: ReactNode[] }) {
+export function Shell({ id, rumiAt, scenes }: { id: string; rumiAt: number; scenes: ReactNode[] }) {
   const frame = useCurrentFrame();
   const { scene, start, frames } = timeline(id, rumiAt);
   const at = f(start[rumiAt]);
   const tense = interpolate(frame, [0, f(0.5), at - f(0.6), at], [0, 0.08, 0.08, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const bright = interpolate(frame, [at, at + f(0.4), frames - f(1.5), frames], [0, 0.13, 0.13, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   return (
+    <LangContext.Provider value={id.endsWith('-es') ? 'es' : 'en'}>
     <AbsoluteFill>
       <Audio src={staticFile('music/im-fine.mp3')} volume={tense} />
       <Sequence from={at}>
@@ -50,11 +67,12 @@ function Shell({ id, rumiAt, scenes }: { id: string; rumiAt: number; scenes: Rea
         </Sequence>
       ))}
     </AbsoluteFill>
+    </LangContext.Provider>
   );
 }
 
 /** A title, a big number counting up from `from` to `to`, and a line under it. */
-function BigCount({ kicker, from = 0, to, at = [0.6, 2.4], under, underAt = 2.6, tone = brand.coral, bg = cream }: {
+export function BigCount({ kicker, from = 0, to, at = [0.6, 2.4], under, underAt = 2.6, tone = brand.coral, bg = cream }: {
   kicker: string;
   from?: number;
   to: number;
@@ -69,17 +87,20 @@ function BigCount({ kicker, from = 0, to, at = [0.6, 2.4], under, underAt = 2.6,
   const n = interpolate(frame, [f(at[0]), f(at[1])], [from, to], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const u = usePop(underAt, 12);
   const onDark = bg === dark;
+  const money = useMoney();
+  const len = money(to).length;
+  const size = len > 8 ? 150 : len > 7 ? 195 : 230; // pesos (hundreds of thousands, millions) fit the width
   return (
     <AbsoluteFill style={{ background: bg, alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 80px' }}>
       <div style={{ ...body, fontSize: 58, color: onDark ? brand.gold : brand.petrol700, letterSpacing: 3, textTransform: 'uppercase', opacity: pop }}>{kicker}</div>
-      <div style={{ ...big, fontSize: 230, color: tone, fontVariantNumeric: 'tabular-nums', transform: `scale(${0.8 + pop * 0.2})`, lineHeight: 1.15 }}>{usd(n)}</div>
+      <div style={{ ...big, fontSize: size, color: tone, fontVariantNumeric: 'tabular-nums', transform: `scale(${0.8 + pop * 0.2})`, lineHeight: 1.15 }}>{money(n)}</div>
       {under ? <div style={{ ...big, fontSize: 80, color: onDark ? brand.cream : brand.ink, marginTop: 30, opacity: u, transform: `translateY(${(1 - u) * 30}px)` }}>{under}</div> : null}
     </AbsoluteFill>
   );
 }
 
 /** Two lines on dark: the point of the episode. */
-function Truth({ a, b }: { a: string; b: string }) {
+export function Truth({ a, b }: { a: string; b: string }) {
   const x = usePop(0.1, 200);
   const y = usePop(1.5, 200);
   return (
@@ -99,7 +120,7 @@ function AppClip({ title, sub, src, from, rate = 1 }: { title: string; sub: stri
 }
 
 /** A title over an app-like card that pops in (Rumi's own screens, with the app's English copy). */
-function AppCard({ title, sub, children, delay = 0.4 }: { title: string; sub: string; children: ReactNode; delay?: number }) {
+export function AppCard({ title, sub, children, delay = 0.4 }: { title: string; sub: string; children: ReactNode; delay?: number }) {
   const p = usePop(delay, 14);
   return (
     <AbsoluteFill style={{ background: cream }}>
@@ -113,16 +134,17 @@ function AppCard({ title, sub, children, delay = 0.4 }: { title: string; sub: st
 }
 
 /** Ask Rumi: a question bubble, dots, then the answer (the app's own English text). */
-function Chat({ q, a }: { q: string; a: ReactNode }) {
+export function Chat({ q, a }: { q: string; a: ReactNode }) {
   const frame = useCurrentFrame();
   const qp = usePop(0.3, 14);
   const ap = usePop(1.5, 14);
+  const copy = useCopy();
   const bubble = { borderRadius: 40, padding: '30px 40px', fontFamily: fonts.body, fontSize: 46, lineHeight: 1.3, maxWidth: 840 } as const;
   return (
     <AbsoluteFill style={{ background: cream }}>
       <div style={{ position: 'absolute', top: 110, left: 60, right: 60, textAlign: 'center' }}>
-        <div style={{ ...big, fontSize: 108, color: brand.coral }}>Ask</div>
-        <div style={{ ...body, fontSize: 54, color: brand.ink, marginTop: 10 }}>in your own words</div>
+        <div style={{ ...big, fontSize: 108, color: brand.coral }}>{copy.ask}</div>
+        <div style={{ ...body, fontSize: 54, color: brand.ink, marginTop: 10 }}>{copy.askSub}</div>
       </div>
       <div style={{ position: 'absolute', top: 560, left: 80, right: 80, display: 'flex', flexDirection: 'column', gap: 34 }}>
         <div style={{ ...bubble, alignSelf: 'flex-end', background: brand.petrol700, color: '#FFFFFF', fontWeight: 700, opacity: qp, transform: `translateY(${(1 - qp) * 30}px)` }}>{q}</div>
@@ -133,19 +155,20 @@ function Chat({ q, a }: { q: string; a: ReactNode }) {
   );
 }
 
-function End({ id, tagline }: { id: string; tagline: string }) {
+export function End({ id, tagline }: { id: string; tagline: string }) {
   const frame = useCurrentFrame();
   const pop = usePop(0, 14);
   const v = `voice/${id}/${voiceOf(id).seconds.length}.mp3`;
   const talk = mouthAt(v, frame);
+  const copy = useCopy();
   return (
     <AbsoluteFill style={{ background: dark, alignItems: 'center', textAlign: 'center' }}>
       <div style={{ marginTop: 240, transform: `scale(${0.85 + pop * 0.15})`, opacity: Math.min(1, pop * 1.4) }}>
         <Img src={staticFile('icon.png')} style={{ width: 190, height: 190, borderRadius: 46 }} />
         <div style={{ ...big, fontSize: 170, color: brand.cream, marginTop: 24 }}>Rumi</div>
         <div style={{ fontFamily: fonts.display, fontWeight: 600, fontSize: 64, color: brand.gold }}>{tagline}</div>
-        <div style={{ display: 'inline-block', marginTop: 50, padding: '22px 56px', borderRadius: 999, background: brand.coral, ...body, fontSize: 54, color: '#FFFFFF' }}>Download free</div>
-        <div style={{ fontFamily: fonts.body, fontSize: 40, color: '#CFE0E3', marginTop: 22 }}>iPhone & Android · no bank link</div>
+        <div style={{ display: 'inline-block', marginTop: 50, padding: '22px 56px', borderRadius: 999, background: brand.coral, ...body, fontSize: 54, color: '#FFFFFF' }}>{copy.cta}</div>
+        <div style={{ fontFamily: fonts.body, fontSize: 40, color: '#CFE0E3', marginTop: 22 }}>{copy.note}</div>
       </div>
       <div style={{ position: 'absolute', bottom: 30, left: (1080 - 840 * 0.9) / 2, width: 840, height: 600, transform: 'scale(0.9)', transformOrigin: 'left top' }}>
         <Rumi talk={talk} wave={1} look={0} smileTalk mood={frame > f(0.1) + ((mouths as Record<string, number[]>)[v]?.length ?? 0) ? 'happy' : undefined} />
@@ -479,10 +502,11 @@ function Suggested() {
 }
 
 /** A push notification dropping in (title + body, the app's own copy). */
-function Push({ title, sub, head, text }: { title: string; sub: string; head: string; text: string }) {
+export function Push({ title, sub, head, text }: { title: string; sub: string; head: string; text: string }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const drop = spring({ frame: frame - f(0.5), fps, config: { damping: 12 }, durationInFrames: 18 });
+  const copy = useCopy();
   return (
     <AbsoluteFill style={{ background: cream }}>
       <div style={{ position: 'absolute', top: 110, left: 60, right: 60, textAlign: 'center' }}>
@@ -494,7 +518,7 @@ function Push({ title, sub, head, text }: { title: string; sub: string; head: st
         <div style={{ flex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <div style={{ ...body, fontSize: 40, color: brand.ink }}>{head}</div>
-            <div style={{ fontFamily: fonts.body, fontSize: 32, color: '#7A868C' }}>9:00 AM</div>
+            <div style={{ fontFamily: fonts.body, fontSize: 32, color: '#7A868C' }}>{copy.time}</div>
           </div>
           <div style={{ fontFamily: fonts.body, fontSize: 38, color: brand.ink, marginTop: 8, lineHeight: 1.3 }}>{text}</div>
         </div>
@@ -604,23 +628,25 @@ function DecemberPile() {
   );
 }
 
-function LimitBar({ name, spent, limit, delay }: { name: string; spent: number; limit: number; delay: number }) {
+export function LimitBar({ name, spent, limit, delay }: { name: string; spent: number; limit: number; delay: number }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const p = spring({ frame: frame - f(delay), fps, config: { damping: 16 }, durationInFrames: 20 });
   const pct = spent / limit;
   const color = pct >= 0.8 ? brand.coral : pct >= 0.6 ? brand.gold : GREEN;
+  const copy = useCopy();
+  const money = useMoney();
   return (
     <div style={{ marginTop: 34, opacity: Math.min(1, p * 1.5) }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <div style={{ ...body, fontSize: 46, color: brand.ink }}>{name}</div>
-        <div style={{ fontFamily: fonts.body, fontSize: 36, color: '#5B6B73' }}>Limit {usd(limit)} a month</div>
+        <div style={{ fontFamily: fonts.body, fontSize: 36, color: '#5B6B73' }}>{copy.limit(money(limit))}</div>
       </div>
       <div style={{ height: 34, borderRadius: 17, background: '#EFE7DF', marginTop: 14, overflow: 'hidden' }}>
         <div style={{ width: `${pct * 100 * p}%`, height: '100%', borderRadius: 17, background: color }} />
       </div>
       <div style={{ fontFamily: fonts.body, fontSize: 34, color, marginTop: 8 }}>
-        {usd(spent)} used · {usd(limit - spent)} left
+        {copy.used(money(spent), money(limit - spent))}
       </div>
     </div>
   );
