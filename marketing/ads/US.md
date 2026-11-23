@@ -277,6 +277,8 @@ Creado el 2026-11-21 con la cuenta de Rumi: **Rumi · Money Tracker** (@rumimone
 - "Broke in January? 🎄 How to budget the holidays": https://youtube.com/shorts/6gYKqqgFaHg (`rumi-january-en`)
 - "Saving for something? ✈️ How much to save each month for your goal": https://youtube.com/shorts/fW0kwRj7V6k (`rumi-goal-en`)
 
+Video de las fichas de Google Play en inglés (en-US, en-GB, en-CA, en-AU), puesto por API el 2026-11-22: "Where did my money go?" (https://www.youtube.com/watch?v=WUG7k611WDY). Las fichas en español (es-419, es-US) siguen con el de la prima.
+
 Foto y portada propias: `marketing/redes/avatar-en.png` (la misma mascota sobre petróleo, para distinguirlo del canal en español, que va sobre crema) y `marketing/redes/youtube-banner-en.png` ("Know where your money goes. No bank link."). Composiciones `social-avatar-en` y `social-youtube-banner-en` en `src/SocialKit.tsx`.
 
 ## Pauta pagada: en pausa (2026-11-21)
