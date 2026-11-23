@@ -23,7 +23,7 @@ Dos públicos, en grupos y campañas separados para poder medirlos por aparte:
   - Locale es-MX, con las 7 capturas de `marketing/store/v3/ios63-esus/` (APP_IPHONE_61).
   - Texto promocional: "Anota tus gastos en dólares en segundos, mira a dónde se va tu dinero y pregúntale a Rumi. Sin conectar tu banco."
   - ID `8cf0205d-4fb8-43fe-a236-061804924009`. URL: https://apps.apple.com/us/app/rumi-gastos-y-presupuesto/id6834433231?ppid=8cf0205d-4fb8-43fe-a236-061804924009
-  - Enviada a revisión el 2026-11-21 en un envío aparte de la versión de la app (envío `a23525b2`, WAITING_FOR_REVIEW). Apple tiene que aprobarla antes de poder usarla en Apple Ads. En Apple Ads se elige en el grupo de anuncios en español: Ad Variation → Custom Product Page.
+  - Enviada a revisión el 2026-11-21 en un envío aparte de la versión de la app (envío `a23525b2`). Aprobada por Apple el 2026-11-22: ya se puede usar en Apple Ads. En Apple Ads se elige en el grupo de anuncios en español: Ad Variation → Custom Product Page.
 
 ## Apple Ads (App Store)
 
@@ -275,7 +275,7 @@ Creado el 2026-11-21 con la cuenta de Rumi: **Rumi · Money Tracker** (@rumimone
 - "Why your credit card balance never goes down 💳 (the minimum payment trap)": https://youtube.com/shorts/oU1ZUYUoYAg (`rumi-card-en`)
 - "Forgot a bill again? 😬 Stop paying late fees": https://youtube.com/shorts/XSpjE3Z7oOg (`rumi-bills-en`)
 - "Broke in January? 🎄 How to budget the holidays": https://youtube.com/shorts/6gYKqqgFaHg (`rumi-january-en`)
-- Pendiente de subir: `rumi-goal-en` ("Saving for something?", ya renderizado en `out/`).
+- "Saving for something? ✈️ How much to save each month for your goal": https://youtube.com/shorts/fW0kwRj7V6k (`rumi-goal-en`)
 
 Foto y portada propias: `marketing/redes/avatar-en.png` (la misma mascota sobre petróleo, para distinguirlo del canal en español, que va sobre crema) y `marketing/redes/youtube-banner-en.png` ("Know where your money goes. No bank link."). Composiciones `social-avatar-en` y `social-youtube-banner-en` en `src/SocialKit.tsx`.
 
