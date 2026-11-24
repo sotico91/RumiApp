@@ -265,7 +265,7 @@ Para atribuir las instalaciones, no usar el total de RevenueCat: lo inflan los r
 
 ## Canal de YouTube en inglés
 
-Creado el 2026-11-21 con la cuenta de Rumi: **Rumi · Money Tracker** (@rumimoneyapp). Es aparte de @rumifinanzas para que YouTube recomiende los videos a gente que habla inglés (EE. UU., Reino Unido, Canadá). Cada video lleva el idioma "Inglés (Estados Unidos)", la descripción en inglés y el enlace de `descargar.html`. Publicados (públicos):
+Creado el 2026-11-21 con la cuenta de Rumi: **Rumi · Money Tracker** (@rumimoneyapp). Es aparte de @rumifinanzas para que YouTube recomiende los videos a gente que habla inglés (EE. UU., Reino Unido, Canadá). Cada video lleva el idioma "Inglés (Estados Unidos)" y una descripción en inglés que abre con "👉 Get Rumi free: https://sotico91.github.io/RumiApp/en/", sigue con el gancho del video y el párrafo de qué es Rumi, y cierra con 3 hashtags. Los enlaces no se pueden pulsar hasta que el canal complete la verificación única de YouTube. Publicados (públicos):
 
 - "Where did my money go? 💸 Budget app that shows you (no bank link)": https://youtube.com/shorts/WUG7k611WDY (`rumi-where-money-en`)
 - "What your daily coffee really costs ☕ $1,320 a year": https://youtube.com/shorts/ZYEJiAbvXP0 (`rumi-coffee-en`)
