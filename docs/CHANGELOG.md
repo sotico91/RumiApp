@@ -12,6 +12,7 @@ El detalle de cada cambio está en `git log`.
 
 ## 2026-11-25
 
+- **Versión 1.19.1, nieve al abrir:** del 1 de diciembre al 6 de enero de cada año cae nieve sobre la animación de entrada (la carita de Rumi) además de los copos en los encabezados (`FallingSnow` en `BootSplash`).
 - **Versión 1.19.0, Rumi de Navidad:** el ícono (iOS claro, oscuro y tintado; Android adaptativo y monocromo; splash y notificaciones) lleva un gorro de Santa grande sobre la esquina de los dos billetes, acebo en la esquina inferior del billete coral y nieve en el fondo. Se genera con `RUMI_ICON_XMAS=1 swift scripts/generate-papel-icon.swift`; **en enero** se corre sin la variable y se saca otro release para volver al ícono normal. Dentro de la app, los encabezados petróleo de cada tab muestran copos suaves del 1 de diciembre al 6 de enero (`isChristmasSeason` en `src/utils/season.ts`, `HeaderSnow`); se apagan solos sin release.
 
 ## 2026-11-21

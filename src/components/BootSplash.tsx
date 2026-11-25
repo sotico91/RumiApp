@@ -13,6 +13,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { FallingSnow } from '@/src/components/ui/FallingSnow';
 import { readShowsPro } from '@/src/hooks/usePro';
 import { translations } from '@/src/i18n/translations';
 import { colors, type } from '@/src/theme';
@@ -177,6 +178,7 @@ export function BootSplash({ onDone }: Props) {
   return (
     <Animated.View style={[styles.screen, screenStyle]} pointerEvents="box-only">
       <StatusBar style="dark" />
+      <FallingSnow />
       <Animated.View style={[styles.mark, markStyle]}>
         <Image
           source={require('../../assets/images/splash-blank.png')}

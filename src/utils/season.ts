@@ -1,6 +1,6 @@
 /**
  * Seasonal touches. Christmas runs from December 1 to January 6 (Reyes),
- * in the phone's local time, so the decoration turns itself off without a release.
+ * every year, in the phone's local time, so the decoration turns itself off without a release.
  */
 export function isChristmasSeason(date: Date = new Date()): boolean {
   const month = date.getMonth();
