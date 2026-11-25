@@ -16,6 +16,9 @@ enum SealMark {
 
 /// What the icons show on the seal.
 var iconSeal: SealMark = .monogram
+/// December edition: Santa hat on the seal, holly on the bill, snow behind.
+/// RUMI_ICON_XMAS=1 turns it on for a run.
+let christmas = ProcessInfo.processInfo.environment["RUMI_ICON_XMAS"] == "1"
 
 let root = FileManager.default.currentDirectoryPath
 let monogramFont: CTFont = {
@@ -162,6 +165,100 @@ func drawFace(_ ctx: CGContext, _ color: CGColor) {
   ctx.strokePath()
 }
 
+let hatRed = rgb(0xD62839)
+let hatShade = rgb(0xA81D2C)
+let holly = rgb(0x2E7D4F)
+let hollyDark = rgb(0x1F5E3A)
+
+/// Santa hat sitting on the seal, upright around the seal centre. The tip
+/// flops over to the right and its pompom hangs past the seal.
+func drawHat(_ ctx: CGContext, silhouette: Bool) {
+  let white = rgb(0xFFFFFF)
+  let clear = rgb(0xFFFFFF)
+  ctx.saveGState()
+  ctx.rotate(by: -12 * .pi / 180)
+  // Cone.
+  let cone = CGMutablePath()
+  cone.move(to: CGPoint(x: -7.4, y: -5.6))
+  cone.addCurve(to: CGPoint(x: 2.2, y: -18.6), control1: CGPoint(x: -6.6, y: -12.4), control2: CGPoint(x: -2.6, y: -18.2))
+  cone.addCurve(to: CGPoint(x: 10.6, y: -11.4), control1: CGPoint(x: 6.4, y: -19.0), control2: CGPoint(x: 9.6, y: -15.2))
+  cone.addCurve(to: CGPoint(x: 7.2, y: -5.6), control1: CGPoint(x: 9.0, y: -12.6), control2: CGPoint(x: 7.0, y: -9.0))
+  cone.closeSubpath()
+  ctx.addPath(cone)
+  ctx.setFillColor(silhouette ? white : hatRed)
+  ctx.fillPath()
+  if !silhouette {
+    // Fold shadow so the tip reads as flopping over.
+    let fold = CGMutablePath()
+    fold.move(to: CGPoint(x: 2.2, y: -18.6))
+    fold.addCurve(to: CGPoint(x: 10.6, y: -11.4), control1: CGPoint(x: 6.4, y: -19.0), control2: CGPoint(x: 9.6, y: -15.2))
+    fold.addCurve(to: CGPoint(x: 3.4, y: -15.4), control1: CGPoint(x: 8.2, y: -14.2), control2: CGPoint(x: 5.6, y: -15.6))
+    fold.closeSubpath()
+    ctx.addPath(fold)
+    ctx.setFillColor(hatShade)
+    ctx.fillPath()
+  }
+  // Fur brim.
+  let brim = CGRect(x: -8.6, y: -7.8, width: 17.2, height: 4.0)
+  if silhouette {
+    ctx.setBlendMode(.clear)
+    ctx.addPath(CGPath(roundedRect: brim.insetBy(dx: -0.7, dy: -0.7), cornerWidth: 2.6, cornerHeight: 2.6, transform: nil))
+    ctx.setFillColor(clear)
+    ctx.fillPath()
+    ctx.setBlendMode(.normal)
+  }
+  ctx.addPath(CGPath(roundedRect: brim, cornerWidth: 2.0, cornerHeight: 2.0, transform: nil))
+  ctx.setFillColor(white)
+  ctx.fillPath()
+  // Pompom.
+  ctx.setFillColor(white)
+  ctx.fillEllipse(in: CGRect(x: 10.6 - 2.3, y: -11.4 - 2.3, width: 4.6, height: 4.6))
+  ctx.restoreGState()
+}
+
+/// Holly sprig: two leaves and three berries, around the origin.
+func drawHolly(_ ctx: CGContext, silhouette: Bool) {
+  let white = rgb(0xFFFFFF)
+  func leaf(_ angle: CGFloat) {
+    ctx.saveGState()
+    ctx.rotate(by: angle * .pi / 180)
+    let path = CGMutablePath()
+    path.move(to: .zero)
+    path.addCurve(to: CGPoint(x: 9.0, y: 0), control1: CGPoint(x: 2.5, y: -3.6), control2: CGPoint(x: 6.5, y: -3.6))
+    path.addCurve(to: .zero, control1: CGPoint(x: 6.5, y: 3.6), control2: CGPoint(x: 2.5, y: 3.6))
+    ctx.addPath(path)
+    ctx.setFillColor(silhouette ? white : holly)
+    ctx.fillPath()
+    if !silhouette {
+      ctx.move(to: CGPoint(x: 0.8, y: 0))
+      ctx.addLine(to: CGPoint(x: 7.6, y: 0))
+      ctx.setStrokeColor(hollyDark)
+      ctx.setLineWidth(0.5)
+      ctx.strokePath()
+    }
+    ctx.restoreGState()
+  }
+  leaf(-160)
+  leaf(-110)
+  for (x, y) in [(-0.4, 1.4), (1.9, 0.3), (1.4, 2.8)] as [(CGFloat, CGFloat)] {
+    ctx.setFillColor(silhouette ? white : hatRed)
+    ctx.fillEllipse(in: CGRect(x: x - 1.4, y: y - 1.4, width: 2.8, height: 2.8))
+  }
+}
+
+/// Soft snow dots on the background, fixed so every render matches.
+func drawSnow(_ ctx: CGContext, dark: Bool) {
+  let dots: [(CGFloat, CGFloat, CGFloat)] = [
+    (12, 14, 1.4), (27, 8, 0.9), (44, 15, 1.1), (63, 9, 1.5), (82, 16, 1.0), (91, 6, 0.8),
+    (7, 33, 0.9), (93, 34, 1.3), (14, 70, 1.2), (6, 86, 0.8), (88, 74, 0.9), (95, 90, 1.3),
+    (28, 88, 1.0), (47, 93, 1.4), (69, 87, 0.9), (79, 26, 0.7), (20, 24, 0.7), (36, 80, 0.7),
+  ]
+  ctx.setFillColor(dark ? rgb(0xFFFFFF, 0.55) : rgb(0xFFFFFF, 0.95))
+  for (x, y, r) in dots {
+    ctx.fillEllipse(in: CGRect(x: x - r, y: y - r, width: r * 2, height: r * 2))
+  }
+}
+
 /// `sealOnly` draws just the seal's mark (no bills), for layers BootSplash fades.
 func drawMark(_ ctx: CGContext, style: Style, seal sealMark: SealMark?, sealOnly: Bool = false) {
   let clear = rgb(0xFFFFFF)
@@ -245,6 +342,17 @@ func drawMark(_ ctx: CGContext, style: Style, seal sealMark: SealMark?, sealOnly
       }
       ctx.restoreGState()
     }
+    if christmas && !sealOnly {
+      // Holly tucked in the bill's top-left corner, hat on the seal.
+      ctx.saveGState()
+      ctx.translateBy(x: -billW / 2 + 5.2, y: -billH / 2 + 4.6)
+      drawHolly(ctx, silhouette: silhouette)
+      ctx.restoreGState()
+      ctx.saveGState()
+      ctx.rotate(by: -frontAngle * .pi / 180)
+      drawHat(ctx, silhouette: silhouette)
+      ctx.restoreGState()
+    }
   }
 }
 
@@ -279,6 +387,10 @@ func writePNG(
   if background, case .color(let p) = style {
     ctx.setFillColor(p.background)
     ctx.fill(CGRect(x: 0, y: 0, width: 100, height: 100))
+    if christmas {
+      // Background colour tells light from dark. Android draws it on its own layer too.
+      drawSnow(ctx, dark: p.background != cream)
+    }
   }
   if markScale > 0 {
     // Transparent layers draw the mark on its own layer so punched-out parts
@@ -311,6 +423,12 @@ func writePNG(
 
 // Run from the repo root: swift scripts/generate-papel-icon.swift
 // RUMI_ICON_PREVIEW=<dir> only writes one icon per seal mark there, to compare.
+if let previewDir = ProcessInfo.processInfo.environment["RUMI_ICON_PREVIEW"], christmas {
+  writePNG(size: 1024, path: "\(previewDir)/xmas.png", style: .color(light), background: true, markScale: 1)
+  writePNG(size: 1024, path: "\(previewDir)/xmas-dark.png", style: .color(dark), background: true, markScale: 1)
+  writePNG(size: 432, path: "\(previewDir)/xmas-mono.png", style: .silhouette, background: false, markScale: 0.74)
+  exit(0)
+}
 if let previewDir = ProcessInfo.processInfo.environment["RUMI_ICON_PREVIEW"] {
   for (name, mark) in [("face", SealMark.face), ("ring", .ring), ("monogram", .monogram)] {
     writePNG(size: 1024, path: "\(previewDir)/seal-\(name).png", style: .color(light), background: true, markScale: 1, seal: mark)

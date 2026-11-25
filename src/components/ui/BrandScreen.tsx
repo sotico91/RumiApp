@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { KeyboardSafeScroll } from '@/src/components/KeyboardSafe';
+import { HeaderSnow } from '@/src/components/ui/HeaderSnow';
 import { colors, radius, scale, space } from '@/src/theme';
 
 type Props = {
@@ -57,6 +58,7 @@ export function BrandScreen({
               end={{ x: 1, y: 1 }}
               style={StyleSheet.absoluteFill}
             />
+            <HeaderSnow />
             {header}
           </View>
         </View>
