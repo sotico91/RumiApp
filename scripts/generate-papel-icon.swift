@@ -16,7 +16,7 @@ enum SealMark {
 
 /// What the icons show on the seal.
 var iconSeal: SealMark = .monogram
-/// December edition: Santa hat on the seal, holly on the bill, snow behind.
+/// December edition: Santa hat over the bills, holly on the coral bill, snow behind.
 /// RUMI_ICON_XMAS=1 turns it on for a run.
 let christmas = ProcessInfo.processInfo.environment["RUMI_ICON_XMAS"] == "1"
 
@@ -164,6 +164,21 @@ func drawFace(_ ctx: CGContext, _ color: CGColor) {
   ctx.setLineCap(.round)
   ctx.strokePath()
 }
+
+/// Where the brim's centre sits, in the front bill's coordinates (rotated with
+/// it), plus tilt and size. RUMI_HAT="x,y,angle,scale" overrides it.
+let hatPlace: (x: CGFloat, y: CGFloat, angle: CGFloat, scale: CGFloat) = {
+  if let raw = ProcessInfo.processInfo.environment["RUMI_HAT"] {
+    let v = raw.split(separator: ",").compactMap { Double($0) }.map { CGFloat($0) }
+    if v.count == 4 { return (v[0], v[1], v[2], v[3]) }
+  }
+  // Over the top-left corner of both bills, tilted the other way.
+  return (-24, -11, -28, 1.45)
+}()
+
+/// Holly sits in the bill's bottom-right corner (the hat takes the top-left);
+/// RUMI_HOLLY=tl moves it to the top-left.
+let hollyBottomRight = ProcessInfo.processInfo.environment["RUMI_HOLLY"] != "tl"
 
 let hatRed = rgb(0xD62839)
 let hatShade = rgb(0xA81D2C)
@@ -345,11 +360,20 @@ func drawMark(_ ctx: CGContext, style: Style, seal sealMark: SealMark?, sealOnly
     if christmas && !sealOnly {
       // Holly tucked in the bill's top-left corner, hat on the seal.
       ctx.saveGState()
-      ctx.translateBy(x: -billW / 2 + 5.2, y: -billH / 2 + 4.6)
+      if hollyBottomRight {
+        ctx.translateBy(x: billW / 2 - 5.2, y: billH / 2 - 4.6)
+        ctx.rotate(by: .pi)
+      } else {
+        ctx.translateBy(x: -billW / 2 + 5.2, y: -billH / 2 + 4.6)
+      }
       drawHolly(ctx, silhouette: silhouette)
       ctx.restoreGState()
       ctx.saveGState()
-      ctx.rotate(by: -frontAngle * .pi / 180)
+      ctx.translateBy(x: hatPlace.x, y: hatPlace.y)
+      ctx.rotate(by: hatPlace.angle * .pi / 180)
+      ctx.scaleBy(x: hatPlace.scale, y: hatPlace.scale)
+      // drawHat is built around a seal centre; its brim sits 5.8 above it.
+      ctx.translateBy(x: 0, y: 5.8)
       drawHat(ctx, silhouette: silhouette)
       ctx.restoreGState()
     }
