@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Platform } from 'react-native';
 
 import { useLanguage } from '@/src/i18n/LanguageContext';
 import {
@@ -20,12 +21,21 @@ type Heard = { text: string; movement: DictatedMovement };
  * still fail at once (language not downloaded), and some audio hardware
  * refuses voice processing. A way that fails right away is skipped for the
  * rest of the app session.
+ *
+ * On Android voice processing does not apply, so the last way asks Google's
+ * recognizer by name: some tablets (Samsung, Lenovo) default to a recognizer
+ * that opens and closes at once without hearing anything.
  */
 type Rung = 'device' | 'system' | 'plain';
-const RUNGS: Record<Rung, { onDevice: boolean; voiceProcessing: boolean }> = {
+const GOOGLE_RECOGNIZER = 'com.google.android.googlequicksearchbox';
+const RUNGS: Record<Rung, { onDevice: boolean; voiceProcessing: boolean; service?: string }> = {
   device: { onDevice: true, voiceProcessing: true },
   system: { onDevice: false, voiceProcessing: true },
-  plain: { onDevice: false, voiceProcessing: false },
+  plain: {
+    onDevice: false,
+    voiceProcessing: false,
+    service: Platform.OS === 'android' ? GOOGLE_RECOGNIZER : undefined,
+  },
 };
 const failedRungs = new Set<Rung>();
 /** A take that ends this soon with nothing heard did not really start. */
@@ -105,8 +115,8 @@ export function useDictation(
   const listen = useCallback((lang: string, rung: Rung) => {
     const mod = speechModule();
     if (!mod) return;
-    const { onDevice, voiceProcessing } = RUNGS[rung];
-    mod.start(listenOptions(lang, onDevice, latest.current.vocabulary, voiceProcessing));
+    const { onDevice, voiceProcessing, service } = RUNGS[rung];
+    mod.start(listenOptions(lang, onDevice, latest.current.vocabulary, voiceProcessing, service));
   }, []);
 
   /** The take failed before hearing anything: try the next way to listen. */
@@ -188,7 +198,10 @@ export function useDictation(
         if (!active.current || ev.error === 'aborted') return;
         // Permissions were checked before starting: a "not-allowed" here is the
         // module reporting any failure to start (audio engine, recognizer).
-        if (ev.error !== 'no-speech' && ev.error !== 'speech-timeout' && retryNextRung()) return;
+        // A "no-speech" within a moment of starting (no mic level yet) also
+        // means the recognizer never listened: some tablets report it that way.
+        const silent = ev.error === 'no-speech' || ev.error === 'speech-timeout';
+        if ((!silent || takePeak.current <= 0) && retryNextRung()) return;
         clearTimers();
         active.current = false;
         setLevel(0);

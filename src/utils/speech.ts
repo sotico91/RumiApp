@@ -97,9 +97,11 @@ export function listenOptions(
   lang: string,
   onDevice: boolean,
   vocabulary: string[],
-  voiceProcessing = true
+  voiceProcessing = true,
+  androidService?: string
 ): ExpoSpeechRecognitionOptions {
   return {
+    ...(androidService ? { androidRecognitionServicePackage: androidService } : {}),
     lang,
     interimResults: true,
     maxAlternatives: 5,
