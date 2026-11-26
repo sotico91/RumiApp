@@ -35,13 +35,13 @@ const cueStarts = (srt: string) =>
 const out: Record<string, { seconds: number[]; dripAt: number[] }> = existsSync(OUT) ? JSON.parse(readFileSync(OUT, 'utf8')) : {};
 const ids = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(NEED_EN);
 for (const id of ids) {
-  const { lines, drip } = NEED_EN[id];
+  const { lines, drip, voice = VOICE } = NEED_EN[id];
   mkdirSync(`public/voice/${id}`, { recursive: true });
   out[id] = { seconds: [], dripAt: [] };
   for (const [i, line] of lines.entries()) {
     const file = `public/voice/${id}/${i + 1}.mp3`;
     const srt = join(tmpdir(), `rumi-${id}-${i + 1}.srt`);
-    execFileSync(tts, ['--voice', VOICE, `--rate=${RATE}`, '--text', line, '--write-media', file, '--write-subtitles', srt]);
+    execFileSync(tts, ['--voice', voice, `--rate=${RATE}`, '--text', line, '--write-media', file, '--write-subtitles', srt]);
     out[id].seconds.push(seconds(file));
     if (i === drip) out[id].dripAt = cueStarts(readFileSync(srt, 'utf8'));
     console.log(`${id} ${out[id].seconds[i].toFixed(2)}s  ${line}`);

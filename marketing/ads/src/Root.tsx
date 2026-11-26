@@ -5,7 +5,7 @@ import { FPS } from './brand';
 import { ads } from './ads';
 import { Mascot, mascotFrames } from './Mascot';
 import { MoneyEnVideo, moneyEnFrames } from './MoneyEnVideo';
-import { BillsEn, billsEnFrames, CardEn, cardEnFrames, GoalEn, goalEnFrames, JanuaryEn, januaryEnFrames, SmallSpendsEn, smallSpendsEnFrames } from './NeedEn';
+import { BillsEn, billsEnFrames, BlackFridayEn, blackFridayEnFrames, CardEn, cardEnFrames, GoalEn, goalEnFrames, JanuaryEn, januaryEnFrames, SmallSpendsEn, smallSpendsEnFrames } from './NeedEn';
 import { EneroEs, eneroEsFrames, MetaEs, metaEsFrames, ReciboEs, reciboEsFrames, TarjetaEs, tarjetaEsFrames } from './NeedEs';
 import { mascotVideos } from './mascot-scenes';
 import { FacebookCover, SocialAvatar, YoutubeBanner, YoutubeBannerEn } from './SocialKit';
@@ -72,6 +72,7 @@ export function RemotionRoot() {
       <Composition id="rumi-bills-en" component={BillsEn} width={1080} height={1920} fps={FPS} durationInFrames={billsEnFrames} />
       <Composition id="rumi-january-en" component={JanuaryEn} width={1080} height={1920} fps={FPS} durationInFrames={januaryEnFrames} />
       <Composition id="rumi-goal-en" component={GoalEn} width={1080} height={1920} fps={FPS} durationInFrames={goalEnFrames} />
+      <Composition id="rumi-blackfriday-en" component={BlackFridayEn} width={1080} height={1920} fps={FPS} durationInFrames={blackFridayEnFrames} />
       <Composition id="rumi-tarjeta-es" component={TarjetaEs} width={1080} height={1920} fps={FPS} durationInFrames={tarjetaEsFrames} />
       <Composition id="rumi-recibo-es" component={ReciboEs} width={1080} height={1920} fps={FPS} durationInFrames={reciboEsFrames} />
       <Composition id="rumi-enero-es" component={EneroEs} width={1080} height={1920} fps={FPS} durationInFrames={eneroEsFrames} />

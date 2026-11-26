@@ -2,7 +2,7 @@
 // voice/need-en.ts speaks them into public/voice/<id>/<n>.mp3. `drip` is the line whose
 // sentences pop cards one by one (one item per sentence). Numbers in words for the voice.
 // Amounts on screen and in the lines must agree; Rumi's answers copy the app's English text.
-export const NEED_EN: Record<string, { lines: string[]; drip?: number }> = {
+export const NEED_EN: Record<string, { lines: string[]; drip?: number; voice?: string }> = {
   // "It's just $5": small spends that add up. $310 a month × 12 = $3,720 a year.
   'small-en': {
     drip: 1,
@@ -79,6 +79,22 @@ export const NEED_EN: Record<string, { lines: string[]; drip?: number }> = {
       'I tell you exactly how much to put in each month.',
       'Then watch it grow, until you get there.',
       'Rumi. Free on the App Store and Google Play. No bank link.',
+    ],
+  },
+  // "Black Friday": a $720 cart with $640 free this month (bills still to come already out).
+  // TV $499 → $141 left; the whole cart is $80 more than what is free. Male narrator (owner's pick).
+  'bf-en': {
+    voice: 'en-US-BrianNeural',
+    drip: 1,
+    lines: [
+      'Black Friday. Everything is half off!',
+      'A TV. Headphones. Sneakers. A jacket.',
+      'Your cart: seven hundred twenty dollars. And payday is still two weeks away.',
+      'A deal isn’t a deal if it leaves you short.',
+      'Ask me first!',
+      'Before you buy, ask Rumi. It checks the bills you still have to pay, and tells you what’s left.',
+      'The whole cart? That’s eighty dollars more than you have free. Now you know, before you pay.',
+      'Rumi. On the App Store and Google Play. No bank link.',
     ],
   },
 };

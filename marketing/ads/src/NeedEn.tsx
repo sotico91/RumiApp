@@ -832,3 +832,92 @@ export function GoalEn() {
   );
 }
 export const goalEnFrames = timeline('goal-en', 4).frames;
+
+/* ---------- "Black Friday" (bf-en), male narrator ---------- */
+
+const CART = [
+  { icon: '📺', name: 'TV', amount: 499 },
+  { icon: '🎧', name: 'Headphones', amount: 89 },
+  { icon: '👟', name: 'Sneakers', amount: 72 },
+  { icon: '🧥', name: 'Jacket', amount: 60 },
+];
+
+function Sale() {
+  const a = usePop(0.1, 9);
+  const b = usePop(1.2, 12);
+  return (
+    <AbsoluteFill style={{ background: dark, alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+      <div style={{ ...big, fontSize: 150, color: brand.cream, lineHeight: 1.05, transform: `scale(${0.7 + a * 0.3})`, opacity: a }}>BLACK<br />FRIDAY</div>
+      <div style={{ ...big, fontSize: 200, color: '#FF6B4A', marginTop: 30, opacity: b, transform: `rotate(-4deg) scale(${0.6 + b * 0.4})` }}>-50%</div>
+    </AbsoluteFill>
+  );
+}
+
+/** The cart filling up, one item per sentence of the line. */
+function CartPile() {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const t = frame / fps;
+  const at = voiceOf('bf-en').dripAt;
+  const shown = at.filter((x) => t >= x).length;
+  const total = CART.slice(0, shown).reduce((s, x) => s + x.amount, 0);
+  return (
+    <AbsoluteFill style={{ background: cream, alignItems: 'center' }}>
+      <div style={{ ...body, fontSize: 48, color: brand.petrol700, marginTop: 150, letterSpacing: 3, textTransform: 'uppercase' }}>🛒 Your cart</div>
+      <div style={{ ...big, fontSize: 170, color: brand.coral, fontVariantNumeric: 'tabular-nums' }}>{usd(total)}</div>
+      <div style={{ position: 'absolute', top: 560, left: 80, right: 80 }}>
+        {CART.slice(0, shown).map((s, i) => {
+          const enter = spring({ frame: f(t - at[i]), fps, config: { damping: 13 }, durationInFrames: 14 });
+          return (
+            <div key={i} style={{ ...card, display: 'flex', alignItems: 'center', gap: 26, height: 160, marginBottom: 26, padding: '0 40px', opacity: Math.min(1, enter * 1.5), transform: `translateX(${(1 - enter) * 300}px)` }}>
+              <div style={{ fontSize: 80 }}>{s.icon}</div>
+              <div style={{ flex: 1, ...body, fontSize: 52, color: brand.ink }}>{s.name}</div>
+              <div style={{ ...big, fontSize: 60, color: brand.coral }}>{usd(s.amount)}</div>
+            </div>
+          );
+        })}
+      </div>
+      {at.map((x, i) => (
+        <Sequence key={i} from={f(x)} durationInFrames={f(0.6)}>
+          <Audio src={staticFile('sfx/pop.mp3')} volume={0.35} />
+        </Sequence>
+      ))}
+    </AbsoluteFill>
+  );
+}
+
+// Rumi's answers copy the app's English text (search.answerAffordRoom / answerAffordRoomOver).
+export function BlackFridayEn() {
+  const id = 'bf-en';
+  return (
+    <Shell
+      id={id}
+      rumiAt={4}
+      scenes={[
+        <Sale />,
+        <CartPile />,
+        <BigCount kicker="Cart total" to={720} at={[0.4, 1.8]} under="Payday in 14 days 😬" underAt={2.4} bg={dark} tone="#FF6B4A" />,
+        <Truth a="A deal isn’t a deal" b="if it leaves you short." />,
+        <RumiEnters voice={`voice/${id}/5.mp3`} text={['Ask me', 'first!']} />,
+        <Chat
+          q="Can I afford a $499 TV?"
+          a={
+            <>
+              You have <b>$640</b> free for the rest of the month (bills still to come already taken out); after $499, <b style={{ color: GREEN }}>$141</b> would be left.
+            </>
+          }
+        />,
+        <Chat
+          q="Can I afford $720?"
+          a={
+            <>
+              You have <b>$640</b> free for the rest of the month (bills still to come already taken out): $720 is <b style={{ color: brand.coral }}>$80 more</b> than that.
+            </>
+          }
+        />,
+        <End id={id} tagline="Ask before you buy." />,
+      ]}
+    />
+  );
+}
+export const blackFridayEnFrames = timeline('bf-en', 4).frames;
