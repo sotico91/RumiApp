@@ -35,3 +35,24 @@ Enlace para todas: `https://sotico91.github.io/RumiApp/en/` · Foto: `marketing/
 - **First comment (maker):** cómo nació, por qué sin banco, qué tiene Pro y la pregunta "what would make you switch from your current app?".
 - **Galería:** las capturas en inglés de `marketing/store/v3/` y el video "Where did my money go?".
 - **Lanzamiento:** de martes a jueves, a las 00:01 hora del Pacífico (3:01 a. m. en Colombia). Avisar ese día a testers, canales y redes.
+
+### Post para r/SideProject (desde el 3 de diciembre, después de una semana comentando)
+
+**Title:** I built a budget app that never asks for your bank login
+
+**Body:**
+
+Most budgeting apps I tried wanted my bank password before showing me anything. I didn't want that, so I built my own: Rumi.
+
+- No account and no bank link. Everything stays encrypted on your phone.
+- Log a spend in a couple of seconds, or just say it ("12 dollars lunch").
+- Ask it things in plain words: "Can I afford a $499 TV?" It looks at the bills you still have to pay this month and tells you what's left.
+- It shows the small spends that quietly eat your paycheck.
+
+It's free on iPhone and Android (Pro adds the "Can I afford it?" checks and debt plans). English and Spanish.
+
+I'm one developer doing this alone, so honest feedback helps a lot: what would make you switch from what you use today?
+
+Link: https://sotico91.github.io/RumiApp/en/
+
+**Reglas:** responder cada comentario el mismo día. No publicar el mismo texto en dos subreddits el mismo día. En r/iosapps y r/androidapps, leer primero las reglas fijadas (algunos piden un formato de título o un día concreto para la autopromoción).
