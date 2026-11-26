@@ -56,3 +56,54 @@ I'm one developer doing this alone, so honest feedback helps a lot: what would m
 Link: https://sotico91.github.io/RumiApp/en/
 
 **Reglas:** responder cada comentario el mismo día. No publicar el mismo texto en dos subreddits el mismo día. En r/iosapps y r/androidapps, leer primero las reglas fijadas (algunos piden un formato de título o un día concreto para la autopromoción).
+
+## Reddit: kit completo (u/rumimoneyapp, creada el 2026-11-26)
+
+### Calendario
+
+| Fecha | Qué hacer |
+|---|---|
+| 26 nov – 2 dic | 2 o 3 comentarios útiles al día en r/budget, r/povertyfinance, r/personalfinance y r/Frugal. Sin enlaces y sin nombrar a Rumi. |
+| Mié 3 dic | Post en r/SideProject (texto arriba). Responder todo ese día. |
+| Mié 10 dic | Post en r/iosapps (texto abajo). |
+| Mié 17 dic | Post en r/androidapps (texto abajo). |
+| Desde entonces | Seguir comentando. Nombrar a Rumi solo si alguien pide una app de presupuesto sin banco, y decir siempre que eres quien la hizo. |
+
+Antes de cada post, leer las reglas fijadas del subreddit (algunos tienen un hilo semanal para autopromoción o piden un formato de título).
+
+### Respuestas de base para comentar (adaptarlas a cada hilo)
+
+**"How do I start a budget?"**
+> Don't start with a budget, start with 2 weeks of writing down every spend, even the $3 ones. Then look at the 2-3 categories that surprised you and put a limit only on those. A budget built on real numbers is one you'll actually keep.
+
+**"Paycheck to paycheck, where does my money go?"**
+> Split it by paycheck instead of by month: list the bills that come out before the next payday, subtract them the day you get paid, and what's left is your real spending money until then. It stops the "I had money on the 15th and nothing on the 20th" feeling.
+
+**"Should I pay off my credit card or save?"**
+> Pay at least the minimum on everything, keep a small emergency cushion ($500-1,000), then throw everything extra at the highest-interest card. Paying only the minimum on a ~22% card can take 4+ years and cost more in interest than half the balance.
+
+**"Small purchases are killing me"**
+> Add up one category for a month, like coffee or delivery. $5 a day is about $150 a month and $1,800 a year. Seeing the yearly number is usually what makes it click. Then pick one to cut, not all of them.
+
+**"Any budgeting app that doesn't need my bank login?"** (aquí sí se puede nombrar)
+> Full disclosure, I'm the developer: I made Rumi for exactly this. No account, no bank link, everything stays on your phone, and you log spends by typing or saying them. Free on iPhone and Android. If you'd rather not use an app, a simple spreadsheet with date / amount / category works too.
+
+### Post para r/iosapps (10 dic)
+
+**Title:** [Free] Rumi: a budget app with no account and no bank link
+
+**Body:**
+I'm the developer. Rumi is a money tracker for people who don't want to hand their bank login to an app.
+
+- No sign-up, no email. Data stays encrypted on your iPhone.
+- Log a spend by typing or by voice.
+- Ask in plain English: "How much did I spend on coffee this month?" or "Can I afford a $499 TV?"
+- Limits that warn you before you overspend, bill reminders, savings goals.
+
+Free, with an optional Pro. English and Spanish. Feedback very welcome, especially what's missing.
+
+App Store: https://apps.apple.com/us/app/rumi-gastos-y-presupuesto/id6834433231
+
+### Post para r/androidapps (17 dic)
+
+Mismo texto que el de r/iosapps, con "on your phone" en vez de "on your iPhone" y el enlace de Google Play: https://play.google.com/store/apps/details?id=com.sotico91.rumiapp
